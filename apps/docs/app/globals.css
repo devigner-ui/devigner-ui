@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Colors — Devigner Design System */
+  --color-background: var(--background);
+  --color-background-100: var(--background-100);
+  --color-background-200: var(--background-200);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+
+  /* Border */
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+
+  /* Text scale */
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-600: var(--gray-600);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  --color-gray-1000: var(--gray-1000);
+
+  /* Semantic text */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-dark: var(--text-on-dark);
+
+  /* Accent */
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+
+  /* Utility */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Typography — Geist */
+  --font-sans: "Geist", "Inter", system-ui, sans-serif;
+  --font-mono: "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+
+  /* Radius — exact from design system */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --radius-2xl: 32px;
+  --radius-badge: 64px;
+  --radius-pill: 9999px;
+
+  /* Shadows — evidence-backed */
+  --shadow-card: var(--shadow-card-val);
+  --shadow-subtle: var(--shadow-subtle-val);
+  --shadow-ring: var(--shadow-ring-val);
+
+  /* Easing */
+  --ease-fluid: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Light theme (default) */
+:root {
+  --background: #ffffff;
+  --background-100: #ffffff;
+  --background-200: #fafafa;
+  --foreground: #171717;
+  --surface: #fafafa;
+  --surface-hover: #f2f2f2;
+
+  --border: #ebebeb;
+  --border-hover: #d4d4d4;
+
+  --gray-100: #f2f2f2;
+  --gray-200: #ebebeb;
+  --gray-600: #a8a8a8;
+  --gray-800: #7d7d7d;
+  --gray-900: #4d4d4d;
+  --gray-1000: #171717;
+
+  --text-primary: #171717;
+  --text-secondary: #4d4d4d;
+  --text-tertiary: #7d7d7d;
+  --text-muted: #a8a8a8;
+  --text-on-dark: #ffffff;
+
+  --accent: #0070f3;
+  --accent-foreground: #ffffff;
+  --accent-hover: #0060df;
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --shadow-card-val: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+  --shadow-subtle-val: 0px 2px 2px 0px rgba(0, 0, 0, 0.04);
+  --shadow-ring-val: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark theme */
+.dark {
+  --background: #0a0a0a;
+  --background-100: #111111;
+  --background-200: #171717;
+  --foreground: #fafafa;
+  --surface: #171717;
+  --surface-hover: #262626;
+
+  --border: #262626;
+  --border-hover: #404040;
+
+  --gray-100: #262626;
+  --gray-200: #333333;
+  --gray-600: #a3a3a3;
+  --gray-800: #d4d4d4;
+  --gray-900: #e5e5e5;
+  --gray-1000: #fafafa;
+
+  --text-primary: #fafafa;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
+  --text-muted: #525252;
+  --text-on-dark: #0a0a0a;
+
+  --accent: #3288f5;
+  --accent-foreground: #ffffff;
+  --accent-hover: #60a5fa;
+
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+
+  --shadow-card-val: 0px 0px 0px 1px rgba(255, 255, 255, 0.06);
+  --shadow-subtle-val: 0px 2px 2px 0px rgba(0, 0, 0, 0.3);
+  --shadow-ring-val: 0px 0px 0px 1px rgba(255, 255, 255, 0.06);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

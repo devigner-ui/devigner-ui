@@ -1,0 +1,45 @@
+{
+  "name": "badge",
+  "type": "component",
+  "category": "primitives",
+  "description": "Small label component for status, categories, and tags",
+  "styles": [
+    {
+      "name": "Default",
+      "slug": "default",
+      "description": "Clean, minimal shadcn/ui-style badge",
+      "free": true,
+      "status": "stable",
+      "dependencies": ["class-variance-authority", "clsx", "tailwind-merge"]
+    },
+    {
+      "name": "Pill",
+      "slug": "pill",
+      "description": "Rounded pill badge with subtle gradient",
+      "free": true,
+      "status": "new",
+      "dependencies": ["clsx", "tailwind-merge"]
+    },
+    {
+      "name": "Dot",
+      "slug": "dot",
+      "description": "Badge with animated dot indicator",
+      "free": false,
+      "status": "new",
+      "dependencies": ["motion", "clsx", "tailwind-merge"]
+    }
+  ],
+  "variants": [
+    { "name": "Default", "slug": "default" },
+    { "name": "Secondary", "slug": "secondary" },
+    { "name": "Outline", "slug": "outline" },
+    { "name": "Destructive", "slug": "destructive" },
+    { "name": "Success", "slug": "success" },
+    { "name": "Warning", "slug": "warning" }
+  ],
+  "files": {
+    "default": [{ "path": "components/ui/badge-default.tsx", "type": "registry:ui" }],
+    "pill": [{ "path": "components/ui/badge-pill.tsx", "type": "registry:ui" }],
+    "dot": [{ "path": "components/ui/badge-dot.tsx", "type": "registry:ui" }]
+  }
+}

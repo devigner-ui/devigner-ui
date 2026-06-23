@@ -1,0 +1,22 @@
+{
+  "name": "@devignerui/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "devignerui": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "~5.8.0"
+  }
+}
