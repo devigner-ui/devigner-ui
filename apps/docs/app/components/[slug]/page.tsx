@@ -2,8 +2,53 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { CopyButton } from "../../../components/copy-button";
 import { ThemeToggle } from "../../../components/theme-provider";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function Reveal({
+  children,
+  className,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 20, filter: "blur(4px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.7, delay, ease: EASE }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Navbar() {
+  return (
+    <div className="fixed top-0 inset-x-0 z-50 flex justify-center px-4 pt-4">
+      <nav className="nav-pill flex h-12 w-full max-w-3xl items-center justify-between rounded-full px-4 bg-background/80 border border-border shadow-elevated">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-foreground tracking-tight">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">D</span>
+          <span className="text-sm">Devigner</span>
+        </Link>
+        <div className="flex items-center gap-0.5">
+          <Link href="/" className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200">Home</Link>
+          <Link href="/components" className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200">Components</Link>
+          <div className="mx-1.5 h-4 w-px bg-border" />
+          <ThemeToggle />
+        </div>
+      </nav>
+    </div>
+  );
+}
 
 interface DesignStyle {
   name: string;
@@ -593,153 +638,169 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   if (!meta || !currentStyle) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-[16px] leading-[24px] text-text-muted">Loading...</p>
+        <div className="grain-overlay" />
+        <p className="text-[14px] text-text-muted">Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-[50px] max-w-6xl items-center justify-between px-[16px]">
-          <Link href="/" className="text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">
-            Devigner UI
-          </Link>
-          <div className="flex items-center gap-[24px]">
-            <Link href="/" className="text-[14px] font-medium leading-[20px] text-text-secondary hover:text-foreground transition-colors">
-              Home
-            </Link>
-            <Link href="/components" className="text-[14px] font-medium leading-[20px] text-text-secondary hover:text-foreground transition-colors">
-              Components
-            </Link>
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <div className="grain-overlay" />
+      <Navbar />
 
-      <div className="mx-auto max-w-6xl px-[16px] py-[48px]">
-        {/* Header */}
-        <div className="mb-[32px]">
-          <h1 className="text-[32px] font-semibold leading-[48px] tracking-[-1.28px] text-foreground">{meta.name}</h1>
-          <p className="mt-[8px] text-[16px] leading-[24px] text-text-secondary">{meta.description}</p>
-          <div className="mt-[16px] flex items-center gap-[16px] text-[14px] leading-[21px] text-text-muted">
-            <span>{meta.category}</span>
-            <span>&middot;</span>
-            <span>{componentStyles.length} styles</span>
-            <span>&middot;</span>
-            <span>{meta.variants.length} variants per style</span>
-          </div>
+      {/* Header */}
+      <section className="relative pt-32 pb-8 sm:pt-40">
+        <div className="absolute inset-0 mesh-gradient" />
+        <div className="relative mx-auto max-w-7xl px-5">
+          <Reveal>
+            <div className="flex items-center gap-2 text-[13px] text-text-muted mb-4">
+              <Link href="/components" className="hover:text-foreground transition-colors duration-200">Components</Link>
+              <span>/</span>
+              <span className="text-foreground">{meta.name}</span>
+            </div>
+          </Reveal>
+          <Reveal delay={0.05}>
+            <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.04em] text-foreground">
+              {meta.name}
+            </h1>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <p className="mt-3 max-w-lg text-base leading-relaxed text-text-secondary">
+              {meta.description}
+            </p>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <div className="mt-4 flex items-center gap-4 text-[13px] text-text-muted">
+              <span>{meta.category}</span>
+              <span className="text-border">·</span>
+              <span>{componentStyles.length} styles</span>
+              <span className="text-border">·</span>
+              <span>{meta.variants.length} variants per style</span>
+            </div>
+          </Reveal>
         </div>
+      </section>
 
-        {/* Design Style Switcher */}
-        <div className="mb-[32px]">
-          <h2 className="mb-[16px] text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">Design Style</h2>
-          <div className="flex flex-wrap gap-[12px]">
-            {componentStyles.map((style, i) => (
-              <button
-                key={style.slug}
-                onClick={() => setActiveStyle(i)}
-                className={`flex items-center gap-[12px] rounded-[16px] border p-[24px] text-left transition-all ${
-                  i === activeStyle
-                    ? "border-accent bg-accent/5 shadow-[0px_0px_0px_1px_rgba(0,112,243,0.15)]"
-                    : "border-border hover:border-border-hover hover:bg-surface"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center gap-[8px]">
-                    <span className="text-[14px] font-medium leading-[20px] text-foreground">{style.name}</span>
-                    {style.free ? (
-                      <span className="rounded-[9999px] bg-success/10 px-[8px] py-[2px] text-[12px] font-medium leading-[16px] text-success">
-                        Free
-                      </span>
-                    ) : (
-                      <span className="rounded-[9999px] bg-accent/10 px-[8px] py-[2px] text-[12px] font-medium leading-[16px] text-accent">
-                        Pro
-                      </span>
-                    )}
-                    {style.status === "new" && (
-                      <span className="rounded-[9999px] bg-accent/10 px-[8px] py-[2px] text-[12px] font-medium leading-[16px] text-accent">
-                        New
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-[4px] text-[12px] leading-[16px] text-text-muted">{style.description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Current Style Info */}
-        <div className="mb-[32px] rounded-[16px] border border-border bg-surface p-[24px]">
-          <div className="flex items-center justify-between">
+      {/* Content */}
+      <section className="section-editorial py-8 sm:py-12">
+        <div className="mx-auto max-w-7xl px-5">
+          <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+            {/* Main: Style switcher + Code */}
             <div>
-              <h3 className="text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">{currentStyle.name} Style</h3>
-              <p className="mt-[4px] text-[14px] leading-[21px] text-text-secondary">{currentStyle.description}</p>
-            </div>
-            <div className="text-right">
-              <span className={`inline-flex items-center rounded-[9999px] px-[10px] py-[2px] text-[12px] font-medium leading-[16px] ${
-                currentStyle.free
-                  ? "bg-success/10 text-success"
-                  : "bg-accent/10 text-accent"
-              }`}>
-                {currentStyle.free ? "Free" : "Pro"}
-              </span>
-            </div>
-          </div>
-        </div>
+              {/* Design Style Switcher */}
+              <Reveal>
+                <h2 className="text-lg font-semibold tracking-[-0.02em] text-foreground mb-4">Design Style</h2>
+              </Reveal>
+              <div className="flex flex-wrap gap-3 mb-8">
+                {componentStyles.map((style, i) => (
+                  <Reveal key={style.slug} delay={i * 0.05}>
+                    <button
+                      onClick={() => setActiveStyle(i)}
+                      className={`glass-card rounded-xl p-4 text-left transition-all duration-300 ${
+                        i === activeStyle
+                          ? "ring-1 ring-accent/30 border-accent/20"
+                          : "hover:border-border-hover"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] font-medium text-foreground">{style.name}</span>
+                        {style.free ? (
+                          <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] font-semibold text-success">Free</span>
+                        ) : (
+                          <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">Pro</span>
+                        )}
+                        {style.status === "new" && (
+                          <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">New</span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[12px] text-text-muted">{style.description}</p>
+                    </button>
+                  </Reveal>
+                ))}
+              </div>
 
-        {/* Install */}
-        <div className="mb-[32px]">
-          <h2 className="mb-[16px] text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">Installation</h2>
-          <div className="overflow-hidden rounded-[16px] border border-border bg-surface">
-            <div className="flex items-center gap-[8px] border-b border-border px-[16px] py-[12px]">
-              <div className="h-[12px] w-[12px] rounded-full bg-red-400" />
-              <div className="h-[12px] w-[12px] rounded-full bg-yellow-400" />
-              <div className="h-[12px] w-[12px] rounded-full bg-green-400" />
+              {/* Code Viewer */}
+              <Reveal delay={0.1}>
+                <div className="double-bezel">
+                  <div className="double-bezel-inner overflow-hidden">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                        <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                        <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                        <span className="ml-2 text-[11px] font-mono text-text-muted">
+                          {slug}-{currentStyle.slug}.tsx
+                        </span>
+                      </div>
+                      <CopyButton code={currentStyle.code} componentName={`${slug}-${currentStyle.slug}`} />
+                    </div>
+                    <pre className="overflow-x-auto p-5 font-mono text-[12px] leading-[1.7] max-h-[500px] overflow-y-auto">
+                      <code className="text-text-secondary">{currentStyle.code}</code>
+                    </pre>
+                  </div>
+                </div>
+              </Reveal>
             </div>
-            <pre className="overflow-x-auto p-[24px] font-mono text-[13px] leading-[20px]">
-              <code>
-                <span className="text-green-500">$</span> npx devignerui add {slug} --style {currentStyle.slug}
-              </code>
-            </pre>
-          </div>
-        </div>
 
-        {/* Variants */}
-        <div className="mb-[32px]">
-          <h2 className="mb-[16px] text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">Variants</h2>
-          <div className="flex flex-wrap gap-[8px]">
-            {meta.variants.map((v) => (
-              <span key={v} className="inline-flex items-center rounded-[6px] border border-border px-[12px] py-[6px] text-[14px] leading-[20px] text-foreground">
-                {v}
-              </span>
-            ))}
-          </div>
-        </div>
+            {/* Sidebar */}
+            <div className="lg:sticky lg:top-24 space-y-6">
+              {/* Current Style Info */}
+              <Reveal>
+                <div className="glass-card rounded-2xl p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-foreground">{currentStyle.name} Style</h3>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                      currentStyle.free ? "bg-success/10 text-success" : "bg-accent/10 text-accent"
+                    }`}>
+                      {currentStyle.free ? "Free" : "Pro"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[13px] leading-relaxed text-text-muted">{currentStyle.description}</p>
+                </div>
+              </Reveal>
 
-        {/* Code */}
-        <div className="mb-[32px]">
-          <div className="flex items-center justify-between mb-[16px]">
-            <h2 className="text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">Code</h2>
-            <span className="text-[14px] leading-[21px] text-text-muted">
-              {currentStyle.name} Style
-            </span>
-          </div>
-          <div className="overflow-hidden rounded-[16px] border border-border">
-            <div className="flex items-center justify-between border-b border-border bg-surface px-[16px] py-[8px]">
-              <span className="text-[12px] leading-[16px] text-text-muted">
-                {slug}-{currentStyle.slug}.tsx
-              </span>
-              <CopyButton code={currentStyle.code} componentName={`${slug}-${currentStyle.slug}`} />
+              {/* Install Command */}
+              <Reveal delay={0.05}>
+                <div className="glass-card rounded-2xl p-5">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted mb-3">Installation</h4>
+                  <div className="rounded-xl border border-border bg-background p-3 font-mono text-[12px] text-text-secondary">
+                    <span className="text-text-muted">$</span> npx devignerui add {slug} --style {currentStyle.slug}
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* Variants */}
+              <Reveal delay={0.1}>
+                <div className="glass-card rounded-2xl p-5">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted mb-3">Variants</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {meta.variants.map((v) => (
+                      <span key={v} className="inline-flex items-center rounded-full bg-surface/80 border border-border px-2.5 py-0.5 text-[11px] font-medium text-text-muted">
+                        {v}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </Reveal>
             </div>
-            <pre className="overflow-x-auto p-[24px] font-mono text-[13px] leading-[20px] max-h-[600px] overflow-y-auto">
-              <code>{currentStyle.code}</code>
-            </pre>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border mt-16">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 sm:flex-row">
+          <div className="flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-foreground text-[10px] font-bold text-background">D</span>
+            <span className="text-[13px] text-text-muted">&copy; 2026 Devigner UI</span>
+          </div>
+          <div className="flex items-center gap-5">
+            <a href="https://twitter.com/devignerui" className="text-[13px] text-text-muted hover:text-foreground transition-colors duration-200">Twitter</a>
+            <a href="https://github.com/devignerui/devignerui" className="text-[13px] text-text-muted hover:text-foreground transition-colors duration-200">GitHub</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

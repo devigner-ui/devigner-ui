@@ -3,7 +3,7 @@
 @variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Colors — Devigner Design System */
+  /* Colors — Premium Dark System */
   --color-background: var(--background);
   --color-background-100: var(--background-100);
   --color-background-200: var(--background-200);
@@ -43,93 +43,96 @@
 
   /* Typography — Geist */
   --font-sans: "Geist", "Inter", system-ui, sans-serif;
-  --font-mono: "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+  --font-mono:
+    "Space Grotesk", "geistMonoFont", "ui-monospace", "SFMono-Regular",
+    "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono",
+    "Courier New", monospace;
 
-  /* Radius — exact from design system */
+  /* Radius */
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --radius-xl: 16px;
-  --radius-2xl: 32px;
-  --radius-badge: 64px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
   --radius-pill: 9999px;
 
-  /* Shadows — evidence-backed */
+  /* Shadows */
   --shadow-card: var(--shadow-card-val);
   --shadow-subtle: var(--shadow-subtle-val);
-  --shadow-ring: var(--shadow-ring-val);
+  --shadow-elevated: var(--shadow-elevated-val);
 
   /* Easing */
-  --ease-fluid: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Light theme (default) */
+/* Light theme */
 :root {
   --background: #ffffff;
   --background-100: #ffffff;
   --background-200: #fafafa;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
   --surface: #fafafa;
-  --surface-hover: #f2f2f2;
+  --surface-hover: #f5f5f5;
 
-  --border: #ebebeb;
+  --border: #eaeaea;
   --border-hover: #d4d4d4;
 
-  --gray-100: #f2f2f2;
-  --gray-200: #ebebeb;
-  --gray-600: #a8a8a8;
-  --gray-800: #7d7d7d;
-  --gray-900: #4d4d4d;
-  --gray-1000: #171717;
+  --gray-100: #f5f5f5;
+  --gray-200: #eaeaea;
+  --gray-600: #a3a3a3;
+  --gray-800: #737373;
+  --gray-900: #525252;
+  --gray-1000: #0a0a0a;
 
-  --text-primary: #171717;
-  --text-secondary: #4d4d4d;
-  --text-tertiary: #7d7d7d;
-  --text-muted: #a8a8a8;
+  --text-primary: #0a0a0a;
+  --text-secondary: #525252;
+  --text-tertiary: #737373;
+  --text-muted: #a3a3a3;
   --text-on-dark: #ffffff;
 
-  --accent: #0070f3;
+  --accent: #2563eb;
   --accent-foreground: #ffffff;
-  --accent-hover: #0060df;
+  --accent-hover: #1d4ed8;
 
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --destructive: #ef4444;
+  --success: #16a34a;
+  --warning: #d97706;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
-  --shadow-card-val: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-  --shadow-subtle-val: 0px 2px 2px 0px rgba(0, 0, 0, 0.04);
-  --shadow-ring-val: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+  --shadow-card-val: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-elevated-val:
+    0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 /* Dark theme */
 .dark {
-  --background: #0a0a0a;
-  --background-100: #111111;
-  --background-200: #171717;
-  --foreground: #fafafa;
-  --surface: #171717;
-  --surface-hover: #262626;
+  --background: #050505;
+  --background-100: #0a0a0a;
+  --background-200: #111113;
+  --foreground: #ededed;
+  --surface: #111113;
+  --surface-hover: #1a1a1e;
 
-  --border: #262626;
-  --border-hover: #404040;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
 
-  --gray-100: #262626;
-  --gray-200: #333333;
-  --gray-600: #a3a3a3;
-  --gray-800: #d4d4d4;
-  --gray-900: #e5e5e5;
+  --gray-100: #1a1a1e;
+  --gray-200: #27272a;
+  --gray-600: #71717a;
+  --gray-800: #a1a1aa;
+  --gray-900: #d4d4d8;
   --gray-1000: #fafafa;
 
-  --text-primary: #fafafa;
-  --text-secondary: #a3a3a3;
-  --text-tertiary: #737373;
-  --text-muted: #525252;
-  --text-on-dark: #0a0a0a;
+  --text-primary: #ededed;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+  --text-on-dark: #050505;
 
-  --accent: #3288f5;
+  --accent: #3b82f6;
   --accent-foreground: #ffffff;
   --accent-hover: #60a5fa;
 
@@ -138,9 +141,10 @@
   --destructive: #f87171;
   --destructive-foreground: #ffffff;
 
-  --shadow-card-val: 0px 0px 0px 1px rgba(255, 255, 255, 0.06);
-  --shadow-subtle-val: 0px 2px 2px 0px rgba(0, 0, 0, 0.3);
-  --shadow-ring-val: 0px 0px 0px 1px rgba(255, 255, 255, 0.06);
+  --shadow-card-val: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated-val:
+    0 8px 32px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 body {
@@ -151,9 +155,159 @@ body {
   line-height: 1.5rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s, color 0.2s;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Grain overlay ─── */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.006;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── Glass card ─── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Double-bezel architecture ─── */
+.double-bezel {
+  padding: 5px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dark .double-bezel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.double-bezel-inner {
+  border-radius: 15px;
+  background: var(--background);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Floating pill navbar ─── */
+.nav-pill {
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+}
+
+/* ─── Text gradient ─── */
+.text-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Mesh gradient background ─── */
+.mesh-gradient {
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 20% 40%,
+      rgba(59, 130, 246, 0.07),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 20%,
+      rgba(139, 92, 246, 0.05),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 50% 60% at 50% 80%,
+      rgba(236, 72, 153, 0.03),
+      transparent
+    );
+}
+
+.dark .mesh-gradient {
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 20% 40%,
+      rgba(59, 130, 246, 0.1),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 20%,
+      rgba(139, 92, 246, 0.07),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 50% 60% at 50% 80%,
+      rgba(236, 72, 153, 0.04),
+      transparent
+    );
+}
+
+/* ─── Horizontal scroll strip ─── */
+.scroll-strip {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 1.5rem 0;
+}
+
+.scroll-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-strip > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ─── Editorial section divider ─── */
+.section-editorial {
+  position: relative;
+}
+
+.section-editorial::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ─── Perspective depth ─── */
+.perspective-depth {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+/* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

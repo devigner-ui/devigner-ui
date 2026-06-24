@@ -7,36 +7,53 @@ export default function CheckoutSuccess({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-[50px] max-w-6xl items-center justify-between px-[16px]">
-          <Link href="/" className="text-[24px] font-semibold leading-[32px] tracking-[-0.96px] text-foreground">
-            Devigner UI
-          </Link>
-        </div>
-      </nav>
+      <div className="grain-overlay" />
 
-      <div className="mx-auto max-w-lg px-[16px] py-[48px] text-center">
-        <div className="mb-[24px] text-[48px] text-success">&#10003;</div>
-        <h1 className="text-[32px] font-semibold leading-[48px] tracking-[-1.28px] text-foreground">Payment Successful!</h1>
-        <p className="mt-[16px] text-[16px] leading-[24px] text-text-secondary">
-          Thank you for purchasing Devigner UI. Check your email for your
-          license key.
-        </p>
-        <div className="mt-[32px] flex justify-center gap-[16px]">
-          <Link
-            href="/"
-            className="inline-flex h-[44px] items-center justify-center rounded-[8px] bg-foreground px-[32px] text-[14px] font-medium leading-[20px] text-background hover:bg-foreground/90 transition-colors"
-          >
-            Go to Home
+      {/* Nav */}
+      <div className="fixed top-0 inset-x-0 z-50 flex justify-center px-4 pt-4">
+        <nav className="nav-pill flex h-12 w-full max-w-3xl items-center justify-between rounded-full px-4 bg-background/80 border border-border shadow-elevated">
+          <Link href="/" className="flex items-center gap-2 font-semibold text-foreground tracking-tight">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">D</span>
+            <span className="text-sm">Devigner</span>
           </Link>
-          <Link
-            href="/components"
-            className="inline-flex h-[44px] items-center justify-center rounded-[8px] border border-border bg-background px-[32px] text-[14px] font-medium leading-[20px] text-foreground hover:bg-surface transition-colors"
-          >
-            Browse Components
-          </Link>
-        </div>
+        </nav>
       </div>
+
+      {/* Content */}
+      <section className="relative min-h-[100dvh] flex items-center justify-center">
+        <div className="absolute inset-0 mesh-gradient" />
+        <div className="relative mx-auto max-w-lg px-5 text-center">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-3xl text-success mb-6">
+            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+
+          <h1 className="text-[clamp(1.8rem,4vw,2.5rem)] font-semibold leading-[1.15] tracking-[-0.03em] text-foreground">
+            Payment Successful!
+          </h1>
+
+          <p className="mt-4 mx-auto max-w-sm text-[15px] leading-relaxed text-text-secondary">
+            Thank you for purchasing Devigner UI. Check your email for your
+            license key.
+          </p>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-7 text-sm font-medium text-background hover:opacity-90 active:scale-[0.98] transition-all duration-200"
+            >
+              Go to Home
+            </Link>
+            <Link
+              href="/components"
+              className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-background/50 px-7 text-sm font-medium text-foreground hover:bg-surface transition-colors duration-200"
+            >
+              Browse Components
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
