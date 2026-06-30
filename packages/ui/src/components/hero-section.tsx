@@ -43,26 +43,26 @@ function HeroSectionCentered({
       animate="visible"
       variants={staggerChildren}
       className={cn(
-        "flex flex-col items-center justify-center py-[48px] text-center",
+        "flex flex-col items-center justify-center py-12 text-center",
         className
       )}
     >
       <motion.h1
         variants={heroVariants}
-        className="text-[48px] font-semibold leading-[56px] tracking-[-2.88px] text-foreground"
+        className="text-5xl/14 font-semibold tracking-[-2.88px] text-foreground"
       >
         {title}
       </motion.h1>
       {description && (
         <motion.p
           variants={heroVariants}
-          className="mt-[24px] max-w-2xl text-[16px] leading-[24px] text-text-secondary"
+          className="mt-6 max-w-2xl text-base/6 text-text-secondary"
         >
           {description}
         </motion.p>
       )}
       {(primaryAction || secondaryAction) && (
-        <motion.div variants={heroVariants} className="mt-[32px] flex gap-[16px]">
+        <motion.div variants={heroVariants} className="mt-8 flex gap-4">
           {primaryAction}
           {secondaryAction}
         </motion.div>
@@ -81,16 +81,16 @@ function HeroSectionSplit({
   return (
     <section
       className={cn(
-        "flex flex-col items-center justify-between gap-[48px] py-[48px] md:flex-row",
+        "flex flex-col items-center justify-between gap-12 py-12 md:flex-row",
         className
       )}
     >
-      <div className="flex-1 space-y-[24px]">
+      <div className="flex-1 space-y-6">
         <motion.h1
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-[48px] font-semibold leading-[56px] tracking-[-2.88px] text-foreground"
+          className="text-5xl/14 font-semibold tracking-[-2.88px] text-foreground"
         >
           {title}
         </motion.h1>
@@ -99,7 +99,7 @@ function HeroSectionSplit({
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="text-[16px] leading-[24px] text-text-secondary"
+            className="text-base/6 text-text-secondary"
           >
             {description}
           </motion.p>
@@ -109,7 +109,7 @@ function HeroSectionSplit({
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex gap-[16px]"
+            className="flex gap-4"
           >
             {primaryAction}
             {secondaryAction}
@@ -129,12 +129,12 @@ function HeroSectionMinimal({
   secondaryAction,
 }: HeroSectionProps) {
   return (
-    <section className={cn("py-[48px]", className)}>
+    <section className={cn("py-12", className)}>
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-[32px] font-semibold leading-[48px] tracking-[-1.28px] text-foreground"
+        className="text-[32px]/12 font-semibold tracking-[-1.28px] text-foreground"
       >
         {title}
       </motion.h1>
@@ -143,7 +143,7 @@ function HeroSectionMinimal({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-[16px] max-w-xl text-[16px] leading-[24px] text-text-secondary"
+          className="mt-4 max-w-xl text-base/6 text-text-secondary"
         >
           {description}
         </motion.p>
@@ -153,7 +153,7 @@ function HeroSectionMinimal({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-[24px] flex gap-[16px]"
+          className="mt-6 flex gap-4"
         >
           {primaryAction}
           {secondaryAction}

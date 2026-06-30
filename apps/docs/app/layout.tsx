@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "../components/theme-provider";
+// @ts-ignore - CSS module declarations not available in this project
 import "./globals.css";
 
 export const metadata: Metadata = {

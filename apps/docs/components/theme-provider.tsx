@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 
 type Theme = "light" | "dark";
 
@@ -86,20 +92,18 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return (
-      <div className="h-[32px] w-[32px] rounded-[8px] border border-border" />
-    );
+    return <div className="size-8 rounded-lg border border-border" />;
   }
 
   return (
     <button
       onClick={toggleTheme}
-      className="relative inline-flex h-[32px] w-[32px] items-center justify-center rounded-[8px] border border-border bg-background text-foreground transition-colors hover:bg-surface"
+      className="relative inline-flex size-8 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-surface"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? (
         <svg
-          className="h-[16px] w-[16px]"
+          className="size-4"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="2"
@@ -113,7 +117,7 @@ export function ThemeToggle() {
         </svg>
       ) : (
         <svg
-          className="h-[16px] w-[16px]"
+          className="size-4"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="2"

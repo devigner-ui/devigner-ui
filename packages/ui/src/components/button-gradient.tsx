@@ -15,7 +15,7 @@ const ButtonGradient = React.forwardRef<HTMLButtonElement, ButtonGradientProps>(
         ref={ref}
         className={cn(
           "group relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium text-white transition-all duration-300",
-          "bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-[length:200%_auto] bg-left hover:bg-right",
+          "bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-size-[200%_auto] bg-left hover:bg-right",
           "shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30",
           "disabled:pointer-events-none disabled:opacity-50",
           size === "sm" && "h-9 px-4 text-sm",

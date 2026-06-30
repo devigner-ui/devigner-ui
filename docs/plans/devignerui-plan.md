@@ -6,14 +6,14 @@
 
 ### Competitive Positioning
 
-| Feature | Aceternity | 21st.dev | Skipper UI | Cult UI | **Devigner UI** |
-|---------|-----------|----------|------------|---------|-----------------|
-| Components | ~80 | Community | 105+ | 78+ | 20-30 (MVP) |
-| CLI install | Yes | Yes | Yes (shadcn) | Yes (shadcn) | Yes |
-| Framework | React | React | React (shadcn) | React (shadcn) | React + Vue (planned) |
-| Animations | Heavy | Mixed | Heavy | Moderate | Equal mix |
-| Pricing | $99-199 | Free/Pro | $129 | Free/Pro | Freemium + $600 lifetime |
-| Design identity | Distinct | Generic | Premium | Minimal | Tailwind CSS-inspired editorial |
+| Feature         | Aceternity | 21st.dev  | Skipper UI     | Cult UI        | **Devigner UI**                 |
+| --------------- | ---------- | --------- | -------------- | -------------- | ------------------------------- |
+| Components      | ~80        | Community | 105+           | 78+            | 20-30 (MVP)                     |
+| CLI install     | Yes        | Yes       | Yes (shadcn)   | Yes (shadcn)   | Yes                             |
+| Framework       | React      | React     | React (shadcn) | React (shadcn) | React + Vue (planned)           |
+| Animations      | Heavy      | Mixed     | Heavy          | Moderate       | Equal mix                       |
+| Pricing         | $99-199    | Free/Pro  | $129           | Free/Pro       | Freemium + $600 lifetime        |
+| Design identity | Distinct   | Generic   | Premium        | Minimal        | Tailwind CSS-inspired editorial |
 
 **Key differentiator:** Tailwind CSS-inspired clean aesthetic + tiered subscription model + component drops + copy counter.
 
@@ -22,11 +22,13 @@
 ## 2. Tech Stack
 
 ### Monorepo Foundation
+
 - **Package manager:** pnpm (workspaces)
 - **Build orchestration:** Turborepo
 - **Node:** 20+ LTS
 
 ### Package: `@devignerui/ui` (Component Library)
+
 - **Framework:** React 19 + TypeScript (strict)
 - **Styling:** Tailwind CSS v4 (CSS-native config, no tailwind.config.js)
 - **Animation:** Motion (framer-motion) v11+
@@ -36,6 +38,7 @@
 - **Build:** tsup (for library output)
 
 ### Package: `@devignerui/cli` (CLI Tool)
+
 - **Runtime:** Node.js 20+
 - **Framework:** Commander.js
 - **HTTP:** undici (fetch)
@@ -43,6 +46,7 @@
 - **Prompts:** @inquirer/prompts
 
 ### Package: `@devignerui/docs` (Docs/Showcase Site)
+
 - **Framework:** Next.js 15 (App Router)
 - **Docs engine:** Fumadocs (MDX-based, built for component libraries)
 - **Styling:** Tailwind CSS v4
@@ -79,6 +83,7 @@ Easing: custom cubic-bezier for smooth micro-interactions
 ```
 
 ### Theming Strategy
+
 - CSS custom properties for all tokens
 - Light/dark mode via `.dark` class
 - Users can override any token via CSS variables
@@ -160,12 +165,14 @@ Links to similar components
 ### Copy Counter System
 
 **Frontend Protection:**
+
 - Button disables immediately after click (prevents double-click)
 - 3-second cooldown before button re-enables
 - Visual feedback: "Copied ✓" during cooldown
 - Only ONE API call sent per click
 
 **Backend Rate Limiting:**
+
 - Per IP: max 10 copies per minute
 - Per component per IP: max 3 copies per minute
 - Per session (browser fingerprint): max 5 copies per minute
@@ -173,6 +180,7 @@ Links to similar components
 - Bot detection: ignore headless browsers or missing fingerprints
 
 **DB Schema:**
+
 ```sql
 CREATE TABLE copy_counts (
   component_name TEXT PRIMARY KEY,
@@ -190,6 +198,7 @@ CREATE TABLE copy_log (
 ```
 
 **Counter Display:**
+
 - Normal: `[ 📋 Copy (1,234 copies) ]`
 - After click: `[ ✓ Copied (1,235 copies) ]` (disabled, 3s cooldown)
 - Rate limited: `[ ⏳ Too fast, try again ]` (disabled, shows error)
@@ -223,9 +232,10 @@ Components
 ```
 
 ### Status Badges
+
 - NEW: Added in last 2 weeks
 - UPDATED: Modified in last 2 weeks
-- *(none)*: Stable, no recent changes
+- _(none)_: Stable, no recent changes
 
 ### Registry Schema
 
@@ -253,13 +263,13 @@ Components
 
 ## 7. MVP Scope: 5 Components First
 
-| # | Component | Type | Variants | Why First |
-|---|-----------|------|----------|-----------|
-| 1 | **Button** | Primitive | Solid, Outline, Ghost, Link, Icon | Most used, sets API pattern |
-| 2 | **Card** | Primitive | Default, Interactive, Header-only | Compound pattern, very reusable |
-| 3 | **Input** | Form | Text, Password, With Icon, Textarea | Essential for any form |
-| 4 | **Badge** | Primitive | Default, Secondary, Outline | Simple, demonstrates variants |
-| 5 | **Hero Section** | Block | Centered, Split, With Background, Minimal | Showcases blocks concept |
+| #   | Component        | Type      | Variants                                  | Why First                       |
+| --- | ---------------- | --------- | ----------------------------------------- | ------------------------------- |
+| 1   | **Button**       | Primitive | Solid, Outline, Ghost, Link, Icon         | Most used, sets API pattern     |
+| 2   | **Card**         | Primitive | Default, Interactive, Header-only         | Compound pattern, very reusable |
+| 3   | **Input**        | Form      | Text, Password, With Icon, Textarea       | Essential for any form          |
+| 4   | **Badge**        | Primitive | Default, Secondary, Outline               | Simple, demonstrates variants   |
+| 5   | **Hero Section** | Block     | Centered, Split, With Background, Minimal | Showcases blocks concept        |
 
 ---
 
@@ -378,6 +388,7 @@ npx devignerui update        # Update to latest
 ## 10. Payments (Creem)
 
 ### Why Creem Over Lemon Squeezy
+
 - Pakistan explicitly supported (86 countries list)
 - Lower fees: 3.9% + $0.40 (vs LS 5-7.5% + $0.50)
 - Stable: not undergoing acquisition transition
@@ -386,21 +397,22 @@ npx devignerui update        # Update to latest
 
 ### Products on Creem
 
-| Product | Price | Type |
-|---------|-------|------|
-| Basic Monthly | $9/mo | Subscription |
-| Basic Yearly | $79/yr | Subscription |
-| Pro Monthly | $19/mo | Subscription |
-| Pro Yearly | $179/yr | Subscription |
-| Ultra Monthly | $39/mo | Subscription |
-| Ultra Yearly | $349/yr | Subscription |
-| Lifetime | $600 | One-time |
+| Product       | Price   | Type         |
+| ------------- | ------- | ------------ |
+| Basic Monthly | $9/mo   | Subscription |
+| Basic Yearly  | $79/yr  | Subscription |
+| Pro Monthly   | $19/mo  | Subscription |
+| Pro Yearly    | $179/yr | Subscription |
+| Ultra Monthly | $39/mo  | Subscription |
+| Ultra Yearly  | $349/yr | Subscription |
+| Lifetime      | $600    | One-time     |
 
 ---
 
 ## 11. Implementation Timeline (5 weeks)
 
 ### Week 1: Foundation
+
 - Initialize monorepo (pnpm + Turborepo)
 - Set up @devignerui/ui (React 19 + Tailwind v4)
 - Design system tokens
@@ -408,23 +420,27 @@ npx devignerui update        # Update to latest
 - Set up @devignerui/cli skeleton
 
 ### Week 2: First 5 Components
+
 - Button, Card, Input, Badge, Hero Section
 - Variants for each
 - Tests
 
 ### Week 3: Docs Site + Landing
+
 - Next.js 15 + Fumadocs
 - Landing page (Tailwind CSS style)
 - Component pages with live preview
 - Copy counter system
 
 ### Week 4: CLI + Payments
+
 - CLI init + add commands
 - Registry JSON format
 - Creem integration
 - Auth system
 
 ### Week 5: Polish + Launch
+
 - Dark/light mode
 - Responsive + SEO
 - Performance optimization

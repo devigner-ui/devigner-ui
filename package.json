@@ -8,7 +8,10 @@
     "clean": "turbo clean"
   },
   "devDependencies": {
-    "turbo": "^2.5.0"
+    "eslint": "^10.6.0",
+    "eslint-plugin-better-tailwindcss": "^4.6.0",
+    "turbo": "^2.5.0",
+    "typescript-eslint": "^8.62.1"
   },
   "packageManager": "pnpm@9.15.0"
 }

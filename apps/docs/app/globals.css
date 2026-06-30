@@ -44,9 +44,8 @@
   /* Typography — Geist */
   --font-sans: "Geist", "Inter", system-ui, sans-serif;
   --font-mono:
-    "Space Grotesk", "geistMonoFont", "ui-monospace", "SFMono-Regular",
-    "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono",
-    "Courier New", monospace;
+    "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo",
+    "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
 
   /* Radius */
   --radius-xs: 2px;
@@ -69,37 +68,38 @@
 
 /* Light theme */
 :root {
-  --background: #ffffff;
-  --background-100: #ffffff;
-  --background-200: #fafafa;
-  --foreground: #0a0a0a;
-  --surface: #fafafa;
-  --surface-hover: #f5f5f5;
+  --code-bg: var(--background-100);
+  --background: oklch(100% 0 0);
+  --background-100: oklch(100% 0 0);
+  --background-200: oklch(98.511% 0 0);
+  --foreground: oklch(14.466% 0 0);
+  --surface: oklch(98.511% 0 0);
+  --surface-hover: oklch(96.969% 0 0);
 
-  --border: #eaeaea;
-  --border-hover: #d4d4d4;
+  --border: oklch(93.637% 0 0);
+  --border-hover: oklch(87.052% 0 0);
 
-  --gray-100: #f5f5f5;
-  --gray-200: #eaeaea;
-  --gray-600: #a3a3a3;
-  --gray-800: #737373;
-  --gray-900: #525252;
-  --gray-1000: #0a0a0a;
+  --gray-100: oklch(96.969% 0 0);
+  --gray-200: oklch(93.637% 0 0);
+  --gray-600: oklch(71.625% 0 0);
+  --gray-800: oklch(55.543% 0 0);
+  --gray-900: oklch(43.868% 0 0);
+  --gray-1000: oklch(14.466% 0 0);
 
-  --text-primary: #0a0a0a;
-  --text-secondary: #525252;
-  --text-tertiary: #737373;
-  --text-muted: #a3a3a3;
-  --text-on-dark: #ffffff;
+  --text-primary: oklch(14.466% 0 0);
+  --text-secondary: oklch(43.868% 0 0);
+  --text-tertiary: oklch(55.543% 0 0);
+  --text-muted: oklch(71.625% 0 0);
+  --text-on-dark: oklch(100% 0 0);
 
-  --accent: #2563eb;
-  --accent-foreground: #ffffff;
-  --accent-hover: #1d4ed8;
+  --accent: oklch(54.643% 0.21525 262.825);
+  --accent-foreground: oklch(100% 0 0);
+  --accent-hover: oklch(48.821% 0.21731 264.661);
 
-  --success: #16a34a;
-  --warning: #d97706;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --success: oklch(62.697% 0.17032 149.482);
+  --warning: oklch(66.597% 0.15768 58.06);
+  --destructive: oklch(57.677% 0.21482 27.53);
+  --destructive-foreground: oklch(100% 0 0);
 
   --shadow-card-val: 0 0 0 1px rgba(0, 0, 0, 0.06);
   --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -109,37 +109,38 @@
 
 /* Dark theme */
 .dark {
-  --background: #050505;
-  --background-100: #0a0a0a;
-  --background-200: #111113;
-  --foreground: #ededed;
-  --surface: #111113;
-  --surface-hover: #1a1a1e;
+  --code-bg: var(--background-200);
+  --background: oklch(11.492% 0.00001 271.152);
+  --background-100: oklch(14.479% 0.00002 271.152);
+  --background-200: oklch(17.853% 0.00409 285.914);
+  --foreground: oklch(94.611% 0.00011 271.152);
+  --surface: oklch(17.853% 0.00409 285.914);
+  --surface-hover: oklch(21.952% 0.00777 285.704);
 
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.12);
+  --border: oklch(100% 0 0 / 0.06);
+  --border-hover: oklch(100% 0 0 / 0.12);
 
-  --gray-100: #1a1a1e;
-  --gray-200: #27272a;
-  --gray-600: #71717a;
-  --gray-800: #a1a1aa;
-  --gray-900: #d4d4d8;
-  --gray-1000: #fafafa;
+  --gray-100: oklch(21.952% 0.00777 285.704);
+  --gray-200: oklch(27.394% 0.00551 285.955);
+  --gray-600: oklch(55.167% 0.01387 285.878);
+  --gray-800: oklch(71.182% 0.01302 285.981);
+  --gray-900: oklch(87.111% 0.00555 286.025);
+  --gray-1000: oklch(98.511% 0.00011 271.152);
 
-  --text-primary: #ededed;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
-  --text-muted: #52525b;
-  --text-on-dark: #050505;
+  --text-primary: oklch(94.611% 0.00011 271.152);
+  --text-secondary: oklch(71.182% 0.01302 285.981);
+  --text-tertiary: oklch(55.167% 0.01387 285.878);
+  --text-muted: oklch(44.186% 0.01467 285.743);
+  --text-on-dark: oklch(11.492% 0.00001 271.152);
 
-  --accent: #3b82f6;
-  --accent-foreground: #ffffff;
-  --accent-hover: #60a5fa;
+  --accent: oklch(62.31% 0.1881 259.83);
+  --accent-foreground: oklch(100% 0.00011 271.152);
+  --accent-hover: oklch(71.375% 0.14347 254.643);
 
-  --success: #4ade80;
-  --warning: #fbbf24;
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
+  --success: oklch(80.036% 0.18204 151.736);
+  --warning: oklch(83.685% 0.16435 84.431);
+  --destructive: oklch(71.061% 0.16614 22.191);
+  --destructive-foreground: oklch(100% 0.00011 271.152);
 
   --shadow-card-val: 0 0 0 1px rgba(255, 255, 255, 0.06);
   --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -183,34 +184,36 @@ html {
 
 /* ─── Glass card ─── */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
 }
 
 .dark .glass-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: oklch(100% 0 0 / 0.03);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.04);
 }
 
 /* ─── Double-bezel architecture ─── */
 .double-bezel {
   padding: 5px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--background-200);
+  border: 1px solid var(--border);
 }
 
 .dark .double-bezel {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: oklch(100% 0 0 / 0.03);
 }
 
 .double-bezel-inner {
   border-radius: 15px;
   background: var(--background);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+}
+
+.dark .double-bezel-inner {
+  border-color: oklch(100% 0 0 / 0.04);
 }
 
 /* ─── Floating pill navbar ─── */
@@ -305,6 +308,92 @@ html {
 .perspective-depth {
   perspective: 1200px;
   transform-style: preserve-3d;
+}
+
+/* ─── Code blocks (shiki) — always dark, like GitHub ─── */
+
+.code-shiki pre,
+.code-shiki .shiki {
+  background: transparent !important;
+}
+
+.code-shiki pre {
+  margin: 0;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  counter-reset: line;
+}
+
+.code-shiki .line {
+  display: block;
+}
+
+.code-shiki.numbered .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.25rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── Scrollbars ─── */
+.code-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.code-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.code-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.code-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.code-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: content-box;
+}
+
+/* App-wide subtle scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hover) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
 }
 
 /* ─── Reduced motion ─── */

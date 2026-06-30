@@ -41,7 +41,9 @@
 
   /* Typography — Geist */
   --font-sans: "Geist", "Inter", system-ui, sans-serif;
-  --font-mono: "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+  --font-mono:
+    "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo",
+    "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
 
   /* Display hero: 48px / 600 / 56px / -2.88px */
   --font-size-display: 3rem;

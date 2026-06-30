@@ -50,12 +50,12 @@ export function CopyButton({ code, componentName }: CopyButtonProps) {
     <button
       onClick={handleCopy}
       disabled={disabled}
-      className="inline-flex items-center gap-[8px] rounded-[6px] border border-border px-[12px] py-[4px] text-[12px] font-medium leading-[16px] transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1 text-xs/4 font-medium transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
     >
       {copied ? (
         <>
           <svg
-            className="h-[14px] w-[14px] text-success"
+            className="size-3.5 text-success"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="2"
@@ -72,7 +72,7 @@ export function CopyButton({ code, componentName }: CopyButtonProps) {
       ) : (
         <>
           <svg
-            className="h-[14px] w-[14px]"
+            className="size-3.5"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="2"

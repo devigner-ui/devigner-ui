@@ -65,7 +65,7 @@ function Navbar() {
           href="/"
           className="flex items-center gap-2 font-semibold text-foreground tracking-tight"
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">
+          <span className="flex size-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">
             D
           </span>
           <span className="text-sm">Devigner</span>
@@ -120,12 +120,12 @@ function Hero() {
   return (
     <section
       ref={ref}
-      className="relative min-h-[100dvh] flex items-center overflow-hidden"
+      className="relative min-h-dvh flex items-center overflow-hidden"
     >
       {/* Mesh gradient background */}
       <div className="absolute inset-0 mesh-gradient" />
-      <div className="absolute top-[20%] left-[15%] w-[500px] h-[500px] rounded-full bg-accent/[0.04] blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] rounded-full bg-purple-500/[0.03] blur-[120px] pointer-events-none" />
+      <div className="absolute top-[20%] left-[15%] size-125 rounded-full bg-accent/4 blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[10%] size-100 rounded-full bg-purple-500/3 blur-[120px] pointer-events-none" />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pt-32 pb-20 sm:pt-40 sm:pb-28">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
@@ -137,9 +137,9 @@ function Hero() {
               transition={{ duration: 0.4 }}
             >
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/60 px-3 py-1 text-[11px] font-medium text-text-secondary">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-success" />
                 </span>
                 v0.1.0 — Now in Alpha
               </span>
@@ -162,7 +162,7 @@ function Hero() {
               initial={reduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
-              className="mt-7 max-w-md text-base leading-relaxed text-text-secondary sm:text-lg"
+              className="mt-7 max-w-md text-base/relaxed text-text-secondary sm:text-lg"
             >
               React components with multiple design styles per component. Not
               prop variants — complete style alternatives. Ship premium
@@ -180,9 +180,9 @@ function Hero() {
                 className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-foreground px-7 text-sm font-medium text-background hover:opacity-90 active:scale-[0.98] transition-all duration-200"
               >
                 Browse Components
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background/10 transition-transform duration-200 group-hover:translate-x-0.5">
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-background/10 transition-transform duration-200 group-hover:translate-x-0.5">
                   <svg
-                    className="h-3 w-3"
+                    className="size-3"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth="2.5"
@@ -213,7 +213,7 @@ function Hero() {
               {["MIT License", "TypeScript", "Tailwind v4"].map((item) => (
                 <span key={item} className="flex items-center gap-1.5">
                   <svg
-                    className="h-3.5 w-3.5 text-success"
+                    className="size-3.5 text-success"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -243,26 +243,26 @@ function Hero() {
               className="relative"
             >
               {/* Background card (furthest back) */}
-              <div className="absolute -top-4 -right-4 w-[340px] h-[220px] rounded-2xl border border-border bg-surface/40 opacity-40" />
+              <div className="absolute -top-4 -right-4 w-85 h-55 rounded-2xl border border-border bg-surface/40 opacity-40" />
 
               {/* Middle card */}
-              <div className="absolute -top-2 -right-2 w-[360px] h-[240px] rounded-2xl border border-border bg-surface/60 opacity-70" />
+              <div className="absolute -top-2 -right-2 w-90 h-60 rounded-2xl border border-border bg-surface/60 opacity-70" />
 
               {/* Front card: Terminal + live preview */}
               <div className="double-bezel relative ml-8">
                 <div className="double-bezel-inner p-6">
                   {/* Terminal header */}
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                    <div className="size-2.5 rounded-full bg-[#ff5f57]" />
+                    <div className="size-2.5 rounded-full bg-[#febc2e]" />
+                    <div className="size-2.5 rounded-full bg-[#28c840]" />
                     <span className="ml-2 text-[11px] font-mono text-text-muted">
                       terminal
                     </span>
                   </div>
 
                   {/* Command output */}
-                  <div className="font-mono text-[12px] leading-6">
+                  <div className="font-mono text-xs/6">
                     <div className="text-text-muted">
                       <span className="text-success">$</span> npx devignerui add
                       button --style magnetic
@@ -318,11 +318,11 @@ function Hero() {
             <div className="double-bezel">
               <div className="double-bezel-inner p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                  <div className="size-2.5 rounded-full bg-[#ff5f57]" />
+                  <div className="size-2.5 rounded-full bg-[#febc2e]" />
+                  <div className="size-2.5 rounded-full bg-[#28c840]" />
                 </div>
-                <div className="font-mono text-[12px] leading-6 text-text-muted">
+                <div className="font-mono text-xs/6 text-text-muted">
                   <div>
                     <span className="text-success">$</span> npx devignerui add
                     button
@@ -332,11 +332,11 @@ function Hero() {
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-border flex items-center gap-2">
-                  <span className="inline-flex h-8 items-center rounded-lg bg-foreground px-3 text-[12px] font-medium text-background">
+                  <span className="inline-flex h-8 items-center rounded-lg bg-foreground px-3 text-xs font-medium text-background">
                     Button
                   </span>
                   <span
-                    className="inline-flex h-8 items-center rounded-lg px-3 text-[12px] font-medium text-white"
+                    className="inline-flex h-8 items-center rounded-lg px-3 text-xs font-medium text-white"
                     style={{
                       background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
                     }}
@@ -408,15 +408,15 @@ function ComponentShowcase() {
       preview: (
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-border bg-surface/60 p-4">
-            <div className="text-[12px] font-semibold text-foreground">
+            <div className="text-xs font-semibold text-foreground">
               Card Title
             </div>
             <div className="mt-1 text-[11px] text-text-muted">
               With elevation
             </div>
           </div>
-          <div className="rounded-xl bg-gradient-to-br from-accent/10 to-purple-500/10 border border-accent/20 p-4">
-            <div className="text-[12px] font-semibold text-foreground">
+          <div className="rounded-xl bg-linear-to-br from-accent/10 to-purple-500/10 border border-accent/20 p-4">
+            <div className="text-xs font-semibold text-foreground">
               Gradient
             </div>
             <div className="mt-1 text-[11px] text-text-muted">
@@ -444,9 +444,9 @@ function ComponentShowcase() {
             Outline
           </span>
           <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px] font-medium text-foreground">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-success" />
             </span>
             Live
           </span>
@@ -478,9 +478,9 @@ function ComponentShowcase() {
       tag: "3 styles",
       preview: (
         <div className="rounded-xl border border-border bg-surface/40 p-4">
-          <div className="h-3 w-24 rounded bg-foreground/10" />
-          <div className="mt-2 h-5 w-40 rounded bg-foreground/20" />
-          <div className="mt-1.5 h-2.5 w-32 rounded bg-foreground/10" />
+          <div className="h-3 w-24 rounded-sm bg-foreground/10" />
+          <div className="mt-2 h-5 w-40 rounded-sm bg-foreground/20" />
+          <div className="mt-1.5 h-2.5 w-32 rounded-sm bg-foreground/10" />
           <div className="mt-3 flex gap-2">
             <div className="h-7 w-20 rounded-lg bg-foreground" />
             <div className="h-7 w-20 rounded-lg border border-border" />
@@ -499,7 +499,7 @@ function ComponentShowcase() {
               <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-3xl">
                 Component Gallery
               </h2>
-              <p className="mt-1 text-[14px] text-text-muted">
+              <p className="mt-1 text-sm text-text-muted">
                 15+ components, 45+ design styles. Every one production-ready.
               </p>
             </div>
@@ -509,7 +509,7 @@ function ComponentShowcase() {
             >
               View all
               <svg
-                className="h-3.5 w-3.5"
+                className="size-3.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="2"
@@ -527,10 +527,10 @@ function ComponentShowcase() {
       </div>
 
       {/* Horizontal scroll strip */}
-      <div className="scroll-strip pl-5 pr-5 sm:pl-[max(1.25rem,calc((100vw-80rem)/2+1.25rem))]">
+      <div className="scroll-strip px-5 sm:pl-[max(1.25rem,calc((100vw-80rem)/2+1.25rem))]">
         {components.map((comp, i) => (
           <Reveal key={comp.name} delay={i * 0.06}>
-            <div className="glass-card w-[300px] sm:w-[340px] rounded-2xl p-5 transition-all duration-300 hover:border-border-hover group">
+            <div className="glass-card w-75 sm:w-85 rounded-2xl p-5 transition-all duration-300 hover:border-border-hover group">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-semibold text-foreground">
                   {comp.name}
@@ -539,7 +539,7 @@ function ComponentShowcase() {
                   {comp.tag}
                 </span>
               </div>
-              <div className="min-h-[80px]">{comp.preview}</div>
+              <div className="min-h-20">{comp.preview}</div>
             </div>
           </Reveal>
         ))}
@@ -547,7 +547,7 @@ function ComponentShowcase() {
         <Reveal delay={0.3}>
           <Link
             href="/components"
-            className="flex w-[200px] sm:w-[240px] items-center justify-center rounded-2xl border border-dashed border-border bg-transparent p-5 text-[13px] font-medium text-text-muted hover:border-accent/30 hover:text-accent transition-all duration-200"
+            className="flex w-50 sm:w-60 items-center justify-center rounded-2xl border border-dashed border-border bg-transparent p-5 text-[13px] font-medium text-text-muted hover:border-accent/30 hover:text-accent transition-all duration-200"
           >
             Browse all components →
           </Link>
@@ -566,11 +566,11 @@ function FeaturesBento() {
       col: "md:col-span-2",
       visual: (
         <div className="mt-4 space-y-2">
-          <div className="rounded-xl border border-border bg-background px-4 py-3 font-mono text-[12px] text-text-secondary">
+          <div className="rounded-xl border border-border bg-background px-4 py-3 font-mono text-xs text-text-secondary">
             <span className="text-text-muted">$</span> npx devignerui add button
             --style gradient
           </div>
-          <div className="rounded-xl border border-border bg-background px-4 py-3 font-mono text-[12px] text-text-secondary">
+          <div className="rounded-xl border border-border bg-background px-4 py-3 font-mono text-xs text-text-secondary">
             <span className="text-text-muted">$</span> npx devignerui add card
             --style spotlight
           </div>
@@ -582,7 +582,7 @@ function FeaturesBento() {
       desc: "Full TypeScript. Autocomplete, type checking, zero runtime errors.",
       col: "md:col-span-1",
       visual: (
-        <div className="mt-4 rounded-xl border border-border bg-background p-3 font-mono text-[11px] leading-5">
+        <div className="mt-4 rounded-xl border border-border bg-background p-3 font-mono text-[11px]/5">
           <div>
             <span className="text-[#c678dd]">import</span> {"{ "}
             <span className="text-[#e5c07b]">Button</span>
@@ -621,22 +621,22 @@ function FeaturesBento() {
       col: "md:col-span-2",
       visual: (
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="inline-flex h-9 items-center rounded-lg bg-foreground px-4 text-[12px] font-medium text-background">
+          <span className="inline-flex h-9 items-center rounded-lg bg-foreground px-4 text-xs font-medium text-background">
             Default
           </span>
           <span
-            className="inline-flex h-9 items-center rounded-lg px-4 text-[12px] font-medium text-white"
+            className="inline-flex h-9 items-center rounded-lg px-4 text-xs font-medium text-white"
             style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
           >
             Gradient
           </span>
-          <span className="inline-flex h-9 items-center rounded-lg border border-border bg-background px-4 text-[12px] font-medium text-foreground">
+          <span className="inline-flex h-9 items-center rounded-lg border border-border bg-background px-4 text-xs font-medium text-foreground">
             Outline
           </span>
-          <span className="inline-flex h-9 items-center rounded-lg bg-accent/10 px-4 text-[12px] font-medium text-accent">
+          <span className="inline-flex h-9 items-center rounded-lg bg-accent/10 px-4 text-xs font-medium text-accent">
             Ghost
           </span>
-          <span className="inline-flex h-9 items-center rounded-lg bg-gradient-to-r from-foreground to-gray-600 px-4 text-[12px] font-medium text-background">
+          <span className="inline-flex h-9 items-center rounded-lg bg-linear-to-r from-foreground to-gray-600 px-4 text-xs font-medium text-background">
             Subtle
           </span>
         </div>
@@ -697,9 +697,9 @@ function CodeExperience() {
               <div className="double-bezel-inner overflow-hidden">
                 <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                    <div className="size-2.5 rounded-full bg-[#ff5f57]" />
+                    <div className="size-2.5 rounded-full bg-[#febc2e]" />
+                    <div className="size-2.5 rounded-full bg-[#28c840]" />
                   </div>
                   <button
                     onClick={() => {
@@ -709,12 +709,12 @@ function CodeExperience() {
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="rounded px-2 py-1 text-[11px] text-text-muted hover:bg-surface hover:text-foreground transition-colors duration-200"
+                    className="rounded-sm px-2 py-1 text-[11px] text-text-muted hover:bg-surface hover:text-foreground transition-colors duration-200"
                   >
                     {copied ? "Copied!" : "Copy"}
                   </button>
                 </div>
-                <div className="p-5 font-mono text-[13px] leading-6">
+                <div className="p-5 font-mono text-[13px]/6">
                   {(
                     [
                       [
@@ -839,7 +839,7 @@ function CodeExperience() {
                 "npx devignerui add card --style spotlight",
               ].map((cmd, i) => (
                 <Reveal key={cmd} delay={0.05 + i * 0.05}>
-                  <div className="rounded-xl border border-border bg-background/60 px-4 py-3 font-mono text-[12px] text-text-secondary transition-colors duration-200 hover:border-border-hover">
+                  <div className="rounded-xl border border-border bg-background/60 px-4 py-3 font-mono text-xs text-text-secondary transition-colors duration-200 hover:border-border-hover">
                     <span className="text-text-muted">$</span> {cmd}
                   </div>
                 </Reveal>
@@ -926,18 +926,18 @@ function SocialProof() {
           {testimonials.map((t, i) => (
             <Reveal key={t.name} delay={0.05 + i * 0.06}>
               <div className="group">
-                <p className="text-[clamp(1rem,1.8vw,1.25rem)] leading-[1.5] tracking-[-0.01em] text-foreground">
+                <p className="text-[clamp(1rem,1.8vw,1.25rem)] leading-normal tracking-[-0.01em] text-foreground">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="mt-5 flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-surface border border-border flex items-center justify-center text-[11px] font-semibold text-text-secondary">
+                  <div className="size-8 rounded-full bg-surface border border-border flex items-center justify-center text-[11px] font-semibold text-text-secondary">
                     {t.name.charAt(0)}
                   </div>
                   <div>
                     <div className="text-[13px] font-medium text-foreground">
                       {t.name}
                     </div>
-                    <div className="text-[12px] text-text-muted">{t.role}</div>
+                    <div className="text-xs text-text-muted">{t.role}</div>
                   </div>
                 </div>
               </div>
@@ -1031,7 +1031,7 @@ function Pricing() {
       key: "basic",
       icon: (
         <svg
-          className="w-4 h-4"
+          className="size-4"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="1.5"
@@ -1061,7 +1061,7 @@ function Pricing() {
       highlight: true,
       icon: (
         <svg
-          className="w-4 h-4"
+          className="size-4"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="1.5"
@@ -1091,7 +1091,7 @@ function Pricing() {
       key: "ultra",
       icon: (
         <svg
-          className="w-4 h-4"
+          className="size-4"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="1.5"
@@ -1136,7 +1136,7 @@ function Pricing() {
           <div className="flex flex-col items-start justify-between gap-6 mb-16 sm:flex-row sm:items-end">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-text-muted mb-4">
-                <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                <span className="size-1.5 rounded-full bg-success" />
                 Pricing
               </div>
               <h2
@@ -1210,11 +1210,11 @@ function Pricing() {
             >
               {plan.highlight && (
                 <>
-                  <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-accent/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="absolute -inset-px rounded-2xl bg-linear-to-b from-accent/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-white shadow-lg shadow-accent/25">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-widest text-white shadow-lg shadow-accent/25">
                       <svg
-                        className="w-3 h-3"
+                        className="size-3"
                         viewBox="0 0 12 12"
                         fill="currentColor"
                       >
@@ -1241,7 +1241,7 @@ function Pricing() {
                     transition={{ type: "spring", stiffness: 200, damping: 26 }}
                     className="flex items-baseline gap-1"
                   >
-                    <span className="text-text-muted text-[1.5rem] font-medium">
+                    <span className="text-text-muted text-2xl font-medium">
                       $
                     </span>
                     <AnimatedPrice
@@ -1282,7 +1282,7 @@ function Pricing() {
                 </div>
 
                 {/* Description */}
-                <p className="mt-3 text-[0.8125rem] leading-relaxed text-text-secondary min-h-[2.5rem]">
+                <p className="mt-3 text-[0.8125rem] leading-relaxed text-text-secondary min-h-10">
                   {plan.tagline}
                 </p>
 
@@ -1308,7 +1308,7 @@ function Pricing() {
                   {plan.features.map((feature) => (
                     <div key={feature} className="flex items-center gap-2.5">
                       <svg
-                        className={`w-4 h-4 flex-shrink-0 ${
+                        className={`size-4 shrink-0 ${
                           plan.highlight ? "text-accent" : "text-text-muted"
                         }`}
                         viewBox="0 0 16 16"
@@ -1335,23 +1335,23 @@ function Pricing() {
         <Reveal delay={0.2}>
           <motion.div
             transition={{ duration: 0.5, ease: EASE }}
-            className="group mt-8 rounded-[2rem] bg-gradient-to-br from-success/40 via-border/70 to-success/20 p-px"
+            className="group mt-8 rounded-4xl bg-linear-to-br from-success/40 via-border/70 to-success/20 p-px"
           >
             <div className="relative overflow-hidden rounded-[calc(2rem-1px)] bg-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               {/* Ambient texture */}
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_-20%,rgba(34,197,94,0.10),transparent_55%)]" />
-              <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-success/10 blur-[110px]" />
-              <div className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-success/[0.06] blur-[110px]" />
+              <div className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-success/10 blur-[110px]" />
+              <div className="pointer-events-none absolute -bottom-24 -left-20 size-64 rounded-full bg-success/6 blur-[110px]" />
               {/* Top hairline highlight */}
-              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-success/40 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-success/40 to-transparent" />
 
               <div className="relative grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-12 lg:p-12">
                 {/* Left — story */}
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-success/20 bg-success/10 px-3 py-1">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                    <span className="relative flex size-1.5">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
+                      <span className="relative inline-flex size-1.5 rounded-full bg-success" />
                     </span>
                     <span className="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-success">
                       Best Value
@@ -1359,9 +1359,9 @@ function Pricing() {
                   </div>
 
                   <div className="mt-6 flex items-start gap-4">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-success/10 ring-1 ring-inset ring-success/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-success/10 ring-1 ring-inset ring-success/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                       <svg
-                        className="h-6 w-6 text-success"
+                        className="size-6 text-success"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth="1.5"
@@ -1396,10 +1396,10 @@ function Pricing() {
                     ].map((item) => (
                       <span
                         key={item}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-success/15 bg-success/[0.06] px-3 py-1.5 text-[0.75rem] font-medium text-text-secondary text-success"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-success/15 bg-success/6 px-3 py-1.5 text-xs font-medium text-success"
                       >
                         <svg
-                          className="h-3 w-3"
+                          className="size-3"
                           viewBox="0 0 16 16"
                           fill="currentColor"
                         >
@@ -1416,9 +1416,9 @@ function Pricing() {
                 </div>
 
                 {/* Right — nested price island */}
-                <div className="relative w-full overflow-hidden rounded-[1.5rem] border border-success/20 bg-[linear-gradient(180deg,rgba(34,197,94,0.07),transparent_70%)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] lg:w-[20rem]">
+                <div className="relative w-full overflow-hidden rounded-3xl border border-success/20 bg-[linear-gradient(180deg,rgba(34,197,94,0.07),transparent_70%)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] lg:w-80">
                   <div className="flex items-center gap-2">
-                    <span className="text-[0.875rem] text-text-muted line-through decoration-text-muted/40">
+                    <span className="text-sm text-text-muted line-through decoration-text-muted/40">
                       $1200+
                     </span>
                     <span className="rounded-full bg-success/15 px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-success">
@@ -1439,16 +1439,16 @@ function Pricing() {
                   </div>
 
                   <Button
-                    className="group/cta relative mt-5 inline-flex h-12 w-full items-center justify-center gap-3 rounded-full bg-success/40 px-6 text-[0.875rem] font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-success/60 active:scale-[0.98]"
+                    className="group/cta relative mt-5 inline-flex h-12 w-full items-center justify-center gap-3 rounded-full bg-success/40 px-6 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-success/60 active:scale-[0.98]"
                     onClick={() => handleCheckout("lifetime")}
                     disabled={loading === "lifetime"}
                   >
                     {loading === "lifetime"
                       ? "Loading..."
                       : "Get Lifetime Access"}
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-px">
+                    <span className="inline-flex size-6 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-px">
                       <svg
-                        className="h-3.5 w-3.5"
+                        className="size-3.5"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth="2.5"
@@ -1483,7 +1483,7 @@ function CTASection() {
       <div className="mx-auto max-w-4xl px-5 text-center">
         <Reveal>
           <div className="relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-accent/[0.04] blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-1/2 size-125 rounded-full bg-accent/4 blur-[120px] pointer-events-none" />
             <div className="relative">
               <h2 className="text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.04em] text-foreground">
                 Start building
@@ -1500,9 +1500,9 @@ function CTASection() {
                   className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-foreground px-8 text-sm font-medium text-background hover:opacity-90 active:scale-[0.98] transition-all duration-200"
                 >
                   Get Started Free
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-background/10 transition-transform duration-200 group-hover:translate-x-0.5">
+                  <span className="inline-flex size-5 items-center justify-center rounded-full bg-background/10 transition-transform duration-200 group-hover:translate-x-0.5">
                     <svg
-                      className="h-3 w-3"
+                      className="size-3"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth="2.5"
@@ -1537,7 +1537,7 @@ function Footer() {
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 sm:flex-row">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-foreground text-[10px] font-bold text-background">
+          <span className="flex size-5 items-center justify-center rounded-md bg-foreground text-[10px] font-bold text-background">
             D
           </span>
           <span className="text-[13px] text-text-muted">

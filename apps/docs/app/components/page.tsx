@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ThemeToggle } from "../../components/theme-provider";
 import { Button } from "@devignerui/ui";
-import { Badge } from "@devignerui/ui";
-import { Card, CardContent, CardHeader, CardTitle } from "@devignerui/ui";
 import { Input } from "@devignerui/ui";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -42,7 +41,7 @@ function Navbar() {
           href="/"
           className="flex items-center gap-2 font-semibold text-foreground tracking-tight"
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">
+          <span className="flex size-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">
             D
           </span>
           <span className="text-sm">Devigner</span>
@@ -78,13 +77,21 @@ function PreviewCard({
   className?: string;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       <div
-        className={`flex min-h-[220px] items-center justify-center rounded-2xl border border-border bg-background-200 p-6 ${className ?? ""}`}
+        className={`flex h-55 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background-200 p-6 transition-all duration-300 ease-out group-hover:border-border-hover group-hover:bg-background-100 group-hover:shadow-elevated ${className ?? ""}`}
       >
-        {children}
+        {/* ponytail: stopPropagation so clicks on the preview don't trigger the parent onClick */}
+        <div onClick={(e) => e.stopPropagation()}>{children}</div>
       </div>
-      <span className="text-[13px] font-medium text-text-secondary">{name}</span>
+      <div className="flex items-center justify-between px-0.5">
+        <span className="text-[13px] font-medium text-text-secondary transition-colors duration-200 group-hover:text-foreground">
+          {name}
+        </span>
+        <span className="-translate-x-1 opacity-0 text-[13px] text-accent transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+          →
+        </span>
+      </div>
     </div>
   );
 }
@@ -103,35 +110,58 @@ function ButtonPreview() {
 }
 
 function InputPreview() {
+  const [value, setValue] = useState("");
   return (
-    <div className="w-full max-w-[240px] space-y-2">
-      <label className="text-[13px] font-medium text-text-secondary">Normal</label>
-      <Input placeholder="Search" className="bg-background border-border" />
+    <div className="w-full max-w-60 space-y-2">
+      <label className="text-[13px] font-medium text-text-secondary">
+        Normal
+      </label>
+      <Input
+        placeholder="Search"
+        className="bg-background border-border"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
     </div>
   );
 }
 
 function TablePreview() {
+  const [selected, setSelected] = useState<string | null>(null);
   const rows = [
     { order: "#3981", name: "John Doe", avatar: "JD" },
     { order: "#3982", name: "Paige Detienne", avatar: "PD" },
     { order: "#3983", name: "Devon Papsom", avatar: "DP" },
   ];
   return (
-    <div className="w-full max-w-[300px] overflow-hidden rounded-xl border border-border">
+    <div className="w-full max-w-75 overflow-hidden rounded-xl border border-border">
       <table className="w-full text-[13px]">
         <thead>
           <tr className="border-b border-border bg-background-200">
-            <th className="px-4 py-2.5 text-left font-medium text-text-muted">Order #</th>
-            <th className="px-4 py-2.5 text-left font-medium text-text-muted">Customer</th>
+            <th className="px-4 py-2.5 text-left font-medium text-text-muted">
+              Order #
+            </th>
+            <th className="px-4 py-2.5 text-left font-medium text-text-muted">
+              Customer
+            </th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.order} className="border-b border-border last:border-0">
+            <tr
+              key={row.order}
+              onClick={() =>
+                setSelected(row.order === selected ? null : row.order)
+              }
+              className={`cursor-pointer border-b border-border last:border-0 transition-colors duration-150 ${
+                row.order === selected
+                  ? "bg-accent/5"
+                  : "hover:bg-surface-hover"
+              }`}
+            >
               <td className="px-4 py-2.5 text-text-muted">{row.order}</td>
               <td className="flex items-center gap-2 px-4 py-2.5">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-[10px] font-medium text-accent">
+                <span className="flex size-6 items-center justify-center rounded-full bg-accent/10 text-[10px] font-medium text-accent">
                   {row.avatar}
                 </span>
                 <span className="text-foreground">{row.name}</span>
@@ -145,6 +175,7 @@ function TablePreview() {
 }
 
 function SidebarPreview() {
+  const [active, setActive] = useState("Home");
   const items = [
     { icon: "🔍", label: "Search" },
     { icon: "📥", label: "Inbox" },
@@ -152,118 +183,238 @@ function SidebarPreview() {
     { icon: "📅", label: "Events" },
   ];
   return (
-    <div className="w-full max-w-[200px] space-y-1">
+    <div className="w-full max-w-50 space-y-1">
       <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-foreground">
-        <span className="flex h-5 w-5 items-center justify-center rounded bg-accent text-[10px]">⚡</span>
+        <span className="flex size-5 items-center justify-center rounded-sm bg-accent text-[10px]">
+          ⚡
+        </span>
         Tailwind Labs
       </div>
       <div className="h-px bg-border my-1" />
       {items.map((item) => (
-        <div
+        <button
           key={item.label}
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] text-text-secondary hover:bg-surface-hover transition-colors"
+          onClick={() => setActive(item.label)}
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] text-left transition-colors duration-150 ${
+            active === item.label
+              ? "bg-surface-hover text-foreground font-medium"
+              : "text-text-secondary hover:bg-surface-hover"
+          }`}
         >
-          <span className="text-[14px]">{item.icon}</span>
+          <span className="text-sm">{item.icon}</span>
           {item.label}
-        </div>
+        </button>
       ))}
     </div>
   );
 }
 
 function CheckboxPreview() {
+  const [checks, setChecks] = useState([true, false]);
   return (
     <div className="flex items-center gap-4">
-      <div className="flex h-5 w-5 items-center justify-center rounded border border-accent bg-accent">
-        <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <div className="flex h-5 w-5 items-center rounded border border-border bg-background" />
+      {checks.map((checked, i) => (
+        <button
+          key={i}
+          onClick={() => setChecks((c) => c.map((v, j) => (j === i ? !v : v)))}
+          className={`flex size-5 items-center justify-center rounded-sm border transition-all duration-150 ${
+            checked
+              ? "border-accent bg-accent"
+              : "border-border bg-background hover:border-accent/50"
+          }`}
+        >
+          {checked && (
+            <svg
+              className="size-3 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={3}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          )}
+        </button>
+      ))}
     </div>
   );
 }
 
 function ComboboxPreview() {
-  const items = [
+  const [open, setOpen] = useState(true);
+  const [selected, setSelected] = useState("Jordan Paul");
+  const [query, setQuery] = useState("Jo");
+
+  const allItems = [
     { name: "Joanne Weber", initials: "JW" },
     { name: "Joel Baker", initials: "JB" },
     { name: "Jonathan Richards", initials: "JR" },
-    { name: "Jordan Paul", initials: "JP", selected: true },
+    { name: "Jordan Paul", initials: "JP" },
   ];
+
+  const filtered = allItems.filter((item) =>
+    item.name.toLowerCase().includes(query.toLowerCase()),
+  );
+
   return (
-    <div className="w-full max-w-[260px]">
-      <div className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[13px]">
-        <span className="text-text-muted">Jo</span>
-        <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    <div className="w-full max-w-65">
+      <div
+        className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[13px] cursor-pointer"
+        onClick={() => setOpen(!open)}
+      >
+        <input
+          className="w-full bg-transparent text-foreground outline-none placeholder:text-text-muted"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(true);
+          }}
+          placeholder="Search..."
+        />
+        <svg
+          className={`size-4 shrink-0 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </div>
-      <div className="mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-elevated">
-        {items.map((item) => (
-          <div
-            key={item.name}
-            className={`flex items-center justify-between px-3 py-2 text-[13px] ${
-              item.selected
-                ? "bg-accent text-white"
-                : "text-foreground hover:bg-surface-hover"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 text-[9px] font-medium text-accent">
-                {item.initials}
-              </span>
-              {item.name}
+      {open && filtered.length > 0 && (
+        <div className="mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-elevated">
+          {filtered.map((item) => (
+            <div
+              key={item.name}
+              onClick={() => {
+                setSelected(item.name);
+                setQuery(item.name);
+                setOpen(false);
+              }}
+              className={`flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] ${
+                item.name === selected
+                  ? "bg-accent text-white"
+                  : "text-foreground hover:bg-surface-hover"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`flex size-5 items-center justify-center rounded-full text-[9px] font-medium ${
+                    item.name === selected
+                      ? "bg-white/20 text-white"
+                      : "bg-accent/10 text-accent"
+                  }`}
+                >
+                  {item.initials}
+                </span>
+                {item.name}
+              </div>
+              {item.name === selected && (
+                <svg
+                  className="size-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
             </div>
-            {item.selected && (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RadioPreview() {
+  const [selected, setSelected] = useState(0);
+  const options = [
+    {
+      label: "Allow tickets to be resold",
+      desc: "Customers can resell or transfer their tickets.",
+    },
+    { label: "Don't allow tickets to be resold", desc: "" },
+  ];
+  return (
+    <div className="w-full max-w-75 space-y-4">
+      <div>
+        <h4 className="text-sm font-medium text-foreground">
+          Resale and transfers
+        </h4>
+        <p className="mt-1 text-xs text-text-muted">
+          Decide if people buy tickets from you or from someone else.
+        </p>
+      </div>
+      <div className="space-y-3">
+        {options.map((opt, i) => (
+          <label
+            key={i}
+            className="flex cursor-pointer items-start gap-3"
+            onClick={() => setSelected(i)}
+          >
+            <div
+              className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
+                selected === i ? "border-accent" : "border-border"
+              }`}
+            >
+              {selected === i && (
+                <div className="size-2 rounded-full bg-accent" />
+              )}
+            </div>
+            <div>
+              <div className="text-[13px] font-medium text-foreground">
+                {opt.label}
+              </div>
+              {opt.desc && (
+                <div className="text-xs text-text-muted">{opt.desc}</div>
+              )}
+            </div>
+          </label>
         ))}
       </div>
     </div>
   );
 }
 
-function RadioPreview() {
-  return (
-    <div className="w-full max-w-[300px] space-y-4">
-      <div>
-        <h4 className="text-[14px] font-medium text-foreground">Resale and transfers</h4>
-        <p className="mt-1 text-[12px] text-text-muted">Decide if people buy tickets from you or from someone else.</p>
-      </div>
-      <div className="space-y-3">
-        <label className="flex items-start gap-3 cursor-pointer">
-          <div className="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-accent">
-            <div className="h-2 w-2 rounded-full bg-accent" />
-          </div>
-          <div>
-            <div className="text-[13px] font-medium text-foreground">Allow tickets to be resold</div>
-            <div className="text-[12px] text-text-muted">Customers can resell or transfer their tickets.</div>
-          </div>
-        </label>
-        <label className="flex items-start gap-3 cursor-pointer">
-          <div className="mt-0.5 h-4 w-4 rounded-full border-2 border-border" />
-          <div>
-            <div className="text-[13px] font-medium text-foreground">Don&apos;t allow ticket to be resold</div>
-          </div>
-        </label>
-      </div>
-    </div>
-  );
-}
-
 function SwitchPreview() {
+  const [switches, setSwitches] = useState([true, false]);
   return (
     <div className="flex items-center gap-6">
-      <div className="relative h-6 w-11 rounded-full bg-accent">
-        <div className="absolute right-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm" />
-      </div>
-      <div className="relative h-6 w-11 rounded-full bg-gray-200">
-        <div className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm" />
-      </div>
+      {switches.map((on, i) => (
+        <button
+          key={i}
+          onClick={() =>
+            setSwitches((s) => s.map((v, j) => (j === i ? !v : v)))
+          }
+          className={`relative h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none ${
+            on ? "bg-accent" : "bg-border"
+          }`}
+        >
+          <div
+            className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              on ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </button>
+      ))}
     </div>
   );
 }
@@ -277,9 +428,12 @@ function DescriptionListPreview() {
     { label: "Fee", value: "$4.79 USD" },
   ];
   return (
-    <div className="w-full max-w-[320px] divide-y divide-border rounded-xl border border-border">
+    <div className="w-full max-w-80 divide-y divide-border rounded-xl border border-border">
       {items.map((item) => (
-        <div key={item.label} className="flex items-center justify-between px-4 py-2.5 text-[13px]">
+        <div
+          key={item.label}
+          className="flex items-center justify-between px-4 py-2.5 text-[13px]"
+        >
           <span className="text-text-muted">{item.label}</span>
           <span className="font-medium text-foreground">{item.value}</span>
         </div>
@@ -302,7 +456,10 @@ function BadgePreview() {
   return (
     <div className="flex flex-wrap justify-center gap-2">
       {colors.map((color, i) => (
-        <span key={i} className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${color}`}>
+        <span
+          key={i}
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${color}`}
+        >
           Badge
         </span>
       ))}
@@ -311,38 +468,100 @@ function BadgePreview() {
 }
 
 function ListboxPreview() {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState({
+    flag: "🇨🇦",
+    label: "Canada",
+  });
+  const options = [
+    { flag: "🇨🇦", label: "Canada" },
+    { flag: "🇺🇸", label: "United States" },
+    { flag: "🇬🇧", label: "United Kingdom" },
+    { flag: "🇦🇺", label: "Australia" },
+  ];
   return (
-    <div className="w-full max-w-[220px]">
-      <label className="mb-1.5 block text-[13px] font-medium text-foreground">Country</label>
-      <div className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[13px]">
+    <div className="relative w-full max-w-55">
+      <label className="mb-1.5 block text-[13px] font-medium text-foreground">
+        Country
+      </label>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[13px]"
+      >
         <div className="flex items-center gap-2">
-          <span className="text-[16px]">🇨🇦</span>
-          <span className="text-foreground">Canada</span>
+          <span className="text-base">{selected.flag}</span>
+          <span className="text-foreground">{selected.label}</span>
         </div>
-        <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        <svg
+          className={`size-4 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
-      </div>
+      </button>
+      {open && (
+        <div className="absolute top-full z-10 mt-1 w-full overflow-hidden rounded-lg border border-border bg-background shadow-elevated">
+          {options.map((opt) => (
+            <button
+              key={opt.label}
+              onClick={() => {
+                setSelected(opt);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors duration-100 ${
+                opt.label === selected.label
+                  ? "bg-accent text-white"
+                  : "text-foreground hover:bg-surface-hover"
+              }`}
+            >
+              <span className="text-base">{opt.flag}</span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function PaginationPreview() {
+  const [activePage, setActivePage] = useState(1);
   return (
     <div className="flex items-center gap-1">
-      <button className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-[13px] text-text-muted hover:text-foreground transition-colors">
-        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+      <button
+        onClick={() => setActivePage((p) => Math.max(1, p - 1))}
+        className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-[13px] text-text-muted transition-colors hover:text-foreground"
+      >
+        <svg
+          className="size-3"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
         Previous
       </button>
       {[1, 2, 3].map((page) => (
         <button
           key={page}
-          className={`h-8 w-8 rounded-lg text-[13px] font-medium transition-colors ${
-            page === 1
+          onClick={() => setActivePage(page)}
+          className={`size-8 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+            page === activePage
               ? "bg-accent text-white"
-              : "text-text-muted hover:text-foreground hover:bg-surface-hover"
+              : "text-text-muted hover:bg-surface-hover hover:text-foreground"
           }`}
         >
           {page}
@@ -353,34 +572,67 @@ function PaginationPreview() {
 }
 
 function DropdownPreview() {
+  const [open, setOpen] = useState(true);
   return (
     <div className="relative inline-block">
-      <button className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-hover"
+      >
         Options
-        <svg className="h-3 w-3 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        <svg
+          className={`size-3 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
-      <div className="absolute left-0 top-full z-10 mt-1 w-40 overflow-hidden rounded-lg border border-border bg-background shadow-elevated">
-        <div className="px-3 py-2 text-[13px] text-foreground hover:bg-surface-hover cursor-pointer">Edit</div>
-        <div className="px-3 py-2 text-[13px] text-foreground hover:bg-surface-hover cursor-pointer">Duplicate</div>
-        <div className="h-px bg-border" />
-        <div className="px-3 py-2 text-[13px] text-destructive hover:bg-surface-hover cursor-pointer">Delete</div>
-      </div>
+      {open && (
+        <div className="absolute left-0 top-full z-10 mt-1 w-40 overflow-hidden rounded-lg border border-border bg-background shadow-elevated">
+          <button
+            onClick={() => setOpen(false)}
+            className="flex w-full px-3 py-2 text-left text-[13px] text-foreground transition-colors hover:bg-surface-hover"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="flex w-full px-3 py-2 text-left text-[13px] text-foreground transition-colors hover:bg-surface-hover"
+          >
+            Duplicate
+          </button>
+          <div className="h-px bg-border" />
+          <button
+            onClick={() => setOpen(false)}
+            className="flex w-full px-3 py-2 text-left text-[13px] text-destructive transition-colors hover:bg-surface-hover"
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
 function NavigationPreview() {
+  const [active, setActive] = useState("Home");
   const items = ["Home", "Events", "Orders"];
   return (
     <div className="flex items-center gap-1 rounded-full border border-border bg-background-200 p-1">
-      {items.map((item, i) => (
+      {items.map((item) => (
         <button
           key={item}
-          className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors ${
-            i === 0
-              ? "bg-accent text-white"
+          onClick={() => setActive(item)}
+          className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-200 ${
+            active === item
+              ? "bg-accent text-white shadow-sm"
               : "text-text-secondary hover:text-foreground"
           }`}
         >
@@ -399,7 +651,7 @@ function AvatarGroupPreview() {
       {avatars.map((initials, i) => (
         <span
           key={initials}
-          className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-background-200 text-[11px] font-medium text-white ${colors[i]}`}
+          className={`flex size-8 items-center justify-center rounded-full border-2 border-background-200 text-[11px] font-medium text-white ${colors[i]}`}
         >
           {initials}
         </span>
@@ -427,6 +679,7 @@ const componentPreviews = [
 ];
 
 export default function ComponentsPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-background">
       <div className="grain-overlay" />
@@ -442,7 +695,7 @@ export default function ComponentsPage() {
             </h1>
           </Reveal>
           <Reveal delay={0.05}>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-text-secondary sm:text-lg">
+            <p className="mt-4 max-w-lg text-base/relaxed text-text-secondary sm:text-lg">
               Browse all available components. Multiple design styles per
               component, each with its own variants.
             </p>
@@ -456,11 +709,16 @@ export default function ComponentsPage() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {componentPreviews.map((comp, i) => (
               <Reveal key={comp.name} delay={i * 0.04}>
-                <Link href={`/components/${comp.name.toLowerCase().replace(/\s+/g, "-")}`}>
-                  <PreviewCard name={comp.name}>
-                    {comp.component}
-                  </PreviewCard>
-                </Link>
+                <div
+                  className="group cursor-pointer"
+                  onClick={() =>
+                    router.push(
+                      `/components/${comp.name.toLowerCase().replace(/\s+/g, "-")}`,
+                    )
+                  }
+                >
+                  <PreviewCard name={comp.name}>{comp.component}</PreviewCard>
+                </div>
               </Reveal>
             ))}
           </div>
@@ -471,7 +729,7 @@ export default function ComponentsPage() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 sm:flex-row">
           <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md bg-foreground text-[10px] font-bold text-background">
+            <span className="flex size-5 items-center justify-center rounded-md bg-foreground text-[10px] font-bold text-background">
               D
             </span>
             <span className="text-[13px] text-text-muted">

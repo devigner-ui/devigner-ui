@@ -13,18 +13,18 @@ export default function CheckoutSuccess({
       <div className="fixed top-0 inset-x-0 z-50 flex justify-center px-4 pt-4">
         <nav className="nav-pill flex h-12 w-full max-w-3xl items-center justify-between rounded-full px-4 bg-background/80 border border-border shadow-elevated">
           <Link href="/" className="flex items-center gap-2 font-semibold text-foreground tracking-tight">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">D</span>
+            <span className="flex size-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">D</span>
             <span className="text-sm">Devigner</span>
           </Link>
         </nav>
       </div>
 
       {/* Content */}
-      <section className="relative min-h-[100dvh] flex items-center justify-center">
+      <section className="relative min-h-dvh flex items-center justify-center">
         <div className="absolute inset-0 mesh-gradient" />
         <div className="relative mx-auto max-w-lg px-5 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-3xl text-success mb-6">
-            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+          <div className="inline-flex size-16 items-center justify-center rounded-full bg-success/10 text-3xl text-success mb-6">
+            <svg className="size-8" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
