@@ -12,10 +12,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "commander": "^12.1.0",
-    "node-fetch": "^3.3.0"
+    "commander": "^12.1.0"
   },
   "devDependencies": {
+    "@types/node": "^22.10.0",
     "tsup": "^8.4.0",
     "typescript": "~5.8.0"
   }

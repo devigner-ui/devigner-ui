@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "fuma",
+  "owner": "agentparadise",
+  "repo": "agentic-primitives",
+  "path": "plugins/docs/skills/fuma",
+  "branch": "main",
+  "sha": "1973a470e911cf961890c297469c636acb9c775f",
+  "source": "manual"
+}

@@ -1,0 +1,46 @@
+---
+title: Theming
+description: The token system every component is built on, and how dark mode works.
+---
+
+Every component references **semantic CSS custom properties**, never raw hex
+values or Tailwind's default palette. This is what makes a component installed
+via the CLI render correctly in both light and dark mode with zero extra work.
+
+## Token groups
+
+| Group | Tokens | Purpose |
+|---|---|---|
+| Surfaces | `--color-background`, `--color-background-100/200`, `--color-surface`, `--color-surface-hover` | Page and component backgrounds |
+| Text | `--color-text-primary` → `--color-text-muted` | Four-step text hierarchy, darkest to lightest |
+| Borders | `--color-border`, `--color-border-hover` | Default and emphasis borders |
+| Accent | `--color-accent`, `--color-accent-hover`, `--color-accent-foreground` | Brand/interactive color |
+| Status | `--color-success`, `--color-warning`, `--color-destructive` | Status colors |
+| Radius | `--radius-xs` (2px) → `--radius-3xl` (24px), `--radius-pill` | Corner rounding |
+| Shadow | `--shadow-card`, `--shadow-subtle`, `--shadow-elevated` | Elevation |
+
+Component source should always use the Tailwind utility for the semantic name
+(`bg-background`, `text-foreground`, `border-border`, `shadow-card`) — never a
+literal like `bg-white` or an inline `shadow-[...]` value, since those don't
+adapt to dark mode.
+
+## Dark mode
+
+Dark mode is a single `.dark` class applied to `<html>`. Theme preference is
+read from `localStorage` (or `prefers-color-scheme` on first visit) by an
+inline script that runs before paint, so there's no flash of the wrong theme.
+Every token above has a corresponding value scoped under `.dark` — you don't
+need to write `dark:` variants in component source for colors that already
+come from these tokens.
+
+## Overriding tokens in your project
+
+Because every token is a CSS custom property, you can override any of them in
+your own global stylesheet after installing a component — no rebuild of the
+component itself required:
+
+```css
+:root {
+  --color-accent: oklch(60% 0.18 30);
+}
+```

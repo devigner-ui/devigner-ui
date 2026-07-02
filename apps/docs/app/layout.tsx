@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "../components/theme-provider";
 // @ts-ignore - CSS module declarations not available in this project
 import "./globals.css";
@@ -27,8 +29,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
+        {/* Clash Display — heavy grotesque display face (Fontshare).
+            ponytail: CDN link for now; self-host via next/font/local if perf matters. */}
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap"
+        />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>

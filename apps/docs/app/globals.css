@@ -34,6 +34,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-tertiary: var(--accent-tertiary);
 
   /* Utility */
   --color-success: var(--success);
@@ -41,11 +43,18 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Typography — Geist */
-  --font-sans: "Geist", "Inter", system-ui, sans-serif;
+  /* Terminal — always dark, both themes */
+  --color-terminal: var(--terminal);
+  --color-terminal-foreground: var(--terminal-foreground);
+  --color-terminal-muted: var(--terminal-muted);
+
+  /* Typography — Clash Display (headlines) + Geist (body/mono) */
+  --font-display: "Clash Display", var(--font-geist-sans), system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
-    "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo",
-    "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+    var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
+    "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New",
+    monospace;
 
   /* Radius */
   --radius-xs: 2px;
@@ -66,86 +75,96 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Light theme */
+/* Light theme — warm paper + navy ink + vermilion (from remidevigner.pro) */
 :root {
   --code-bg: var(--background-100);
-  --background: oklch(100% 0 0);
-  --background-100: oklch(100% 0 0);
-  --background-200: oklch(98.511% 0 0);
-  --foreground: oklch(14.466% 0 0);
-  --surface: oklch(98.511% 0 0);
-  --surface-hover: oklch(96.969% 0 0);
+  --background: oklch(96% 0.006 90);
+  --background-100: oklch(97.5% 0.006 90);
+  --background-200: oklch(93.5% 0.008 90);
+  --foreground: oklch(20% 0.02 265);
+  --surface: oklch(94% 0.008 90);
+  --surface-hover: oklch(91% 0.01 90);
 
-  --border: oklch(93.637% 0 0);
-  --border-hover: oklch(87.052% 0 0);
+  --border: oklch(20% 0.02 265 / 0.12);
+  --border-hover: oklch(20% 0.02 265 / 0.22);
 
-  --gray-100: oklch(96.969% 0 0);
-  --gray-200: oklch(93.637% 0 0);
-  --gray-600: oklch(71.625% 0 0);
-  --gray-800: oklch(55.543% 0 0);
-  --gray-900: oklch(43.868% 0 0);
-  --gray-1000: oklch(14.466% 0 0);
+  --gray-100: oklch(94% 0.008 90);
+  --gray-200: oklch(90% 0.01 90);
+  --gray-600: oklch(62% 0.014 265);
+  --gray-800: oklch(44% 0.018 265);
+  --gray-900: oklch(32% 0.02 265);
+  --gray-1000: oklch(20% 0.02 265);
 
-  --text-primary: oklch(14.466% 0 0);
-  --text-secondary: oklch(43.868% 0 0);
-  --text-tertiary: oklch(55.543% 0 0);
-  --text-muted: oklch(71.625% 0 0);
-  --text-on-dark: oklch(100% 0 0);
+  --text-primary: oklch(20% 0.02 265);
+  --text-secondary: oklch(42% 0.018 265);
+  --text-tertiary: oklch(54% 0.016 265);
+  --text-muted: oklch(64% 0.014 265);
+  --text-on-dark: oklch(96% 0.006 90);
 
-  --accent: oklch(54.643% 0.21525 262.825);
-  --accent-foreground: oklch(100% 0 0);
-  --accent-hover: oklch(48.821% 0.21731 264.661);
+  --accent: oklch(60% 0.212 26.03);
+  --accent-foreground: oklch(96% 0.006 90);
+  --accent-hover: oklch(54% 0.216 27);
+  --accent-secondary: oklch(67% 0.19 45);
+  --accent-tertiary: oklch(80% 0.15 78);
 
-  --success: oklch(62.697% 0.17032 149.482);
+  --success: oklch(58% 0.15 149.482);
   --warning: oklch(66.597% 0.15768 58.06);
   --destructive: oklch(57.677% 0.21482 27.53);
-  --destructive-foreground: oklch(100% 0 0);
+  --destructive-foreground: oklch(96% 0.006 90);
 
-  --shadow-card-val: 0 0 0 1px rgba(0, 0, 0, 0.06);
-  --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card-val: 0 0 0 1px oklch(20% 0.02 265 / 0.06);
+  --shadow-subtle-val: 0 1px 2px oklch(20% 0.02 265 / 0.05);
   --shadow-elevated-val:
-    0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    0 12px 40px -12px oklch(20% 0.02 265 / 0.18),
+    0 0 0 1px oklch(20% 0.02 265 / 0.05);
+
+  /* Terminal panel is dark in both themes (like code blocks) */
+  --terminal: oklch(15% 0.016 265);
+  --terminal-foreground: oklch(90% 0.008 90);
+  --terminal-muted: oklch(60% 0.013 265);
 }
 
-/* Dark theme */
+/* Dark theme — cool navy ink + warm off-white + vermilion (from remidevigner.pro) */
 .dark {
   --code-bg: var(--background-200);
-  --background: oklch(11.492% 0.00001 271.152);
-  --background-100: oklch(14.479% 0.00002 271.152);
-  --background-200: oklch(17.853% 0.00409 285.914);
-  --foreground: oklch(94.611% 0.00011 271.152);
-  --surface: oklch(17.853% 0.00409 285.914);
-  --surface-hover: oklch(21.952% 0.00777 285.704);
+  --background: oklch(13% 0.016 265);
+  --background-100: oklch(15% 0.017 265);
+  --background-200: oklch(17.5% 0.018 265);
+  --foreground: oklch(92% 0.008 90);
+  --surface: oklch(16.5% 0.018 265);
+  --surface-hover: oklch(20.5% 0.02 265);
 
-  --border: oklch(100% 0 0 / 0.06);
-  --border-hover: oklch(100% 0 0 / 0.12);
+  --border: oklch(92% 0.008 90 / 0.12);
+  --border-hover: oklch(92% 0.008 90 / 0.22);
 
-  --gray-100: oklch(21.952% 0.00777 285.704);
-  --gray-200: oklch(27.394% 0.00551 285.955);
-  --gray-600: oklch(55.167% 0.01387 285.878);
-  --gray-800: oklch(71.182% 0.01302 285.981);
-  --gray-900: oklch(87.111% 0.00555 286.025);
-  --gray-1000: oklch(98.511% 0.00011 271.152);
+  --gray-100: oklch(20.5% 0.02 265);
+  --gray-200: oklch(26% 0.02 265);
+  --gray-600: oklch(52% 0.014 265);
+  --gray-800: oklch(70% 0.012 265);
+  --gray-900: oklch(85% 0.01 90);
+  --gray-1000: oklch(96% 0.006 90);
 
-  --text-primary: oklch(94.611% 0.00011 271.152);
-  --text-secondary: oklch(71.182% 0.01302 285.981);
-  --text-tertiary: oklch(55.167% 0.01387 285.878);
-  --text-muted: oklch(44.186% 0.01467 285.743);
-  --text-on-dark: oklch(11.492% 0.00001 271.152);
+  --text-primary: oklch(92% 0.008 90);
+  --text-secondary: oklch(70% 0.012 265);
+  --text-tertiary: oklch(56% 0.013 265);
+  --text-muted: oklch(46% 0.014 265);
+  --text-on-dark: oklch(13% 0.016 265);
 
-  --accent: oklch(62.31% 0.1881 259.83);
-  --accent-foreground: oklch(100% 0.00011 271.152);
-  --accent-hover: oklch(71.375% 0.14347 254.643);
+  --accent: oklch(64% 0.201 26.03);
+  --accent-foreground: oklch(96% 0.006 90);
+  --accent-hover: oklch(70% 0.19 27);
+  --accent-secondary: oklch(70% 0.185 45);
+  --accent-tertiary: oklch(82% 0.15 80);
 
-  --success: oklch(80.036% 0.18204 151.736);
+  --success: oklch(76% 0.16 151.736);
   --warning: oklch(83.685% 0.16435 84.431);
-  --destructive: oklch(71.061% 0.16614 22.191);
-  --destructive-foreground: oklch(100% 0.00011 271.152);
+  --destructive: oklch(64% 0.201 26.03);
+  --destructive-foreground: oklch(96% 0.006 90);
 
-  --shadow-card-val: 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card-val: 0 0 0 1px oklch(92% 0.008 90 / 0.06);
+  --shadow-subtle-val: 0 1px 2px oklch(0% 0 0 / 0.4);
   --shadow-elevated-val:
-    0 8px 32px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 12px 44px -12px oklch(0% 0 0 / 0.6), 0 0 0 1px oklch(92% 0.008 90 / 0.05);
 }
 
 body {
@@ -160,6 +179,24 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* ─── Lenis smooth scroll ─── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 ::selection {
@@ -224,7 +261,12 @@ html {
 
 /* ─── Text gradient ─── */
 .text-gradient {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--accent-secondary) 50%,
+    var(--accent-tertiary) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -235,17 +277,17 @@ html {
   background:
     radial-gradient(
       ellipse 80% 50% at 20% 40%,
-      rgba(59, 130, 246, 0.07),
+      color-mix(in oklab, var(--accent) 7%, transparent),
       transparent
     ),
     radial-gradient(
       ellipse 60% 40% at 80% 20%,
-      rgba(139, 92, 246, 0.05),
+      color-mix(in oklab, var(--accent-secondary) 5%, transparent),
       transparent
     ),
     radial-gradient(
       ellipse 50% 60% at 50% 80%,
-      rgba(236, 72, 153, 0.03),
+      color-mix(in oklab, var(--accent-tertiary) 3%, transparent),
       transparent
     );
 }
@@ -254,17 +296,17 @@ html {
   background:
     radial-gradient(
       ellipse 80% 50% at 20% 40%,
-      rgba(59, 130, 246, 0.1),
+      color-mix(in oklab, var(--accent) 10%, transparent),
       transparent
     ),
     radial-gradient(
       ellipse 60% 40% at 80% 20%,
-      rgba(139, 92, 246, 0.07),
+      color-mix(in oklab, var(--accent-secondary) 7%, transparent),
       transparent
     ),
     radial-gradient(
       ellipse 50% 60% at 50% 80%,
-      rgba(236, 72, 153, 0.04),
+      color-mix(in oklab, var(--accent-tertiary) 4%, transparent),
       transparent
     );
 }
@@ -304,6 +346,22 @@ html {
   background: linear-gradient(90deg, transparent, var(--border), transparent);
 }
 
+/* ─── Terminal caret ─── */
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.caret-blink {
+  animation: caret-blink 1.1s steps(1) infinite;
+}
+
 /* ─── Perspective depth ─── */
 .perspective-depth {
   perspective: 1200px;
@@ -322,7 +380,7 @@ html {
   padding: 1rem;
   font-family: var(--font-mono);
   font-size: 12px;
-  line-height: 1.7;
+  line-height: 2;
   white-space: pre-wrap;
   word-break: break-word;
   counter-reset: line;
@@ -330,6 +388,11 @@ html {
 
 .code-shiki .line {
   display: block;
+}
+
+.code-shiki.numbered .line {
+  padding-left: 2.25rem;
+  text-indent: -2.25rem;
 }
 
 .code-shiki.numbered .line::before {

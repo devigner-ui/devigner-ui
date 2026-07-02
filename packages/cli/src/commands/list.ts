@@ -1,31 +1,60 @@
 import { Command } from "commander";
+import { fetchIndex, type IndexComponent } from "../registry.js";
 
 export const listCommand = new Command()
   .name("list")
   .description("List available components")
   .option("--free", "Show only free components")
   .option("--category <category>", "Filter by category")
-  .action((options) => {
+  .action(async (options) => {
+    let components: IndexComponent[];
+    try {
+      components = await fetchIndex();
+    } catch (error) {
+      console.error(`✗ ${error instanceof Error ? error.message : error}`);
+      process.exit(1);
+    }
+
+    if (options.category) {
+      const cat = String(options.category).toLowerCase();
+      components = components.filter((c) => c.category.toLowerCase() === cat);
+    }
+    if (options.free) {
+      components = components.filter((c) => c.styles.some((s) => s.free));
+    }
+
+    if (components.length === 0) {
+      console.log("\nNo components match.\n");
+      return;
+    }
+
+    const totalStyles = components.reduce((n, c) => n + c.styles.length, 0);
+    const totalVariants = components.reduce((n, c) => n + c.variantCount, 0);
+
     console.log("\nAvailable components:\n");
     console.log("  Component          Category     Styles  Variants  Free");
     console.log("  ─────────────────  ───────────  ──────  ────────  ────");
-    console.log("  button             primitives   3       6         Yes");
-    console.log("  card               primitives   3       3         Yes");
-    console.log("  input              forms        3       4         Yes");
-    console.log("  badge              primitives   3       6         Yes");
-    console.log("  hero-section       marketing    3       3         Yes");
+    for (const c of components) {
+      const free = c.styles.some((s) => s.free) ? "Yes" : "Pro";
+      console.log(
+        `  ${c.slug.padEnd(17)}  ${c.category.toLowerCase().padEnd(11)}  ${String(
+          c.styles.length
+        ).padEnd(6)}  ${String(c.variantCount).padEnd(8)}  ${free}`
+      );
+    }
     console.log("");
-    console.log("  5 components, 15 design styles, 22 variants total");
+    console.log(
+      `  ${components.length} components, ${totalStyles} design styles, ${totalVariants} variants total`
+    );
     console.log("");
     console.log("  Design styles per component:");
-    console.log("    button:    default, gradient, magnetic");
-    console.log("    card:      default, glass, spotlight");
-    console.log("    input:     default, floating, underline");
-    console.log("    badge:     default, pill, dot");
-    console.log("    hero:      default, gradient, parallax");
+    for (const c of components) {
+      console.log(
+        `    ${(c.slug + ":").padEnd(15)} ${c.styles.map((s) => s.slug).join(", ")}`
+      );
+    }
     console.log("");
     console.log("  Usage:");
-    console.log("    npx devignerui add button                 # default style");
+    console.log("    npx devignerui add button                   # default style");
     console.log("    npx devignerui add button --style magnetic  # magnetic style");
-    console.log("    npx devignerui add card --style glass      # glass style");
   });

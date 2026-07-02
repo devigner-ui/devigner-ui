@@ -1,0 +1,53 @@
+/* Fumadocs UI tokens/utilities, scoped to the /docs route segment only.
+   Keyed off the same .dark class Devigner's own ThemeProvider toggles.
+   Tailwind v4 treats every `@import "tailwindcss"` as its own independent
+   compilation root, so this entry point needs one to resolve the `@apply`
+   rules inside fumadocs-ui's preset. */
+@import "tailwindcss";
+@import "fumadocs-ui/css/preset.css";
+
+/* Bridge Fumadocs' --color-fd-* tokens onto Devigner's own OKLCH variables
+   (defined in app/globals.css) instead of fumadocs-ui/css/neutral.css's
+   fixed palette, so /docs shares one visual identity with / and
+   /components. This compilation root can't see globals.css's @theme
+   block, so radius/font are mirrored here too. */
+@theme inline {
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: var(--accent-foreground);
+  --color-fd-muted: var(--surface);
+  --color-fd-muted-foreground: var(--text-tertiary);
+  --color-fd-secondary: var(--surface-hover);
+  --color-fd-secondary-foreground: var(--text-primary);
+  --color-fd-accent: var(--surface-hover);
+  --color-fd-accent-foreground: var(--text-primary);
+  --color-fd-card: var(--surface);
+  --color-fd-card-foreground: var(--text-primary);
+  --color-fd-popover: var(--surface);
+  --color-fd-popover-foreground: var(--text-primary);
+  --color-fd-ring: var(--accent);
+
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono:
+    var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
+    monospace;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+}
+
+#nd-docs-layout {
+  --fd-nav-height: 3.5rem;
+}
+
+#nd-docs-layout .prose {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}

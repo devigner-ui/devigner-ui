@@ -1,70 +1,23 @@
 import { Command } from "commander";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import { existsSync, writeFileSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
+import { fetchComponent } from "../registry.js";
 
-const REGISTRY_URL = "https://registry.devignerui.com";
+function writeFile(filePath: string, content: string, basePath: string) {
+  const targetPath = resolve(basePath, filePath);
+  const dir = dirname(targetPath);
 
-interface RegistryFile {
-  path: string;
-  content: string;
-}
-
-interface RegistryComponent {
-  name: string;
-  description: string;
-  category: string;
-  styles: {
-    slug: string;
-    name: string;
-    description: string;
-    files: string[];
-    dependencies?: string[];
-  }[];
-  dependencies: string[];
-}
-
-async function fetchRegistryIndex(): Promise<RegistryComponent[]> {
-  const response = await fetch(`${REGISTRY_URL}/index.json`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch registry index");
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
   }
-  const data = await response.json();
-  return data.components;
-}
 
-async function fetchComponent(
-  name: string
-): Promise<RegistryComponent & { files: Record<string, string> }> {
-  const response = await fetch(`${REGISTRY_URL}/components/${name}.json`);
-  if (!response.ok) {
-    throw new Error(`Component "${name}" not found in registry`);
+  if (existsSync(targetPath)) {
+    console.log(`  ⚠ ${filePath} already exists, skipping`);
+    return;
   }
-  return response.json();
-}
 
-function installFiles(
-  files: Record<string, string>,
-  basePath: string,
-  filter?: (path: string) => boolean
-) {
-  for (const [filePath, content] of Object.entries(files)) {
-    if (filter && !filter(filePath)) continue;
-
-    const targetPath = resolve(basePath, filePath);
-    const dir = dirname(targetPath);
-
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
-    }
-
-    if (existsSync(targetPath)) {
-      console.log(`  ⚠ ${filePath} already exists, skipping`);
-      continue;
-    }
-
-    writeFileSync(targetPath, content);
-    console.log(`  ✓ ${filePath}`);
-  }
+  writeFileSync(targetPath, content);
+  console.log(`  ✓ ${filePath}`);
 }
 
 export const addCommand = new Command()
@@ -73,20 +26,21 @@ export const addCommand = new Command()
   .argument("<components...>", "Component names to add")
   .option(
     "-s, --style <style>",
-    "Design style to install (default, gradient, magnetic, etc.)"
+    "Design style to install (default, gradient, magnetic, etc.)",
   )
   .option("-p, --path <path>", "Override components path")
   .action(async (componentNames: string[], options) => {
     const configPath = resolve("components.json");
     if (!existsSync(configPath)) {
       console.error(
-        "✗ components.json not found. Run `npx devignerui init` first."
+        "✗ components.json not found. Run `npx devignerui init` first.",
       );
       process.exit(1);
     }
 
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
-    const basePath = resolve(options.path || config.path || "components/ui");
+    // Components install relative to the project root; their paths already
+    // include components/ui and lib (e.g. "components/ui/button.tsx").
+    const basePath = resolve(options.path || ".");
 
     console.log(`\nAdding components...\n`);
 
@@ -100,33 +54,32 @@ export const addCommand = new Command()
 
         if (!style) {
           console.log(
-            `  ✗ Style "${styleSlug}" not found. Available: ${component.styles.map((s) => s.slug).join(", ")}`
+            `  ✗ Style "${styleSlug}" not found. Available: ${component.styles
+              .map((s) => s.slug)
+              .join(", ")}`,
           );
           continue;
         }
 
         console.log(`  Style: ${style.name}`);
 
-        const styleFiles = style.files;
-        if (!styleFiles || styleFiles.length === 0) {
-          console.log(`  ⚠ No files found for style "${styleSlug}"`);
-          continue;
+        // Install the style's own file plus the shared cn() util.
+        for (const filePath of [style.file, "lib/utils.ts"]) {
+          const content = component.files[filePath];
+          if (content === undefined) {
+            console.log(`  ⚠ ${filePath} missing from registry, skipping`);
+            continue;
+          }
+          writeFile(filePath, content, basePath);
         }
 
-        installFiles(
-          component.files,
-          basePath,
-          (filePath) =>
-            styleFiles.some((f: string) => filePath.endsWith(f)) ||
-            filePath.endsWith("index.ts") ||
-            filePath.endsWith("index.tsx")
-        );
-
-        console.log(`\n  Install command:`);
-        console.log(`  npx devignerui add ${name} --style ${styleSlug}`);
+        if (style.dependencies.length > 0) {
+          console.log(`\n  Install dependencies:`);
+          console.log(`  npm i ${style.dependencies.join(" ")}`);
+        }
         console.log("");
       } catch (error) {
-        console.error(`  ✗ ${error}`);
+        console.error(`  ✗ ${error instanceof Error ? error.message : error}`);
       }
     }
 

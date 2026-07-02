@@ -1,0 +1,56 @@
+---
+title: Installation
+description: Set up the CLI, then add your first component.
+---
+
+Devigner UI assumes a Tailwind CSS v4 + React project. There's no `npm install`
+of a component package in the primary flow — the CLI writes source files
+directly into your project.
+
+## 1. Initialize
+
+```bash
+npx devignerui init
+```
+
+This creates a `components.json` config file and a `components/ui` directory
+(both configurable — see `--path`, `--css`, and `--tailwind` flags).
+
+## 2. Add a component
+
+```bash
+npx devignerui add button
+```
+
+This writes the `default` Style's source file plus the shared `lib/utils.ts`
+(the `cn()` helper) into your project, and prints any npm dependencies that
+Style needs.
+
+To install a specific Style instead of `default`:
+
+```bash
+npx devignerui add button --style gradient
+```
+
+## 3. List what's available
+
+```bash
+npx devignerui list
+```
+
+Filter by category or free-only:
+
+```bash
+npx devignerui list --category primitives
+npx devignerui list --free
+```
+
+## Multiple components at once
+
+```bash
+npx devignerui add button card input
+```
+
+Each component installs with the `default` Style unless `--style` is passed —
+`--style` currently applies to every component in the command, so install
+components with different non-default Styles in separate `add` calls.

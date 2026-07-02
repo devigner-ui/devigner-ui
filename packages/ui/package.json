@@ -13,7 +13,7 @@
     },
     "./styles": "./src/styles/globals.css"
   },
-  "files": ["dist", "registry"],
+  "files": ["dist"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

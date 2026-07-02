@@ -7,6 +7,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { ThemeToggle } from "../../components/theme-provider";
 import { Button } from "@devignerui/ui";
 import { Input } from "@devignerui/ui";
+import { components } from "@/lib/registry";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -54,6 +55,12 @@ function Navbar() {
             Home
           </Link>
           <Link
+            href="/docs"
+            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200"
+          >
+            Docs
+          </Link>
+          <Link
             href="/pricing"
             className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200"
           >
@@ -71,26 +78,37 @@ function PreviewCard({
   name,
   children,
   className,
+  soon = false,
 }: {
   name: string;
   children: React.ReactNode;
   className?: string;
+  soon?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div
-        className={`flex h-55 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background-200 p-6 transition-all duration-300 ease-out group-hover:border-border-hover group-hover:bg-background-100 group-hover:shadow-elevated ${className ?? ""}`}
+        className={`relative flex h-55 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background-200 p-6 transition-all duration-300 ease-out ${soon ? "opacity-60" : "group-hover:border-border-hover group-hover:bg-background-100 group-hover:shadow-elevated"} ${className ?? ""}`}
       >
+        {soon && (
+          <span className="absolute right-2.5 top-2.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-text-muted">
+            Soon
+          </span>
+        )}
         {/* ponytail: stopPropagation so clicks on the preview don't trigger the parent onClick */}
         <div onClick={(e) => e.stopPropagation()}>{children}</div>
       </div>
       <div className="flex items-center justify-between px-0.5">
-        <span className="text-[13px] font-medium text-text-secondary transition-colors duration-200 group-hover:text-foreground">
+        <span
+          className={`text-[13px] font-medium text-text-secondary transition-colors duration-200 ${soon ? "" : "group-hover:text-foreground"}`}
+        >
           {name}
         </span>
-        <span className="-translate-x-1 opacity-0 text-[13px] text-accent transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
-          →
-        </span>
+        {!soon && (
+          <span className="-translate-x-1 opacity-0 text-[13px] text-accent transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+            →
+          </span>
+        )}
       </div>
     </div>
   );
@@ -660,6 +678,11 @@ function AvatarGroupPreview() {
   );
 }
 
+// Slugs with a real /components/[slug] page come straight from the registry.
+const READY = new Set(Object.keys(components));
+
+const slugOf = (name: string) => name.toLowerCase().replace(/\s+/g, "-");
+
 const componentPreviews = [
   { name: "Button", component: <ButtonPreview /> },
   { name: "Input", component: <InputPreview /> },
@@ -707,20 +730,25 @@ export default function ComponentsPage() {
       <section className="section-editorial py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {componentPreviews.map((comp, i) => (
-              <Reveal key={comp.name} delay={i * 0.04}>
-                <div
-                  className="group cursor-pointer"
-                  onClick={() =>
-                    router.push(
-                      `/components/${comp.name.toLowerCase().replace(/\s+/g, "-")}`,
-                    )
-                  }
-                >
-                  <PreviewCard name={comp.name}>{comp.component}</PreviewCard>
-                </div>
-              </Reveal>
-            ))}
+            {componentPreviews.map((comp, i) => {
+              const ready = READY.has(slugOf(comp.name));
+              return (
+                <Reveal key={comp.name} delay={i * 0.04}>
+                  <div
+                    className={`group ${ready ? "cursor-pointer" : "cursor-default"}`}
+                    onClick={
+                      ready
+                        ? () => router.push(`/components/${slugOf(comp.name)}`)
+                        : undefined
+                    }
+                  >
+                    <PreviewCard name={comp.name} soon={!ready}>
+                      {comp.component}
+                    </PreviewCard>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>

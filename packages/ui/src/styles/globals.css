@@ -1,131 +1,165 @@
 @import "tailwindcss";
 
+@variant dark (&:is(.dark *));
+
 @theme inline {
-  /* Colors — Devigner Design System (Vercel Light) */
-  --color-background: #ffffff;
-  --color-background-100: #ffffff;
-  --color-background-200: #fafafa;
-  --color-foreground: #171717;
-  --color-surface: #fafafa;
-  --color-surface-hover: #f2f2f2;
+  /* Colors */
+  --color-background: var(--background);
+  --color-background-100: var(--background-100);
+  --color-background-200: var(--background-200);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
 
   /* Border */
-  --color-border: #ebebeb;
-  --color-border-hover: #d4d4d4;
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
 
   /* Text scale */
-  --color-gray-100: #f2f2f2;
-  --color-gray-200: #ebebeb;
-  --color-gray-600: #a8a8a8;
-  --color-gray-800: #7d7d7d;
-  --color-gray-900: #4d4d4d;
-  --color-gray-1000: #171717;
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-600: var(--gray-600);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  --color-gray-1000: var(--gray-1000);
 
   /* Semantic text */
-  --color-text-primary: #171717;
-  --color-text-secondary: #4d4d4d;
-  --color-text-tertiary: #7d7d7d;
-  --color-text-muted: #a8a8a8;
-  --color-text-on-dark: #ffffff;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-dark: var(--text-on-dark);
 
   /* Accent */
-  --color-accent: #0070f3;
-  --color-accent-foreground: #ffffff;
-  --color-accent-hover: #0060df;
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
 
   /* Utility */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Typography — Geist */
-  --font-sans: "Geist", "Inter", system-ui, sans-serif;
+  /* Typography */
+  --font-sans: var(--font-geist-sans), "Geist", "Inter", system-ui, sans-serif;
   --font-mono:
-    "geistMonoFont", "ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo",
-    "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+    var(--font-geist-mono), "Geist Mono", "ui-monospace", "SFMono-Regular",
+    "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono",
+    "Courier New", monospace;
 
-  /* Display hero: 48px / 600 / 56px / -2.88px */
-  --font-size-display: 3rem;
-  --line-height-display: 3.5rem;
-
-  /* Section heading: 32px / 400 / 48px / -1.28px */
-  --font-size-section: 2rem;
-  --line-height-section: 3rem;
-
-  /* Subheading: 24px / 600 / 32px / -0.96px */
-  --font-size-subheading: 1.5rem;
-  --line-height-subheading: 2rem;
-
-  /* Body default: 16px / 400 / 24px */
-  --font-size-body: 1rem;
-  --line-height-body: 1.5rem;
-
-  /* Body small: 14px / 400 / 21px */
-  --font-size-body-small: 0.875rem;
-  --line-height-body-small: 1.3125rem;
-
-  /* Label medium: 14px / 500 / 20px */
-  --font-size-label: 0.875rem;
-  --line-height-label: 1.25rem;
-
-  /* Label small: 12px / 400 / 16px */
-  --font-size-label-small: 0.75rem;
-  --line-height-label-small: 1rem;
-
-  /* Code: 13px / 500 / 20px */
-  --font-size-code: 0.8125rem;
-  --line-height-code: 1.25rem;
-
-  /* Code large: 16px / 400 / 24px */
-  --font-size-code-large: 1rem;
-  --line-height-code-large: 1.5rem;
-
-  /* Radius — exact from design system */
+  /* Radius */
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --radius-xl: 16px;
-  --radius-2xl: 32px;
-  --radius-badge: 64px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
   --radius-pill: 9999px;
 
-  /* Spacing — 4px base grid */
-  --space-1: 2px;
-  --space-2: 4px;
-  --space-3: 6px;
-  --space-4: 8px;
-  --space-5: 10px;
-  --space-6: 12px;
-  --space-7: 14px;
-  --space-8: 16px;
-  --space-9: 24px;
-  --space-10: 32px;
-  --space-11: 40px;
-  --space-12: 44px;
-  --space-13: 48px;
-  --space-14: 50px;
-
-  /* Shadows — evidence-backed */
-  --shadow-card: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-  --shadow-subtle: 0px 2px 2px 0px rgba(0, 0, 0, 0.04);
-  --shadow-ring: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-  --shadow-border-only: 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+  /* Shadows */
+  --shadow-card: var(--shadow-card-val);
+  --shadow-subtle: var(--shadow-subtle-val);
+  --shadow-elevated: var(--shadow-elevated-val);
 
   /* Easing */
-  --ease-fluid: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light theme */
+:root {
+  --background: oklch(100% 0 0);
+  --background-100: oklch(100% 0 0);
+  --background-200: oklch(98.511% 0 0);
+  --foreground: oklch(14.466% 0 0);
+  --surface: oklch(98.511% 0 0);
+  --surface-hover: oklch(96.969% 0 0);
+
+  --border: oklch(93.637% 0 0);
+  --border-hover: oklch(87.052% 0 0);
+
+  --gray-100: oklch(96.969% 0 0);
+  --gray-200: oklch(93.637% 0 0);
+  --gray-600: oklch(71.625% 0 0);
+  --gray-800: oklch(55.543% 0 0);
+  --gray-900: oklch(43.868% 0 0);
+  --gray-1000: oklch(14.466% 0 0);
+
+  --text-primary: oklch(14.466% 0 0);
+  --text-secondary: oklch(43.868% 0 0);
+  --text-tertiary: oklch(55.543% 0 0);
+  --text-muted: oklch(71.625% 0 0);
+  --text-on-dark: oklch(100% 0 0);
+
+  --accent: oklch(54.643% 0.21525 262.825);
+  --accent-foreground: oklch(100% 0 0);
+  --accent-hover: oklch(48.821% 0.21731 264.661);
+
+  --success: oklch(62.697% 0.17032 149.482);
+  --warning: oklch(66.597% 0.15768 58.06);
+  --destructive: oklch(57.677% 0.21482 27.53);
+  --destructive-foreground: oklch(100% 0 0);
+
+  --shadow-card-val: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-elevated-val:
+    0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark theme */
+.dark {
+  --background: oklch(11.492% 0.00001 271.152);
+  --background-100: oklch(14.479% 0.00002 271.152);
+  --background-200: oklch(17.853% 0.00409 285.914);
+  --foreground: oklch(94.611% 0.00011 271.152);
+  --surface: oklch(17.853% 0.00409 285.914);
+  --surface-hover: oklch(21.952% 0.00777 285.704);
+
+  --border: oklch(100% 0 0 / 0.06);
+  --border-hover: oklch(100% 0 0 / 0.12);
+
+  --gray-100: oklch(21.952% 0.00777 285.704);
+  --gray-200: oklch(27.394% 0.00551 285.955);
+  --gray-600: oklch(55.167% 0.01387 285.878);
+  --gray-800: oklch(71.182% 0.01302 285.981);
+  --gray-900: oklch(87.111% 0.00555 286.025);
+  --gray-1000: oklch(98.511% 0.00011 271.152);
+
+  --text-primary: oklch(94.611% 0.00011 271.152);
+  --text-secondary: oklch(71.182% 0.01302 285.981);
+  --text-tertiary: oklch(55.167% 0.01387 285.878);
+  --text-muted: oklch(44.186% 0.01467 285.743);
+  --text-on-dark: oklch(11.492% 0.00001 271.152);
+
+  --accent: oklch(62.31% 0.1881 259.83);
+  --accent-foreground: oklch(100% 0.00011 271.152);
+  --accent-hover: oklch(71.375% 0.14347 254.643);
+
+  --success: oklch(80.036% 0.18204 151.736);
+  --warning: oklch(83.685% 0.16435 84.431);
+  --destructive: oklch(71.061% 0.16614 22.191);
+  --destructive-foreground: oklch(100% 0.00011 271.152);
+
+  --shadow-card-val: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated-val:
+    0 8px 32px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-body);
+  font-size: 1rem;
+  line-height: 1.5rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
