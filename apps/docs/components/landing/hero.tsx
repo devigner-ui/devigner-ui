@@ -303,9 +303,9 @@ export function Hero() {
       <div className="pointer-events-none absolute bottom-[6%] right-[6%] size-100 rounded-full bg-accent/4 blur-[130px]" />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pt-24 pb-16 sm:pb-20">
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* The demo IS the hero — live style switcher */}
-          <div ref={stageRef} className="double-bezel lg:order-2">
+          <div ref={stageRef} className="double-bezel min-w-0 lg:order-2">
             <div className="double-bezel-inner overflow-hidden">
               {/* Stage header */}
               <div className="flex items-center justify-between border-b border-border px-5 py-3">
@@ -401,7 +401,7 @@ export function Hero() {
           </div>
 
           {/* Copy + CTA */}
-          <div ref={copyColRef} className="lg:order-1">
+          <div ref={copyColRef} className="min-w-0 lg:order-1">
             <div
               data-fade
               className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-text-muted"
@@ -412,26 +412,36 @@ export function Hero() {
 
             <h1
               ref={headlineRef}
-              className="mt-6 font-display text-[clamp(2.75rem,6.5vw,5.25rem)] font-semibold uppercase leading-[0.92] tracking-[-0.02em] text-foreground"
+              className="mt-6 font-display text-[clamp(2.1rem,8.5vw,5.25rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground"
             >
-              <span className="block overflow-hidden pb-[0.08em]">
-                <span data-word className="inline-block text-text-tertiary">
-                  One
+              {/* Each word is its own clip mask, so words wrap cleanly on
+                  narrow screens without cross-clipping the reveal. */}
+              <span className="block">
+                <span className="inline-block overflow-hidden align-bottom">
+                  <span data-word className="inline-block text-text-tertiary">
+                    One
+                  </span>
                 </span>{" "}
-                <span data-word className="inline-block">
-                  component
+                <span className="inline-block overflow-hidden align-bottom">
+                  <span data-word className="inline-block">
+                    component
+                  </span>
                 </span>
               </span>
-              <span className="flex items-center gap-3 overflow-hidden pb-[0.08em]">
-                <span data-word className="inline-block text-text-tertiary">
-                  Every
-                </span>
-                <span data-word className="inline-block text-accent">
-                  style
-                </span>
+              <span className="block">
+                <span className="inline-block overflow-hidden align-bottom">
+                  <span data-word className="inline-block text-text-tertiary">
+                    Every
+                  </span>
+                </span>{" "}
+                <span className="inline-block overflow-hidden align-bottom">
+                  <span data-word className="inline-block text-accent">
+                    style
+                  </span>
+                </span>{" "}
                 <Starburst
                   ref={burstRef}
-                  className="size-[0.7em] shrink-0 text-accent"
+                  className="inline-block size-[0.7em] align-middle text-accent"
                 />
               </span>
             </h1>
@@ -462,7 +472,7 @@ export function Hero() {
                   type="button"
                   onClick={copyCommand}
                   aria-label={copied ? "Copied" : "Copy install command"}
-                  className="ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-foreground px-3.5 font-sans text-[12px] font-medium text-background transition-all duration-200 hover:opacity-90 active:scale-[0.97]"
+                  className="ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-foreground px-3.5 font-sans text-[12px] font-medium text-background transition-[opacity,transform] duration-200 hover:opacity-90 active:scale-[0.97]"
                 >
                   {copied ? (
                     <svg

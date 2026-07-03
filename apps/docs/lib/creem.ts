@@ -68,13 +68,9 @@ export async function validateLicense(licenseKey: string) {
   };
 }
 
-// Product IDs - create these in your Creem dashboard
+// Product IDs - create these in your Creem dashboard.
+// Two-option pricing: a monthly subscription and a one-time lifetime purchase.
 export const PRODUCTS = {
-  basic_monthly: process.env.CREEM_PRODUCT_BASIC_MONTHLY || "",
-  basic_yearly: process.env.CREEM_PRODUCT_BASIC_YEARLY || "",
-  pro_monthly: process.env.CREEM_PRODUCT_PRO_MONTHLY || "",
-  pro_yearly: process.env.CREEM_PRODUCT_PRO_YEARLY || "",
-  ultra_monthly: process.env.CREEM_PRODUCT_ULTRA_MONTHLY || "",
-  ultra_yearly: process.env.CREEM_PRODUCT_ULTRA_YEARLY || "",
+  monthly: process.env.CREEM_PRODUCT_MONTHLY || "",
   lifetime: process.env.CREEM_PRODUCT_LIFETIME || "",
 };

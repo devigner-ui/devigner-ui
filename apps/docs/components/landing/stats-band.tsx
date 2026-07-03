@@ -63,14 +63,16 @@ export function StatsBand() {
               i < 2 ? "border-b border-border lg:border-b-0" : ""
             }`}
           >
-            <div className="text-3xl font-semibold tracking-[-0.04em] text-foreground tabular-nums sm:text-4xl">
+            <div className="font-display text-[clamp(2.75rem,5vw,4rem)] font-semibold uppercase leading-none tracking-[-0.02em] text-foreground tabular-nums">
               {stat.value !== undefined ? (
                 <span data-count>{stat.value}</span>
               ) : (
                 stat.text
               )}
             </div>
-            <div className="mt-2 text-[13px] text-text-muted">{stat.label}</div>
+            <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">
+              {stat.label}
+            </div>
           </div>
         ))}
       </div>

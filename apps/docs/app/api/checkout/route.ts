@@ -5,13 +5,12 @@ export async function POST(req: NextRequest) {
   try {
     const { plan, billing, email } = await req.json();
 
-    // Map plan + billing to product ID
-    const productKey = `${plan}_${billing}` as keyof typeof PRODUCTS;
-    const productId = PRODUCTS[productKey];
+    // plan is the product key directly: "monthly" | "lifetime"
+    const productId = PRODUCTS[plan as keyof typeof PRODUCTS];
 
     if (!productId) {
       return NextResponse.json(
-        { error: "Invalid plan or billing period" },
+        { error: "Invalid plan" },
         { status: 400 }
       );
     }

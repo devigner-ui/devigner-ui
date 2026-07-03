@@ -147,12 +147,12 @@ export function Features() {
       >
         {/* Intro block rides the track */}
         <div className="w-full shrink-0 lg:w-[38vw] lg:pr-12">
-          <h2 className="text-3xl font-semibold leading-[1.12] tracking-[-0.03em] text-foreground sm:text-4xl lg:text-5xl">
+          <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
             Why copy-paste
             <br />
-            wins.
+            <span className="text-accent">wins.</span>
           </h2>
-          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-text-secondary">
+          <p className="mt-6 max-w-md text-[15px] leading-relaxed text-text-secondary">
             A component library you install is a dependency. A component you
             paste is a starting point.
           </p>

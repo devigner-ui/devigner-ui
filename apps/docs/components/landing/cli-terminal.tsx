@@ -82,10 +82,12 @@ export function CliTerminal() {
     >
       <div className="mx-auto w-full max-w-3xl px-5 py-24">
         <div className="max-w-xl">
-          <h2 className="text-3xl font-semibold leading-[1.12] tracking-[-0.03em] text-foreground sm:text-4xl lg:text-5xl">
-            Own it in one command.
+          <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
+            Own it in
+            <br />
+            <span className="text-accent">one command.</span>
           </h2>
-          <p className="mt-5 text-[15px] leading-relaxed text-text-secondary">
+          <p className="mt-6 text-[15px] leading-relaxed text-text-secondary">
             The CLI copies the style&apos;s source straight into your project.
             No package to update, nothing to eject from.
           </p>

@@ -187,16 +187,16 @@ export function ComponentRange() {
   return (
     <section ref={sectionRef} className="section-editorial py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-5">
-        <div ref={headerRef} className="max-w-2xl">
-          <h2 className="text-3xl font-semibold leading-[1.12] tracking-[-0.03em] text-foreground sm:text-4xl lg:text-5xl">
-            Not variants.
+        <div ref={headerRef} className="max-w-3xl">
+          <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
+            Every piece,
             <br />
-            Design languages.
+            <span className="text-accent">several ways.</span>
           </h2>
-          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-text-secondary">
-            Every component ships complete, swappable implementations. A Card
-            can be glass or spotlight, an Input can float or underline; the
-            API stays the same.
+          <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-text-secondary">
+            Buttons, cards, inputs, whole sections. Each ships multiple
+            complete styles behind one API, so you swap the look without
+            touching the markup.
           </p>
         </div>
 
@@ -217,7 +217,7 @@ export function ComponentRange() {
                 <span className="text-[15px] font-semibold text-foreground">
                   {item.name}
                 </span>
-                <span className="rounded-full bg-surface px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted transition-colors duration-300 group-hover:text-text-secondary">
+                <span className="rounded-full bg-accent/10 px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-accent">
                   {item.styles.length} styles
                 </span>
               </div>
