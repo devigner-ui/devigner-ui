@@ -686,22 +686,21 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
               </div>
             </section>
 
-            {Array.isArray((meta as { notes?: string[] }).notes) &&
-              (meta as { notes?: string[] }).notes!.length > 0 && (
-                <section className="mt-14">
-                  <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-foreground">
-                    Notes
-                  </h2>
-                  <ul className="mt-4 space-y-2 text-[13px] leading-relaxed text-text-secondary">
-                    {(meta as { notes?: string[] }).notes!.map((n, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="mt-1.5 size-1 shrink-0 rounded-full bg-text-muted" />
-                        <span>{n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
+            {Array.isArray(meta.notes) && meta.notes.length > 0 && (
+              <section className="mt-14">
+                <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-foreground">
+                  Notes
+                </h2>
+                <ul className="mt-4 space-y-2 text-[13px] leading-relaxed text-text-secondary">
+                  {meta.notes.map((n, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="mt-1.5 size-1 shrink-0 rounded-full bg-text-muted" />
+                      <span>{n}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
         </div>
 
