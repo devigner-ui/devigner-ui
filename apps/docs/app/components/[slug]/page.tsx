@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import {
   motion,
+  AnimatePresence,
   useReducedMotion,
   useMotionValue,
   useSpring,
 } from "motion/react";
 import { CopyButton } from "../../../components/copy-button";
 import { CodeBlock } from "../../../components/code-block";
+import { ThemeToggle } from "../../../components/theme-provider";
 import { components } from "@/lib/registry";
 import { COMPONENT_CATEGORIES } from "@devignerui/shared";
 
@@ -340,29 +342,152 @@ function EdgeNav(_: {
 }) {
   return null;
 }
+function StageToolbar({
+  showCode,
+  setShowCode,
+  onReset,
+  onFullscreen,
+}: Pick<StageProps, "showCode" | "setShowCode" | "onReset" | "onFullscreen">) {
+  const btn =
+    "flex size-8 items-center justify-center rounded-full text-text-muted transition-colors hover:text-foreground";
+  return (
+    <div className="flex items-center gap-0.5 rounded-full border border-border bg-background/80 p-1 shadow-elevated backdrop-blur-md">
+      <button className={btn} onClick={onReset} aria-label="Reset preview" title="Reset">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
+      </button>
+      <ThemeToggle />
+      <button className={btn} onClick={onFullscreen} aria-label="Fullscreen preview" title="Fullscreen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3" /></svg>
+      </button>
+      <button
+        className={`${btn} ${showCode ? "text-accent hover:text-accent" : ""}`}
+        onClick={() => setShowCode(!showCode)}
+        aria-label="Toggle code"
+        aria-pressed={showCode}
+        title="View code"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6" /></svg>
+      </button>
+    </div>
+  );
+}
+
+function CodeDrawer({
+  usage,
+  slug,
+  styleSlug,
+  onClose,
+}: Pick<StageProps, "usage" | "slug" | "styleSlug"> & { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 40 }}
+      className="absolute inset-x-0 bottom-0 z-20 max-h-[70%] overflow-hidden rounded-t-2xl border-t border-border bg-background-200"
+    >
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+        <span className="font-mono text-[11px] text-text-muted">{slug}-{styleSlug}-demo.tsx</span>
+        <div className="flex items-center gap-1">
+          <CopyButton code={usage} componentName={`${slug}-${styleSlug}-demo`} />
+          <button className="flex size-7 items-center justify-center rounded-md text-text-muted hover:text-foreground" onClick={onClose} aria-label="Close code">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+      </div>
+      <div className="code-scroll max-h-[calc(70vh-40px)] overflow-y-auto bg-(--code-bg)">
+        <CodeBlock code={usage} lang="tsx" />
+      </div>
+    </motion.div>
+  );
+}
+
 function Stage(props: StageProps) {
   return (
-    <div className="flex h-dvh items-center justify-center" style={dotGrid}>
-      <div key={props.previewKey}>{props.preview}</div>
+    <div className="relative h-dvh overflow-hidden">
+      <div className="flex h-full items-center justify-center p-12" style={dotGrid}>
+        <div key={props.previewKey}>
+          {props.preview ?? (
+            <p className="text-[13px] text-text-muted">Preview coming soon for this style.</p>
+          )}
+        </div>
+      </div>
+      <div className="absolute inset-x-0 bottom-6 z-30 flex justify-center">
+        <StageToolbar {...props} />
+      </div>
+      <AnimatePresence>
+        {props.showCode && (
+          <CodeDrawer
+            usage={props.usage}
+            slug={props.slug}
+            styleSlug={props.styleSlug}
+            onClose={() => props.setShowCode(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
 function PreviewCard(props: StageProps) {
   return (
-    <div
-      className="flex min-h-80 items-center justify-center rounded-2xl border border-border p-6"
-      style={dotGrid}
-    >
-      <div key={props.previewKey}>{props.preview}</div>
+    <div className="relative overflow-hidden rounded-2xl border border-border">
+      <div className="flex min-h-80 items-center justify-center p-6" style={dotGrid}>
+        <div key={props.previewKey}>
+          {props.preview ?? (
+            <p className="text-[13px] text-text-muted">Preview coming soon for this style.</p>
+          )}
+        </div>
+      </div>
+      <div className="absolute inset-x-0 bottom-3 z-30 flex justify-center">
+        <StageToolbar {...props} />
+      </div>
+      <AnimatePresence>
+        {props.showCode && (
+          <CodeDrawer
+            usage={props.usage}
+            slug={props.slug}
+            styleSlug={props.styleSlug}
+            onClose={() => props.setShowCode(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-function FullscreenStage(_: {
+
+function FullscreenStage({
+  preview,
+  previewKey,
+  onClose,
+}: {
   preview: React.ReactNode;
   previewKey: number;
   onClose: () => void;
 }) {
-  return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-100 bg-background"
+    >
+      <div className="flex h-full items-center justify-center p-12" style={dotGrid}>
+        <div key={previewKey}>
+          {preview ?? (
+            <p className="text-[13px] text-text-muted">Preview coming soon for this style.</p>
+          )}
+        </div>
+      </div>
+      <button
+        onClick={onClose}
+        className="absolute right-6 top-6 flex size-9 items-center justify-center rounded-full border border-border bg-background/80 text-text-muted shadow-elevated backdrop-blur-md hover:text-foreground"
+        aria-label="Exit fullscreen"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+      </button>
+    </motion.div>
+  );
 }
 
 const dotGrid: React.CSSProperties = {
@@ -720,13 +845,15 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
         </div>
       </div>
 
-      {fullscreen && (
-        <FullscreenStage
-          preview={preview}
-          previewKey={previewKey}
-          onClose={() => setFullscreen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {fullscreen && (
+          <FullscreenStage
+            preview={preview}
+            previewKey={previewKey}
+            onClose={() => setFullscreen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
