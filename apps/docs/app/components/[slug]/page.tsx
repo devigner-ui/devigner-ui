@@ -10,7 +10,6 @@ import {
 } from "motion/react";
 import { CopyButton } from "../../../components/copy-button";
 import { CodeBlock } from "../../../components/code-block";
-import { ThemeToggle } from "../../../components/theme-provider";
 import { components } from "@/lib/registry";
 import { COMPONENT_CATEGORIES } from "@devignerui/shared";
 
@@ -39,46 +38,6 @@ function Reveal({
     >
       {children}
     </motion.div>
-  );
-}
-
-function Navbar() {
-  return (
-    <div className="fixed top-0 inset-x-0 z-50 flex justify-center px-4 pt-4">
-      <nav className="nav-pill flex h-12 w-full max-w-3xl items-center justify-between rounded-full px-4 bg-background/80 border border-border shadow-elevated">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-semibold text-foreground tracking-tight"
-        >
-          <span className="flex size-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">
-            D
-          </span>
-          <span className="text-sm">Devigner</span>
-        </Link>
-        <div className="flex items-center gap-0.5">
-          <Link
-            href="/"
-            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200"
-          >
-            Home
-          </Link>
-          <Link
-            href="/components"
-            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200"
-          >
-            Components
-          </Link>
-          <Link
-            href="/docs"
-            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:text-foreground transition-colors duration-200"
-          >
-            Docs
-          </Link>
-          <div className="mx-1.5 h-4 w-px bg-border" />
-          <ThemeToggle />
-        </div>
-      </nav>
-    </div>
   );
 }
 
@@ -375,6 +334,54 @@ function depsFor(code: string) {
   return `npm i ${pkgs.join(" ")}`;
 }
 
+function EdgeNav(_: {
+  navGroups: Record<string, { slug: string; name: string }[]>;
+  activeSlug: string;
+}) {
+  return null;
+}
+function Stage(props: StageProps) {
+  return (
+    <div className="flex h-dvh items-center justify-center" style={dotGrid}>
+      <div key={props.previewKey}>{props.preview}</div>
+    </div>
+  );
+}
+function PreviewCard(props: StageProps) {
+  return (
+    <div
+      className="flex min-h-80 items-center justify-center rounded-2xl border border-border p-6"
+      style={dotGrid}
+    >
+      <div key={props.previewKey}>{props.preview}</div>
+    </div>
+  );
+}
+function FullscreenStage(_: {
+  preview: React.ReactNode;
+  previewKey: number;
+  onClose: () => void;
+}) {
+  return null;
+}
+
+const dotGrid: React.CSSProperties = {
+  backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)",
+  backgroundSize: "22px 22px",
+};
+
+type StageProps = {
+  preview: React.ReactNode;
+  previewKey: number;
+  usage: string;
+  slug: string;
+  styleSlug: string;
+  showCode: boolean;
+  setShowCode: (v: boolean) => void;
+  onReset: () => void;
+  onFullscreen: () => void;
+};
+
 export default function ComponentPage({
   params,
 }: {
@@ -386,30 +393,14 @@ export default function ComponentPage({
 function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState<string>("");
   const [activeStyle, setActiveStyle] = useState(0);
-  const [view, setView] = useState<"preview" | "code">("preview");
+  const [showCode, setShowCode] = useState(false);
   const [installTab, setInstallTab] = useState<"cli" | "manual">("cli");
-  const [activeSection, setActiveSection] = useState("preview");
+  const [fullscreen, setFullscreen] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
   }, [params]);
-
-  // Scroll-spy for the "On this page" rail
-  useEffect(() => {
-    const ids = ["preview", "installation", "props"];
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries)
-          if (e.isIntersecting) setActiveSection(e.target.id);
-      },
-      { rootMargin: "-25% 0px -65% 0px" },
-    );
-    for (const id of ids) {
-      const el = document.getElementById(id);
-      if (el) obs.observe(el);
-    }
-    return () => obs.disconnect();
-  }, [slug, view]);
 
   const meta = components[slug];
   const componentStyles = meta?.styles ?? [];
@@ -440,7 +431,6 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
     return (
       <div className="min-h-dvh bg-background">
         <div className="grain-overlay" />
-        <Navbar />
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-5 pt-40 pb-20 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
             404
@@ -468,53 +458,32 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   const usage = currentStyle.usage;
   const deps = depsFor(currentStyle.code);
   const installCmd = `npx devignerui add ${slug} --style ${currentStyle.slug}`;
-  const toc = [
-    { id: "preview", label: "Preview" },
-    { id: "installation", label: "Installation" },
-    { id: "props", label: "Props" },
-  ];
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="relative bg-background lg:h-dvh lg:overflow-hidden">
       <div className="grain-overlay" />
-      <Navbar />
 
-      <div className="mx-auto max-w-352 px-5 pt-28 pb-20 sm:pt-32">
-        <div className="grid gap-10 lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)_180px]">
-          {/* ─── Left: component nav ─── */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-28 space-y-6">
-              {Object.entries(navGroups).map(([category, items]) => (
-                <div key={category}>
-                  <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
-                    {categoryLabel(category)}
-                  </p>
-                  <ul className="space-y-0.5">
-                    {items.map((item) => {
-                      const active = item.slug === slug;
-                      return (
-                        <li key={item.slug}>
-                          <Link
-                            href={`/components/${item.slug}`}
-                            className={`block rounded-lg px-2 py-1.5 text-[13px] transition-colors duration-150 ${
-                              active
-                                ? "bg-surface-hover font-medium text-foreground"
-                                : "text-text-secondary hover:text-foreground"
-                            }`}
-                          >
-                            {item.name}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
+      <EdgeNav navGroups={navGroups} activeSlug={slug} />
+
+      <div className="flex flex-col lg:h-dvh lg:flex-row">
+        {/* Left: docs (only scroller on desktop) */}
+        <div className="min-w-0 lg:h-dvh lg:w-1/2 lg:overflow-y-auto">
+          <div className="mx-auto max-w-2xl px-6 py-10 md:px-12 md:py-16">
+            {/* Mobile-only inline preview (desktop uses the fixed stage) */}
+            <div className="mb-8 lg:hidden">
+              <PreviewCard
+                preview={preview}
+                previewKey={previewKey}
+                usage={usage}
+                slug={slug}
+                styleSlug={currentStyle.slug}
+                showCode={showCode}
+                setShowCode={setShowCode}
+                onReset={() => setPreviewKey((k) => k + 1)}
+                onFullscreen={() => setFullscreen(true)}
+              />
             </div>
-          </aside>
 
-          {/* ─── Center: content ─── */}
-          <main className="min-w-0">
             <Reveal>
               <div className="flex items-center gap-2 text-[13px] text-text-muted">
                 <Link
@@ -537,12 +506,11 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                   {currentStyle.status === "new" ? "new" : "stable"}
                 </span>
               </div>
-              <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-text-secondary">
+              <p className="mt-4 text-[15px] leading-relaxed text-text-secondary">
                 {meta.description}
               </p>
             </Reveal>
 
-            {/* Design-style switcher */}
             {componentStyles.length > 1 && (
               <div className="mt-6 flex flex-wrap items-center gap-1.5">
                 {componentStyles.map((style, i) => {
@@ -570,67 +538,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
               </div>
             )}
 
-            {/* Preview / Code */}
-            <div id="preview" className="mt-6 scroll-mt-28">
-              <div className="overflow-hidden rounded-2xl border border-border bg-background-200">
-                <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2">
-                  <div className="flex items-center gap-0.5 rounded-lg border border-border bg-background p-0.5">
-                    {(["preview", "code"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setView(tab)}
-                        className={`rounded-md px-3 py-1 text-xs font-medium capitalize transition-all duration-200 ${
-                          view === tab
-                            ? "bg-surface text-foreground shadow-subtle"
-                            : "text-text-muted hover:text-foreground"
-                        }`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                  {view === "code" ? (
-                    <div className="flex items-center gap-2">
-                      <span className="hidden font-mono text-[11px] text-text-muted sm:inline">
-                        {slug}-demo.tsx
-                      </span>
-                      <CopyButton
-                        code={usage}
-                        componentName={`${slug}-${currentStyle.slug}-demo`}
-                      />
-                    </div>
-                  ) : (
-                    <span className="font-mono text-[11px] text-text-muted">
-                      @devignerui/{slug}-{currentStyle.slug}
-                    </span>
-                  )}
-                </div>
-
-                {view === "preview" ? (
-                  <div
-                    className="flex min-h-80 items-center justify-center p-6 sm:min-h-105 sm:p-12"
-                    style={{
-                      backgroundImage:
-                        "radial-gradient(var(--border) 1px, transparent 1px)",
-                      backgroundSize: "22px 22px",
-                    }}
-                  >
-                    {preview ?? (
-                      <p className="text-[13px] text-text-muted">
-                        Preview coming soon for this style.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="code-scroll max-h-130 overflow-y-auto bg-(--code-bg)">
-                    <CodeBlock code={usage} lang="tsx" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Installation */}
-            <section id="installation" className="mt-14 scroll-mt-28">
+            <section id="installation" className="mt-14">
               <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-foreground">
                 Installation
               </h2>
@@ -725,8 +633,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
               )}
             </section>
 
-            {/* Props */}
-            <section id="props" className="mt-14 scroll-mt-28">
+            <section id="props" className="mt-14">
               <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-foreground">
                 Props
               </h2>
@@ -778,65 +685,49 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                 </table>
               </div>
             </section>
-          </main>
 
-          {/* ─── Right: on this page ─── */}
-          <aside className="hidden xl:block">
-            <div className="sticky top-28">
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
-                On this page
-              </p>
-              <ul className="space-y-1 border-l border-border">
-                {toc.map((item) => {
-                  const active = activeSection === item.id;
-                  return (
-                    <li key={item.id}>
-                      <a
-                        href={`#${item.id}`}
-                        className={`-ml-px block border-l-2 pl-3 text-[13px] transition-colors duration-150 ${
-                          active
-                            ? "border-accent font-medium text-foreground"
-                            : "border-transparent text-text-muted hover:text-foreground"
-                        }`}
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </aside>
+            {Array.isArray((meta as { notes?: string[] }).notes) &&
+              (meta as { notes?: string[] }).notes!.length > 0 && (
+                <section className="mt-14">
+                  <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-foreground">
+                    Notes
+                  </h2>
+                  <ul className="mt-4 space-y-2 text-[13px] leading-relaxed text-text-secondary">
+                    {(meta as { notes?: string[] }).notes!.map((n, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="mt-1.5 size-1 shrink-0 rounded-full bg-text-muted" />
+                        <span>{n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+          </div>
+        </div>
+
+        {/* Right: fixed live-preview stage (desktop only) */}
+        <div className="hidden lg:block lg:w-1/2">
+          <Stage
+            preview={preview}
+            previewKey={previewKey}
+            usage={usage}
+            slug={slug}
+            styleSlug={currentStyle.slug}
+            showCode={showCode}
+            setShowCode={setShowCode}
+            onReset={() => setPreviewKey((k) => k + 1)}
+            onFullscreen={() => setFullscreen(true)}
+          />
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-border mt-16">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="flex size-5 items-center justify-center rounded-md bg-foreground text-[10px] font-bold text-background">
-              D
-            </span>
-            <span className="text-[13px] text-text-muted">
-              &copy; 2026 Devigner UI
-            </span>
-          </div>
-          <div className="flex items-center gap-5">
-            <a
-              href="https://twitter.com/devignerui"
-              className="text-[13px] text-text-muted hover:text-foreground transition-colors duration-200"
-            >
-              Twitter
-            </a>
-            <a
-              href="https://github.com/devignerui/devignerui"
-              className="text-[13px] text-text-muted hover:text-foreground transition-colors duration-200"
-            >
-              GitHub
-            </a>
-          </div>
-        </div>
-      </footer>
+      {fullscreen && (
+        <FullscreenStage
+          preview={preview}
+          previewKey={previewKey}
+          onClose={() => setFullscreen(false)}
+        />
+      )}
     </div>
   );
 }
