@@ -44,7 +44,7 @@ export function IconButton({
         hasLabel ? "h-9 px-[10.5px]" : sizes[size].dim
       } ${
         active
-          ? "text-accent"
+          ? "text-forground"
           : "text-text-muted hover:bg-foreground/10 hover:text-foreground"
       } ${className}`}
       {...props}
@@ -56,7 +56,7 @@ export function IconButton({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.4, opacity: 0 }}
             transition={SPRING_SWAP}
-            className="absolute inset-0 rounded-[inherit] bg-accent/10"
+            className="absolute inset-0 rounded-[inherit] bg-surface"
           />
         )}
       </AnimatePresence>

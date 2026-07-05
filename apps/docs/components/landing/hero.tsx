@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomEase } from "gsap/CustomEase";
+import { Button } from "@devignerui/ui";
 import { Starburst } from "./starburst";
 import { HeroCarousel } from "./hero-carousel";
 
@@ -209,11 +210,10 @@ export function Hero() {
                   npx devignerui add{" "}
                   <span className="font-semibold text-accent">button</span>
                 </code>
-                <button
-                  type="button"
+                <Button
                   onClick={copyCommand}
                   aria-label={copied ? "Copied" : "Copy install command"}
-                  className="ml-auto inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-foreground px-3.5 font-sans text-[12px] font-medium text-background transition-[opacity,transform] duration-200 hover:opacity-90 active:scale-[0.97]"
+                  className="ml-auto h-9 shrink-0 gap-1.5 rounded-xl px-3.5 font-sans text-[12px]"
                 >
                   {copied ? (
                     <svg
@@ -245,7 +245,7 @@ export function Hero() {
                     </svg>
                   )}
                   {copied ? "Copied" : "Copy"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

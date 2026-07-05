@@ -1,5 +1,10 @@
 export { Button, buttonVariants, type ButtonProps } from "./components/button";
 export {
+  StatefulButton,
+  type StatefulButtonProps,
+  type ButtonState,
+} from "./components/stateful-button";
+export {
   Card,
   CardHeader,
   CardFooter,

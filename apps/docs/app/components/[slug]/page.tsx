@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { Button } from "@devignerui/ui";
 import { CopyButton } from "../../../components/copy-button";
 import { CodeBlock } from "../../../components/code-block";
 import { IconButton } from "../../../components/icon-button";
@@ -48,15 +49,9 @@ function Reveal({
 function BtnDefault() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-3">
-      <button className="inline-flex h-10 items-center justify-center rounded-lg bg-foreground px-4 text-sm font-medium text-background transition-colors duration-200 hover:bg-foreground/90 active:scale-[0.98]">
-        Button
-      </button>
-      <button className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-surface active:scale-[0.98]">
-        Outline
-      </button>
-      <button className="inline-flex h-10 items-center justify-center rounded-lg bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-surface-hover active:scale-[0.98]">
-        Secondary
-      </button>
+      <Button>Button</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="secondary">Secondary</Button>
     </div>
   );
 }
@@ -225,6 +220,8 @@ function PillToolbar({
   "showCode" | "setShowCode" | "onReset" | "onFullscreen" | "isFullscreen"
 >) {
   const { theme, toggleTheme } = useTheme();
+  const [resetSpins, setResetSpins] = useState(0);
+  const reduce = useReducedMotion();
   return (
     <div className="flex items-center gap-1 rounded-3xl bg-background p-1.5">
       <IconButton
@@ -237,8 +234,23 @@ function PillToolbar({
       >
         <Icon d={isFullscreen ? icon.minimize : icon.fullscreen} />
       </IconButton>
-      <IconButton onClick={onReset} aria-label="Reset preview" title="Reset">
-        <Icon d={icon.reset} />
+      <IconButton
+        onClick={() => {
+          setResetSpins((n) => n + 1);
+          onReset();
+        }}
+        aria-label="Reset preview"
+        title="Reset"
+      >
+        <motion.span
+          key={resetSpins}
+          className="inline-flex"
+          initial={{ rotate: 0 }}
+          animate={{ rotate: reduce ? 0 : -360 }}
+          transition={{ duration: 0.5, ease: EASE_OUT }}
+        >
+          <Icon d={icon.reset} />
+        </motion.span>
       </IconButton>
       <IconButton
         onClick={toggleTheme}
@@ -341,7 +353,7 @@ function StagePanel(props: StageProps) {
           opacity: props.showCode ? 1 : 0,
         }}
         transition={SPRING_PANEL}
-        className="shrink-0 overflow-hidden rounded-2xl border border-border/80"
+        className="shrink-0 overflow-hidden rounded-2xl bg-surface"
         aria-hidden={!props.showCode}
       >
         <div className="flex h-full flex-col">
@@ -868,7 +880,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                             <motion.span
                               layoutId="install-tab"
                               transition={SPRING_LAYOUT}
-                              className="absolute inset-0 rounded-md bg-surface"
+                              className="absolute inset-0 rounded-md bg-surface-hover"
                             />
                           )}
                           <span className="relative z-10 uppercase">{tab}</span>

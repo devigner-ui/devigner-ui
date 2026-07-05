@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { motion } from "motion/react";
 import { ThemeToggle } from "../theme-provider";
 import { lenisRef } from "./smooth-scroll";
 import { cn } from "@devignerui/ui/lib/utils";
+import { SPRING_PRESS } from "@devignerui/ui/lib/animations";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -215,8 +217,10 @@ export function Navbar() {
             </Link>
 
             {/* Hamburger — morphs to X */}
-            <button
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.9 }}
+              transition={SPRING_PRESS}
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
@@ -235,7 +239,7 @@ export function Navbar() {
                   menuOpen ? "-rotate-45" : "translate-y-1",
                 )}
               />
-            </button>
+            </motion.button>
           </div>
 
           {/* Page progress hairline (visible once condensed) */}

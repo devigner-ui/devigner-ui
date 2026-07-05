@@ -46,6 +46,18 @@ export const components: Record<string, ComponentData> = {
         description: "Controls height and padding.",
       },
       {
+        name: "pressScale",
+        type: "number",
+        default: "0.96",
+        description: "Scale applied on press.",
+      },
+      {
+        name: "ripple",
+        type: "boolean",
+        default: "false",
+        description: "Spawn a Material-style ripple from the press point.",
+      },
+      {
         name: "className",
         type: "string",
         default: "—",
@@ -58,11 +70,15 @@ export const components: Record<string, ComponentData> = {
         description: "Button label or content.",
       },
     ],
-    code: `import { cva, type VariantProps } from "class-variance-authority";
+    code: `"use client";
+
+import { useCallback, useRef, useState, forwardRef } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm/5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer rounded-lg text-sm/5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -84,11 +100,68 @@ const buttonVariants = cva(
   }
 );
 
-export function Button({ className, variant, size, ...props }) {
-  return (
-    <button className={cn(buttonVariants({ variant, size, className }))} {...props} />
-  );
-}`,
+function useHoverCapable() {
+  const [canHover, setCanHover] = useState(true);
+  useState(() => {
+    if (typeof window !== "undefined") {
+      setCanHover(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+    }
+  });
+  return canHover;
+}
+
+export const Button = forwardRef(
+  ({ className, variant, size, pressScale = 0.96, ripple = false, onPointerDown, children, ...props }, ref) => {
+    const reduce = useReducedMotion();
+    const canHover = useHoverCapable();
+    const [ripples, setRipples] = useState([]);
+    const nextId = useRef(0);
+
+    const handlePointerDown = useCallback((event) => {
+      if (ripple && !reduce) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) * 2;
+        setRipples((prev) => [
+          ...prev,
+          { id: nextId.current++, x: event.clientX - rect.left, y: event.clientY - rect.top, size },
+        ]);
+      }
+      onPointerDown?.(event);
+    }, [ripple, reduce, onPointerDown]);
+
+    return (
+      <motion.button
+        ref={ref}
+        whileTap={reduce ? undefined : { scale: pressScale }}
+        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30, mass: 0.6 }}
+        onPointerDown={handlePointerDown}
+        className={cn(buttonVariants({ variant, size }), ripple && "relative overflow-hidden", className)}
+        {...props}
+      >
+        {ripple && !reduce ? (
+          <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+            <AnimatePresence>
+              {ripples.map((r) => (
+                <motion.span
+                  key={r.id}
+                  className="absolute rounded-full bg-current"
+                  style={{ left: r.x, top: r.y, width: r.size, height: r.size, x: "-50%", y: "-50%" }}
+                  initial={{ scale: 0, opacity: 0.3 }}
+                  animate={{ scale: 1, opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+                  onAnimationComplete={() => setRipples((prev) => prev.filter((x) => x.id !== r.id))}
+                />
+              ))}
+            </AnimatePresence>
+          </span>
+        ) : null}
+        {children}
+      </motion.button>
+    );
+  }
+);`,
     usage: `import { Button } from "@/components/ui/button";
 
 export default function Example() {

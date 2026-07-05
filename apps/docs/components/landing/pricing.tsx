@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Starburst } from "./starburst";
+import { Button } from "@devignerui/ui";
 import { cn } from "@devignerui/ui/lib/utils";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -127,14 +128,15 @@ export function Pricing() {
                 you&apos;re subscribed.
               </p>
 
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => handleCheckout("monthly")}
                 disabled={loading === "monthly"}
-                className="mt-8 inline-flex h-12 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-sm font-medium text-foreground transition-[background-color,border-color] duration-200 hover:border-border-hover hover:bg-surface active:scale-[0.98] disabled:opacity-60"
+                className="mt-8 h-12 rounded-full bg-background transition-[background-color,border-color] duration-200 hover:border-border-hover disabled:opacity-60"
               >
                 {loading === "monthly" ? "Processing…" : "Start monthly"}
-              </button>
+              </Button>
 
               <div className="my-7 h-px bg-border" />
 
@@ -180,11 +182,11 @@ export function Pricing() {
                 versus the subscription.
               </p>
 
-              <button
+              <Button
                 type="button"
                 onClick={() => handleCheckout("lifetime")}
                 disabled={loading === "lifetime"}
-                className="group relative mt-8 inline-flex h-12 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent pl-6 pr-3 text-sm font-semibold text-accent-foreground transition-[background-color,transform] duration-200 hover:bg-accent-hover active:scale-[0.98] disabled:opacity-60"
+                className="group relative mt-8 h-12 gap-2.5 rounded-full bg-accent pl-6 pr-3 font-semibold text-accent-foreground transition-[background-color,transform] duration-200 hover:bg-accent-hover disabled:opacity-60"
               >
                 {loading === "lifetime" ? "Processing…" : "Get lifetime access"}
                 <span className="inline-flex size-6 items-center justify-center rounded-full bg-black/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5">
@@ -202,7 +204,7 @@ export function Pricing() {
                     />
                   </svg>
                 </span>
-              </button>
+              </Button>
 
               <div className="relative my-7 h-px bg-border" />
 
