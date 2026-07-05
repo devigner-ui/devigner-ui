@@ -34,6 +34,7 @@ export interface ComponentData {
   variants: string[];
   props: PropDef[];
   styles: ComponentStyle[];
+  notes?: string[];
 }
 
 const styles: Record<string, Omit<ComponentStyle, "usage">[]> = {
