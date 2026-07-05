@@ -34,13 +34,13 @@ This document is the **single place** a developer or an AI assistant should need
 
 ### 1.1 Vision
 
-Devigner UI is a **multi-style, copy-paste-first React component distribution system**: a Tailwind CSS v4 component library that ships through a CLI (`npx devignerui add <component>`), not through `npm install` of a component package. The differentiator against shadcn/ui, Aceternity, 21st.dev, and Cult UI is that **every component ships multiple, fully independent visual treatments ("Styles")** — e.g. `button` ships `default`, `gradient`, `magnetic` — rather than one canonical implementation per component. Users own the code that lands in their repository; Devigner UI owns the catalog, the docs site, and the CLI that delivers it.
+Devigner UI is a **copy-paste-first React component distribution system**: a Tailwind CSS v4 component library that ships through a CLI (`npx devignerui add <component>`), not through `npm install` of a component package. Every component has **exactly one canonical implementation** (the multi-Style model was removed 2026-07-05 — one polished treatment per component, differentiated by quality and motion rather than by parallel visual treatments). Users own the code that lands in their repository; Devigner UI owns the catalog, the docs site, and the CLI that delivers it.
 
 ### 1.2 Goals
 
-- Provide a growing catalog of production-quality, accessible, animated components and marketing blocks, each available in multiple Styles.
+- Provide a growing catalog of production-quality, accessible, animated components and marketing blocks — one finished implementation each.
 - Let a developer go from zero to a styled, working component in their own codebase in under 60 seconds via the CLI.
-- Monetize via tiered Styles (free vs. Pro) and a documentation/showcase site, without gating the *act* of browsing or reading code.
+- Monetize via tiered components (free vs. Pro) and a documentation/showcase site, without gating the *act* of browsing or reading code.
 - Keep the component source the user receives **dependency-light and framework-idiomatic** — no runtime coupling to a `@devignerui/ui` import once installed via CLI (the npm package `@devignerui/ui` exists for direct-import use cases, but the CLI path is primary and copies source, not the compiled package).
 
 ### 1.3 Target Audience
@@ -57,8 +57,8 @@ Out of scope (for now, see [§16](#16-future-roadmap) for the path to bring thes
 ### 1.5 Core Principles
 
 1. **One data model, many consumers.** Component content (code, props, metadata) is authored exactly once and read by the docs site, the public registry API, and the CLI. Never hand-author the same component twice in two formats.
-2. **Semantic tokens, never literals.** Component source code references CSS custom properties (`bg-background`, `text-foreground`, `shadow-card`) — never hex/oklch literals or Tailwind's raw palette (`bg-white`, `bg-blue-500`) outside of intentional one-off decorative gradients that are explicitly part of a Style's identity (e.g. the `gradient` button's brand gradient).
-3. **Copy-paste must be self-contained.** Every file the CLI writes must compile against nothing but: React, the project's own `cn()` util, and the npm dependencies explicitly listed for that Style. No silent dependency on `@devignerui/ui` internals.
+2. **Semantic tokens, never literals.** Component source code references CSS custom properties (`bg-background`, `text-foreground`, `shadow-card`) — never hex/oklch literals or Tailwind's raw palette (`bg-white`, `bg-blue-500`) outside of intentional one-off decorative treatments that are explicitly part of a component's identity.
+3. **Copy-paste must be self-contained.** Every file the CLI writes must compile against nothing but: React, the project's own `cn()` util, and the npm dependencies explicitly listed for that component. No silent dependency on `@devignerui/ui` internals.
 4. **Strict TypeScript everywhere, no exceptions.** Every package compiles under `strict: true`. This is already true across all four packages and must stay true.
 5. **The docs site is the registry.** `apps/docs` is not just a presentation layer — `apps/docs/lib/registry.ts` is the canonical data source that the public API, the CLI, and the rendered docs pages all read from.
 6. **Boring over clever.** Component implementations favor `forwardRef` + CVA + Tailwind over novel abstractions. New patterns require a precedent-setting decision recorded in this document (§3.6), not silent invention per-component.
@@ -81,7 +81,7 @@ Devigner UI is a **pnpm + Turborepo monorepo** with four packages. There is exac
 ```mermaid
 flowchart TB
     subgraph SOURCE["Source of Truth"]
-        REG["apps/docs/lib/registry.ts<br/>(components, styles, props, code)"]
+        REG["apps/docs/lib/registry.ts<br/>(components, props, code)"]
     end
 
     subgraph DOCS["@devignerui/docs (Next.js 15 App Router)"]
@@ -98,7 +98,7 @@ flowchart TB
     end
 
     subgraph NPM["@devignerui/ui (npm package)"]
-        COMPONENTS["src/components/*.tsx<br/>(curated default-style mirror)"]
+        COMPONENTS["src/components/*.tsx<br/>(curated mirror)"]
     end
 
     subgraph SHARED["@devignerui/shared"]
@@ -153,7 +153,7 @@ devignerui/
 ├── packages/
 │   ├── ui/                          # @devignerui/ui — npm-distributable mirror
 │   │   ├── src/
-│   │   │   ├── components/*.tsx     # forwardRef components, "default" style only
+│   │   │   ├── components/*.tsx     # forwardRef components, one per registry slug
 │   │   │   ├── hooks/
 │   │   │   ├── lib/{utils.ts,animations.ts}
 │   │   │   └── styles/globals.css   # MUST mirror apps/docs/app/globals.css token-for-token
@@ -204,7 +204,7 @@ These boundaries are not enforced by tooling today (no `eslint-plugin-boundaries
 | **Variant-prop component (CVA)** | `Button`, `Badge` | Single component, multiple visual variants via a typed `variant`/`size` prop. Canonical for any component whose "variants" are just class-name swaps. |
 | **Compound component family** | `Card` (`Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`) | Each part is a styled primitive; composition happens in JSX, not via props drilling. Canonical for anything with header/body/footer-shaped structure. |
 | **Variant-dispatcher block** | `HeroSection` (`variant: "centered" \| "split" \| "minimal"`) | A single public component whose `variant` prop switches between structurally different internal implementations. Canonical for marketing blocks where variants differ in layout, not just class names. |
-| **Style-as-separate-file** | `button.tsx` vs `button-gradient.tsx` vs `button-magnetic.tsx` | Distinct Styles (see §4 vocabulary) are **separate exported components in separate files**, not props on one component. A Style is a different artifact the CLI installs by name; a Variant (CVA) is a prop inside one Style. Do not conflate the two. |
+| **One file per Component** | `button.tsx`, `card.tsx` | Each Component is exactly one installable `.tsx` file (`components/ui/<slug>.tsx`). Visual variation lives in CVA Variants inside that file, never in parallel implementations. |
 | **Registry-as-code** | `apps/docs/lib/registry.ts` | The catalog is a typed TypeScript module, not hand-written JSON, so authoring gets autocomplete, type-checking, and refactor-safety. JSON is a *build output* of this module (`getRegistryIndex()`/`getRegistryComponent()`), never authored directly. |
 | **Thin HTTP client** | `packages/cli/src/registry.ts` | The CLI has no business logic about component content — it fetches typed JSON and writes files. All catalog logic lives server-side. |
 
@@ -218,28 +218,28 @@ sequenceDiagram
     participant CLI as devignerui CLI
     participant Proj as User's project
 
-    Author->>Reg: Add style entry (meta + styles + props + usage)
+    Author->>Reg: Add component entry (meta + props + code + usage)
     Note over Reg: Single edit, four readers stay in sync
 
     Reg->>API: getRegistryComponent(slug) at request time<br/>(force-static, revalidated at build)
     CLI->>API: GET /api/registry/{slug}
-    API-->>CLI: { slug, styles[], files{ path: content } }
-    CLI->>Proj: write style.file + lib/utils.ts
-    CLI-->>CLI: print `npm i <deps>` for the style
+    API-->>CLI: { slug, file, files{ path: content } }
+    CLI->>Proj: write component.file + lib/utils.ts
+    CLI-->>CLI: print `npm i <deps>` for the component
 ```
 
 The docs page (`/components/[slug]`) reads `components` directly from `lib/registry.ts` (in-process, no HTTP) since it executes inside the same Next.js server. The CLI is the **only** consumer that goes over HTTP, because it is a separate, independently-versioned binary.
 
 ### 2.7 Rendering Strategy
 
-- **Docs site:** Next.js 15 App Router, React Server Components by default; pages that need interactivity (style switcher, copy buttons, tabs, scroll-spy) are explicit `"use client"` leaf components (`ComponentPage`, `ComponentsPage`). Keep the navbar, footer, and static marketing copy as Server Components wherever a page is split — `ComponentsPage`/`ComponentPage` are currently whole-page client components because of `useRouter`/local UI state; when splitting new pages, default to Server Component and push `"use client"` to the smallest leaf.
+- **Docs site:** Next.js 15 App Router, React Server Components by default; pages that need interactivity (copy buttons, tabs, scroll-spy) are explicit `"use client"` leaf components (`ComponentPage`, `ComponentsPage`). Keep the navbar, footer, and static marketing copy as Server Components wherever a page is split — `ComponentsPage`/`ComponentPage` are currently whole-page client components because of `useRouter`/local UI state; when splitting new pages, default to Server Component and push `"use client"` to the smallest leaf.
 - **Registry API routes:** `export const dynamic = "force-static"` — the catalog is static at build time and revalidated on deploy, not on every request. `generateStaticParams()` pre-renders every known slug's `/api/registry/[slug]` route at build time.
-- **Component library (`@devignerui/ui`):** framework-agnostic React components, server-renderable by default (no `"use client"` unless the component itself needs state/effects/motion — e.g. `ButtonMagnetic`, `SpotlightCard`).
+- **Component library (`@devignerui/ui`):** framework-agnostic React components, server-renderable by default (no `"use client"` unless the component itself needs state/effects/motion — e.g. `HeroSection`'s entry animation).
 
 ### 2.8 State Management Strategy
 
 - **No global state library.** There is no Redux/Zustand/Jotai in this repo and none should be added. Component-local state (`useState`) is sufficient for every interactive primitive (toggles, inputs, hover/spotlight effects).
-- **Page-level UI state** (active style tab, preview/code view, install tab, scroll-spy section) lives in the page component via `useState`/`useEffect`, scoped to that page. It does not need to survive navigation.
+- **Page-level UI state** (preview/code view, install tab, scroll-spy section) lives in the page component via `useState`/`useEffect`, scoped to that page. It does not need to survive navigation.
 - **Theme state** (light/dark) is the one piece of state that must persist across the whole app and across reloads: it lives in `localStorage` (key `devignerui-theme`), is applied as a `.dark` class on `<html>` by an inline script in `layout.tsx` (to avoid a flash of incorrect theme), and is read/written by `ThemeProvider`/`ThemeToggle` in `apps/docs/components/theme-provider.tsx`.
 - **Server state** (registry content) is not "state" at all from the client's perspective — it's data fetched once per request/build. Do not introduce React Query/SWR for the registry; it is static, cached at the HTTP layer (`Cache-Control: public, s-maxage=3600`), and re-fetched per CLI invocation, which is correct and sufficient.
 - **Decision:** if a future feature needs cross-page client state (e.g. a cart, a logged-in user session), introduce React Context scoped to the smallest subtree that needs it before reaching for a state library. Only add a state library when more than one unrelated feature needs cross-cutting client state simultaneously.
@@ -250,24 +250,23 @@ The docs page (`/components/[slug]`) reads `components` directly from `lib/regis
 
 ### 3.1 Vocabulary (binding)
 
-These four terms are used precisely and exclusively throughout this codebase and this document. Misusing them in code, commit messages, or docs is a defect.
+These three terms are used precisely and exclusively throughout this codebase and this document. Misusing them in code, commit messages, or docs is a defect. (A fourth term, **Style** — parallel installable implementations of one Component — existed until 2026-07-05 and was removed; each Component now has exactly one implementation.)
 
 | Term | Definition | Example |
 |---|---|---|
-| **Component** | A conceptual UI element with one slug, one category, one props contract. | `button`, `hero-section` |
-| **Style** | A distinct, independently-installable implementation of a Component. Styles can differ completely in markup/behavior (e.g. `magnetic` uses `motion`, `default` doesn't). Selected via `--style` in the CLI. | `default`, `gradient`, `magnetic` (all styles of `button`) |
-| **Variant** | A CVA-driven prop value *within* a single Style's component API. Does not change which files are installed. | `variant="outline"` on the `default` Button style |
+| **Component** | A conceptual UI element with one slug, one category, one props contract, one installable implementation. | `button`, `hero-section` |
+| **Variant** | A CVA-driven prop value *within* a Component's API. Does not change which files are installed. | `variant="outline"` on Button |
 | **Block** | A Component whose `type` is `"block"` rather than `"component"` — typically a marketing section composed from primitives. Otherwise follows all the same rules as a Component. | `hero-section` |
 
-A Style is never described as a "variant" in registry data, props tables, prose, or commit messages. A CVA variant is never installed independently by the CLI.
+A CVA variant is never installed independently by the CLI.
 
 ### 3.2 Component Anatomy
 
-Every Style ships as exactly one `.tsx` file plus the shared `lib/utils.ts`. The canonical anatomy:
+Every Component ships as exactly one `.tsx` file plus the shared `lib/utils.ts`. The canonical anatomy:
 
 ```tsx
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority"; // only if the style has CVA variants
+import { cva, type VariantProps } from "class-variance-authority"; // only if the component has CVA variants
 import { cn } from "@/lib/utils";
 
 const xVariants = cva(/* base classes */, {
@@ -320,12 +319,9 @@ A Component has exactly one category. Adding a ninth category requires adding it
 
 Not used today. **Decision:** do not add a subcategory field until a category exceeds ~25 components and filtering by category alone becomes unusable in the catalog grid. When that happens, add an optional `subcategory?: string` to `ComponentData` (additive, non-breaking — see §4.5).
 
-### 3.5 Variants / Design Styles
+### 3.5 Variants
 
-Every Component ships at least one Style named exactly `"default"`. `default` must always be free (`free: true`) and `status: "stable"` — it is the floor offering and the fallback the CLI installs when `--style` is omitted. Additional Styles are unconstrained in name (`gradient`, `magnetic`, `glass`, `spotlight`, `floating`, `underline`, `pill`, `dot`, `parallax` are precedents) but must be:
-- **kebab-case**, single word where possible
-- Free or Pro (`free: boolean`) — Pro Styles are the monetization lever, not entire Components
-- Tagged with a lifecycle `status` (`"new" | "updated" | "stable"`, see §3.7)
+Each Component ships exactly one implementation. Visual variation is expressed only as CVA Variants (`variant`/`size` props) inside that implementation — never as parallel installable files. (The multi-Style model — `gradient`, `magnetic`, `glass`, etc. as separate installable treatments — was removed 2026-07-05.)
 
 ### 3.6 Slots
 
@@ -333,19 +329,13 @@ This codebase does not use a slot API (no `asChild`-via-Radix-`Slot` pattern, no
 
 ### 3.7 Status / Lifecycle Field
 
-`status: "new" | "updated" | "stable"` on every Style:
-
-- `"new"` — shipped within the last 2 weeks. Surfaced as a `NEW` badge in the sidebar/catalog.
-- `"updated"` — meaningfully changed (not a typo fix) within the last 2 weeks. Surfaced as `UPDATED`.
-- `"stable"` — everything else. No badge.
-
-This is a **manually authored** field, not computed from git history — set it explicitly when adding/changing a Style entry in `lib/registry.ts`, and downgrade it to `"stable"` yourself two weeks later (or automate this, see §13.5).
+Removed with the multi-Style model — the per-Style `status` field no longer exists in the registry. If per-Component lifecycle badges are wanted later, add an optional `status?: "new" | "updated" | "stable"` to `ComponentData` (additive, non-breaking).
 
 ### 3.8 Composition Patterns
 
-1. **Atomic** — a Style is one element (`Input`, `Badge`). No composition.
-2. **Compound** — a Style exports a family of subcomponents meant to be composed in JSX (`Card` + `CardHeader` + `CardTitle` + `CardContent` + `CardFooter`). Subcomponents never import each other; the consumer composes them.
-3. **Slotted props** — a Style accepts other components as props rather than children (`HeroSection`'s `primaryAction`/`secondaryAction: ReactNode`). Used specifically so the Hero block doesn't have an opinion on which Button Style/variant the consumer wants.
+1. **Atomic** — a Component is one element (`Input`, `Badge`). No composition.
+2. **Compound** — a Component exports a family of subcomponents meant to be composed in JSX (`Card` + `CardHeader` + `CardTitle` + `CardContent` + `CardFooter`). Subcomponents never import each other; the consumer composes them.
+3. **Slotted props** — a Component accepts other components as props rather than children (`HeroSection`'s `primaryAction`/`secondaryAction: ReactNode`). Used specifically so the Hero block doesn't have an opinion on which Button variant the consumer wants.
 
 Pick the pattern by asking: *does this Component have an internal structure with named regions (compound), is it a single visual unit (atomic), or does it host other arbitrary components (slotted props)?*
 
@@ -359,16 +349,16 @@ stateDiagram-v2
     New --> Stable: 2 weeks elapse, no further edits
     Stable --> Updated: meaningful edit
     Updated --> Stable: 2 weeks elapse
-    Stable --> Deprecated: superseded by a new Style/Component
+    Stable --> Deprecated: superseded by a new Component
     Deprecated --> Removed: next major CLI/registry version
     Removed --> [*]
 ```
 
-A Component/Style is never silently deleted from the registry while any published CLI version can still request it — deprecate first (keep serving it, mark it in docs as deprecated with a migration note, see §7.7), remove only on a version boundary.
+A Component is never silently deleted from the registry while any published CLI version can still request it — deprecate first (keep serving it, mark it in docs as deprecated with a migration note, see §7.7), remove only on a version boundary.
 
 ### 3.10 Accessibility Requirements
 
-Non-negotiable for every Style shipped, enforced at PR review (no automated gate exists yet — see §11.5 for the plan to add one):
+Non-negotiable for every Component shipped, enforced at PR review (no automated gate exists yet — see §11.5 for the plan to add one):
 
 - Every interactive element is a real `<button>`, `<a>`, `<input>`, or has the correct ARIA role — never a `<div onClick>` in **distributed** component source. (Docs-site-only preview components, like the ones in `app/components/page.tsx`, are exempt since they are not shipped to consumers, but should still be fixed opportunistically.)
 - `focus-visible:ring-2 focus-visible:ring-accent` (or equivalent) on every focusable element — this is already the established convention in `Button`, `Input`, `Badge`.
@@ -384,7 +374,7 @@ Non-negotiable for every Style shipped, enforced at PR review (no automated gate
 
 ### 3.12 Theme Integration
 
-Every Style must render correctly with **zero modification** when the consumer's project has `.dark` applied to a `dark:` strategy. This works automatically as long as the Style only ever uses semantic token classes (`bg-background`, `text-foreground`, `border-border`, `bg-accent`, …) and never raw palette/hex classes — see §8 for the full token contract and §17 for the two current components that violate this (`Card`, `Input` use literal `bg-white`).
+Every Component must render correctly with **zero modification** when the consumer's project has `.dark` applied to a `dark:` strategy. This works automatically as long as the Component only ever uses semantic token classes (`bg-background`, `text-foreground`, `border-border`, `bg-accent`, …) and never raw palette/hex classes — see §8 for the full token contract and §17 for the two current components that violate this (`Card`, `Input` use literal `bg-white`).
 
 ---
 
@@ -392,7 +382,7 @@ Every Style must render correctly with **zero modification** when the consumer's
 
 ### 4.1 Canonical Source
 
-`apps/docs/lib/registry.ts` is the **only** place Component/Style content is authored. It is organized as four keyed maps (`styles`, `meta`, `props`, `usage`) merged into one exported `components: Record<string, ComponentData>` at module load. This split exists so that a contributor adding a new Style only touches the `styles` map and (if new) the `usage` map — `meta` and `props` change far less often.
+`apps/docs/lib/registry.ts` is the **only** place Component content is authored. It is one exported `components: Record<string, ComponentData>` literal — everything about a Component (meta, props, code, usage) lives in its single entry.
 
 ### 4.2 Canonical Interfaces (current)
 
@@ -404,24 +394,16 @@ export interface PropDef {
   description: string;
 }
 
-export interface ComponentStyle {
-  name: string;          // display name, e.g. "Magnetic"
-  slug: string;           // kebab-case, e.g. "magnetic"
-  description: string;
-  free: boolean;
-  status: "new" | "updated" | "stable";
-  code: string;            // full installable source
-  usage: string;            // example shown in the Code tab; falls back to `code`
-}
-
 export interface ComponentData {
   slug: string;
   name: string;
   description: string;
   category: string;        // must resolve to a COMPONENT_CATEGORIES label — see §17
-  variants: string[];        // CVA variant display names for the props table, NOT Styles — see §3.1
+  variants: string[];        // CVA variant display names for the props table — see §3.1
   props: PropDef[];
-  styles: ComponentStyle[];
+  code: string;             // full installable source
+  usage: string;             // example shown in the Code tab
+  notes?: string[];
 }
 ```
 
@@ -429,12 +411,10 @@ export interface ComponentData {
 
 ```mermaid
 erDiagram
-    COMPONENT ||--o{ STYLE : "has many"
     COMPONENT ||--o{ PROP : "has many"
     COMPONENT }o--|| CATEGORY : "belongs to"
-    STYLE ||--o{ FILE : "installs"
-    STYLE ||--o{ DEPENDENCY : "requires"
-    STYLE }o--|| LIFECYCLE_STATUS : "tagged with"
+    COMPONENT ||--o{ FILE : "installs"
+    COMPONENT ||--o{ DEPENDENCY : "requires"
 
     COMPONENT {
         string slug PK
@@ -443,14 +423,6 @@ erDiagram
         string category FK
         string type "component | block"
         string[] variantDisplayNames
-    }
-    STYLE {
-        string slug PK
-        string componentSlug FK
-        string name
-        string description
-        bool free
-        string status FK
         string code
         string usage
     }
@@ -474,14 +446,11 @@ erDiagram
         string key PK
         string label
     }
-    LIFECYCLE_STATUS {
-        string value PK
-    }
 ```
 
 ### 4.4 Fields Required by the Prompt but Not Yet Modeled
 
-The prompt's scope (themes, framework compatibility, versioning, changelog, tags, full metadata/docs objects) exceeds what `ComponentData`/`ComponentStyle` track today. **Decision:** rather than adding unused fields speculatively (violates YAGNI), the model below is the **target shape** to grow into incrementally, field-by-field, only when a concrete feature needs the field. Each field is additive and optional, so no migration is required when introduced — see §6.5 for the migration discipline.
+The prompt's scope (themes, framework compatibility, versioning, changelog, tags, full metadata/docs objects) exceeds what `ComponentData` tracks today. **Decision:** rather than adding unused fields speculatively (violates YAGNI), the model below is the **target shape** to grow into incrementally, field-by-field, only when a concrete feature needs the field. Each field is additive and optional, so no migration is required when introduced — see §6.5 for the migration discipline.
 
 ```ts
 /** Target shape — introduce fields incrementally, never all at once. */
@@ -509,14 +478,8 @@ interface ComponentDataV2 extends ComponentData {
     doAndDont?: { do: string[]; dont: string[] };
     commonMistakes?: string[];
   };
-}
 
-/** Per-Style extension — additive over ComponentStyle. */
-interface ComponentStyleV2 extends ComponentStyle {
-  /** Theme(s) this Style was authored against. Add when a Style intentionally only supports one theme (e.g. an always-dark code block). */
-  themes?: Array<"light" | "dark" | "both">;
-
-  /** Structured event contract, for Styles with onX callbacks worth documenting like props. */
+  /** Structured event contract, for components with onX callbacks worth documenting like props. */
   events?: PropDef[];
 }
 ```
@@ -525,13 +488,13 @@ interface ComponentStyleV2 extends ComponentStyle {
 
 ### 4.5 Live Previews
 
-Live previews (the interactive demo rendered in the "Preview" tab) are **not** generated from `code`/`usage` strings — they are hand-authored React components (`BtnDefault`, `CardGlass`, etc.) living directly in `apps/docs/app/components/[slug]/page.tsx`, keyed by `previews[slug][styleSlug]`. **Decision:** this duplication (the preview's JSX and `code`'s string both describe the same UI) is intentional, not accidental drift — `code` must be exact, copy-pasteable, self-contained source, while the preview can use docs-site-only helpers (state hooks already in scope, no need to re-declare imports). Keep them manually in sync when editing a Style; do not attempt to eval `code` to render the preview (security and React-version coupling risk for no real benefit at this catalog size).
+Live previews (the interactive demo rendered in the "Preview" tab) are **not** generated from `code`/`usage` strings — they are hand-authored React components (`BtnDefault`, `CardDefault`, etc.) living directly in `apps/docs/app/components/[slug]/page.tsx`, keyed by `previews[slug]`. **Decision:** this duplication (the preview's JSX and `code`'s string both describe the same UI) is intentional, not accidental drift — `code` must be exact, copy-pasteable, self-contained source, while the preview can use docs-site-only helpers (state hooks already in scope, no need to re-declare imports). Keep them manually in sync when editing a Component; do not attempt to eval `code` to render the preview (security and React-version coupling risk for no real benefit at this catalog size).
 
 ### 4.6 Code Snippets
 
-Two distinct code strings exist per Style and must not be conflated:
-- `code` — the file that gets **written to disk** by the CLI (`components/ui/<style-file>.tsx`). Library-only, no demo wrapper.
-- `usage` — what's shown in the docs **Code tab** and what a consumer pastes into their own page; typically `code`'s component imported and used in a minimal `Example()` function. Falls back to `code` when a Style hasn't authored a separate usage example yet.
+Two distinct code strings exist per Component and must not be conflated:
+- `code` — the file that gets **written to disk** by the CLI (`components/ui/<slug>.tsx`). Library-only, no demo wrapper.
+- `usage` — what's shown in the docs **Code tab** and what a consumer pastes into their own page; typically `code`'s component imported and used in a minimal `Example()` function.
 
 ---
 
@@ -556,7 +519,7 @@ This codebase has no generic component factories today, by design — every comp
 Use built-in TS utility types over hand-rolled equivalents:
 - `VariantProps<typeof xVariants>` (from `class-variance-authority`) for deriving variant prop types from a CVA definition — never hand-write a parallel `variant: "a" | "b"` union that can drift from the CVA config.
 - `Omit<T, K>` is already used in `packages/shared/src/types.ts` (`RegistryIndex`); continue using `Omit`/`Pick`/`Partial`/`Record` over bespoke mapped types.
-- `Record<string, T>` is the established shape for slug-keyed lookups (`styles`, `meta`, `props`, `usage`, `previews`, `FILE_BY_STYLE` all follow this) — keep using it for any new slug-keyed map rather than `Map<string, T>` (JSON-serializability and object-literal ergonomics outweigh `Map`'s benefits at this scale).
+- `Record<string, T>` is the established shape for slug-keyed lookups (`components`, `previews` follow this) — keep using it for any new slug-keyed map rather than `Map<string, T>` (JSON-serializability and object-literal ergonomics outweigh `Map`'s benefits at this scale).
 
 ### 5.5 Naming Conventions
 
@@ -565,13 +528,13 @@ Use built-in TS utility types over hand-rolled equivalents:
 | Components, exported types/interfaces | `PascalCase` | `Button`, `ButtonProps` |
 | Functions, variables, hooks | `camelCase` | `dependenciesFor`, `getRegistryIndex` |
 | CVA variant config constants | `camelCase` + `Variants` suffix | `buttonVariants`, `badgeVariants` |
-| Constants (module-level, immutable config) | `UPPER_SNAKE_CASE` | `REGISTRY_URL`, `FREE_COMPONENTS`, `FILE_BY_STYLE` |
-| Slugs (data values, not identifiers) | `kebab-case` string | `"hero-section"`, `"button-gradient"` |
+| Constants (module-level, immutable config) | `UPPER_SNAKE_CASE` | `REGISTRY_URL`, `FREE_COMPONENTS`, `UTIL_CODE` |
+| Slugs (data values, not identifiers) | `kebab-case` string | `"hero-section"`, `"button"` |
 | Type-only category keys | `camelCase` matching the slug-ish key | `primitives`, `marketing` |
 
 ### 5.6 File Naming
 
-- Component source files: `kebab-case.tsx`, matching the Style's installed filename exactly (`button-gradient.tsx` exports `ButtonGradient`). The export name is the PascalCase of the file name; the file name is the source of truth for what the CLI writes to disk, so never let them drift.
+- Component source files: `kebab-case.tsx`, matching the installed filename exactly (`hero-section.tsx` exports `HeroSection`). The export name is the PascalCase of the file name; the file name is always `<slug>.tsx` and is what the CLI writes to disk, so never let them drift.
 - Non-component TS modules: `kebab-case.ts` (`utils.ts`, `animations.ts`, `registry.ts`).
 - One default export maximum per file is not enforced (this repo uses named exports almost exclusively) — **prefer named exports** over default exports everywhere except Next.js's required default exports (`page.tsx`, `layout.tsx`, route handlers' `GET`/`POST` are named exports by Next.js convention, which this repo already follows correctly).
 
@@ -624,7 +587,7 @@ Registry data serializes to JSON via Next.js's `NextResponse.json()` at the two 
 
 | Content | Static or dynamic | Mechanism |
 |---|---|---|
-| Component catalog (code, props, styles) | Static, rebuilt on deploy | `force-static` API routes, in-process import on pages |
+| Component catalog (code, props) | Static, rebuilt on deploy | `force-static` API routes, in-process import on pages |
 | Copy counters (planned, see `docs/plans/devignerui-plan.md` §5) | Dynamic | Not yet implemented — when built, this is the one piece of genuinely mutable, per-request data in the system; see §17 |
 | License/subscription state | Dynamic | Creem API calls (`createCheckout`, `validateLicense`) at request time — never cached |
 | Theme preference | Dynamic, client-only | `localStorage`, never touches the server |
@@ -643,7 +606,7 @@ Every prop in `ComponentData.props` is documented with all four `PropDef` fields
 
 ### 7.3 Examples
 
-Every Style has a `usage` example that is a complete, runnable `Example()` function with its own imports — never a fragment that assumes context. This is what gets copy-pasted directly into a consumer's file, so it must compile standalone against just the installed files plus npm dependencies.
+Every Component has a `usage` example that is a complete, runnable `Example()` function with its own imports — never a fragment that assumes context. This is what gets copy-pasted directly into a consumer's file, so it must compile standalone against just the installed files plus npm dependencies.
 
 ### 7.4 Code Snippets
 
@@ -660,7 +623,7 @@ Not yet per-component; the only Do's/Don'ts currently in the repo live in `Devig
 
 ### 7.7 Common Mistakes / Migration Notes
 
-Not yet populated for any Component (none have shipped a breaking change yet). When a Style's API changes in a breaking way, add an entry to that Style's (future) `changelog` (§4.4) with `type: "deprecated"` or `"removed"`, and a one-paragraph migration note in `documentation.commonMistakes` or directly in the changelog entry's `note`. Never silently rewrite a Style's installed API without a documented migration path — the CLI has already written this code into someone's repository; they will not see a diff, only your docs.
+Not yet populated for any Component (none have shipped a breaking change yet). When a Component's API changes in a breaking way, add an entry to its (future) `changelog` (§4.4) with `type: "deprecated"` or `"removed"`, and a one-paragraph migration note in `documentation.commonMistakes` or directly in the changelog entry's `note`. Never silently rewrite a Component's installed API without a documented migration path — the CLI has already written this code into someone's repository; they will not see a diff, only your docs.
 
 ---
 
@@ -687,7 +650,7 @@ OKLCH-based, two-theme (light default + `.dark` override), defined as CSS custom
 | `accent` / `accent-hover` / `accent-foreground` | Brand/interactive color and its hover + on-accent text color |
 | `success` / `warning` / `destructive` (+ `-foreground` for destructive) | Status colors |
 
-**Rule:** component source code uses only the semantic names (`bg-background`, `text-foreground`, `border-border`, `bg-accent`) — never `gray-*` raw steps, never hex/oklch literals, with the sole exception of intentionally decorative one-off treatments that are the entire point of a Style (the `gradient` Button/Hero/Card's `from-blue-600 via-purple-600 to-pink-600`-style gradients are accepted as Style identity, not theme-breaking — they are visually intentional regardless of theme).
+**Rule:** component source code uses only the semantic names (`bg-background`, `text-foreground`, `border-border`, `bg-accent`) — never `gray-*` raw steps, never hex/oklch literals, with the sole exception of intentionally decorative one-off treatments that are the entire point of a component's identity, documented as such in its `description`.
 
 ### 8.3 Typography
 
@@ -740,11 +703,11 @@ Each has a corresponding dark-theme value (defined via `.dark` overrides of the 
 
 ### 8.7 Borders
 
-`border-border` (1px solid) is the default for every bordered surface; `border-border-hover` on `:hover`/`group-hover` for emphasis. Decorative borders (e.g. a 2-color gradient ring) are the only accepted exception and must be a Style-identity choice, documented as such in that Style's `description`.
+`border-border` (1px solid) is the default for every bordered surface; `border-border-hover` on `:hover`/`group-hover` for emphasis. Decorative borders (e.g. a 2-color gradient ring) are the only accepted exception and must be an identity choice, documented as such in that component's `description`.
 
 ### 8.8 Motion / Animations
 
-- **Library:** `motion` (the npm-renamed `framer-motion` v11+) for anything beyond what CSS transitions can express — spring physics (`ButtonMagnetic`), scroll-linked transforms (`HeroParallax`), staggered children (`HeroSection`'s `staggerChildren` variant).
+- **Library:** `motion` (the npm-renamed `framer-motion` v11+) for anything beyond what CSS transitions can express — e.g. `HeroSection`'s entrance animations and staggered children.
 - **Plain CSS transitions** (`transition-colors duration-200`) for simple state changes (hover, focus, active) — do not reach for `motion` for something `transition-*` already does in one class.
 - **Canonical entrance easing:** `[0.16, 1, 0.3, 1]` (named `EASE` in the docs pages) for scroll-reveal entrances; `"easeOut"` for simpler in-place fades. Reuse the `Reveal` wrapper pattern (`whileInView` + `viewport={{ once: true }}` + this easing) for any new scroll-triggered entrance rather than inventing new timing curves.
 - **Reduced motion:** see §3.10 — both the global CSS media query and `useReducedMotion()` in Motion-driven components are required, not optional.
@@ -778,7 +741,7 @@ Covered fully in §5.5 (TypeScript-specific) — the same table applies repo-wid
 
 ### 9.2 Folder Conventions
 
-- `src/components/` — one file per Style (not per Component) in `packages/ui`.
+- `src/components/` — one file per Component in `packages/ui`.
 - `src/lib/` — framework-agnostic helpers (`utils.ts`, `animations.ts`), never JSX.
 - `src/hooks/` — custom hooks, `use-*.ts` naming (directory exists, currently empty — reserved).
 - `app/<route>/page.tsx` + co-located `app/<route>/*.tsx` only when a piece is genuinely route-specific; shared docs-site UI goes in `apps/docs/components/`, never duplicated per-route.
@@ -804,20 +767,20 @@ No structured logging/telemetry library anywhere in the repo, and none should be
 ### 9.7 Reusability / DRY
 
 - Shared logic that two or more packages need goes in `@devignerui/shared` (types/constants) — it currently holds the *old* registry types (`ComponentDefinition`, `DesignStyle`, etc., see §17) which are legacy; new shared logic should be genuinely shared, not a relic of a superseded design.
-- Shared logic that two or more **Styles within `packages/ui`** need (not registry-specific) goes in `src/lib/`. `cn()` and the `motion` variant presets in `animations.ts` are the precedent.
+- Shared logic that two or more **components within `packages/ui`** need (not registry-specific) goes in `src/lib/`. `cn()` and the `motion` variant presets in `animations.ts` are the precedent.
 - Do **not** extract a shared abstraction across only two call sites that happen to look similar today — three real, concurrently-needed call sites is the bar (standard rule of three), per the project's lazy/pragmatic engineering stance (see `AGENTS.md`'s communication-style guidance and the `ponytail:` comments already present in `lib/registry.ts` and `app/components/page.tsx`, which model exactly this judgment call).
 
 ### 9.8 SOLID Principles (as applied here, concretely)
 
-- **S**ingle responsibility: a Style file renders one thing; `lib/registry.ts` only assembles data, never JSX; route handlers only adapt registry functions to HTTP, never contain catalog logic themselves.
-- **O**pen/closed: new Styles/Components extend the `styles`/`meta`/`props`/`usage` maps without modifying `getRegistryIndex`/`getRegistryComponent`; new optional `ComponentDataV2` fields (§4.4) extend without breaking existing readers.
-- **L**iskov: every `ComponentStyle` is interchangeable wherever `ComponentStyle` is expected (the CLI's `add` command treats every style identically regardless of which Component it belongs to).
-- **I**nterface segregation: `IndexComponent`/`IndexStyle` (lightweight, list view) are intentionally separate interfaces from `FullComponent`/`ComponentStyle` (full, single-component view) in `packages/cli/src/registry.ts` — the index endpoint doesn't force consumers to receive `code`/`files` they don't need.
+- **S**ingle responsibility: a component file renders one thing; `lib/registry.ts` only assembles data, never JSX; route handlers only adapt registry functions to HTTP, never contain catalog logic themselves.
+- **O**pen/closed: new Components extend the `components` record without modifying `getRegistryIndex`/`getRegistryComponent`; new optional `ComponentDataV2` fields (§4.4) extend without breaking existing readers.
+- **L**iskov: every `ComponentData` is interchangeable wherever `ComponentData` is expected (the CLI's `add` command treats every component identically).
+- **I**nterface segregation: `IndexComponent` (lightweight, list view) is intentionally a separate interface from `FullComponent` (full, single-component view) in `packages/cli/src/registry.ts` — the index endpoint doesn't force consumers to receive `code`/`files` they don't need.
 - **D**ependency inversion: the CLI depends on the *shape* of the registry API (an interface, effectively), not on `apps/docs`'s implementation — this is what makes the HTTP boundary in §2.1 correct.
 
 ### 9.9 Code Organization
 
-One Style per file, one Component per `meta`/`props` entry, one route handler per registry verb. Keep `lib/registry.ts` as the single growing file it is today (hundreds of lines is acceptable for a catalog of this size) rather than splintering it into one file per Component prematurely — **revisit this when it exceeds ~1500 lines or ~25 Components**, at which point split into `registry/<slug>.ts` per-Component modules aggregated by an `index.ts`, preserving the exact same exported `components`/`getRegistryIndex`/`getRegistryComponent` surface so no consumer needs to change.
+One Component per file, one Component per `components` entry, one route handler per registry verb. Keep `lib/registry.ts` as the single growing file it is today (hundreds of lines is acceptable for a catalog of this size) rather than splintering it into one file per Component prematurely — **revisit this when it exceeds ~1500 lines or ~25 Components**, at which point split into `registry/<slug>.ts` per-Component modules aggregated by an `index.ts`, preserving the exact same exported `components`/`getRegistryIndex`/`getRegistryComponent` surface so no consumer needs to change.
 
 ---
 
@@ -844,7 +807,7 @@ No bundle analyzer is wired up today. **Decision:** add `@next/bundle-analyzer` 
 
 - `packages/ui` ships ESM (`tsup` dual ESM/CJS output per `package.json`'s `exports` map) so consumers' bundlers can tree-shake unused components.
 - `packages/ui/src/index.ts`'s explicit named re-exports (§9.4) are themselves what makes tree-shaking effective — `export *` patterns would not change this, but keep the explicit list as the API-surface discipline, not as a tree-shaking mechanism per se.
-- CLI-installed components have **zero** tree-shaking concern by construction — only the files for the requested Style are ever written to the consumer's disk.
+- CLI-installed components have **zero** tree-shaking concern by construction — only the files for the requested Component are ever written to the consumer's disk.
 
 ### 10.6 Code Splitting
 
@@ -868,15 +831,15 @@ There is **no test suite in this repository today** — no Vitest/Jest config, n
 
 ### 11.2 Unit Testing
 
-**Tooling decision:** Vitest (not Jest) — it shares config style with the Vite-adjacent tooling ecosystem, has native ESM support matching this repo's `"type": "module"` packages, and is faster. Scope: pure functions first — `dependenciesFor`/`depsFor`, `cn()`, `getRegistryIndex`/`getRegistryComponent`'s shape (every Component has ≥1 `default` free stable Style, every `file` referenced by a `style.file` exists in the `files` map). These are cheap, high-value, and would have caught real categories of bugs (a Style with no matching `FILE_BY_STYLE` entry silently falls back to `${slug}-${styleSlug}.tsx}` rather than erroring, per `fileFor`'s `??` fallback — a unit test asserting every style has an explicit `FILE_BY_STYLE` entry would catch a forgotten mapping immediately instead of shipping a wrong install path).
+**Tooling decision:** Vitest (not Jest) — it shares config style with the Vite-adjacent tooling ecosystem, has native ESM support matching this repo's `"type": "module"` packages, and is faster. Scope: pure functions first — `dependenciesFor`/`depsFor`, `cn()`, `getRegistryIndex`/`getRegistryComponent`'s shape (every Component has non-empty `code`/`usage`, and its `file` path exists in the `files` map). These are cheap, high-value shape assertions that catch a malformed registry entry before it ships a wrong install path.
 
 ### 11.3 Integration Testing
 
-Scope: the two registry API routes, hit with Next.js's route handler testing utilities or a lightweight `fetch` against a built app — assert `GET /api/registry` returns every Component with ≥1 Style, `GET /api/registry/[slug]` 404s correctly for unknown slugs and returns a `files` map covering every `style.file` for known ones.
+Scope: the two registry API routes, hit with Next.js's route handler testing utilities or a lightweight `fetch` against a built app — assert `GET /api/registry` returns every Component, `GET /api/registry/[slug]` 404s correctly for unknown slugs and returns a `files` map covering the component's `file` for known ones.
 
 ### 11.4 Component Testing
 
-**Tooling decision:** React Testing Library + Vitest's `jsdom`/`happy-dom` environment. Priority order: components with actual interactive logic first (`ButtonMagnetic`'s pointer handling, `SpotlightCard`'s mouse tracking, the Combobox/Listbox preview patterns once they become real shipped Components rather than docs-page-only previews) — purely presentational CVA components (`Badge`) need at most a smoke test (renders, applies variant class).
+**Tooling decision:** React Testing Library + Vitest's `jsdom`/`happy-dom` environment. Priority order: components with actual interactive logic first (the Combobox/Listbox preview patterns once they become real shipped Components rather than docs-page-only previews) — purely presentational CVA components (`Badge`) need at most a smoke test (renders, applies variant class).
 
 ### 11.5 Accessibility Testing
 
@@ -900,7 +863,7 @@ Not justified yet at this catalog size (5 Components). **Decision:** introduce P
 
 ### 12.1 Hundreds or Thousands of Components
 
-The current architecture (one TS module as SSOT, generated API JSON, file-per-Style on disk) scales structurally to hundreds of Components without a rewrite — the concrete steps that *do* need to happen, in order, as the catalog grows:
+The current architecture (one TS module as SSOT, generated API JSON, file-per-Component on disk) scales structurally to hundreds of Components without a rewrite — the concrete steps that *do* need to happen, in order, as the catalog grows:
 
 1. **~25 Components:** split `lib/registry.ts` into `lib/registry/<slug>.ts` per Component, aggregated by an `index.ts` that preserves today's exported surface (§9.9).
 2. **~50 Components:** introduce `dependency-cruiser`/`eslint-plugin-boundaries` to mechanically enforce §2.3's module boundaries, since manual review stops scaling.
@@ -913,15 +876,15 @@ The token architecture (§8) already supports an arbitrary number of themes stru
 
 ### 12.3 Multiple Design Languages
 
-Devigner UI's "multiple Styles per Component" model (§3.1, §3.5) **is** the multiple-design-language mechanism — a wholesale alternate design language is modeled as a new Style namespace per Component, not a new parallel package. This is the architecture's core differentiator and already proven at small scale (`default`/`gradient`/`magnetic` are meaningfully different design languages for the same Button).
+Removed as a product direction 2026-07-05 alongside the multi-Style model — Devigner UI ships one design language. If an alternate design language is ever wanted, it is a new catalog decision to make deliberately (update this document first), not a latent mechanism in the current schema.
 
 ### 12.4 Plugin Architecture
 
-Not present today and not recommended until there is a concrete second consumer wanting to extend the registry externally (e.g. a third party publishing their own Styles). When that need is real, the extension point is `ComponentStyle` itself — a plugin would register additional entries into the same `styles`/`props`/`usage` shape, behind a clearly versioned registry schema (§6.5), not a bespoke plugin API invented ahead of need.
+Not present today and not recommended until there is a concrete second consumer wanting to extend the registry externally (e.g. a third party publishing their own components). When that need is real, the extension point is `ComponentData` itself — a plugin would register additional entries into the same shape, behind a clearly versioned registry schema (§6.5), not a bespoke plugin API invented ahead of need.
 
 ### 12.5 External Packages
 
-`@devignerui/ui` is already structured as a standalone, independently-publishable npm package with peer dependencies (`react`, `react-dom`, `tailwindcss`) correctly declared — this is the existing external-package story and needs no architectural change to keep working as the catalog grows, only continued discipline keeping it a thin mirror of the registry's `default` Styles (§17.2).
+`@devignerui/ui` is already structured as a standalone, independently-publishable npm package with peer dependencies (`react`, `react-dom`, `tailwindcss`) correctly declared — this is the existing external-package story and needs no architectural change to keep working as the catalog grows, only continued discipline keeping it a thin mirror of the registry's components (§17.2).
 
 ### 12.6 API Integration
 
@@ -933,7 +896,7 @@ This document **is** the mechanism for AI-assisted development at scale — an a
 
 ### 12.8 Future Framework Support
 
-Vue/Svelte support (mentioned as "planned" in `docs/plans/devignerui-plan.md`) would **not** reuse `ComponentStyle.code`/`.usage` as-is (those are React/JSX strings) — it would add a `frameworks` field (§4.4) and a parallel `code`/`usage` *per framework* inside each Style, e.g. `code: { react: string; vue?: string }`. This is additive to the existing shape (no breaking change to React-only consumers) and is the concrete reason `ComponentDataV2`'s `frameworks?: Array<"react" | "vue" | "svelte">` field exists in the target model (§4.4) ahead of the feature itself — it's cheap to reserve the field name now so no future rename is needed.
+Vue/Svelte support (mentioned as "planned" in `docs/plans/devignerui-plan.md`) would **not** reuse `ComponentData.code`/`.usage` as-is (those are React/JSX strings) — it would add a `frameworks` field (§4.4) and a parallel `code`/`usage` *per framework* inside each Component, e.g. `code: { react: string; vue?: string }`. This is additive to the existing shape (no breaking change to React-only consumers) and is the concrete reason `ComponentDataV2`'s `frameworks?: Array<"react" | "vue" | "svelte">` field exists in the target model (§4.4) ahead of the feature itself — it's cheap to reserve the field name now so no future rename is needed.
 
 ---
 
@@ -941,7 +904,7 @@ Vue/Svelte support (mentioned as "planned" in `docs/plans/devignerui-plan.md`) w
 
 ### 13.1 Component Generation
 
-Not automated today (every Style is hand-authored in `lib/registry.ts`). **Decision:** once the catalog passes ~15 Components, add a `pnpm gen:component <slug> <style>` script (plain Node script under `scripts/`, no need for a heavier generator framework like Plop at this scale) that scaffolds: a `meta` entry if the Component is new, a `styles[]` entry with placeholder `code`/`usage`, and prints a checklist (props, preview function, FILE_BY_STYLE entry) — a checklist generator, not a magic full-generator, because Style implementations are genuinely bespoke per the product's differentiation (§1.1).
+Not automated today (every Component is hand-authored in `lib/registry.ts`). **Decision:** once the catalog passes ~15 Components, add a `pnpm gen:component <slug>` script (plain Node script under `scripts/`, no need for a heavier generator framework like Plop at this scale) that scaffolds a `components` entry with placeholder `code`/`usage` and prints a checklist (props, preview function) — a checklist generator, not a magic full-generator, because component implementations are genuinely bespoke per the product's differentiation (§1.1).
 
 ### 13.2 Variant Generation
 
@@ -949,19 +912,19 @@ CVA variant objects are already a form of declarative "generation" (the `variant
 
 ### 13.3 Documentation Generation
 
-Props tables, install commands, and the styles switcher are already **generated** from registry data at render time (§7) — there is no separate "generate docs" step because the docs *are* a live view of the registry. Keep it this way; do not introduce a static-doc-generation build step that could drift from the live data.
+Props tables and install commands are already **generated** from registry data at render time (§7) — there is no separate "generate docs" step because the docs *are* a live view of the registry. Keep it this way; do not introduce a static-doc-generation build step that could drift from the live data.
 
 ### 13.4 Code Snippet Generation
 
-`dependenciesFor`/`depsFor` already auto-derive the `npm i` line from a Style's source code by scanning for known import strings (§4.6) — this is the established pattern for "generation" in this codebase: derive from source rather than hand-maintain a parallel list. Extend this approach (scan-and-derive) rather than introducing a separate manifest file if more auto-derived metadata is needed later.
+`dependenciesFor`/`depsFor` already auto-derive the `npm i` line from a component's source code by scanning for known import strings (§4.6) — this is the established pattern for "generation" in this codebase: derive from source rather than hand-maintain a parallel list. Extend this approach (scan-and-derive) rather than introducing a separate manifest file if more auto-derived metadata is needed later.
 
 ### 13.5 Metadata Generation
 
-The `status: "new"/"updated"` lifecycle field (§3.7) is currently **manually** set and manually downgraded after two weeks. **Decision:** automate the downgrade (not the initial setting) via a scheduled script/GitHub Action that reads each Style's `status` plus a `statusSetAt` date (new field, additive per §4.4) and flips `"new"`/`"updated"` → `"stable"` after 14 days, opening an automated PR. Do not automate the *initial* `"new"`/`"updated"` classification — that's an authorial/editorial judgment call (was this addition meaningfully new vs. an internal refactor), not a mechanical one.
+The per-Style `status` lifecycle field was removed with the multi-Style model (§3.7). If a per-Component `status` badge returns, automate only the downgrade (`"new"`/`"updated"` → `"stable"` after 14 days), never the initial editorial classification.
 
 ### 13.6 Validation
 
-No registry validation script exists today (§6.3). Add a `pnpm validate:registry` script (run in CI, see §13.8) asserting: every Component has a `default` free stable Style, every `ComponentStyle.slug` is unique within its Component, every Style referenced by `FILE_BY_STYLE` exists in `styles`, every `style.file`'s referenced path appears in `getRegistryComponent`'s `files` map. This is cheap (pure-function unit tests, §11.2) and should ship before the catalog doubles in size.
+No registry validation script exists today (§6.3). Add a `pnpm validate:registry` script (run in CI, see §13.8) asserting: every Component has non-empty `code` and `usage`, every slug is unique, and every component's `file` path appears in `getRegistryComponent`'s `files` map. This is cheap (pure-function unit tests, §11.2) and should ship before the catalog doubles in size.
 
 ### 13.7 Linting / Formatting
 
@@ -987,32 +950,28 @@ Each step should be addable independently and immediately — none of these bloc
 
 ## 14. Development Workflow
 
-### 14.1 Lifecycle for Adding a New Component or Style
+### 14.1 Lifecycle for Adding a New Component
 
 ```mermaid
 flowchart TD
-    A["1. Planning<br/>Pick slug, category, decide:<br/>new Component or new Style of existing one?"] --> B["2. Generation<br/>(manual today, scripted per §13.1 later)<br/>Add/extend meta + styles[] entries"]
+    A["1. Planning<br/>Pick slug + category"] --> B["2. Generation<br/>(manual today, scripted per §13.1 later)<br/>Add the components entry"]
     B --> C["3. Development<br/>Write the .tsx source (§3.2 anatomy),<br/>semantic tokens only (§8.2)"]
-    C --> D["4. Wire FILE_BY_STYLE<br/>+ write the live preview function<br/>in [slug]/page.tsx (§4.5)"]
-    D --> E["5. Documentation<br/>props[], usage example,<br/>description, status (§3.7, §7)"]
+    C --> D["4. Write the live preview function<br/>in [slug]/page.tsx (§4.5)"]
+    D --> E["5. Documentation<br/>props[], usage example, description (§7)"]
     E --> F["6. Testing<br/>(once §11 lands) unit test for<br/>dependenciesFor, registry-shape, RTL smoke test"]
     F --> G["7. Review<br/>Accessibility (§3.10), token compliance (§8.2),<br/>vocabulary correctness (§3.1)"]
-    G --> H["8. Merge → status: new<br/>Deployed via apps/docs build"]
-    H --> I["9. Maintenance<br/>Downgrade to stable after 2 weeks (§3.7, automatable §13.5)"]
+    G --> H["8. Merge<br/>Deployed via apps/docs build"]
 ```
 
-### 14.2 Concrete Checklist (binding, use for every new Style)
+### 14.2 Concrete Checklist (binding, use for every new Component)
 
-1. Does this need a **new Component** (new slug, new category, new entry in `meta`) or a **new Style of an existing Component** (new entry in that Component's `styles[]`)? Don't create a new Component slug for what is really just another Style.
-2. Write the `.tsx` source first, in isolation, against the token contract (§8.2) — no hardcoded colors, `forwardRef`, `displayName`, exported `<X>Props`.
-3. Add the `FILE_BY_STYLE` mapping (`packages/cli`-facing) — required, the CLI's install path silently falls back to a derived name if you skip it (§13.6 will eventually catch this; until then, do it manually every time).
-4. Add the `styles[]` entry in `lib/registry.ts`: `name`, `slug`, `description`, `free`, `status: "new"`, `code`.
-5. Write the `usage` example (§7.3) — standalone, copy-pasteable.
-6. If `props` differ from the Component's existing entries, update `meta.<slug>`'s `variants` array (display names for the props table — these are CVA variant names, see §3.1, not Style names) and `props.<slug>`.
-7. Add the live preview function and register it in `previews[slug][styleSlug]` in `[slug]/page.tsx` (§4.5).
-8. Verify in both light and dark theme manually (no automated check exists yet, §11.6).
-9. Run `turbo build && turbo lint` locally before pushing.
-10. PR description states: Component or new Style, free/Pro, category, one-line rationale for the design treatment.
+1. Write the `.tsx` source first, in isolation, against the token contract (§8.2) — no hardcoded colors, `forwardRef`, `displayName`, exported `<X>Props`.
+2. Add the `components` entry in `lib/registry.ts`: `slug`, `name`, `description`, `category`, `variants`, `props`, `code`, `usage`.
+3. Write the `usage` example (§7.3) — standalone, copy-pasteable.
+4. Add the live preview function and register it in `previews[slug]` in `[slug]/page.tsx` (§4.5).
+5. Verify in both light and dark theme manually (no automated check exists yet, §11.6).
+6. Run `turbo build && turbo lint` locally before pushing.
+7. PR description states: slug, category, one-line rationale for the design treatment.
 
 ### 14.3 Versioning
 
@@ -1036,7 +995,7 @@ Covered fully in §5.6.
 
 ### 15.3 Branch Strategy
 
-**Decision:** trunk-based development on `main`, short-lived feature branches named `<type>/<short-slug>` (`feat/badge-dot-style`, `fix/card-token-literals`), matching the `type:` prefixes in §15.4. No long-lived `develop`/`release` branches — the registry-as-code architecture (§2.1, §14.4) means `main` deploying directly is correct and low-risk; there is no build artifact to stabilize separately from the source.
+**Decision:** trunk-based development on `main`, short-lived feature branches named `<type>/<short-slug>` (`feat/badge`, `fix/card-token-literals`), matching the `type:` prefixes in §15.4. No long-lived `develop`/`release` branches — the registry-as-code architecture (§2.1, §14.4) means `main` deploying directly is correct and low-risk; there is no build artifact to stabilize separately from the source.
 
 ### 15.4 Commit Conventions
 
@@ -1044,8 +1003,8 @@ Covered fully in §5.6.
 
 ### 15.5 Pull Request Standards
 
-- One logical change per PR — a new Style and an unrelated lint-config tweak are two PRs.
-- PR description always states, for any registry change: which `meta`/`styles`/`props` entries changed, and whether it's additive (safe) or breaking (§6.5 process required).
+- One logical change per PR — a new Component and an unrelated lint-config tweak are two PRs.
+- PR description always states, for any registry change: which component entries changed, and whether it's additive (safe) or breaking (§6.5 process required).
 - Per `AGENTS.md`'s house style, PR descriptions (like agent summaries) should be a tight paragraph covering what changed, key decisions, and current state — not a step-by-step narration.
 
 ### 15.6 Versioning Policy
@@ -1066,14 +1025,14 @@ The architecture in this document is intentionally already shaped to absorb the 
 |---|---|---|
 | Hundreds of Components | §12.1 | Split `lib/registry.ts` per Component at the stated threshold |
 | Multiple themes beyond light/dark | §12.2 | Additional `.theme-name` CSS blocks + one more `ThemeToggle` option |
-| A true plugin/marketplace ecosystem | §12.4 | A versioned, externally-writable extension of `ComponentStyle` |
-| Vue/Svelte component output | §4.4, §12.8 | Per-framework `code`/`usage` inside `ComponentStyleV2` |
+| A true plugin/marketplace ecosystem | §12.4 | A versioned, externally-writable extension of `ComponentData` |
+| Vue/Svelte component output | §4.4, §12.8 | Per-framework `code`/`usage` inside `ComponentDataV2` |
 | Copy counters & usage analytics | §6.6 | The one genuinely dynamic, per-request data path the system doesn't have yet — a small KV/SQL table (`copy_counts`) behind a rate-limited API route, exactly as scoped in `docs/plans/devignerui-plan.md` §5, implemented additively without touching the registry's static data path |
-| Full monetization (tiers, license enforcement in the CLI) | §1.2, §6.6 | `lib/creem.ts` already has checkout/license-validation primitives; the CLI does not yet gate Pro Styles on a license key — when it does, validate license **client-side in the CLI** against the existing `/v1/licenses/validate` Creem endpoint, never bake a license check into the registry API itself (keep the registry public and cacheable, per §2.1's "static at the HTTP layer" decision) |
+| Full monetization (tiers, license enforcement in the CLI) | §1.2, §6.6 | `lib/creem.ts` already has checkout/license-validation primitives; the CLI does not yet gate Pro components on a license key — when it does, validate license **client-side in the CLI** against the existing `/v1/licenses/validate` Creem endpoint, never bake a license check into the registry API itself (keep the registry public and cacheable, per §2.1's "static at the HTTP layer" decision) |
 | CI/CD, automated testing, validation | §11, §13.6, §13.8 | Concrete tool decisions already made; only needs implementation |
 | AI-agent-driven catalog growth | §12.7 | This document itself is the enabling artifact — keep it updated as the source of truth |
 
-**Principle for all future growth:** every addition above is additive to the existing `ComponentData`/`ComponentStyle` shape and the existing four-package boundary (§2.3) — none requires a breaking schema migration or a new top-level architectural layer. If a proposed future feature *would* require breaking this document's existing contracts, that is a signal to revisit this document deliberately (update it first, per the header note), not to route around it.
+**Principle for all future growth:** every addition above is additive to the existing `ComponentData` shape and the existing four-package boundary (§2.3) — none requires a breaking schema migration or a new top-level architectural layer. If a proposed future feature *would* require breaking this document's existing contracts, that is a signal to revisit this document deliberately (update it first, per the header note), not to route around it.
 
 ---
 

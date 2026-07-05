@@ -29,8 +29,8 @@ function Check({ className }: { className?: string }) {
 type PlanKey = "monthly" | "lifetime";
 
 const MONTHLY_FEATURES = [
-  "Every component and style",
-  "New styles as they ship",
+  "Every component",
+  "New components as they ship",
   "Full TypeScript source",
   "Priority support",
 ];
@@ -101,7 +101,7 @@ export function Pricing() {
           </h2>
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-text-secondary">
             One library, two ways to own it. Every plan includes the full set of
-            components and styles, MIT-licensed. No seats, no usage limits.
+            components, MIT-licensed. No seats, no usage limits.
           </p>
         </div>
 
@@ -187,7 +187,7 @@ export function Pricing() {
                 className="group relative mt-8 inline-flex h-12 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-accent pl-6 pr-3 text-sm font-semibold text-accent-foreground transition-[background-color,transform] duration-200 hover:bg-accent-hover active:scale-[0.98] disabled:opacity-60"
               >
                 {loading === "lifetime" ? "Processing…" : "Get lifetime access"}
-                <span className="inline-flex size-6 items-center justify-center rounded-full bg-black/15 transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5">
+                <span className="inline-flex size-6 items-center justify-center rounded-full bg-black/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5">
                   <svg
                     className="size-3"
                     fill="none"

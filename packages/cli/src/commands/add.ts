@@ -24,10 +24,6 @@ export const addCommand = new Command()
   .name("add")
   .description("Add a component to your project")
   .argument("<components...>", "Component names to add")
-  .option(
-    "-s, --style <style>",
-    "Design style to install (default, gradient, magnetic, etc.)",
-  )
   .option("-p, --path <path>", "Override components path")
   .action(async (componentNames: string[], options) => {
     const configPath = resolve("components.json");
@@ -49,22 +45,8 @@ export const addCommand = new Command()
         console.log(`📦 ${name}`);
         const component = await fetchComponent(name);
 
-        const styleSlug = options.style || "default";
-        const style = component.styles.find((s) => s.slug === styleSlug);
-
-        if (!style) {
-          console.log(
-            `  ✗ Style "${styleSlug}" not found. Available: ${component.styles
-              .map((s) => s.slug)
-              .join(", ")}`,
-          );
-          continue;
-        }
-
-        console.log(`  Style: ${style.name}`);
-
-        // Install the style's own file plus the shared cn() util.
-        for (const filePath of [style.file, "lib/utils.ts"]) {
+        // Install the component's own file plus the shared cn() util.
+        for (const filePath of [component.file, "lib/utils.ts"]) {
           const content = component.files[filePath];
           if (content === undefined) {
             console.log(`  ⚠ ${filePath} missing from registry, skipping`);
@@ -73,9 +55,9 @@ export const addCommand = new Command()
           writeFile(filePath, content, basePath);
         }
 
-        if (style.dependencies.length > 0) {
+        if (component.dependencies.length > 0) {
           console.log(`\n  Install dependencies:`);
-          console.log(`  npm i ${style.dependencies.join(" ")}`);
+          console.log(`  npm i ${component.dependencies.join(" ")}`);
         }
         console.log("");
       } catch (error) {

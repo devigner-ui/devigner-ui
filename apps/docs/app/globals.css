@@ -49,7 +49,7 @@
   --color-terminal-muted: var(--terminal-muted);
 
   /* Typography — Clash Display (headlines) + Geist (body/mono) */
-  --font-display: "Clash Display", var(--font-geist-sans), system-ui, sans-serif;
+  --font-display: var(--font-sans);
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
@@ -71,8 +71,10 @@
   --shadow-subtle: var(--shadow-subtle-val);
   --shadow-elevated: var(--shadow-elevated-val);
 
-  /* Easing */
+  /* Easing — keep in sync with the motion tokens in packages/ui/src/lib/animations.ts */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Light theme — warm paper + navy ink + vermilion (from remidevigner.pro) */
@@ -368,11 +370,16 @@ html.lenis body {
   transform-style: preserve-3d;
 }
 
-/* ─── Code blocks (shiki) — always dark, like GitHub ─── */
+/* ─── Code blocks (shiki) — dual theme via --shiki-light/--shiki-dark vars ─── */
 
 .code-shiki pre,
 .code-shiki .shiki {
   background: transparent !important;
+}
+
+.dark .code-shiki .shiki,
+.dark .code-shiki .shiki span {
+  color: var(--shiki-dark) !important;
 }
 
 .code-shiki pre {
@@ -457,6 +464,14 @@ html.lenis body {
 *::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
   background-clip: content-box;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ─── Reduced motion ─── */

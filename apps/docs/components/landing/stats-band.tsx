@@ -10,7 +10,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 // Real numbers — keep in sync with lib/registry.ts.
 const STATS: { value?: number; text?: string; label: string }[] = [
   { value: 5, label: "Components" },
-  { value: 15, label: "Complete styles" },
+  { value: 22, label: "Variants" },
   { text: "MIT", label: "License" },
   { text: "Zero", label: "Config" },
 ];

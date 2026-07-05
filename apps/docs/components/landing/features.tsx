@@ -15,13 +15,13 @@ const PANELS: { title: string; body: string; visual: React.ReactNode }[] = [
       <div className="mt-7 rounded-xl border border-border bg-background p-4 font-mono text-[12px]/6">
         <div className="text-text-muted">components/ui/</div>
         <div className="pl-4 text-foreground">
-          spotlight-card.tsx
+          card.tsx
           <span className="ml-2 rounded-full bg-success/10 px-1.5 py-px text-[10px] font-medium text-success">
             added
           </span>
         </div>
         <div className="pl-4 text-foreground">
-          button-magnetic.tsx
+          button.tsx
           <span className="ml-2 rounded-full bg-success/10 px-1.5 py-px text-[10px] font-medium text-success">
             added
           </span>
@@ -33,7 +33,7 @@ const PANELS: { title: string; body: string; visual: React.ReactNode }[] = [
   },
   {
     title: "Tailwind-native",
-    body: "Styled with Tailwind v4 semantic tokens. Retheme every style at once by editing CSS variables, not components.",
+    body: "Styled with Tailwind v4 semantic tokens. Retheme everything at once by editing CSS variables, not components.",
     visual: (
       <div className="mt-7 grid grid-cols-2 gap-2.5">
         {(
@@ -71,7 +71,7 @@ const PANELS: { title: string; body: string; visual: React.ReactNode }[] = [
         <div className="pl-4">
           <span className="text-warning">variant</span>
           <span className="text-text-muted">=</span>
-          <span className="text-success">&quot;magnetic&quot;</span>
+          <span className="text-success">&quot;outline&quot;</span>
         </div>
         <div className="pl-4">
           <span className="text-warning">size</span>

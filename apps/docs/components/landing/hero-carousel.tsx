@@ -237,9 +237,6 @@ export function HeroCarousel() {
                 <span className="text-sm font-semibold text-foreground">
                   {item.name}
                 </span>
-                <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-accent">
-                  {item.styles.length} styles
-                </span>
               </div>
               <div className="p-5">{item.preview}</div>
             </div>

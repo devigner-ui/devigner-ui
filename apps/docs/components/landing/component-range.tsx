@@ -62,12 +62,11 @@ export function ComponentRange() {
           <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
             Every piece,
             <br />
-            <span className="text-accent">several ways.</span>
+            <span className="text-accent">finished.</span>
           </h2>
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-text-secondary">
-            Buttons, cards, inputs, whole sections. Each ships multiple
-            complete styles behind one API, so you swap the look without
-            touching the markup.
+            Buttons, cards, inputs, whole sections. Each ships as one complete,
+            polished component — copy it in and the code is yours.
           </p>
         </div>
 
@@ -87,9 +86,6 @@ export function ComponentRange() {
               <div className="mb-5 flex items-center justify-between">
                 <span className="text-[15px] font-semibold text-foreground">
                   {item.name}
-                </span>
-                <span className="rounded-full bg-accent/10 px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-accent">
-                  {item.styles.length} styles
                 </span>
               </div>
               <div className="pointer-events-none min-h-20">{item.preview}</div>

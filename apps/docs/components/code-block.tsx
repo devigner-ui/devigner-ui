@@ -25,7 +25,11 @@ export function CodeBlock({
     let alive = true;
     import("shiki")
       .then(({ codeToHtml }) =>
-        codeToHtml(code, { lang, theme: "github-dark" }),
+        codeToHtml(code, {
+          lang,
+          themes: { light: "github-light", dark: "github-dark" },
+          defaultColor: "light",
+        }),
       )
       // shiki joins line spans with a literal "\n"; with white-space: pre-wrap
       // that renders as an extra blank row, so strip it (line breaks come
@@ -39,7 +43,7 @@ export function CodeBlock({
   }, [code, lang]);
 
   return (
-    <div className="relative bg-(--code-bg)">
+    <div className="relative">
       <div
         className={`code-shiki code-scroll ${numbered ? "numbered" : ""} ${
           expanded ? "max-h-130 overflow-y-auto" : "max-h-72 overflow-hidden"
@@ -48,7 +52,7 @@ export function CodeBlock({
         {html ? (
           <div dangerouslySetInnerHTML={{ __html: html }} />
         ) : (
-          <pre className="m-0 whitespace-pre-wrap wrap-break-word p-4 font-mono text-xs leading-none text-[#c9d1d9]">
+          <pre className="m-0 whitespace-pre-wrap wrap-break-word p-4 font-mono text-xs leading-none text-text-secondary">
             {code}
           </pre>
         )}

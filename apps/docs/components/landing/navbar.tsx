@@ -163,7 +163,7 @@ export function Navbar() {
           aria-label="Primary"
           className={cn(
             "relative flex h-13 w-full items-center justify-between rounded-full border pl-4 pr-2 backdrop-blur-xl",
-            "transition-[max-width,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+            "transition-[max-width,background-color,border-color,box-shadow] duration-500 ease-drawer",
             condensed
               ? "max-w-2xl border-border bg-background/70 shadow-elevated"
               : "max-w-4xl border-transparent bg-background/30",
@@ -197,7 +197,7 @@ export function Navbar() {
               className="group hidden h-9 items-center gap-2 rounded-full bg-foreground pl-4 pr-2 text-[13px] font-medium text-background will-change-transform md:inline-flex"
             >
               Get Started
-              <span className="inline-flex size-6 items-center justify-center rounded-full bg-background/15 transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-px">
+              <span className="inline-flex size-6 items-center justify-center rounded-full bg-background/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5 group-hover:-translate-y-px">
                 <svg
                   className="size-3"
                   fill="none"
@@ -225,13 +225,13 @@ export function Navbar() {
             >
               <span
                 className={cn(
-                  "absolute h-px w-4 bg-current transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                  "absolute h-px w-4 bg-current transition-transform duration-300 ease-drawer",
                   menuOpen ? "rotate-45" : "-translate-y-1",
                 )}
               />
               <span
                 className={cn(
-                  "absolute h-px w-4 bg-current transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                  "absolute h-px w-4 bg-current transition-transform duration-300 ease-drawer",
                   menuOpen ? "-rotate-45" : "translate-y-1",
                 )}
               />

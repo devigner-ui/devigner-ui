@@ -8,7 +8,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Devigner UI",
   description:
-    "Beautiful React components, built with Tailwind CSS. Multiple design styles per component. Copy-paste or install via CLI.",
+    "Beautiful React components, built with Tailwind CSS. Copy-paste or install via CLI.",
 };
 
 const themeScript = `

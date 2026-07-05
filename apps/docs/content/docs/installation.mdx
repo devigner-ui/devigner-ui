@@ -22,15 +22,9 @@ This creates a `components.json` config file and a `components/ui` directory
 npx devignerui add button
 ```
 
-This writes the `default` Style's source file plus the shared `lib/utils.ts`
-(the `cn()` helper) into your project, and prints any npm dependencies that
-Style needs.
-
-To install a specific Style instead of `default`:
-
-```bash
-npx devignerui add button --style gradient
-```
+This writes the component's source file plus the shared `lib/utils.ts`
+(the `cn()` helper) into your project, and prints any npm dependencies it
+needs.
 
 ## 3. List what's available
 
@@ -38,11 +32,10 @@ npx devignerui add button --style gradient
 npx devignerui list
 ```
 
-Filter by category or free-only:
+Filter by category:
 
 ```bash
 npx devignerui list --category primitives
-npx devignerui list --free
 ```
 
 ## Multiple components at once
@@ -50,7 +43,3 @@ npx devignerui list --free
 ```bash
 npx devignerui add button card input
 ```
-
-Each component installs with the `default` Style unless `--style` is passed —
-`--style` currently applies to every component in the command, so install
-components with different non-default Styles in separate `add` calls.

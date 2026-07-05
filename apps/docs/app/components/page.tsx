@@ -719,8 +719,8 @@ export default function ComponentsPage() {
           </Reveal>
           <Reveal delay={0.05}>
             <p className="mt-4 max-w-lg text-base/relaxed text-text-secondary sm:text-lg">
-              Browse all available components. Multiple design styles per
-              component, each with its own variants.
+              Browse all available components. Each one finished, copy-paste
+              ready, with its own variants.
             </p>
           </Reveal>
         </div>

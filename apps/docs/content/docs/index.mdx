@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What Devigner UI is, and how components, styles, and variants fit together.
+description: What Devigner UI is, and how components and variants fit together.
 ---
 
 Devigner UI is a component catalog you install **into** your own project with a CLI,
@@ -10,22 +10,19 @@ delivers it.
 
 ## Vocabulary
 
-Three words are used precisely throughout these docs:
+Two words are used precisely throughout these docs:
 
 - **Component** — a conceptual UI element with one slug, one category, one props
-  contract. `button`, `hero-section`.
-- **Style** — a distinct, independently-installable implementation of a Component.
-  Styles can differ completely in markup and behavior. Selected via `--style` in
-  the CLI. `default`, `gradient`, `magnetic` are all Styles of `button`.
-- **Variant** — a prop value *within* a single Style's component API (for example
-  `variant="outline"` on the `default` Button Style). Variants don't change which
-  files get installed — Styles do.
+  contract, and one installable implementation. `button`, `hero-section`.
+- **Variant** — a prop value *within* a Component's API (for example
+  `variant="outline"` on Button). Variants never change which files get
+  installed.
 
-Every Component ships at least one Style named `default`, which is always free
-and stable. Additional Styles may be free or Pro.
+Each Component installs as a single file (`components/ui/<slug>.tsx`) plus the
+shared `lib/utils.ts` helper.
 
 ## Browsing components
 
-The full, interactive catalog — live previews, the style switcher, and props
-tables — lives at [`/components`](/components). These guides cover everything
-around that catalog: installing the CLI, theming, and conventions.
+The full, interactive catalog — live previews and props tables — lives at
+[`/components`](/components). These guides cover everything around that
+catalog: installing the CLI, theming, and conventions.

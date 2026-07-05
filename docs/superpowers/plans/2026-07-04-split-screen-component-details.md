@@ -33,6 +33,7 @@ Removed entirely: the `Navbar` component, `activeSection` state, the `toc` array
 Convert the layout to two panes. Right pane is a placeholder in this task (just the centered preview on the dot-grid, no toolbar yet). Left pane holds all docs sections. Drop the navbar, TOC, and scroll-spy.
 
 **Files:**
+
 - Modify: `apps/docs/app/components/[slug]/page.tsx`
 
 - [ ] **Step 1: Remove dead code**
@@ -80,7 +81,10 @@ return (
           <Reveal>
             {/* breadcrumb */}
             <div className="flex items-center gap-2 text-[13px] text-text-muted">
-              <Link href="/components" className="transition-colors duration-200 hover:text-foreground">
+              <Link
+                href="/components"
+                className="transition-colors duration-200 hover:text-foreground"
+              >
                 Components
               </Link>
               <span className="text-border">/</span>
@@ -195,7 +199,10 @@ return (
 Above `export default function ComponentPage`, add minimal stubs (replaced in later tasks):
 
 ```tsx
-function EdgeNav(_: { navGroups: Record<string, { slug: string; name: string }[]>; activeSlug: string }) {
+function EdgeNav(_: {
+  navGroups: Record<string, { slug: string; name: string }[]>;
+  activeSlug: string;
+}) {
   return null;
 }
 function Stage(props: StageProps) {
@@ -207,12 +214,19 @@ function Stage(props: StageProps) {
 }
 function PreviewCard(props: StageProps) {
   return (
-    <div className="flex min-h-80 items-center justify-center rounded-2xl border border-border p-6" style={dotGrid}>
+    <div
+      className="flex min-h-80 items-center justify-center rounded-2xl border border-border p-6"
+      style={dotGrid}
+    >
       <div key={props.previewKey}>{props.preview}</div>
     </div>
   );
 }
-function FullscreenStage(_: { preview: React.ReactNode; previewKey: number; onClose: () => void }) {
+function FullscreenStage(_: {
+  preview: React.ReactNode;
+  previewKey: number;
+  onClose: () => void;
+}) {
   return null;
 }
 
@@ -244,9 +258,10 @@ Expected: no errors.
 - [ ] **Step 5: Visual check (both breakpoints)**
 
 Start dev (`npm --prefix apps/docs run dev`), open `/components/button`.
+
 - Resize to 1440×900: two panes, left docs scrolls, right shows the preview centered on the dot-grid, no navbar.
 - Resize to 390 wide: single column, inline preview card on top, docs below.
-Switcher chips change the rendered preview in both.
+  Switcher chips change the rendered preview in both.
 
 - [ ] **Step 6: Commit**
 
@@ -262,6 +277,7 @@ git commit -m "feat: split-screen shell + left docs column for component page"
 Replace the `Stage`, `PreviewCard`, and `FullscreenStage` stubs with real implementations sharing one `StageToolbar`.
 
 **Files:**
+
 - Modify: `apps/docs/app/components/[slug]/page.tsx`
 
 - [ ] **Step 1: Add the toolbar + drawer implementations**
@@ -281,12 +297,45 @@ function StageToolbar({
     "flex size-8 items-center justify-center rounded-full text-text-muted transition-colors hover:text-foreground";
   return (
     <div className="flex items-center gap-0.5 rounded-full border border-border bg-background/80 p-1 shadow-elevated backdrop-blur-md">
-      <button className={btn} onClick={onReset} aria-label="Reset preview" title="Reset">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
+      <button
+        className={btn}
+        onClick={onReset}
+        aria-label="Reset preview"
+        title="Reset"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
       </button>
       <ThemeToggle />
-      <button className={btn} onClick={onFullscreen} aria-label="Fullscreen preview" title="Fullscreen">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3" /></svg>
+      <button
+        className={btn}
+        onClick={onFullscreen}
+        aria-label="Fullscreen preview"
+        title="Fullscreen"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3" />
+        </svg>
       </button>
       <button
         className={`${btn} ${showCode ? "text-accent hover:text-accent" : ""}`}
@@ -295,7 +344,18 @@ function StageToolbar({
         aria-pressed={showCode}
         title="View code"
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6" /></svg>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
+        </svg>
       </button>
     </div>
   );
@@ -316,11 +376,30 @@ function CodeDrawer({
       className="absolute inset-x-0 bottom-0 z-20 max-h-[70%] overflow-hidden rounded-t-2xl border-t border-border bg-background-200"
     >
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
-        <span className="font-mono text-[11px] text-text-muted">{slug}-{styleSlug}-demo.tsx</span>
+        <span className="font-mono text-[11px] text-text-muted">
+          {slug}-{styleSlug}-demo.tsx
+        </span>
         <div className="flex items-center gap-1">
-          <CopyButton code={usage} componentName={`${slug}-${styleSlug}-demo`} />
-          <button className="flex size-7 items-center justify-center rounded-md text-text-muted hover:text-foreground" onClick={onClose} aria-label="Close code">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <CopyButton
+            code={usage}
+            componentName={`${slug}-${styleSlug}-demo`}
+          />
+          <button
+            className="flex size-7 items-center justify-center rounded-md text-text-muted hover:text-foreground"
+            onClick={onClose}
+            aria-label="Close code"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
       </div>
@@ -334,7 +413,10 @@ function CodeDrawer({
 function Stage(props: StageProps) {
   return (
     <div className="relative h-dvh overflow-hidden">
-      <div className="flex h-full items-center justify-center p-12" style={dotGrid}>
+      <div
+        className="flex h-full items-center justify-center p-12"
+        style={dotGrid}
+      >
         <div key={props.previewKey}>{props.preview}</div>
       </div>
       <div className="absolute inset-x-0 bottom-6 z-30 flex justify-center">
@@ -357,7 +439,10 @@ function Stage(props: StageProps) {
 function PreviewCard(props: StageProps) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border">
-      <div className="flex min-h-80 items-center justify-center p-6" style={dotGrid}>
+      <div
+        className="flex min-h-80 items-center justify-center p-6"
+        style={dotGrid}
+      >
         <div key={props.previewKey}>{props.preview}</div>
       </div>
       <div className="absolute inset-x-0 bottom-3 z-30 flex justify-center">
@@ -393,7 +478,10 @@ function FullscreenStage({
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[100] bg-background"
     >
-      <div className="flex h-full items-center justify-center p-12" style={dotGrid}>
+      <div
+        className="flex h-full items-center justify-center p-12"
+        style={dotGrid}
+      >
         <div key={previewKey}>{preview}</div>
       </div>
       <button
@@ -401,7 +489,17 @@ function FullscreenStage({
         className="absolute right-6 top-6 flex size-9 items-center justify-center rounded-full border border-border bg-background/80 text-text-muted shadow-elevated backdrop-blur-md hover:text-foreground"
         aria-label="Exit fullscreen"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
       </button>
     </motion.div>
   );
@@ -413,7 +511,11 @@ Wrap the Task-1 `{fullscreen && <FullscreenStage … />}` in `<AnimatePresence>`
 ```tsx
 <AnimatePresence>
   {fullscreen && (
-    <FullscreenStage preview={preview} previewKey={previewKey} onClose={() => setFullscreen(false)} />
+    <FullscreenStage
+      preview={preview}
+      previewKey={previewKey}
+      onClose={() => setFullscreen(false)}
+    />
   )}
 </AnimatePresence>
 ```
@@ -426,12 +528,13 @@ Expected: no errors. (If `ThemeToggle` renders a `<button>` that visually clashe
 - [ ] **Step 3: Visual check**
 
 Dev server, `/components/button` at 1440 wide:
+
 - Toolbar pill sits bottom-center of the right stage.
 - `</>` opens a code drawer sliding up over the stage; copy + close work; drawer closes on re-click.
 - `⟳` replays the preview's entry motion (e.g. magnetic/spring components re-mount).
 - `⤢` opens a full-viewport preview; the × closes it.
 - Theme button toggles light/dark.
-At 390 wide: same toolbar works on the inline `PreviewCard`.
+  At 390 wide: same toolbar works on the inline `PreviewCard`.
 
 - [ ] **Step 4: Commit**
 
@@ -447,6 +550,7 @@ git commit -m "feat: stage toolbar, code drawer, reset, and fullscreen"
 Replace the `EdgeNav` stub with the real fade-on-hover overlay (desktop only).
 
 **Files:**
+
 - Modify: `apps/docs/app/components/[slug]/page.tsx`
 
 - [ ] **Step 1: Implement EdgeNav**
@@ -488,7 +592,9 @@ function EdgeNav({
                             : "text-text-secondary hover:text-foreground"
                         }`}
                       >
-                        <span className={`h-4 w-0.5 rounded-full ${active ? "bg-accent" : "bg-transparent"}`} />
+                        <span
+                          className={`h-4 w-0.5 rounded-full ${active ? "bg-accent" : "bg-transparent"}`}
+                        />
                         {item.name}
                       </Link>
                     </li>
@@ -512,10 +618,11 @@ Expected: no errors.
 - [ ] **Step 3: Visual check**
 
 `/components/button` at 1440 wide:
+
 - Nav is faint/blurred at the far-left edge at rest and does not block clicks on the docs beneath (except the 16px hot-zone).
 - Moving the cursor to the left edge reveals it crisp + interactive; active component shows the accent bar.
 - Clicking another component navigates.
-At < lg the nav is absent.
+  At < lg the nav is absent.
 
 - [ ] **Step 4: Commit**
 
@@ -529,14 +636,17 @@ git commit -m "feat: fade-on-hover edge nav"
 ## Task 4: Final polish + full verification
 
 **Files:**
+
 - Modify: `apps/docs/app/components/[slug]/page.tsx` (only if checks surface issues)
 
 - [ ] **Step 1: Confirm removed code is gone**
 
 Grep the file — each must return nothing:
+
 ```bash
 cd apps/docs && grep -nE "IntersectionObserver|activeSection|On this page|function Navbar|setView\(" app/components/\[slug\]/page.tsx
 ```
+
 Expected: no matches.
 
 - [ ] **Step 2: Lint + typecheck**
@@ -547,6 +657,7 @@ Expected: both clean. Fix any unused-import warnings (e.g. drop `useRef` if no l
 - [ ] **Step 3: Full Playwright pass (desktop)**
 
 At 1440×900 on `/components/card` (multi-style, has spring/spotlight previews):
+
 - Split layout; left scrolls independently; right stage fixed.
 - Switcher updates the stage; installation CLI/manual tabs work; props table renders.
 - Toolbar: reset, theme, fullscreen, code drawer all functional.

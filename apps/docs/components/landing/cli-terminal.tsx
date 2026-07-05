@@ -8,10 +8,10 @@ import { SplitText } from "gsap/SplitText";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
 
-const COMMAND = "npx devignerui add card --style spotlight";
+const COMMAND = "npx devignerui add card";
 
 const OUTPUT: { ok?: boolean; text: string }[] = [
-  { ok: true, text: "components/ui/spotlight-card.tsx" },
+  { ok: true, text: "components/ui/card.tsx" },
   { ok: true, text: "lib/utils.ts" },
   { ok: true, text: "installed clsx, tailwind-merge" },
   { text: "Done. The code is yours now, edit anything." },

@@ -4,26 +4,13 @@ export const REGISTRY_URL = (
   process.env.DEVIGNER_REGISTRY_URL || "https://devignerui.com/api/registry"
 ).replace(/\/$/, "");
 
-export interface IndexStyle {
-  slug: string;
-  name: string;
-  free: boolean;
-  status: string;
-  dependencies: string[];
-}
-
 export interface IndexComponent {
   slug: string;
   name: string;
   description: string;
   category: string;
   variantCount: number;
-  styles: IndexStyle[];
-}
-
-export interface ComponentStyle extends IndexStyle {
-  description: string;
-  file: string;
+  dependencies: string[];
 }
 
 export interface FullComponent {
@@ -32,7 +19,8 @@ export interface FullComponent {
   description: string;
   category: string;
   variants: string[];
-  styles: ComponentStyle[];
+  file: string;
+  dependencies: string[];
   files: Record<string, string>;
 }
 

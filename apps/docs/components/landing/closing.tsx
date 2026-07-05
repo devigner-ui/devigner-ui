@@ -53,8 +53,8 @@ export function ClosingCTA() {
           <span className="text-accent">today.</span>
         </h2>
         <p className="mx-auto mt-8 max-w-md text-[15px] leading-relaxed text-text-secondary sm:text-base">
-          Free for open source, premium styles for production. Ship your next
-          interface in minutes.
+          Free for open source, premium components for production. Ship your
+          next interface in minutes.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -62,7 +62,7 @@ export function ClosingCTA() {
             className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-foreground pl-7 pr-3 text-sm font-medium text-background transition-[opacity,transform] duration-200 hover:opacity-90 active:scale-[0.98]"
           >
             Get started free
-            <span className="inline-flex size-6 items-center justify-center rounded-full bg-background/15 transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5">
+            <span className="inline-flex size-6 items-center justify-center rounded-full bg-background/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5">
               <svg
                 className="size-3"
                 fill="none"
@@ -90,32 +90,34 @@ export function ClosingCTA() {
   );
 }
 
-const FOOTER_COLS: { title: string; links: { label: string; href: string }[] }[] =
-  [
-    {
-      title: "Product",
-      links: [
-        { label: "Components", href: "/components" },
-        { label: "Pricing", href: "/#pricing" },
-        { label: "Docs", href: "/docs" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { label: "GitHub", href: "https://github.com/devignerui/devignerui" },
-        { label: "Changelog", href: "/docs" },
-        { label: "License (MIT)", href: "/docs" },
-      ],
-    },
-    {
-      title: "Connect",
-      links: [
-        { label: "Twitter", href: "https://twitter.com/devignerui" },
-        { label: "Portfolio", href: "https://remidevigner.pro" },
-      ],
-    },
-  ];
+const FOOTER_COLS: {
+  title: string;
+  links: { label: string; href: string }[];
+}[] = [
+  {
+    title: "Product",
+    links: [
+      { label: "Components", href: "/components" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "Docs", href: "/docs" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "GitHub", href: "https://github.com/devignerui/devignerui" },
+      { label: "Changelog", href: "/docs" },
+      { label: "License (MIT)", href: "/docs" },
+    ],
+  },
+  {
+    title: "Connect",
+    links: [
+      { label: "Twitter", href: "https://twitter.com/devignerui" },
+      { label: "Portfolio", href: "https://remidevigner.pro" },
+    ],
+  },
+];
 
 const WORDMARK = "DEVIGNER";
 
@@ -154,7 +156,7 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-4 max-w-[16rem] text-[13px] leading-relaxed text-text-muted">
-              Copy-paste React components, several styles deep.
+              Copy-paste React components, ready to own.
             </p>
           </div>
           {FOOTER_COLS.map((col) => (
@@ -179,10 +181,7 @@ export function SiteFooter() {
         </div>
 
         {/* Oversized wordmark reveal */}
-        <div
-          className="footer-word flex justify-between"
-          aria-hidden
-        >
+        <div className="footer-word flex justify-between" aria-hidden>
           {WORDMARK.split("").map((c, i) => (
             <span
               key={i}
