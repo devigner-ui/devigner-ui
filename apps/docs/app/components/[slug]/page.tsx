@@ -75,7 +75,7 @@ function InpDefault() {
   return (
     <input
       placeholder="you@example.com"
-      className="flex h-10 w-full max-w-65 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="flex h-10 w-full max-w-65 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     />
   );
 }
@@ -83,7 +83,7 @@ function InpDefault() {
 function BadgeDefault() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
-      <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-white">
+      <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
         Default
       </span>
       <span className="inline-flex items-center rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium text-foreground">
@@ -438,7 +438,7 @@ function TreeRow({
 }) {
   return (
     <div
-      className={`flex items-center gap-2 p-2 ${accent ? "text-accent" : "text-foreground"}`}
+      className={`flex items-center gap-2 p-2 ${accent ? "text-primary" : "text-foreground"}`}
     >
       <span className="inline-flex shrink-0 text-text-muted">
         {file ? (
@@ -485,7 +485,7 @@ function SidebarItem({
       {isActive && (
         <motion.span
           layoutId="doc-sidebar-active-bar"
-          className="pointer-events-none absolute top-1/2 z-40 h-[1.8px] -translate-y-1/2 rounded-full bg-accent"
+          className="pointer-events-none absolute top-1/2 z-40 h-[1.8px] -translate-y-1/2 rounded-full bg-primary"
           animate={{ width: 30 }}
           transition={SPRING_LAYOUT}
         />
@@ -514,7 +514,7 @@ function SidebarItem({
           onMouseLeave={onLeave}
           aria-current={isActive ? "page" : undefined}
           className={`relative flex select-none items-center py-0.5 pl-8 pr-3 ${
-            isActive ? "text-accent" : "text-foreground"
+            isActive ? "text-primary" : "text-foreground"
           }`}
         >
           <span className="truncate text-base">{item.name}</span>
@@ -727,7 +727,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
       <div className="min-h-dvh bg-background flex items-center justify-center">
         <div className="grain-overlay" />
         <div className="flex items-center gap-2.5 text-text-muted">
-          <span className="size-4 animate-spin rounded-full border-2 border-border border-t-accent" />
+          <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />
           <p className="text-sm">Loading component…</p>
         </div>
       </div>

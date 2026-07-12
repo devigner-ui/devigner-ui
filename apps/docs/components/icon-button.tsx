@@ -44,7 +44,7 @@ export function IconButton({
         hasLabel ? "h-9 px-[10.5px]" : sizes[size].dim
       } ${
         active
-          ? "text-forground"
+          ? "text-foreground"
           : "text-text-muted hover:bg-foreground/10 hover:text-foreground"
       } ${className}`}
       {...props}

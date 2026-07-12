@@ -105,7 +105,7 @@ function PreviewCard({
           {name}
         </span>
         {!soon && (
-          <span className="-translate-x-1 opacity-0 text-[13px] text-accent transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+          <span className="-translate-x-1 opacity-0 text-[13px] text-primary transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
             →
           </span>
         )}
@@ -179,7 +179,7 @@ function TablePreview() {
             >
               <td className="px-4 py-2.5 text-text-muted">{row.order}</td>
               <td className="flex items-center gap-2 px-4 py-2.5">
-                <span className="flex size-6 items-center justify-center rounded-full bg-accent/10 text-[10px] font-medium text-accent">
+                <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary">
                   {row.avatar}
                 </span>
                 <span className="text-foreground">{row.name}</span>
@@ -237,13 +237,13 @@ function CheckboxPreview() {
           onClick={() => setChecks((c) => c.map((v, j) => (j === i ? !v : v)))}
           className={`flex size-5 items-center justify-center rounded-sm border transition-all duration-150 ${
             checked
-              ? "border-accent bg-accent"
-              : "border-border bg-background hover:border-accent/50"
+              ? "border-primary bg-primary"
+              : "border-border bg-background hover:border-primary/50"
           }`}
         >
           {checked && (
             <svg
-              className="size-3 text-white"
+              className="size-3 text-primary-foreground"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -323,7 +323,7 @@ function ComboboxPreview() {
               }}
               className={`flex cursor-pointer items-center justify-between px-3 py-2 text-[13px] ${
                 item.name === selected
-                  ? "bg-accent text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "text-foreground hover:bg-surface-hover"
               }`}
             >
@@ -331,8 +331,8 @@ function ComboboxPreview() {
                 <span
                   className={`flex size-5 items-center justify-center rounded-full text-[9px] font-medium ${
                     item.name === selected
-                      ? "bg-white/20 text-white"
-                      : "bg-accent/10 text-accent"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-primary/10 text-primary"
                   }`}
                 >
                   {item.initials}
@@ -390,11 +390,11 @@ function RadioPreview() {
           >
             <div
               className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
-                selected === i ? "border-accent" : "border-border"
+                selected === i ? "border-primary" : "border-border"
               }`}
             >
               {selected === i && (
-                <div className="size-2 rounded-full bg-accent" />
+                <div className="size-2 rounded-full bg-primary" />
               )}
             </div>
             <div>
@@ -423,7 +423,7 @@ function SwitchPreview() {
             setSwitches((s) => s.map((v, j) => (j === i ? !v : v)))
           }
           className={`relative h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none ${
-            on ? "bg-accent" : "bg-border"
+            on ? "bg-primary" : "bg-border"
           }`}
         >
           <div
@@ -462,12 +462,12 @@ function DescriptionListPreview() {
 
 function BadgePreview() {
   const colors = [
-    "bg-accent text-white",
-    "bg-destructive text-white",
-    "bg-success text-white",
-    "bg-warning text-white",
-    "bg-gray-200 text-foreground",
-    "bg-accent/10 text-accent",
+    "bg-accent text-accent-foreground",
+    "bg-destructive text-destructive-foreground",
+    "bg-success text-success-foreground",
+    "bg-warning text-warning-foreground",
+    "bg-secondary text-secondary-foreground",
+    "bg-primary/10 text-primary",
     "bg-destructive/10 text-destructive",
     "bg-success/10 text-success",
   ];
@@ -535,7 +535,7 @@ function ListboxPreview() {
               }}
               className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors duration-100 ${
                 opt.label === selected.label
-                  ? "bg-accent text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "text-foreground hover:bg-surface-hover"
               }`}
             >
@@ -578,7 +578,7 @@ function PaginationPreview() {
           onClick={() => setActivePage(page)}
           className={`size-8 rounded-lg text-[13px] font-medium transition-all duration-150 ${
             page === activePage
-              ? "bg-accent text-white"
+              ? "bg-primary text-primary-foreground"
               : "text-text-muted hover:bg-surface-hover hover:text-foreground"
           }`}
         >
@@ -650,7 +650,7 @@ function NavigationPreview() {
           onClick={() => setActive(item)}
           className={`rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-200 ${
             active === item
-              ? "bg-accent text-white shadow-sm"
+              ? "bg-primary text-primary-foreground shadow-sm"
               : "text-text-secondary hover:text-foreground"
           }`}
         >
@@ -663,13 +663,18 @@ function NavigationPreview() {
 
 function AvatarGroupPreview() {
   const avatars = ["JD", "PD", "DP", "JR"];
-  const colors = ["bg-accent", "bg-destructive", "bg-success", "bg-warning"];
+  const colors = [
+    "bg-primary text-primary-foreground",
+    "bg-destructive text-destructive-foreground",
+    "bg-success text-success-foreground",
+    "bg-warning text-warning-foreground",
+  ];
   return (
     <div className="flex -space-x-2">
       {avatars.map((initials, i) => (
         <span
           key={initials}
-          className={`flex size-8 items-center justify-center rounded-full border-2 border-background-200 text-[11px] font-medium text-white ${colors[i]}`}
+          className={`flex size-8 items-center justify-center rounded-full border-2 border-background-200 text-[11px] font-medium ${colors[i]}`}
         >
           {initials}
         </span>

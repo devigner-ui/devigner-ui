@@ -78,11 +78,11 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer rounded-lg text-sm/5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer rounded-lg text-sm/5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-foreground text-background hover:bg-foreground/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-border bg-background hover:bg-surface",
         secondary: "bg-surface text-foreground hover:bg-surface-hover",
@@ -264,7 +264,7 @@ const Input = ({ className, type, ...props }) => (
   <input
     type={type}
     className={cn(
-      "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-base/6 placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50",
+      "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base/6 placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}
     {...props}
@@ -317,7 +317,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-accent text-white",
+        default: "border-transparent bg-accent text-accent-foreground",
         secondary: "border-transparent bg-surface text-foreground",
         outline: "border-border text-foreground",
       },

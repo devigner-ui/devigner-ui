@@ -48,6 +48,25 @@
   --color-terminal-foreground: var(--terminal-foreground);
   --color-terminal-muted: var(--terminal-muted);
 
+  /* shadcn-compatible semantic layer — global defaults alias existing Devigner
+     tokens (zero visual change site-wide); .shadcn-scope overrides these with
+     literal shadcn values for /components and /components/[slug] only. */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: 0.625rem;
+
   /* Typography — Clash Display (headlines) + Geist (body/mono) */
   --font-display: var(--font-sans);
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
@@ -124,6 +143,23 @@
   --terminal: oklch(15% 0.016 265);
   --terminal-foreground: oklch(90% 0.008 90);
   --terminal-muted: oklch(60% 0.013 265);
+
+  /* shadcn-compatible aliases — default to existing Devigner values, no visual
+     change outside .shadcn-scope (see below). */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--background-100);
+  --popover-foreground: var(--foreground);
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--background-200);
+  --muted-foreground: var(--text-muted);
+  --success-foreground: var(--accent-foreground);
+  --warning-foreground: var(--accent-foreground);
+  --input: var(--border);
+  --ring: var(--accent);
 }
 
 /* Dark theme — cool navy ink + warm off-white + vermilion (from remidevigner.pro) */
@@ -167,6 +203,85 @@
   --shadow-subtle-val: 0 1px 2px oklch(0% 0 0 / 0.4);
   --shadow-elevated-val:
     0 12px 44px -12px oklch(0% 0 0 / 0.6), 0 0 0 1px oklch(92% 0.008 90 / 0.05);
+
+  /* shadcn-compatible aliases — see :root block above for rationale. */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--background-100);
+  --popover-foreground: var(--foreground);
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--background-200);
+  --muted-foreground: var(--text-muted);
+  --success-foreground: var(--accent-foreground);
+  --warning-foreground: var(--accent-foreground);
+  --input: var(--border);
+  --ring: var(--accent);
+}
+
+/* ─── shadcn scope — /components and /components/[slug] only (see layout.tsx) ───
+   Verbatim shadcn defaults: deliberately grayscale, no Devigner brand color.
+   Tokens with no shadcn slot (success/warning/terminal/code-bg/text-*) are not
+   listed here and keep their normal global values inside this scope too. */
+.shadcn-scope {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /* Devigner surface tokens with no direct shadcn slot — scoped to the same
+     neutral shades so existing bg-surface/bg-background-200/etc. classes
+     stay internally consistent here without needing per-usage renames. */
+  --background-100: oklch(1 0 0);
+  --background-200: oklch(0.97 0 0);
+  --surface: oklch(0.97 0 0);
+  --surface-hover: oklch(0.97 0 0);
+  --border-hover: oklch(0.922 0 0);
+}
+
+.dark .shadcn-scope {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
+  --background-100: oklch(0.205 0 0);
+  --background-200: oklch(0.269 0 0);
+  --surface: oklch(0.269 0 0);
+  --surface-hover: oklch(0.269 0 0);
+  --border-hover: oklch(1 0 0 / 10%);
 }
 
 body {
@@ -409,13 +524,13 @@ html.lenis body {
   width: 1.25rem;
   margin-right: 1rem;
   text-align: right;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
 }
 
 /* ─── Scrollbars ─── */
 .code-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: var(--border-hover) transparent;
 }
 
 .code-scroll::-webkit-scrollbar {
@@ -428,14 +543,14 @@ html.lenis body {
 }
 
 .code-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--border-hover);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 .code-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--text-muted);
   background-clip: content-box;
 }
 

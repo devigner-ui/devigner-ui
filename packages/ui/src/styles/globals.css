@@ -37,9 +37,17 @@
 
   /* Utility */
   --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  /* shadcn-compatible aliases, used by Button/Input's shared source */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
   /* Typography */
   --font-sans: var(--font-geist-sans), "Geist", "Inter", system-ui, sans-serif;
@@ -47,16 +55,6 @@
     var(--font-geist-mono), "Geist Mono", "ui-monospace", "SFMono-Regular",
     "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono",
     "Courier New", monospace;
-
-  /* Radius */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
-  --radius-3xl: 24px;
-  --radius-pill: 9999px;
 
   /* Shadows */
   --shadow-card: var(--shadow-card-val);
@@ -99,9 +97,16 @@
   --accent-hover: oklch(48.821% 0.21731 264.661);
 
   --success: oklch(62.697% 0.17032 149.482);
+  --success-foreground: oklch(100% 0 0);
   --warning: oklch(66.597% 0.15768 58.06);
+  --warning-foreground: oklch(100% 0 0);
   --destructive: oklch(57.677% 0.21482 27.53);
   --destructive-foreground: oklch(100% 0 0);
+
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --input: var(--border);
+  --ring: var(--accent);
 
   --shadow-card-val: 0 0 0 1px rgba(0, 0, 0, 0.06);
   --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -139,9 +144,16 @@
   --accent-hover: oklch(71.375% 0.14347 254.643);
 
   --success: oklch(80.036% 0.18204 151.736);
+  --success-foreground: oklch(100% 0.00011 271.152);
   --warning: oklch(83.685% 0.16435 84.431);
+  --warning-foreground: oklch(100% 0.00011 271.152);
   --destructive: oklch(71.061% 0.16614 22.191);
   --destructive-foreground: oklch(100% 0.00011 271.152);
+
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --input: var(--border);
+  --ring: var(--accent);
 
   --shadow-card-val: 0 0 0 1px rgba(255, 255, 255, 0.06);
   --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.4);
