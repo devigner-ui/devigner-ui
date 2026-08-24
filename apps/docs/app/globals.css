@@ -67,8 +67,8 @@
   --color-ring: var(--ring);
   --radius: 0.625rem;
 
-  /* Typography — Clash Display (headlines) + Geist (body/mono) */
-  --font-display: var(--font-sans);
+  /* Typography — Instrument Serif (display) + Geist (body/mono) */
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
