@@ -8,7 +8,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomEase } from "gsap/CustomEase";
 import { Button } from "@devignerui/ui";
 import { Starburst } from "./starburst";
-import { HeroCarousel } from "./hero-carousel";
 import { AsteriskMark } from "@/components/ui/asterisk-mark";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, CustomEase);
@@ -21,7 +20,7 @@ if (typeof window !== "undefined") {
 
 const command = "npx devignerui add button";
 
-export function Hero() {
+export function Hero({ children }: { children?: React.ReactNode }) {
   const [copied, setCopied] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -109,9 +108,9 @@ export function Hero() {
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pt-24 pb-16 sm:pb-20">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          {/* The library IS the hero — an ambient carousel of real components */}
+          {/* The library IS the hero — real designs from one category, compared */}
           <div ref={stageRef} className="min-w-0 lg:order-2">
-            <HeroCarousel />
+            {children}
           </div>
 
           {/* Copy + CTA */}

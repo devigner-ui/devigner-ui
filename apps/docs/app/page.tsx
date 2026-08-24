@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { Navbar } from "../components/landing/navbar";
 import { Hero } from "../components/landing/hero";
+import { CategoryRail } from "../components/landing/category-rail";
 import { ComponentRange } from "../components/landing/component-range";
 import { CliTerminal } from "../components/landing/cli-terminal";
 import { Features } from "../components/landing/features";
@@ -22,7 +23,9 @@ export default function HomePage() {
       <SmoothScroll />
       <div className="grain-overlay" />
       <Navbar />
-      <Hero />
+      <Hero>
+        <CategoryRail />
+      </Hero>
       <ComponentRange />
       <CliTerminal />
       <Features />
