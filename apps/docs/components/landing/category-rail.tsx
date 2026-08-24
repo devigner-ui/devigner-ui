@@ -1,5 +1,5 @@
-import { Badge, Button, Card, CardContent, Input } from "@devignerui/ui";
 import { getCategories } from "@/lib/registry";
+import { PREVIEWS } from "@/components/gallery/preview-map";
 
 /**
  * The rail is the product argument: one category at a time, every design it
@@ -11,40 +11,6 @@ import { getCategories } from "@/lib/registry";
  * `peer-checked/<slug>` for slugs only known at build time, so the per-category
  * rules are emitted as one scoped <style> block instead.
  */
-
-/** Live previews, keyed by registry slug. Never mock markup — these are the
- *  same components the CLI installs. */
-const PREVIEWS: Record<string, React.ReactNode> = {
-  button: (
-    <div className="flex flex-wrap items-center justify-center gap-3">
-      <Button size="sm">Get started</Button>
-      <Button size="sm" variant="secondary">
-        Docs
-      </Button>
-    </div>
-  ),
-  input: (
-    <div className="w-full max-w-64">
-      <Input placeholder="you@company.com" />
-    </div>
-  ),
-  badge: (
-    <div className="flex flex-wrap items-center justify-center gap-2">
-      <Badge>Stable</Badge>
-      <Badge variant="secondary">Beta</Badge>
-      <Badge variant="outline">Draft</Badge>
-    </div>
-  ),
-  card: (
-    <Card className="w-full max-w-72">
-      <CardContent className="p-5">
-        <p className="text-[13px] text-text-secondary">
-          Cards carry their own padding, border and elevation.
-        </p>
-      </CardContent>
-    </Card>
-  ),
-};
 
 function Preview({ slug, name }: { slug: string; name: string }) {
   const preview = PREVIEWS[slug];

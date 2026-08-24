@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { Button } from "@devignerui/ui";
-import { CopyButton } from "../../../components/copy-button";
-import { CodeBlock } from "../../../components/code-block";
-import { IconButton } from "../../../components/icon-button";
-import { useTheme } from "../../../components/theme-provider";
+import { CopyButton } from "../../../../components/copy-button";
+import { CodeBlock } from "../../../../components/code-block";
+import { IconButton } from "../../../../components/icon-button";
+import { useTheme } from "../../../../components/theme-provider";
 import { components } from "@/lib/registry";
 import { COMPONENT_CATEGORIES } from "@devignerui/shared";
 import {
@@ -355,6 +355,7 @@ function StagePanel(props: StageProps) {
         transition={SPRING_PANEL}
         className="shrink-0 overflow-hidden rounded-2xl bg-surface"
         aria-hidden={!props.showCode}
+        inert={!props.showCode}
       >
         <div className="flex h-full flex-col">
           <DrawerHeader code={props.code} fileName={props.fileName} />
@@ -405,6 +406,7 @@ function PreviewCard(props: StageProps) {
         transition={SPRING_PANEL}
         className="shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-(--code-bg)"
         aria-hidden={!props.showCode}
+        inert={!props.showCode}
       >
         <div className="flex h-full flex-col">
           <DrawerHeader code={props.code} fileName={props.fileName} />
@@ -472,7 +474,7 @@ function SidebarItem({
   onEnter,
   onLeave,
 }: {
-  item: { slug: string; name: string };
+  item: { slug: string; name: string; category: string; kind: "component" | "block" };
   isActive: boolean;
   anyHovered: boolean;
   isHovered: boolean;
@@ -509,7 +511,7 @@ function SidebarItem({
         style={{ transformOrigin: "left center" }}
       >
         <Link
-          href={`/components/${item.slug}`}
+          href={`/${item.kind === "block" ? "blocks" : "components"}/${item.category}/${item.slug}`}
           onMouseEnter={onEnter}
           onMouseLeave={onLeave}
           aria-current={isActive ? "page" : undefined}
@@ -615,9 +617,17 @@ function DocSidebar({
   }, [open, setOpen]);
 
   const groups = Object.values(components).reduce<
-    Record<string, { slug: string; name: string }[]>
+    Record<
+      string,
+      { slug: string; name: string; category: string; kind: "component" | "block" }[]
+    >
   >((acc, c) => {
-    (acc[c.category] ??= []).push({ slug: c.slug, name: c.name });
+    (acc[c.category] ??= []).push({
+      slug: c.slug,
+      name: c.name,
+      category: c.category,
+      kind: c.kind,
+    });
     return acc;
   }, {});
 
@@ -688,16 +698,7 @@ function SidebarToggle({
 
 /* ─── Page ─── */
 
-export default function ComponentPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  return <ComponentPageInner params={params} />;
-}
-
-function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
-  const [slug, setSlug] = useState<string>("");
+export function DetailView({ slug }: { slug: string }) {
   const [showCode, setShowCode] = useState(false);
   const [installTab, setInstallTab] = useState<"cli" | "manual">("cli");
   const [fullscreen, setFullscreen] = useState(false);
@@ -705,10 +706,6 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen((v) => !v);
-
-  useEffect(() => {
-    params.then((p) => setSlug(p.slug));
-  }, [params]);
 
   // Escape exits the expanded (fullscreen) preview.
   useEffect(() => {
@@ -721,22 +718,10 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
 
   const meta = components[slug];
 
-  // slug is empty until params resolve; only then can we tell "loading" from "unknown".
-  if (!slug) {
-    return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
-        <div className="grain-overlay" />
-        <div className="flex items-center gap-2.5 text-text-muted">
-          <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />
-          <p className="text-sm">Loading component…</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!meta) {
     return (
-      <div className="min-h-dvh bg-background">
+      <main className="min-h-dvh bg-background">
         <div className="grain-overlay" />
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-5 pt-40 pb-20 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
@@ -756,7 +741,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
             Browse components
           </Link>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -806,7 +791,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   );
 
   return (
-    <div className="relative bg-background lg:h-dvh lg:overflow-hidden">
+    <main className="relative bg-background lg:h-dvh lg:overflow-hidden">
       <div className="grain-overlay" />
 
       {/* Fixed top bar: sidebar toggle + breadcrumb, desktop only */}
@@ -1091,6 +1076,6 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
           <StagePanel {...stageProps} />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
