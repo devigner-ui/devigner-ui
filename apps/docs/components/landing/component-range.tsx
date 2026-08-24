@@ -1,118 +1,88 @@
-"use client";
-
 import Link from "next/link";
-import { useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { cn } from "@devignerui/ui/lib/utils";
-import { COMPONENT_PREVIEWS } from "./component-previews";
+import { getCategories } from "@/lib/registry";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+/**
+ * The catalog: both surfaces, their real categories, and what each one holds.
+ * Reads the registry rather than hard-coding a range, so it stays true as
+ * designs land.
+ *
+ * Server component — no scroll choreography, no client JS.
+ *
+ * Deliberately prints no counts and makes no breadth claim. At launch a
+ * category holds two designs; the argument is that each is finished, not that
+ * there are many.
+ *
+ * Every category links to /components until Phase 3 adds the per-category and
+ * /blocks routes. Pointing at routes that do not exist yet would only ship 404s.
+ */
 
-// Grid-only layout concern — not shared with the hero carousel.
-const GRID_SPAN: Partial<Record<string, string>> = {
-  card: "md:col-span-2",
-};
+const GROUPS = [
+  {
+    kind: "component" as const,
+    label: "Components",
+    blurb: "The primitives you reach for on every screen.",
+  },
+  {
+    kind: "block" as const,
+    label: "Blocks",
+    blurb: "Whole sections, composed and ready to drop in.",
+  },
+];
 
 export function ComponentRange() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-
-  /* Scrub-tied stagger — cards surface as the scroll physically arrives */
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from(headerRef.current, {
-          y: 36,
-          opacity: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 90%",
-            end: "top 55%",
-            scrub: 1,
-          },
-        });
-
-        gsap.from(".range-card", {
-          y: 56,
-          opacity: 0,
-          filter: "blur(8px)",
-          stagger: 0.15,
-          ease: "none",
-          scrollTrigger: {
-            trigger: gridRef.current,
-            start: "top 90%",
-            end: "top 35%",
-            scrub: 1,
-          },
-        });
-      });
-    },
-    { scope: sectionRef },
-  );
-
   return (
-    <section ref={sectionRef} className="section-editorial py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-5">
-        <div ref={headerRef} className="max-w-3xl">
-          <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
-            Every piece,
-            <br />
-            <span className="text-accent">finished.</span>
-          </h2>
-          <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-text-secondary">
-            Buttons, cards, inputs, whole sections. Each ships as one complete,
-            polished component — copy it in and the code is yours.
-          </p>
-        </div>
+    <section className="section-editorial">
+      <div className="mx-auto max-w-7xl px-5 py-20 sm:py-24">
+        <h2 className="text-sm font-medium uppercase tracking-[0.18em] text-text-muted">
+          The catalog
+        </h2>
 
-        <div
-          ref={gridRef}
-          className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3"
-        >
-          {COMPONENT_PREVIEWS.map((item) => (
-            <Link
-              key={item.slug}
-              href={`/components/${item.slug}`}
-              className={cn(
-                "range-card group glass-card rounded-2xl p-6 transition-[border-color,box-shadow] duration-300 hover:border-border-hover hover:shadow-elevated",
-                GRID_SPAN[item.slug],
-              )}
-            >
-              <div className="mb-5 flex items-center justify-between">
-                <span className="text-[15px] font-semibold text-foreground">
-                  {item.name}
-                </span>
+        <div className="mt-12 flex flex-col gap-14">
+          {GROUPS.map((group) => {
+            const categories = getCategories(group.kind);
+            if (categories.length === 0) return null;
+
+            return (
+              <div key={group.kind}>
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <h3 className="font-display text-2xl tracking-[-0.01em] text-foreground">
+                    {group.label}
+                  </h3>
+                  <p className="text-[14px] text-text-secondary">
+                    {group.blurb}
+                  </p>
+                </div>
+
+                <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {categories.map((category) => (
+                    <li key={category.slug}>
+                      <Link
+                        href="/components"
+                        className="group flex h-full flex-col rounded-2xl border border-border bg-background-200 p-6 transition-[border-color,background-color] duration-300 ease-out hover:border-border-hover hover:bg-background-100"
+                      >
+                        <span className="text-[15px] font-medium text-foreground">
+                          {category.name}
+                        </span>
+                        <span className="mt-2 text-[13px] leading-relaxed text-text-secondary">
+                          {category.description}
+                        </span>
+                        <span className="mt-4 flex flex-wrap gap-1.5">
+                          {category.components.map((component) => (
+                            <span
+                              key={component.slug}
+                              className="rounded-pill border border-border px-2.5 py-0.5 text-[11px] text-text-muted"
+                            >
+                              {component.name}
+                            </span>
+                          ))}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="pointer-events-none min-h-20">{item.preview}</div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="mt-10">
-          <Link
-            href="/components"
-            className="group inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-foreground transition-colors duration-200"
-          >
-            Browse the full library
-            <svg
-              className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </Link>
+            );
+          })}
         </div>
       </div>
     </section>

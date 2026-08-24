@@ -1,12 +1,3 @@
-"use client";
-
-import { useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(useGSAP, ScrollTrigger);
-
 const PANELS: { title: string; body: string; visual: React.ReactNode }[] = [
   {
     title: "Own the output",
@@ -87,91 +78,38 @@ const PANELS: { title: string; body: string; visual: React.ReactNode }[] = [
 ];
 
 /**
- * Desktop: section pins and the track pans horizontally, scrubbed to scroll.
- * Mobile / reduced motion: plain vertical stack (gentle scrub reveal on mobile).
+ * Three reasons the copy-paste model holds. These are table stakes in this
+ * category rather than the lead argument, so they sit as a quiet band: no
+ * display heading, no pinned horizontal track, no scroll choreography.
  */
 export function Features() {
-  const wrapRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-
-      mm.add(
-        "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          const track = trackRef.current!;
-          gsap.to(track, {
-            x: () => -(track.scrollWidth - window.innerWidth),
-            ease: "none",
-            scrollTrigger: {
-              trigger: wrapRef.current,
-              start: "top top",
-              end: () => `+=${track.scrollWidth - window.innerWidth}`,
-              pin: true,
-              scrub: 1,
-              invalidateOnRefresh: true,
-            },
-          });
-        },
-      );
-
-      mm.add(
-        "(max-width: 1023px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          gsap.utils.toArray<HTMLElement>(".feature-panel").forEach((panel) => {
-            gsap.from(panel, {
-              y: 40,
-              opacity: 0,
-              ease: "none",
-              scrollTrigger: {
-                trigger: panel,
-                start: "top 92%",
-                end: "top 62%",
-                scrub: 1,
-              },
-            });
-          });
-        },
-      );
-    },
-    { scope: wrapRef },
-  );
-
   return (
-    <section ref={wrapRef} className="section-editorial overflow-hidden">
-      <div
-        ref={trackRef}
-        className="flex flex-col gap-6 px-5 py-24 lg:h-[100dvh] lg:flex-row lg:items-center lg:gap-10 lg:px-[8vw] lg:py-0"
-      >
-        {/* Intro block rides the track */}
-        <div className="w-full shrink-0 lg:w-[38vw] lg:pr-12">
-          <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
-            Why copy-paste
-            <br />
-            <span className="text-accent">wins.</span>
-          </h2>
-          <p className="mt-6 max-w-md text-[15px] leading-relaxed text-text-secondary">
-            A component library you install is a dependency. A component you
-            paste is a starting point.
-          </p>
-        </div>
+    <section className="section-editorial">
+      <div className="mx-auto max-w-7xl px-5 py-20 sm:py-24">
+        <h2 className="text-sm font-medium uppercase tracking-[0.18em] text-text-muted">
+          Why copy-paste wins
+        </h2>
+        <p className="mt-4 max-w-md text-[15px] leading-relaxed text-text-secondary">
+          A component library you install is a dependency. A component you
+          paste is a starting point.
+        </p>
 
-        {PANELS.map((panel) => (
-          <div
-            key={panel.title}
-            className="feature-panel glass-card w-full shrink-0 rounded-3xl p-7 transition-[border-color] duration-300 hover:border-border-hover sm:p-8 lg:w-[clamp(420px,34vw,560px)]"
-          >
-            <h3 className="text-xl font-semibold tracking-[-0.02em] text-foreground sm:text-2xl">
-              {panel.title}
-            </h3>
-            <p className="mt-3 max-w-sm text-[14px] leading-relaxed text-text-secondary">
-              {panel.body}
-            </p>
-            {panel.visual}
-          </div>
-        ))}
+        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          {PANELS.map((panel) => (
+            <div
+              key={panel.title}
+              className="glass-card rounded-3xl p-7 transition-[border-color] duration-300 ease-out hover:border-border-hover sm:p-8"
+            >
+              <h3 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
+                {panel.title}
+              </h3>
+              <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
+                {panel.body}
+              </p>
+              {panel.visual}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
