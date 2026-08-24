@@ -9,6 +9,7 @@ import { CustomEase } from "gsap/CustomEase";
 import { Button } from "@devignerui/ui";
 import { Starburst } from "./starburst";
 import { HeroCarousel } from "./hero-carousel";
+import { AsteriskMark } from "@/components/ui/asterisk-mark";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, CustomEase);
 
@@ -27,7 +28,6 @@ export function Hero() {
   const stageRef = useRef<HTMLDivElement>(null);
   const copyColRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
-  const burstRef = useRef<SVGSVGElement>(null);
 
   /* Entrance reveal + scroll-scrubbed exit */
   useGSAP(
@@ -68,12 +68,6 @@ export function Hero() {
               clearProps: "filter",
             },
             0.35,
-          )
-          // Brand glyph spins in once with the headline, then rests.
-          .from(
-            burstRef.current,
-            { rotation: -160, scale: 0.4, opacity: 0, duration: 0.9 },
-            0.5,
           );
 
         // Exit tracks physical scroll, not a clock.
@@ -107,7 +101,7 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[100dvh] items-center overflow-hidden"
+      className="relative flex min-h-dvh items-center overflow-hidden"
     >
       <div className="absolute inset-0 mesh-gradient" />
       <div className="pointer-events-none absolute top-[12%] left-[6%] size-125 rounded-full bg-accent/6 blur-[150px]" />
@@ -132,12 +126,16 @@ export function Hero() {
 
             <h1
               ref={headlineRef}
-              className="mt-6 font-sans text-[clamp(2.1rem,8.5vw,5.25rem)] font-semibold leading-[0.98] tracking-[-0.02em] text-foreground"
+              className="group/asterisk mt-6 font-sans text-[clamp(2.1rem,8.5vw,5.25rem)] font-semibold leading-[0.98] tracking-[-0.02em] text-foreground"
             >
               <span className="block">
                 <span className="inline-block overflow-hidden align-bottom">
-                  <span data-word className="inline-block">
-                    React UI
+                  <span data-word className="inline-flex items-center gap-6">
+                    React UI{" "}
+                    <AsteriskMark
+                      ringText="DEVIGNER UI · DEVIGNER UI · "
+                      className="size-[0.72em] text-accent"
+                    />
                   </span>
                 </span>{" "}
                 <span className="inline-block overflow-hidden align-bottom">
@@ -156,11 +154,7 @@ export function Hero() {
                   <span data-word className="inline-block">
                     Developers
                   </span>
-                </span>{" "}
-                <Starburst
-                  ref={burstRef}
-                  className="inline-block size-[0.7em] align-middle text-accent"
-                />
+                </span>
               </span>
             </h1>
 
