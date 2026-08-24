@@ -120,7 +120,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-text-muted"
             >
               <Starburst className="size-3 text-accent" />
-              Production-Ready Motion UI, Built to Flex
+              React · Tailwind v4 · Copy-paste
             </div>
 
             <h1
@@ -130,7 +130,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <span className="block">
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-flex items-center gap-6">
-                    React UI{" "}
+                    Two takes{" "}
                     <AsteriskMark
                       ringText="DEVIGNER UI · DEVIGNER UI · "
                       className="size-[0.72em] text-accent"
@@ -139,19 +139,19 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 </span>{" "}
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-block text-accent">
-                    Components
+                    on every
                   </span>
                 </span>
               </span>
               <span className="block">
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-block text-text-tertiary">
-                    for Modern
+                    component
                   </span>
                 </span>{" "}
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-block">
-                    Developers
+                    you ship.
                   </span>
                 </span>
               </span>
@@ -161,9 +161,9 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               data-fade
               className="mt-7 max-w-md text-base/relaxed text-text-secondary sm:text-lg"
             >
-              Multi-style, copy-paste-first React components. Stop relying on
-              one-size-fits-all libraries. Go from zero to styled in under 60
-              seconds via the CLI.
+              Every category ships more than one finished design — states,
+              variants and motion included. Install the one that fits; the code
+              lands in your repo, yours to edit.
             </p>
 
             <div data-fade className="mt-9 flex flex-col gap-4">
@@ -173,7 +173,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   href="/components"
                   className="inline-flex h-12 items-center rounded-2xl bg-foreground px-6 font-sans text-[14px] font-medium text-background transition-[opacity,transform] duration-200 hover:opacity-90 active:scale-[0.97]"
                 >
-                  Start Building for Free
+                  Browse components
                 </Link>
               </div>
 
