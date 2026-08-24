@@ -2,7 +2,7 @@ export default {
   name: "Input",
   kind: "component",
   description: "Form input components with label, error states, and textarea",
-  category: "forms",
+  category: "inputs",
   variants: ["Text Input", "Password", "With Icon", "Textarea"],
   props: [
     {

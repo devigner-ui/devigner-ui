@@ -2,7 +2,7 @@ export default {
   name: "Badge",
   kind: "component",
   description: "Small label component for status, categories, and tags",
-  category: "primitives",
+  category: "badges",
   variants: ["Default", "Secondary", "Outline", "Destructive", "Success", "Warning"],
   props: [
     {

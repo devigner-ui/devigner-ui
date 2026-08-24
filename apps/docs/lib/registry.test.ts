@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { dependenciesFor, getRegistryComponent, getRegistryIndex } from "./registry";
+import {
+  categories,
+  dependenciesFor,
+  getCategories,
+  getRegistryComponent,
+  getRegistryIndex,
+} from "./registry";
 
 describe("dependenciesFor", () => {
   it("always includes the base utils", () => {
@@ -50,5 +56,32 @@ describe("kind axis", () => {
     );
     expect(bySlug["hero-section"]).toBe("block");
     expect(bySlug["button"]).toBe("component");
+  });
+});
+
+describe("categories", () => {
+  it("every component's category exists in the manifest", () => {
+    for (const c of getRegistryIndex().components) {
+      expect(categories[c.category]).toBeTruthy();
+    }
+  });
+  it("a category's kind matches the components in it", () => {
+    for (const c of getRegistryIndex().components) {
+      expect(categories[c.category].kind).toBe(c.kind);
+    }
+  });
+  it("getCategories returns ordered, non-empty categories for a kind", () => {
+    const result = getCategories("component");
+    expect(result.length).toBeGreaterThan(0);
+    for (const entry of result) {
+      expect(entry.kind).toBe("component");
+      expect(entry.components.length).toBeGreaterThan(0);
+    }
+    const orders = result.map((entry) => entry.order);
+    expect([...orders].sort((a, b) => a - b)).toEqual(orders);
+  });
+  it("buttons is a component category and heroes is a block category", () => {
+    expect(categories["buttons"].kind).toBe("component");
+    expect(categories["heroes"].kind).toBe("block");
   });
 });

@@ -2,7 +2,7 @@ export default {
   name: "Card",
   kind: "component",
   description: "Compound card component with header, content, and footer sections",
-  category: "primitives",
+  category: "cards",
   variants: ["Default", "Interactive", "Header Only"],
   props: [
     {

@@ -2,7 +2,7 @@
 // Source of truth: apps/docs/registry/<slug>/{code.tsx,usage.tsx,meta.mjs}
 // Regenerate with: pnpm --filter @devignerui/docs generate:registry
 
-import type { ComponentData } from "./registry";
+import type { ComponentData, CategoryData } from "./registry";
 
 export const components: Record<string, ComponentData> = {
   "badge": {
@@ -10,7 +10,7 @@ export const components: Record<string, ComponentData> = {
     "name": "Badge",
     "kind": "component",
     "description": "Small label component for status, categories, and tags",
-    "category": "primitives",
+    "category": "badges",
     "variants": [
       "Default",
       "Secondary",
@@ -47,7 +47,7 @@ export const components: Record<string, ComponentData> = {
     "name": "Button",
     "kind": "component",
     "description": "Flexible button component with multiple variants and sizes",
-    "category": "primitives",
+    "category": "buttons",
     "variants": [
       "Default",
       "Destructive",
@@ -102,7 +102,7 @@ export const components: Record<string, ComponentData> = {
     "name": "Card",
     "kind": "component",
     "description": "Compound card component with header, content, and footer sections",
-    "category": "primitives",
+    "category": "cards",
     "variants": [
       "Default",
       "Interactive",
@@ -130,7 +130,7 @@ export const components: Record<string, ComponentData> = {
     "name": "Hero Section",
     "kind": "block",
     "description": "Animated hero section with multiple layout variants",
-    "category": "marketing",
+    "category": "heroes",
     "access": "pro",
     "variants": [
       "Centered",
@@ -177,7 +177,7 @@ export const components: Record<string, ComponentData> = {
     "name": "Input",
     "kind": "component",
     "description": "Form input components with label, error states, and textarea",
-    "category": "forms",
+    "category": "inputs",
     "variants": [
       "Text Input",
       "Password",
@@ -206,6 +206,44 @@ export const components: Record<string, ComponentData> = {
     ],
     "code": "import { type InputHTMLAttributes } from \"react\";\nimport { cn } from \"@/lib/utils\";\n\nexport const Input = ({ className, type, ...props }: InputHTMLAttributes<HTMLInputElement>) => (\n  <input\n    type={type}\n    className={cn(\n      \"flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base/6 placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50\",\n      className\n    )}\n    {...props}\n  />\n);",
     "usage": "import { Input } from \"@/components/ui/input\";\n\nexport default function Example() {\n  return <Input type=\"email\" placeholder=\"you@example.com\" />;\n}"
+  }
+};
+
+export const categories: Record<string, CategoryData> = {
+  "buttons": {
+    "slug": "buttons",
+    "name": "Buttons",
+    "kind": "component",
+    "order": 1,
+    "description": "Button components in several finished designs — variants, sizes, loading and press states included."
+  },
+  "inputs": {
+    "slug": "inputs",
+    "name": "Inputs",
+    "kind": "component",
+    "order": 2,
+    "description": "Text inputs and form fields, each a complete design with focus, error and disabled states."
+  },
+  "badges": {
+    "slug": "badges",
+    "name": "Badges",
+    "kind": "component",
+    "order": 3,
+    "description": "Status, category and tag labels in several treatments."
+  },
+  "cards": {
+    "slug": "cards",
+    "name": "Cards",
+    "kind": "component",
+    "order": 4,
+    "description": "Card surfaces for content, products and stats, in several finished layouts."
+  },
+  "heroes": {
+    "slug": "heroes",
+    "name": "Heroes",
+    "kind": "block",
+    "order": 1,
+    "description": "Complete hero sections — headline, supporting copy, calls to action and layout, ready to drop in."
   }
 };
 

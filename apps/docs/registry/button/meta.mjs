@@ -2,7 +2,7 @@ export default {
   name: "Button",
   kind: "component",
   description: "Flexible button component with multiple variants and sizes",
-  category: "primitives",
+  category: "buttons",
   variants: ["Default", "Destructive", "Outline", "Secondary", "Ghost", "Link"],
   props: [
     {

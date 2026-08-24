@@ -29,8 +29,30 @@ export interface ComponentData {
   access?: "free" | "pro";
 }
 
-import { components, UTIL_CODE } from "./registry.data.generated";
-export { components };
+export interface CategoryData {
+  slug: string;
+  name: string;
+  kind: "component" | "block";
+  order: number;
+  description: string;
+}
+
+import { components, categories, UTIL_CODE } from "./registry.data.generated";
+export { components, categories };
+
+/** Ordered categories for one surface, each with the components it holds. */
+export function getCategories(kind: "component" | "block") {
+  return Object.values(categories)
+    .filter((c) => c.kind === kind)
+    .sort((a, b) => a.order - b.order)
+    .map((c) => ({
+      ...c,
+      components: Object.values(components).filter(
+        (component) => component.category === c.slug
+      ),
+    }))
+    .filter((c) => c.components.length > 0);
+}
 
 /* ─── CLI-facing registry (served by /api/registry → consumed by the CLI) ─── */
 

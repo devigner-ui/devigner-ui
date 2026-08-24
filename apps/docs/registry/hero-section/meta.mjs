@@ -2,7 +2,7 @@ export default {
   name: "Hero Section",
   kind: "block",
   description: "Animated hero section with multiple layout variants",
-  category: "marketing",
+  category: "heroes",
   access: "pro",
   variants: ["Centered", "Split", "Minimal"],
   props: [
