@@ -30,17 +30,17 @@ function Check({ className }: { className?: string }) {
 type PlanKey = "monthly" | "lifetime";
 
 const MONTHLY_FEATURES = [
-  "Every component",
-  "New components as they ship",
-  "Full TypeScript source",
-  "Priority support",
+  "Every Pro component and block",
+  "Early access to new designs",
+  "Same CLI, same ownership",
+  "Access stays live while subscribed",
 ];
 
 const LIFETIME_FEATURES = [
   "Everything in Monthly",
-  "Lifetime updates, forever",
-  "All future components",
-  "No subscription, no renewal",
+  "Every future design, forever",
+  "One payment, no renewal",
+  "Keeps working if you stop paying",
 ];
 
 export function Pricing() {
@@ -101,8 +101,9 @@ export function Pricing() {
             <span className="text-accent">transparent.</span>
           </h2>
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-text-secondary">
-            One library, two ways to own it. Every plan includes the full set of
-            components, MIT-licensed. No seats, no usage limits.
+            The free tier installs from the same CLI, and the code is yours
+            either way. Pro unlocks the designs behind the licence. No seats,
+            no usage limits.
           </p>
         </div>
 
