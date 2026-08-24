@@ -9,7 +9,7 @@ import { motion } from "motion/react";
 import { ThemeToggle } from "../theme-provider";
 import { lenisRef } from "./smooth-scroll";
 import { cn } from "@devignerui/ui/lib/utils";
-import { SPRING_PRESS } from "@devignerui/ui/lib/animations";
+import { SPRING_PRESS } from "@devignerui/ui/lib/easing";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 

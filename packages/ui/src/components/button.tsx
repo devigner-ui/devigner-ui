@@ -10,7 +10,7 @@ import {
 } from "motion/react";
 import { cn } from "../lib/utils";
 import { useHoverCapable } from "../lib/hooks/use-hover-capable";
-import { EASE_OUT, SPRING_PRESS } from "../lib/animations";
+import { EASE_OUT, SPRING_PRESS } from "../lib/easing";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer rounded-lg text-sm/5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",

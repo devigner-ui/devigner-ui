@@ -1,5 +1,3 @@
-import type { Variants, Transition } from "motion/react";
-
 // Shared motion tokens. Easing curves mirror the CSS custom properties in
 // globals.css; springs are the canonical physics used across components.
 // Strong custom variants — defaults like `ease-in`/`ease-out` feel weak.
@@ -50,39 +48,3 @@ export const SPRING_MOUSE = {
   mass: 0.3,
 } as const;
 
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
-
-export const slideUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-export const slideDown: Variants = {
-  hidden: { opacity: 0, y: -20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1 },
-};
-
-export const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-export const defaultTransition: Transition = {
-  duration: 0.3,
-  ease: EASE_OUT,
-};
-
-export const springTransition: Transition = SPRING_LAYOUT;

@@ -16,7 +16,7 @@ import {
   SPRING_PANEL,
   SPRING_LAYOUT,
   SPRING_SWAP,
-} from "@devignerui/ui/lib/animations";
+} from "@devignerui/ui/lib/easing";
 
 const categoryLabel = (key: string) =>
   COMPONENT_CATEGORIES[key as keyof typeof COMPONENT_CATEGORIES] ?? key;

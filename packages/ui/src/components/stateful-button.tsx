@@ -13,7 +13,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { EASE_OUT, SPRING_SWAP } from "../lib/animations";
+import { EASE_OUT, SPRING_SWAP } from "../lib/easing";
 import { Button, type ButtonProps } from "./button";
 
 export type ButtonState = "idle" | "loading" | "success" | "error";
