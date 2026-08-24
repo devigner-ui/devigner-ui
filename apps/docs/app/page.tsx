@@ -4,7 +4,6 @@ import { Navbar } from "../components/landing/navbar";
 import { Hero } from "../components/landing/hero";
 import { CategoryRail } from "../components/landing/category-rail";
 import { ComponentRange } from "../components/landing/component-range";
-import { CliTerminal } from "../components/landing/cli-terminal";
 import { Features } from "../components/landing/features";
 import { Pricing } from "../components/landing/pricing";
 import { ClosingCTA } from "../components/landing/closing";
@@ -27,7 +26,6 @@ export default function HomePage() {
         <CategoryRail />
       </Hero>
       <ComponentRange />
-      <CliTerminal />
       <Features />
       <Pricing />
       <ClosingCTA />

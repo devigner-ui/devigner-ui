@@ -175,25 +175,6 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 >
                   Start Building for Free
                 </Link>
-                <Link
-                  href="/components"
-                  className="group inline-flex h-12 items-center gap-1.5 rounded-2xl border border-border bg-background-200/70 px-6 text-[14px] font-medium text-text-secondary transition-colors duration-200 hover:text-foreground hover:border-border-hover"
-                >
-                  Browse Blocks
-                  <svg
-                    className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
-                  </svg>
-                </Link>
               </div>
 
               {/* Install snippet */}
