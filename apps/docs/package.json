@@ -24,7 +24,7 @@
     "next": "^15.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "reicon": "^1.0.0",
+    "reicon-react": "^1.2.0",
     "shiki": "^4.3.1"
   },
   "devDependencies": {
