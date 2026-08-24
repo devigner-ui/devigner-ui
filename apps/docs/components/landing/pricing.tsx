@@ -6,26 +6,10 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Starburst } from "./starburst";
 import { Button } from "@devignerui/ui";
-import { cn } from "@devignerui/ui/lib/utils";
+import { ArrowRight } from "reicon-react/icons/ArrowRight";
+import { Check } from "reicon-react/icons/Check";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-function Check({ className }: { className?: string }) {
-  return (
-    <svg
-      className={cn("size-4 shrink-0", className)}
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      aria-hidden
-    >
-      <path
-        fillRule="evenodd"
-        d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
 
 type PlanKey = "monthly" | "lifetime";
 
@@ -147,7 +131,7 @@ export function Pricing() {
                     key={f}
                     className="flex items-center gap-3 text-[14px] text-text-secondary"
                   >
-                    <Check className="text-text-muted" />
+                    <Check className="size-4 shrink-0 text-text-muted" />
                     {f}
                   </li>
                 ))}
@@ -191,19 +175,7 @@ export function Pricing() {
               >
                 {loading === "lifetime" ? "Processing…" : "Get lifetime access"}
                 <span className="inline-flex size-6 items-center justify-center rounded-full bg-black/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5">
-                  <svg
-                    className="size-3"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2.5"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
-                  </svg>
+                  <ArrowRight className="size-3" />
                 </span>
               </Button>
 
@@ -215,7 +187,7 @@ export function Pricing() {
                     key={f}
                     className="flex items-center gap-3 text-[14px] text-text-secondary"
                   >
-                    <Check className="text-accent" />
+                    <Check className="size-4 shrink-0 text-accent" />
                     {f}
                   </li>
                 ))}

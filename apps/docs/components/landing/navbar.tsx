@@ -10,6 +10,8 @@ import { ThemeToggle } from "../theme-provider";
 import { lenisRef } from "./smooth-scroll";
 import { cn } from "@devignerui/ui/lib/utils";
 import { SPRING_PRESS } from "@devignerui/ui/lib/easing";
+import { Logo } from "@/components/logo";
+import { ArrowRight } from "reicon-react/icons/ArrowRight";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -73,8 +75,12 @@ export function Navbar() {
 
       const onMove = (e: PointerEvent) => {
         const r = el.getBoundingClientRect();
-        xTo(gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.4));
-        yTo(gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.4));
+        xTo(
+          gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.4),
+        );
+        yTo(
+          gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.4),
+        );
       };
       const onLeave = () =>
         gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.5)" });
@@ -139,7 +145,8 @@ export function Navbar() {
   /* Escape closes the menu */
   useEffect(() => {
     if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    const onKey = (e: KeyboardEvent) =>
+      e.key === "Escape" && setMenuOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
@@ -150,10 +157,7 @@ export function Navbar() {
       onClick={() => setMenuOpen(false)}
       className="flex items-center gap-2 font-semibold tracking-tight text-foreground"
     >
-      <span className="flex size-6 items-center justify-center rounded-lg bg-foreground text-[11px] font-bold text-background">
-        D
-      </span>
-      <span className="text-sm">Devigner</span>
+      <Logo className="h-6 w-auto" />
     </Link>
   );
 
@@ -200,19 +204,7 @@ export function Navbar() {
             >
               Get Started
               <span className="inline-flex size-6 items-center justify-center rounded-full bg-background/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5 group-hover:-translate-y-px">
-                <svg
-                  className="size-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                  />
-                </svg>
+                <ArrowRight className="size-3" />
               </span>
             </Link>
 
@@ -282,19 +274,7 @@ export function Navbar() {
           className="mobile-link mt-8 inline-flex h-13 items-center justify-center gap-2 rounded-full bg-foreground text-[15px] font-medium text-background active:scale-[0.98]"
         >
           Get Started
-          <svg
-            className="size-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-            />
-          </svg>
+          <ArrowRight className="size-4" />
         </Link>
       </div>
     </header>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "reicon-react/icons/ArrowRight";
 import { notFound } from "next/navigation";
 import { getCategories } from "@/lib/registry";
 import { PREVIEWS } from "./preview-map";
@@ -50,9 +51,10 @@ function Tile({
           <span className="text-[13px] font-medium text-text-secondary transition-colors duration-200 group-hover:text-foreground">
             {name}
           </span>
-          <span className="-translate-x-1 text-[13px] text-accent opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
-            &rarr;
-          </span>
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 -translate-x-1 text-accent opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
+          />
         </span>
       </Link>
     </li>
