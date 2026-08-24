@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   /* Colors — Premium Dark System */
@@ -118,8 +118,8 @@
 
   --text-primary: oklch(20% 0.02 265);
   --text-secondary: oklch(42% 0.018 265);
-  --text-tertiary: oklch(54% 0.016 265);
-  --text-muted: oklch(64% 0.014 265);
+  --text-tertiary: oklch(50% 0.016 265);
+  --text-muted: oklch(54% 0.014 265);
   --text-on-dark: oklch(96% 0.006 90);
 
   --accent: oklch(60% 0.212 26.03);
@@ -184,8 +184,8 @@
 
   --text-primary: oklch(92% 0.008 90);
   --text-secondary: oklch(70% 0.012 265);
-  --text-tertiary: oklch(56% 0.013 265);
-  --text-muted: oklch(46% 0.014 265);
+  --text-tertiary: oklch(63% 0.013 265);
+  --text-muted: oklch(58% 0.014 265);
   --text-on-dark: oklch(13% 0.016 265);
 
   --accent: oklch(64% 0.201 26.03);
@@ -221,10 +221,7 @@
   --ring: var(--accent);
 }
 
-/* ─── shadcn scope — /components and /components/[slug] only (see layout.tsx) ───
-   Verbatim shadcn defaults: deliberately grayscale, no Devigner brand color.
-   Tokens with no shadcn slot (success/warning/terminal/code-bg/text-*) are not
-   listed here and keep their normal global values inside this scope too. */
+/* ─── shadcn scope — /components */
 .shadcn-scope {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -598,5 +595,28 @@ html.lenis body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .asterisk-container {
+    --total-lines: 13;
+    position: relative;
+    aspect-ratio: 1;
+
+    & > .asterisk-line {
+      --i: calc(sibling-index() - 1);
+
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-start: 50%;
+      inline-size: 10%;
+      block-size: 50%;
+      transform-origin: center bottom;
+
+      /* Independent transforms eliminate compound string parsing */
+      translate: -50% -100%;
+      rotate: calc(var(--i) * (1turn / var(--total-lines)));
+    }
   }
 }

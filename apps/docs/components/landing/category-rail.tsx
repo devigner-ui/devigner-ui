@@ -108,7 +108,7 @@ export function CategoryRail() {
             className="cursor-pointer rounded-pill border border-border px-4 py-1.5 text-[13px] font-medium text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground"
           >
             {category.name}
-            <span className="ml-2 text-text-muted">{category.groupLabel}</span>
+            <span className="ml-2 text-[11px] opacity-80">{category.groupLabel}</span>
           </label>
         ))}
       </div>
