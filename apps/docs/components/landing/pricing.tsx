@@ -146,7 +146,7 @@ export function Pricing() {
                 type="button"
                 onClick={() => handleCheckout("lifetime")}
                 disabled={loading === "lifetime"}
-                className="group relative mt-8 h-12 gap-2.5 rounded-full bg-accent pl-6 pr-3 font-semibold text-accent-foreground transition-[background-color,transform] duration-200 hover:bg-accent-hover disabled:opacity-60"
+                className="group relative mt-8 h-12 gap-2.5 rounded-full bg-accent-strong pl-6 pr-3 font-semibold text-accent-foreground transition-[background-color,transform] duration-200 hover:bg-accent-hover disabled:opacity-60"
               >
                 {loading === "lifetime" ? "Processing…" : "Get lifetime access"}
                 <span className="inline-flex size-6 items-center justify-center rounded-full bg-black/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5">

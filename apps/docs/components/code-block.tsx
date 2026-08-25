@@ -1,46 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
- * Colorized code block. Highlights with shiki (dynamically imported so it only
- * loads on pages that render code), wraps long lines instead of scrolling on
- * the x-axis, and optionally shows line numbers / an expand-to-reveal control.
+ * Colorized code block. Highlighting happens on the SERVER at build time — pass
+ * the resulting markup as `html`. Shiki must never be imported here: it used to
+ * be pulled in dynamically inside an effect, which cost roughly 370ms of
+ * blocking time on every page that rendered code.
+ *
+ * Without `html` the raw source still renders, unhighlighted but readable.
+ *
+ * Wraps long lines instead of scrolling on the x-axis, and optionally shows
+ * line numbers / an expand-to-reveal control.
  */
 export function CodeBlock({
   code,
-  lang = "tsx",
+  html = null,
   numbered = false,
   expandable = false,
 }: {
   code: string;
+  /** Server-rendered shiki markup. Omit to render plain source. */
+  html?: string | null;
   lang?: string;
   numbered?: boolean;
   expandable?: boolean;
 }) {
-  const [html, setHtml] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(!expandable);
 
-  useEffect(() => {
-    let alive = true;
-    import("shiki")
-      .then(({ codeToHtml }) =>
-        codeToHtml(code, {
-          lang,
-          themes: { light: "github-light", dark: "github-dark" },
-          defaultColor: "light",
-        }),
-      )
-      // shiki joins line spans with a literal "\n"; with white-space: pre-wrap
-      // that renders as an extra blank row, so strip it (line breaks come
-      // from .line being display: block instead).
-      .then((h) => h.replace(/\n(?=<span class="line)/g, ""))
-      .then((h) => alive && setHtml(h))
-      .catch(() => alive && setHtml(null));
-    return () => {
-      alive = false;
-    };
-  }, [code, lang]);
 
   return (
     <div className="relative">

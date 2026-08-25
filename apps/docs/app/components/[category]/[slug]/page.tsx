@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { highlight } from "@/lib/highlight";
 import { components } from "@/lib/registry";
 import { DetailView } from "./detail-view";
 
@@ -20,5 +21,10 @@ export default async function ComponentDetailPage({
   if (!meta || meta.kind !== "component" || meta.category !== category) {
     notFound();
   }
-  return <DetailView slug={slug} />;
+  const [codeHtml, usageHtml] = await Promise.all([
+    highlight(meta.code, "tsx"),
+    highlight(meta.usage, "tsx"),
+  ]);
+
+  return <DetailView slug={slug} codeHtml={codeHtml} usageHtml={usageHtml} />;
 }

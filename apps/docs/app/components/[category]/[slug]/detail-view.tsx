@@ -9,6 +9,7 @@ import { CodeBlock } from "../../../../components/code-block";
 import { IconButton } from "../../../../components/icon-button";
 import { useTheme } from "../../../../components/theme-provider";
 import { components } from "@/lib/registry";
+import { cn } from "@/lib/utils";
 import { COMPONENT_CATEGORIES } from "@devignerui/shared";
 import {
   EASE_OUT,
@@ -21,27 +22,16 @@ import {
 const categoryLabel = (key: string) =>
   COMPONENT_CATEGORIES[key as keyof typeof COMPONENT_CATEGORIES] ?? key;
 
+/** Scroll reveal, now a CSS view-timeline rather than a hydrated motion node. */
 function Reveal({
   children,
   className,
-  delay = 0,
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
 }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 20, filter: "blur(4px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.7, delay, ease: EASE_OUT }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className={cn("reveal", className)}>{children}</div>;
 }
 
 /* ─── Live previews (one per component) ─── */
@@ -201,6 +191,8 @@ type StageProps = {
   preview: React.ReactNode;
   previewKey: number;
   code: string;
+  /** Server-rendered shiki markup for `code`. */
+  codeHtml?: string;
   fileName: string;
   showCode: boolean;
   setShowCode: (v: boolean) => void;
@@ -360,7 +352,7 @@ function StagePanel(props: StageProps) {
         <div className="flex h-full flex-col">
           <DrawerHeader code={props.code} fileName={props.fileName} />
           <div className="code-scroll min-h-0 flex-1 overflow-y-auto">
-            <CodeBlock code={props.code} lang="tsx" />
+            <CodeBlock code={props.code} html={props.codeHtml} lang="tsx" />
           </div>
         </div>
       </motion.div>
@@ -411,7 +403,7 @@ function PreviewCard(props: StageProps) {
         <div className="flex h-full flex-col">
           <DrawerHeader code={props.code} fileName={props.fileName} />
           <div className="code-scroll min-h-0 flex-1 overflow-y-auto">
-            <CodeBlock code={props.code} lang="tsx" />
+            <CodeBlock code={props.code} html={props.codeHtml} lang="tsx" />
           </div>
         </div>
       </motion.div>
@@ -698,7 +690,15 @@ function SidebarToggle({
 
 /* ─── Page ─── */
 
-export function DetailView({ slug }: { slug: string }) {
+export function DetailView({
+  slug,
+  codeHtml,
+  usageHtml,
+}: {
+  slug: string;
+  codeHtml?: string;
+  usageHtml?: string;
+}) {
   const [showCode, setShowCode] = useState(false);
   const [installTab, setInstallTab] = useState<"cli" | "manual">("cli");
   const [fullscreen, setFullscreen] = useState(false);
@@ -756,6 +756,7 @@ export function DetailView({ slug }: { slug: string }) {
     preview,
     previewKey,
     code: meta.code,
+    codeHtml,
     fileName,
     showCode,
     setShowCode,
@@ -993,7 +994,7 @@ export function DetailView({ slug }: { slug: string }) {
                   </div>
                   <div className="p-1.5">
                     <div className="overflow-hidden rounded-lg">
-                      <CodeBlock code={usage} lang="tsx" />
+                      <CodeBlock code={usage} html={usageHtml} lang="tsx" />
                     </div>
                   </div>
                 </figure>

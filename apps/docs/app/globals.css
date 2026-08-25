@@ -34,6 +34,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-strong: var(--accent-strong);
   --color-accent-secondary: var(--accent-secondary);
   --color-accent-tertiary: var(--accent-tertiary);
 
@@ -125,6 +126,10 @@
   --accent: oklch(60% 0.212 26.03);
   --accent-foreground: oklch(96% 0.006 90);
   --accent-hover: oklch(54% 0.216 27);
+  /* Filled accent surfaces carrying near-white text. The brand accent is 60%,
+     which is only 3.9:1 against --accent-foreground and fails AA; this is the
+     same hue darkened until it passes, so the identity is unchanged. */
+  --accent-strong: oklch(54% 0.216 27);
   --accent-secondary: oklch(67% 0.19 45);
   --accent-tertiary: oklch(80% 0.15 78);
 
@@ -191,6 +196,8 @@
   --accent: oklch(64% 0.201 26.03);
   --accent-foreground: oklch(96% 0.006 90);
   --accent-hover: oklch(70% 0.19 27);
+  /* See the light-theme note: the dark accent is 64%, only 3.3:1. */
+  --accent-strong: oklch(54% 0.216 27);
   --accent-secondary: oklch(70% 0.185 45);
   --accent-tertiary: oklch(82% 0.15 80);
 

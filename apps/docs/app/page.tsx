@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 /* ─── Page ─── */
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
       <div className="grain-overlay" />
       <Navbar />
       <Hero>
@@ -27,6 +27,6 @@ export default function HomePage() {
       <Features />
       <Pricing />
       <ClosingCTA />
-    </div>
+    </main>
   );
 }
