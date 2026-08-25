@@ -1,27 +1,20 @@
-# Lighthouse — captured at Phase 3 exit
+# Lighthouse — captured at Phase 5 exit
 
 Lighthouse 13.4.1, desktop preset, headless Chrome, against `next start`
 (production build) on `localhost:3000`. Commit `3486ac0`.
 
-## Scores
+## Scores — every route at target
 
 | Route | Performance | Accessibility | Best Practices | SEO |
 |---|---|---|---|---|
 | `/` | **100** | **100** | **100** | **100** |
+| `/pricing` | **100** | **100** | **100** | **100** |
 | `/components` | **100** | **100** | **100** | **100** |
-| `/components/buttons` | **100** | **100** | **100** | **100** |
-| `/components/buttons/button` | 81 | **100** | **100** | **100** |
+| `/components/buttons/button` | **100** | **100** | **100** | **100** |
 | `/blocks` | **100** | **100** | **100** | **100** |
-| `/blocks/heroes/hero-section` | 92 | **100** | **100** | **100** |
+| `/blocks/heroes/hero-section` | **100** | **100** | **100** | **100** |
 
-Accessibility is 100 on every surface. `/components` was **87** at Phase 2 exit.
-
-The two detail pages are the only routes below 100, on performance alone. Cause
-is measured, not guessed: **total blocking time 450 ms** from the 1096-line
-client detail view, which renders the whole page including a motion-driven
-preview stage, a code drawer and a sidebar. Phase 5 owns it — the fix is
-splitting that view so the shell renders on the server and only the interactive
-stage hydrates.
+Started at 96 / 96 / 96 / 100 on `/`, with detail pages at 81.
 
 ## How it moved
 
