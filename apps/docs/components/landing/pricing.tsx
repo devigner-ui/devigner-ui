@@ -1,15 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useState } from "react";
 import { Starburst } from "./starburst";
 import { Button } from "@devignerui/ui";
 import { ArrowRight } from "reicon-react/icons/ArrowRight";
 import { Check } from "reicon-react/icons/Check";
-
-gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 type PlanKey = "monthly" | "lifetime";
 
@@ -28,7 +23,6 @@ const LIFETIME_FEATURES = [
 ];
 
 export function Pricing() {
-  const sectionRef = useRef<HTMLElement>(null);
   const [loading, setLoading] = useState<PlanKey | null>(null);
 
   const handleCheckout = async (plan: PlanKey) => {
@@ -51,34 +45,15 @@ export function Pricing() {
     }
   };
 
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from(".price-reveal", {
-          y: 36,
-          opacity: 0,
-          filter: "blur(6px)",
-          duration: 0.8,
-          stagger: 0.12,
-          ease: "power3.out",
-          clearProps: "filter",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 72%" },
-        });
-      });
-    },
-    { scope: sectionRef },
-  );
 
   return (
     <section
       id="pricing"
-      ref={sectionRef}
       className="section-editorial py-24 sm:py-32"
     >
       <div className="mx-auto max-w-5xl px-5">
         {/* Header */}
-        <div className="price-reveal max-w-2xl">
+        <div className="reveal max-w-2xl">
           <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-semibold uppercase leading-[0.98] tracking-[-0.02em] text-foreground">
             Simple,
             <br />
@@ -92,7 +67,7 @@ export function Pricing() {
         </div>
 
         {/* Unified two-half panel */}
-        <div className="price-reveal double-bezel mt-14">
+        <div className="reveal double-bezel mt-14">
           <div className="double-bezel-inner grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
             {/* Monthly */}
             <div className="flex flex-col p-8 sm:p-10">
@@ -196,7 +171,7 @@ export function Pricing() {
           </div>
         </div>
 
-        <p className="price-reveal mt-8 text-center font-mono text-[12px] text-text-muted">
+        <p className="reveal mt-8 text-center font-mono text-[12px] text-text-muted">
           Prices in USD. Secure checkout via Creem.
         </p>
       </div>

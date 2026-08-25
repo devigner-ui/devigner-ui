@@ -7,7 +7,6 @@ import { ComponentRange } from "../components/landing/component-range";
 import { Features } from "../components/landing/features";
 import { Pricing } from "../components/landing/pricing";
 import { ClosingCTA } from "../components/landing/closing";
-import { SmoothScroll } from "../components/landing/smooth-scroll";
 
 export const metadata: Metadata = {
   title: "Devigner UI — finished React components, more than one way",
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <SmoothScroll />
       <div className="grain-overlay" />
       <Navbar />
       <Hero>

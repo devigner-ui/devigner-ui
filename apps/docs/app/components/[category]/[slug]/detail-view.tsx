@@ -649,9 +649,9 @@ function DocSidebar({
           >
             {Object.entries(groups).map(([cat, items]) => (
               <div key={cat} className="mb-2 flex flex-col">
-                <span className="flex items-baseline gap-2 py-4 text-base font-medium text-foreground/35">
+                <span className="flex items-baseline gap-2 py-4 text-base font-medium text-text-muted">
                   {categoryLabel(cat)}
-                  <span className="text-xs font-normal tabular-nums text-foreground/25">
+                  <span className="text-xs font-normal tabular-nums text-text-muted">
                     {items.length}
                   </span>
                 </span>
@@ -768,7 +768,7 @@ export function DetailView({ slug }: { slug: string }) {
     <nav aria-label="breadcrumb" className="flex items-center gap-2 text-sm">
       <Link
         href="/components"
-        className="text-foreground/50 transition-colors duration-200 hover:text-foreground"
+        className="text-text-secondary transition-colors duration-200 hover:text-foreground"
       >
         Components
       </Link>
@@ -781,7 +781,7 @@ export function DetailView({ slug }: { slug: string }) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="text-foreground/30"
+        className="text-text-muted"
         role="presentation"
       >
         <path d="m9 18 6-6-6-6" />
@@ -833,10 +833,10 @@ export function DetailView({ slug }: { slug: string }) {
                 <h1 className="text-3xl tracking-tighter text-foreground sm:text-4xl md:text-5xl">
                   {meta.name}
                 </h1>
-                <p className="mt-1 text-base/relaxed text-foreground/50 md:text-lg">
+                <p className="mt-1 text-base/relaxed text-text-secondary md:text-lg">
                   {meta.description}
                 </p>
-                <p className="text-sm text-foreground/35">
+                <p className="text-sm text-text-muted">
                   {categoryLabel(meta.category)}
                 </p>
               </Reveal>
@@ -1016,7 +1016,7 @@ export function DetailView({ slug }: { slug: string }) {
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                         <div className="flex min-w-0 items-center gap-2">
-                          <code className="whitespace-nowrap rounded-md bg-surface/60 px-2 py-0.5 font-mono text-sm text-foreground/60">
+                          <code className="whitespace-nowrap rounded-md bg-surface/60 px-2 py-0.5 font-mono text-sm text-text-secondary">
                             {p.type}
                           </code>
                           <div className="flex-1" />
@@ -1025,12 +1025,12 @@ export function DetailView({ slug }: { slug: string }) {
                               {p.default}
                             </code>
                           ) : (
-                            <span className="shrink-0 text-sm text-foreground/30">
+                            <span className="shrink-0 text-sm text-text-muted">
                               —
                             </span>
                           )}
                         </div>
-                        <p className="text-sm/relaxed text-foreground/40">
+                        <p className="text-sm/relaxed text-text-muted">
                           {p.description}
                         </p>
                       </div>
@@ -1042,7 +1042,7 @@ export function DetailView({ slug }: { slug: string }) {
               {Array.isArray(meta.notes) && meta.notes.length > 0 && (
                 <section id="notes">
                   <SectionTitle>Notes</SectionTitle>
-                  <ul className="flex list-disc flex-col gap-1 pl-5 text-lg/relaxed font-light tracking-wide text-foreground/80">
+                  <ul className="flex list-disc flex-col gap-1 pl-5 text-lg/relaxed font-light tracking-wide text-text-secondary">
                     {meta.notes.map((n, i) => (
                       <li key={i}>{n}</li>
                     ))}
@@ -1054,13 +1054,13 @@ export function DetailView({ slug }: { slug: string }) {
                 <p className="mb-3 text-3xl tracking-tight text-foreground">
                   Keep in mind
                 </p>
-                <p className="max-w-prose text-lg/relaxed text-foreground/80">
+                <p className="max-w-prose text-lg/relaxed text-text-secondary">
                   Every component here is meant to be copied into your project
                   and owned by you — edit the source freely. If a component
                   breaks in your setup,{" "}
                   <Link
                     href="/components"
-                    className="underline decoration-foreground/20 underline-offset-4 transition-colors hover:text-foreground/60 hover:decoration-foreground/40"
+                    className="underline decoration-foreground/20 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground/40"
                   >
                     browse the registry
                   </Link>{" "}

@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "motion/react";
 import { ThemeToggle } from "../theme-provider";
-import { lenisRef } from "./smooth-scroll";
 import { cn } from "@devignerui/ui/lib/utils";
 import { SPRING_PRESS } from "@devignerui/ui/lib/easing";
 import { Logo } from "@/components/logo";
 import { ArrowRight } from "reicon-react/icons/ArrowRight";
-
-gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const LINKS = [
   { label: "Components", href: "/components" },
@@ -35,112 +29,66 @@ export function Navbar() {
 
   const rootRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLSpanElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  /* Scroll morph (condense) + page-progress hairline — both scroll-native */
-  useGSAP(
-    () => {
-      const st = ScrollTrigger.create({
-        start: 64,
-        onEnter: () => setCondensed(true),
-        onLeaveBack: () => setCondensed(false),
-      });
+  /* Condense past the fold. An IntersectionObserver on a sentinel costs
+     nothing per frame, unlike a scroll listener. */
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setCondensed(!entry.isIntersecting),
+      { rootMargin: "-64px 0px 0px 0px" },
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, []);
 
-      const progress = gsap.to(progressRef.current, {
-        scaleX: 1,
-        transformOrigin: "left center",
-        ease: "none",
-        scrollTrigger: { start: 0, end: "max", scrub: 0.4 },
-      });
 
-      return () => {
-        st.kill();
-        progress.scrollTrigger?.kill();
-      };
-    },
-    { scope: rootRef },
-  );
+  /* Magnetic CTA. JS only writes two custom properties; the transition that
+     smooths them lives in CSS, so no animation library is needed. */
+  useEffect(() => {
+    const el = ctaRef.current;
+    if (!el || prefersReducedMotion()) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
-  /* Magnetic CTA — same physics identity as the hero's magnetic button */
-  useGSAP(
-    () => {
-      const el = ctaRef.current;
-      if (!el || prefersReducedMotion()) return;
-      if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches)
-        return;
+    const clamp = (min: number, max: number, v: number) =>
+      Math.min(max, Math.max(min, v));
 
-      const xTo = gsap.quickTo(el, "x", { duration: 0.4, ease: "power3.out" });
-      const yTo = gsap.quickTo(el, "y", { duration: 0.4, ease: "power3.out" });
+    const onMove = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty(
+        "--mx",
+        `${clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.4)}px`,
+      );
+      el.style.setProperty(
+        "--my",
+        `${clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.4)}px`,
+      );
+    };
+    const onLeave = () => {
+      el.style.setProperty("--mx", "0px");
+      el.style.setProperty("--my", "0px");
+    };
 
-      const onMove = (e: PointerEvent) => {
-        const r = el.getBoundingClientRect();
-        xTo(
-          gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.4),
-        );
-        yTo(
-          gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.4),
-        );
-      };
-      const onLeave = () =>
-        gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.5)" });
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
 
-      el.addEventListener("pointermove", onMove);
-      el.addEventListener("pointerleave", onLeave);
-      return () => {
-        el.removeEventListener("pointermove", onMove);
-        el.removeEventListener("pointerleave", onLeave);
-      };
-    },
-    { scope: rootRef },
-  );
 
-  /* Mobile menu — full-screen glass overlay, staggered reveal, scroll-locked */
-  useGSAP(
-    () => {
-      const overlay = overlayRef.current;
-      if (!overlay) return;
-      const reduce = prefersReducedMotion();
+  /* Mobile menu: the reveal is a CSS transition keyed off data-open, so JS
+     only owns the scroll lock. */
+  useEffect(() => {
+    document.documentElement.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.documentElement.style.overflow = "";
+    };
+  }, [menuOpen]);
 
-      if (menuOpen) {
-        lenisRef.current?.stop();
-        gsap.set(overlay, { display: "flex" });
-        if (reduce) {
-          gsap.set(overlay, { autoAlpha: 1 });
-          gsap.set(".mobile-link", { autoAlpha: 1, y: 0 });
-        } else {
-          gsap
-            .timeline()
-            .fromTo(
-              overlay,
-              { autoAlpha: 0 },
-              { autoAlpha: 1, duration: 0.3, ease: "power2.out" },
-            )
-            .fromTo(
-              ".mobile-link",
-              { y: 24, autoAlpha: 0 },
-              {
-                y: 0,
-                autoAlpha: 1,
-                duration: 0.5,
-                stagger: 0.06,
-                ease: "power3.out",
-              },
-              0.08,
-            );
-        }
-      } else {
-        lenisRef.current?.start();
-        gsap.to(overlay, {
-          autoAlpha: 0,
-          duration: reduce ? 0 : 0.25,
-          ease: "power2.in",
-          onComplete: () => gsap.set(overlay, { display: "none" }),
-        });
-      }
-    },
-    { dependencies: [menuOpen], scope: rootRef },
-  );
 
   /* Escape closes the menu */
   useEffect(() => {
@@ -163,6 +111,8 @@ export function Navbar() {
 
   return (
     <header ref={rootRef}>
+      {/* Sentinel: the observer watches this instead of listening to scroll. */}
+      <div ref={sentinelRef} aria-hidden className="absolute top-0 h-px w-px" />
       {/* Floating morphing pill */}
       <div className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
         <nav
@@ -200,7 +150,7 @@ export function Navbar() {
             <Link
               ref={ctaRef}
               href="/components"
-              className="group hidden h-9 items-center gap-2 rounded-full bg-foreground pl-4 pr-2 text-[13px] font-medium text-background will-change-transform md:inline-flex"
+              className="magnetic group hidden h-9 items-center gap-2 rounded-full bg-foreground pl-4 pr-2 text-[13px] font-medium text-background will-change-transform md:inline-flex"
             >
               Get Started
               <span className="inline-flex size-6 items-center justify-center rounded-full bg-background/15 transition-transform duration-200 ease-drawer group-hover:translate-x-0.5 group-hover:-translate-y-px">
@@ -238,19 +188,18 @@ export function Navbar() {
           <span
             aria-hidden
             className={cn(
-              "pointer-events-none absolute inset-x-4 bottom-0 h-px origin-left scale-x-0 rounded-full bg-accent/60 transition-opacity duration-500",
+              "scroll-progress pointer-events-none absolute inset-x-4 bottom-0 h-px rounded-full bg-accent/60 transition-opacity duration-500",
               condensed ? "opacity-100" : "opacity-0",
             )}
-            ref={progressRef}
           />
         </nav>
       </div>
 
       {/* Mobile overlay */}
       <div
-        ref={overlayRef}
+        data-open={menuOpen}
         id="mobile-menu"
-        className="fixed inset-0 z-40 hidden flex-col bg-background/80 px-6 pb-10 pt-24 backdrop-blur-2xl md:hidden"
+        className="mobile-menu fixed inset-0 z-40 flex-col bg-background/80 px-6 pb-10 pt-24 backdrop-blur-2xl md:hidden"
       >
         <nav aria-label="Mobile" className="flex flex-col gap-1">
           {LINKS.map((l) => (

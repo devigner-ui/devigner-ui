@@ -237,24 +237,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ─── Lenis smooth scroll ─── */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
 ::selection {
   background-color: var(--accent);
   color: var(--accent-foreground);
@@ -526,6 +508,175 @@ html.lenis body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ─── Native scroll-driven reveals ─────────────────────────────────────────
+   Replaces ScrollTrigger for entrance reveals on the marketing site. These run
+   on the compositor with zero JavaScript: no scroll listener, no main-thread
+   work, nothing to hydrate.
+
+   Progressive enhancement by design — where `animation-timeline` is
+   unsupported the guard never applies, so elements simply render in their
+   final state. No fallback library, no layout shift, nothing to degrade. */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes reveal-rise {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+        filter: blur(6px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+        filter: blur(0);
+      }
+    }
+
+    .reveal {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 28%;
+    }
+
+    /* Hero exit: tracks physical scroll rather than a clock. */
+    @keyframes scroll-exit {
+      to {
+        opacity: 0.35;
+        transform: translateY(-90px) scale(0.96);
+      }
+    }
+
+    .scroll-exit {
+      animation: scroll-exit linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+
+    /* Reading-progress bar: scaleX driven by document scroll. */
+    @keyframes scroll-progress {
+      from {
+        transform: scaleX(0);
+      }
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    .scroll-progress {
+      transform-origin: 0 50%;
+      animation: scroll-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+/* ─── Hero entrance ────────────────────────────────────────────────────────
+   Runs once on load, so it needs no timeline library — plain keyframes with
+   staggered delays. Words rise out of a clip mask whose overflow-hidden parent
+   is already in the markup. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Transform only, deliberately. The stage is the LCP element, and animating
+     its opacity from 0 delays largest-contentful-paint by the whole duration —
+     CSS applies the start state on the first frame, where GSAP only applied it
+     after hydration. */
+  @keyframes hero-stage-in {
+    from {
+      transform: translateY(48px) scale(0.985);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes hero-word-in {
+    from {
+      transform: translateY(120%);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes hero-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+    }
+  }
+
+  .hero-stage {
+    animation: hero-stage-in 0.9s var(--ease-out) both;
+  }
+
+  [data-word] {
+    animation: hero-word-in 0.9s var(--ease-out) both;
+    animation-delay: calc(0.1s + (sibling-index() - 1) * 0.08s);
+  }
+
+  [data-fade] {
+    animation: hero-fade-in 0.7s var(--ease-out) both;
+    animation-delay: calc(0.35s + (sibling-index() - 1) * 0.1s);
+  }
+}
+
+/* ─── Navbar: magnetic CTA + mobile menu ───────────────────────────────────
+   Pointer physics genuinely need JS to read the cursor, but only to write two
+   custom properties — the easing is CSS, so no animation library is involved.
+   The menu is a plain transition driven by a data attribute. */
+
+.magnetic {
+  translate: var(--mx, 0) var(--my, 0);
+  transition: translate 0.4s var(--ease-out);
+}
+
+.magnetic:not(:hover) {
+  transition: translate 0.7s var(--ease-out);
+}
+
+.mobile-menu {
+  display: flex;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.25s var(--ease-out),
+    visibility 0s linear 0.25s;
+}
+
+.mobile-menu[data-open="true"] {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity 0.3s var(--ease-out),
+    visibility 0s;
+}
+
+.mobile-menu .mobile-link {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity 0.5s var(--ease-out),
+    translate 0.5s var(--ease-out);
+}
+
+.mobile-menu[data-open="true"] .mobile-link {
+  opacity: 1;
+  translate: 0;
+  transition-delay: calc(0.08s + (sibling-index() - 1) * 0.06s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magnetic {
+    translate: none;
+  }
 }
 
 /* ─── Reduced motion ─── */

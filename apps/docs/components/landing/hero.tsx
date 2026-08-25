@@ -1,93 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { CustomEase } from "gsap/CustomEase";
+import { useState } from "react";
 import { Button } from "@devignerui/ui";
 import { Starburst } from "./starburst";
 import { AsteriskMark } from "@/components/ui/asterisk-mark";
 import { Check } from "reicon-react/icons/Check";
 import { Copy } from "reicon-react/icons/Copy";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, CustomEase);
-
-// Spring-like eases — registered once, referenced by name in tweens.
-if (typeof window !== "undefined") {
-  CustomEase.create("hero-out", "0.16,1,0.3,1");
-  CustomEase.create("hero-spring", "0.34,1.56,0.64,1");
-}
-
 const command = "npx devignerui add button";
 
 export function Hero({ children }: { children?: React.ReactNode }) {
   const [copied, setCopied] = useState(false);
 
-  const sectionRef = useRef<HTMLElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const copyColRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
 
-  /* Entrance reveal + scroll-scrubbed exit */
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const words =
-          headlineRef.current?.querySelectorAll<HTMLElement>("[data-word]");
-
-        gsap
-          .timeline({ defaults: { ease: "hero-out" } })
-          .from(stageRef.current, {
-            y: 48,
-            opacity: 0,
-            scale: 0.97,
-            filter: "blur(10px)",
-            duration: 0.9,
-            clearProps: "filter",
-          })
-          // Headline words rise out of a clip mask — editorial reveal.
-          .from(
-            words ?? [],
-            {
-              yPercent: 120,
-              duration: 0.9,
-              stagger: 0.08,
-            },
-            0.1,
-          )
-          .from(
-            copyColRef.current!.querySelectorAll("[data-fade]"),
-            {
-              y: 24,
-              opacity: 0,
-              filter: "blur(6px)",
-              duration: 0.7,
-              stagger: 0.1,
-              clearProps: "filter",
-            },
-            0.35,
-          );
-
-        // Exit tracks physical scroll, not a clock.
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: "top top",
-              end: "bottom top",
-              scrub: true,
-            },
-            defaults: { ease: "none" },
-          })
-          .to(stageRef.current, { y: -90, scale: 0.96, opacity: 0.35 }, 0)
-          .to(copyColRef.current, { y: -50, opacity: 0.3 }, 0);
-      });
-    },
-    { scope: sectionRef },
-  );
 
   const copyCommand = async () => {
     try {
@@ -101,7 +27,6 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
   return (
     <section
-      ref={sectionRef}
       className="relative flex min-h-dvh items-center overflow-hidden"
     >
       <div className="absolute inset-0 mesh-gradient" />
@@ -111,12 +36,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
       <div className="relative mx-auto w-full max-w-7xl px-5 pt-24 pb-16 sm:pb-20">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
           {/* The library IS the hero — real designs from one category, compared */}
-          <div ref={stageRef} className="min-w-0 lg:order-2">
+          <div className="hero-stage scroll-exit min-w-0 lg:order-2">
             {children}
           </div>
 
           {/* Copy + CTA */}
-          <div ref={copyColRef} className="min-w-0 lg:order-1">
+          <div className="min-w-0 lg:order-1">
             <div
               data-fade
               className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-text-muted"
@@ -126,13 +51,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             </div>
 
             <h1
-              ref={headlineRef}
               className="group/asterisk mt-6 font-sans text-[clamp(2.1rem,8.5vw,5.25rem)] font-semibold leading-[0.98] tracking-[-0.02em] text-foreground"
             >
               <span className="block">
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-flex items-center gap-6">
-                    Two takes{" "}
+                    Pick the{" "}
                     <AsteriskMark
                       ringText="DEVIGNER UI · DEVIGNER UI · "
                       className="size-[0.72em] text-accent"
@@ -141,19 +65,19 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 </span>{" "}
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-block text-accent">
-                    on every
+                    design.
                   </span>
                 </span>
               </span>
               <span className="block">
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-block text-text-tertiary">
-                    component
+                    Own the
                   </span>
                 </span>{" "}
                 <span className="inline-block overflow-hidden align-bottom">
                   <span data-word className="inline-block">
-                    you ship.
+                    code.
                   </span>
                 </span>
               </span>
@@ -164,8 +88,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               className="mt-7 max-w-md text-base/relaxed text-text-secondary sm:text-lg"
             >
               Every category ships more than one finished design — states,
-              variants and motion included. Install the one that fits; the code
-              lands in your repo, yours to edit.
+              variants and motion already handled. Install the one that fits and
+              it becomes yours: plain .tsx, no runtime dependency.
             </p>
 
             <div data-fade className="mt-9 flex flex-col gap-4">
