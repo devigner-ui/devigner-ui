@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-// Real numbers — keep in sync with lib/registry.ts.
+// Real numbers - keep in sync with lib/registry.ts.
 const STATS: { value?: number; text?: string; label: string }[] = [
   { value: 5, label: "Components" },
   { value: 22, label: "Variants" },

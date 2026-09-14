@@ -61,7 +61,7 @@
   --shadow-subtle: var(--shadow-subtle-val);
   --shadow-elevated: var(--shadow-elevated-val);
 
-  /* Easing — keep in sync with the motion tokens in packages/ui/src/lib/animations.ts */
+  /* Easing - keep in sync with the motion tokens in packages/ui/src/lib/animations.ts */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);

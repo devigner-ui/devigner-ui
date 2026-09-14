@@ -1,5 +1,6 @@
+// Docs-site chrome. Local on purpose: @devignerui/ui ships one component now.
 import * as React from "react";
-import { cn } from "../lib/utils";
+import { cn } from "cn";
 
 const Input = React.forwardRef<
   HTMLInputElement,

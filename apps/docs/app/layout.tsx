@@ -35,7 +35,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Clash Display — heavy grotesque display face (Fontshare).
+        {/* Clash Display - heavy grotesque display face (Fontshare).
             ponytail: CDN link for now; self-host via next/font/local if perf matters. */}
         <link
           rel="preconnect"

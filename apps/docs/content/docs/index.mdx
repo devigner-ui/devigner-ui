@@ -5,24 +5,24 @@ description: What Devigner UI is, and how components and variants fit together.
 
 Devigner UI is a component catalog you install **into** your own project with a CLI,
 rather than an npm package you import from. You own the code that lands in your
-repository — Devigner UI owns the catalog, the docs site, and the installer that
+repository - Devigner UI owns the catalog, the docs site, and the installer that
 delivers it.
 
 ## Vocabulary
 
 Two words are used precisely throughout these docs:
 
-- **Component** — a conceptual UI element with one slug, one category, one props
+- **Component** - a conceptual UI element with one slug, one category, one props
   contract, and one installable implementation. `button`, `hero-section`.
-- **Variant** — a prop value *within* a Component's API (for example
+- **Variant** - a prop value *within* a Component's API (for example
   `variant="outline"` on Button). Variants never change which files get
   installed.
 
-Each Component installs as a single file (`components/ui/<slug>.tsx`) plus the
-shared `lib/utils.ts` helper.
+Each Component installs as a single file (`components/ui/<slug>.tsx`); the
+`cn()` helper comes from the [`cn`](https://npmjs.com/package/cn) package.
 
 ## Browsing components
 
-The full, interactive catalog — live previews and props tables — lives at
+The full, interactive catalog - live previews and props tables - lives at
 [`/components`](/components). These guides cover everything around that
 catalog: installing the CLI, theming, and conventions.

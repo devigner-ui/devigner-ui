@@ -31,7 +31,7 @@ const WORDS: { t: string; accent?: boolean }[] = [
 export function Manifesto() {
   const sectionRef = useRef<HTMLElement>(null);
 
-  /* Words brighten from dim to full as the block scrolls through — scrubbed */
+  /* Words brighten from dim to full as the block scrolls through - scrubbed */
   useGSAP(
     () => {
       const mm = gsap.matchMedia();

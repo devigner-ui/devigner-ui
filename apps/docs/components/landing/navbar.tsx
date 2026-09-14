@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "motion/react";
 import { ThemeToggle } from "../theme-provider";
 import { lenisRef } from "./smooth-scroll";
-import { cn } from "@devignerui/ui/lib/utils";
+import { cn } from "cn";
 import { SPRING_PRESS } from "@devignerui/ui/lib/animations";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -36,7 +36,7 @@ export function Navbar() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
 
-  /* Scroll morph (condense) + page-progress hairline — both scroll-native */
+  /* Scroll morph (condense) + page-progress hairline - both scroll-native */
   useGSAP(
     () => {
       const st = ScrollTrigger.create({
@@ -60,7 +60,7 @@ export function Navbar() {
     { scope: rootRef },
   );
 
-  /* Magnetic CTA — same physics identity as the hero's magnetic button */
+  /* Magnetic CTA - same physics identity as the hero's magnetic button */
   useGSAP(
     () => {
       const el = ctaRef.current;
@@ -89,7 +89,7 @@ export function Navbar() {
     { scope: rootRef },
   );
 
-  /* Mobile menu — full-screen glass overlay, staggered reveal, scroll-locked */
+  /* Mobile menu - full-screen glass overlay, staggered reveal, scroll-locked */
   useGSAP(
     () => {
       const overlay = overlayRef.current;
@@ -216,7 +216,7 @@ export function Navbar() {
               </span>
             </Link>
 
-            {/* Hamburger — morphs to X */}
+            {/* Hamburger - morphs to X */}
             <motion.button
               type="button"
               whileTap={{ scale: 0.9 }}

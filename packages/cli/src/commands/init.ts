@@ -42,6 +42,6 @@ export const initCommand = new Command()
 
     console.log(`\nDevigner UI initialized!`);
     console.log(`\nNext steps:`);
-    console.log(`  1. Add a component: npx devignerui add button`);
+    console.log(`  1. Add a component: npx devignerui add magnetic-button`);
     console.log(`  2. List components:  npx devignerui list`);
   });

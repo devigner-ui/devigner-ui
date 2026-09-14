@@ -1,4 +1,4 @@
-# Devigner UI — Implementation Plan
+# Devigner UI - Implementation Plan
 
 ## 1. Product Overview
 
@@ -62,7 +62,7 @@
 
 ### Design Tokens (Tailwind CSS v4 @theme)
 
-Tailwind CSS-inspired — clean, developer-focused, content-first:
+Tailwind CSS-inspired - clean, developer-focused, content-first:
 
 ```
 Color palette:
@@ -101,7 +101,7 @@ Section 1: Hero
 - Subline: "Beautiful React components, built with Tailwind CSS"
 - Two buttons: "Get Started" / "Browse Components"
 - Code snippet preview (like tailwindcss.com homepage)
-- No animated background — clean white/dark with subtle grid
+- No animated background - clean white/dark with subtle grid
 
 Section 2: Component Grid
 - Grid of component thumbnails (like tailwindcss.com/plus/ui-blocks)

@@ -12,15 +12,4 @@ export const COMPONENT_CATEGORIES = {
   layout: "Layout",
 } as const;
 
-export const FREE_COMPONENTS = [
-  "button",
-  "card",
-  "input",
-  "badge",
-  "skeleton",
-  "separator",
-  "toggle",
-  "typography",
-  "container",
-  "avatar",
-];
+export const FREE_COMPONENTS = ["magnetic-button"];

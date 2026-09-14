@@ -1,4 +1,4 @@
-// Vermilion burst mark — the recurring brand glyph, lifted from remidevigner.pro.
+// Vermilion burst mark - the recurring brand glyph, lifted from remidevigner.pro.
 // Rays are rounded rects radiating from center; colored via currentColor.
 export function Starburst({
   className,

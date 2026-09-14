@@ -12,15 +12,14 @@ const COMMAND = "npx devignerui add card";
 
 const OUTPUT: { ok?: boolean; text: string }[] = [
   { ok: true, text: "components/ui/card.tsx" },
-  { ok: true, text: "lib/utils.ts" },
-  { ok: true, text: "installed clsx, tailwind-merge" },
+  { ok: true, text: "installed cn" },
   { text: "Done. The code is yours now, edit anything." },
 ];
 
 /**
  * Section pins while the install flow plays out, scrubbed to scroll:
  * the command types forward as you scroll down and untypes scrolling up.
- * Reduced motion: no pin, no hiding — the finished terminal just renders.
+ * Reduced motion: no pin, no hiding - the finished terminal just renders.
  */
 export function CliTerminal() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -50,7 +49,7 @@ export function CliTerminal() {
           },
         });
 
-        // Type the command — display toggles let the caret hug the last char.
+        // Type the command - display toggles let the caret hug the last char.
         tl.to(split.chars, {
           display: "inline-block",
           duration: 0.01,
@@ -105,7 +104,7 @@ export function CliTerminal() {
               </span>
             </div>
 
-            {/* Body — fixed height so typing never resizes the panel */}
+            {/* Body - fixed height so typing never resizes the panel */}
             <div className="h-56 px-5 py-4 font-mono text-[13px]/7 sm:h-60">
               <div className="text-terminal-foreground">
                 <span className="mr-2 select-none text-success">$</span>

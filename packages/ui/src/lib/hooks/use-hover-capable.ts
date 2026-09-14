@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/** True on pointers that can hover (mouse/trackpad) — false on touch. */
+/** True on pointers that can hover (mouse/trackpad) - false on touch. */
 export function useHoverCapable() {
   const [canHover, setCanHover] = useState(true);
 

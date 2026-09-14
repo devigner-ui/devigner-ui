@@ -13,7 +13,7 @@ export const lenisRef: { current: Lenis | null } = { current: null };
 /**
  * Replaces native scroll with Lenis, driven by GSAP's ticker so
  * ScrollTrigger and smooth scroll share one clock (no double-RAF drift).
- * Under prefers-reduced-motion Lenis never initializes — native scroll,
+ * Under prefers-reduced-motion Lenis never initializes - native scroll,
  * no smoothing, ScrollTriggers still fire at their end states.
  */
 export function SmoothScroll() {

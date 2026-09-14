@@ -5,14 +5,14 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { cn } from "@devignerui/ui/lib/utils";
+import { cn } from "cn";
 import { COMPONENT_PREVIEWS } from "./component-previews";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-// Grid-only layout concern — not shared with the hero carousel.
+// Grid-only layout concern - not shared with the hero carousel.
 const GRID_SPAN: Partial<Record<string, string>> = {
-  card: "md:col-span-2",
+  "magnetic-button": "md:col-span-3",
 };
 
 export function ComponentRange() {
@@ -20,7 +20,7 @@ export function ComponentRange() {
   const gridRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  /* Scrub-tied stagger — cards surface as the scroll physically arrives */
+  /* Scrub-tied stagger - cards surface as the scroll physically arrives */
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -65,8 +65,8 @@ export function ComponentRange() {
             <span className="text-accent">finished.</span>
           </h2>
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-text-secondary">
-            Buttons, cards, inputs, whole sections. Each ships as one complete,
-            polished component — copy it in and the code is yours.
+            One complete, polished component at a time - copy it in and the
+            code is yours.
           </p>
         </div>
 

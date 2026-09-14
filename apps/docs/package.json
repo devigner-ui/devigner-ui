@@ -10,10 +10,13 @@
     "clean": "node -e \"const fs=require('fs');if(fs.existsSync('.next'))fs.rmSync('.next',{recursive:true,force:true})\""
   },
   "dependencies": {
+    "@devigner-ui/icons": "^3.2.0",
     "@devignerui/shared": "workspace:*",
     "@devignerui/ui": "workspace:*",
     "@gsap/react": "^2.1.2",
     "@tailwindcss/postcss": "^4.3.1",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.2.6",
     "fumadocs-core": "^15.0.0",
     "fumadocs-mdx": "^14.2.0",
     "fumadocs-ui": "^15.0.0",

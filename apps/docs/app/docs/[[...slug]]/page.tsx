@@ -19,7 +19,7 @@ export default async function Page({
   if (!page) notFound();
 
   // `getPage()`'s generic inference doesn't carry the compiled-MDX fields
-  // (body/toc) through fumadocs-mdx 14.x's collection types — they exist at
+  // (body/toc) through fumadocs-mdx 14.x's collection types - they exist at
   // runtime (confirmed), just not surfaced on the inferred PageData type.
   const data = page.data as typeof page.data & DocData;
   const MDXContent = data.body;

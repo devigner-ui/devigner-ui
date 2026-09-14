@@ -12,7 +12,7 @@ const sizes = {
 /**
  * Icon button with fluid motion: springy press feedback, an active state
  * whose background scales in, and an optional `label` the button smoothly
- * expands to reveal while active (animated width, constant padding — no
+ * expands to reveal while active (animated width, constant padding - no
  * layout-animation jank). Pass `iconKey` when the icon glyph can change
  * (e.g. theme, copied) so the swap rotates through.
  */
@@ -38,14 +38,14 @@ export function IconButton({
   return (
     <motion.button
       type="button"
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.97 }}
       transition={SPRING_PRESS}
       className={`relative flex shrink-0 cursor-pointer items-center justify-center transition-colors duration-300 ${sizes[size].radius} ${
         hasLabel ? "h-9 px-[10.5px]" : sizes[size].dim
       } ${
         active
           ? "text-foreground"
-          : "text-text-muted hover:bg-foreground/10 hover:text-foreground"
+          : "text-foreground/70 bg-muted hover:text-foreground"
       } ${className}`}
       {...props}
     >
@@ -68,13 +68,15 @@ export function IconButton({
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
             exit={{ scale: 0.4, rotate: 90, opacity: 0 }}
             transition={SPRING_SWAP}
-            className="relative z-10 inline-flex"
+            className="relative z-10 inline-flex items-center"
           >
             {children}
           </motion.span>
         </AnimatePresence>
       ) : (
-        <span className="relative z-10 inline-flex">{children}</span>
+        <span className="relative z-10 inline-flex items-center">
+          {children}
+        </span>
       )}
       {hasLabel && (
         <motion.span

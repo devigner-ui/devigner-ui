@@ -45,14 +45,11 @@ export const addCommand = new Command()
         console.log(`📦 ${name}`);
         const component = await fetchComponent(name);
 
-        // Install the component's own file plus the shared cn() util.
-        for (const filePath of [component.file, "lib/utils.ts"]) {
-          const content = component.files[filePath];
-          if (content === undefined) {
-            console.log(`  ⚠ ${filePath} missing from registry, skipping`);
-            continue;
-          }
-          writeFile(filePath, content, basePath);
+        const content = component.files[component.file];
+        if (content === undefined) {
+          console.log(`  ⚠ ${component.file} missing from registry, skipping`);
+        } else {
+          writeFile(component.file, content, basePath);
         }
 
         if (component.dependencies.length > 0) {

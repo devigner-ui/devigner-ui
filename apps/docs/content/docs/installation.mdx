@@ -4,7 +4,7 @@ description: Set up the CLI, then add your first component.
 ---
 
 Devigner UI assumes a Tailwind CSS v4 + React project. There's no `npm install`
-of a component package in the primary flow — the CLI writes source files
+of a component package in the primary flow - the CLI writes source files
 directly into your project.
 
 ## 1. Initialize
@@ -14,7 +14,7 @@ npx devignerui init
 ```
 
 This creates a `components.json` config file and a `components/ui` directory
-(both configurable — see `--path`, `--css`, and `--tailwind` flags).
+(both configurable - see `--path`, `--css`, and `--tailwind` flags).
 
 ## 2. Add a component
 
@@ -22,9 +22,9 @@ This creates a `components.json` config file and a `components/ui` directory
 npx devignerui add button
 ```
 
-This writes the component's source file plus the shared `lib/utils.ts`
-(the `cn()` helper) into your project, and prints any npm dependencies it
-needs.
+This writes the component's source file into your project and prints any npm
+dependencies it needs (every component needs `cn`, which provides the `cn()`
+class-merging helper).
 
 ## 3. List what's available
 

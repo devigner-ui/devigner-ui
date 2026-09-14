@@ -86,3 +86,23 @@ export const defaultTransition: Transition = {
 };
 
 export const springTransition: Transition = SPRING_LAYOUT;
+
+/* ─── GSAP tween vars ─── */
+// GSAP takes plain tween vars, not motion transitions, so these stay separate
+// from the springs above. Every one carries overwrite: "auto" — without it an
+// in-flight follow tween reclaims x/y mid-release and the element snaps back.
+
+/** Pointer-follow pull. Short, so the release always wins the handoff. */
+export const GSAP_MAGNET = {
+  duration: 0.4,
+  ease: "power2.out",
+  overwrite: "auto",
+} as const;
+
+/** Release back to rest — overshoots once, the way a magnet lets go. */
+export const GSAP_MAGNET_RELEASE = {
+  duration: 0.7,
+  ease: "elastic.out(1, 0.4)",
+  overwrite: "auto",
+} as const;
+

@@ -1,4 +1,4 @@
-# `/docs` shell restyle — design
+# `/docs` shell restyle - design
 
 ## Problem
 
@@ -11,7 +11,7 @@ nav link back to `/` or `/components` from inside `/docs`.
 ## Goals
 
 - Make `/docs` look like part of the same product as `/` and `/components`, by reusing
-  existing design tokens — not building a parallel theme.
+  existing design tokens - not building a parallel theme.
 - Restore search and theme switching, wired to what already exists.
 - Fix the dead-end navigation between `/docs`, `/components`, and `/`.
 
@@ -28,7 +28,7 @@ nav link back to `/` or `/components` from inside `/docs`.
 
 Drop the `fumadocs-ui/css/neutral.css` import. Fumadocs' components are styled through
 `--color-fd-*` CSS variables (background/foreground/border/primary/secondary/accent/
-muted/popover/card/ring — see `fumadocs-ui/css/preset.css`). Map each one to the existing
+muted/popover/card/ring - see `fumadocs-ui/css/preset.css`). Map each one to the existing
 OKLCH variables already defined in `apps/docs/app/globals.css`:
 
 ```css
@@ -53,7 +53,7 @@ OKLCH variables already defined in `apps/docs/app/globals.css`:
 ```
 
 Also mirror the `--radius-*` and `--font-sans`/`--font-mono` definitions from
-`globals.css` into this file's `@theme` block — `docs.css` is its own isolated Tailwind
+`globals.css` into this file's `@theme` block - `docs.css` is its own isolated Tailwind
 v4 compilation root (per the existing comment at the top of the file), so it doesn't
 inherit `@theme` rules from `globals.css` automatically.
 
@@ -83,7 +83,7 @@ keeps working without touching `RootProvider`'s `theme.enabled: false`.
 
 ### 4. Content area polish (`apps/docs/app/docs/[[...slug]]/page.tsx`, `docs.css`)
 
-Keep Fumadocs' own `pre`/code MDX rendering — it's already server-rendered via Shiki at
+Keep Fumadocs' own `pre`/code MDX rendering - it's already server-rendered via Shiki at
 build time with a copy button built in, which is the right tool for static MDX (the
 client-side `components/code-block.tsx` exists for the *dynamic* snippets on
 `/components` and isn't a fit here). Only adjust `DocsBody` prose width/spacing in
@@ -91,9 +91,9 @@ client-side `components/code-block.tsx` exists for the *dynamic* snippets on
 
 ## Files touched
 
-- `apps/docs/app/docs/docs.css` — token bridge, radius/font mirroring, prose spacing
-- `apps/docs/app/docs/layout.tsx` — enable search/theme nav, add cross-site nav links
-- `apps/docs/app/api/search/route.ts` — new, Fumadocs static search endpoint
+- `apps/docs/app/docs/docs.css` - token bridge, radius/font mirroring, prose spacing
+- `apps/docs/app/docs/layout.tsx` - enable search/theme nav, add cross-site nav links
+- `apps/docs/app/api/search/route.ts` - new, Fumadocs static search endpoint
 
 ## Risks
 

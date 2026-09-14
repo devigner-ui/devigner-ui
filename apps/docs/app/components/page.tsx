@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ThemeToggle } from "../../components/theme-provider";
-import { Button } from "@devignerui/ui";
-import { Input } from "@devignerui/ui";
+import { Button } from "../../components/chrome/button";
+import { MagneticButton } from "@devignerui/ui";
+import { Input } from "../../components/chrome/input";
 import { components } from "@/lib/registry";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -88,7 +89,7 @@ function PreviewCard({
   return (
     <div className="flex flex-col gap-2.5">
       <div
-        className={`relative flex h-55 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background-200 p-6 transition-all duration-300 ease-out ${soon ? "opacity-60" : "group-hover:border-border-hover group-hover:bg-background-100 group-hover:shadow-elevated"} ${className ?? ""}`}
+        className={`relative flex h-55 items-center justify-center overflow-hidden rounded-2xl border border-border p-6 transition-all duration-300 ease-out ${soon ? "opacity-60" : "group-hover:border-border-hover group-hover:bg-background-100 group-hover:shadow-elevated"} ${className ?? ""}`}
       >
         {soon && (
           <span className="absolute right-2.5 top-2.5 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-text-muted">
@@ -110,6 +111,16 @@ function PreviewCard({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function MagneticButtonPreview() {
+  return (
+    <div className="flex items-center justify-center py-2">
+      <MagneticButton className="bg-linear-to-b from-brand to-brand-hover text-brand-foreground uppercase">
+        Hover me
+      </MagneticButton>
     </div>
   );
 }
@@ -689,6 +700,7 @@ const READY = new Set(Object.keys(components));
 const slugOf = (name: string) => name.toLowerCase().replace(/\s+/g, "-");
 
 const componentPreviews = [
+  { name: "Magnetic Button", component: <MagneticButtonPreview /> },
   { name: "Button", component: <ButtonPreview /> },
   { name: "Input", component: <InputPreview /> },
   { name: "Table", component: <TablePreview /> },

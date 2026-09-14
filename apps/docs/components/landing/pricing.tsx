@@ -5,8 +5,8 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Starburst } from "./starburst";
-import { Button } from "@devignerui/ui";
-import { cn } from "@devignerui/ui/lib/utils";
+import { Button } from "../chrome/button";
+import { cn } from "cn";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -153,7 +153,7 @@ export function Pricing() {
               </ul>
             </div>
 
-            {/* Lifetime — highlighted */}
+            {/* Lifetime - highlighted */}
             <div className="relative flex flex-col overflow-hidden p-8 sm:p-10">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_100%_0%,color-mix(in_oklab,var(--accent)_9%,transparent),transparent_60%)]" />
               <Starburst className="pointer-events-none absolute -right-8 -top-8 size-40 text-accent/[0.07]" />

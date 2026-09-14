@@ -40,5 +40,5 @@ export const listCommand = new Command()
     );
     console.log("");
     console.log("  Usage:");
-    console.log("    npx devignerui add button");
+    console.log("    npx devignerui add magnetic-button");
   });

@@ -10,8 +10,8 @@ const N = COMPONENT_PREVIEWS.length;
 // invisible), sweeps down through the focal center (biggest, closest,
 // fully opaque, slightly left-and-above true center), then sweeps out to
 // the right and dissolves. translate3d() percentages are relative to the
-// CARD'S OWN box (not the container), so — unlike a container-relative
-// layout — no container width/height ever needs to be measured; `left-1/2
+// CARD'S OWN box (not the container), so - unlike a container-relative
+// layout - no container width/height ever needs to be measured; `left-1/2
 // top-1/2` anchors every card to the same point and these offsets do the
 // rest. Values are authored off a real reverse-engineered reference
 // (tasteskill.dev's hero carousel), not a symmetric formula: the vertical
@@ -94,7 +94,7 @@ const pathPoint = (t: number): Waypoint =>
     ? crWaypoint(EXIT, SPAWN, FOCUS, EXIT, t / 0.5)
     : crWaypoint(SPAWN, FOCUS, EXIT, SPAWN, (t - 0.5) / 0.5);
 
-const AUTOPLAY_SPEED = 0.05; // laps/s — one full pass every ~20s
+const AUTOPLAY_SPEED = 0.05; // laps/s - one full pass every ~20s
 const DRAG_LAPS_PER_PX = 0.0016;
 
 export function HeroCarousel() {
@@ -129,7 +129,7 @@ export function HeroCarousel() {
         const w = pathPoint(t);
         el.style.transform = `translate3d(${w.x}%, ${w.y}%, ${w.z}px) rotateX(${w.rx}deg) rotateY(${w.ry}deg) scale(${w.scale})`;
         el.style.opacity = String(Math.max(0, w.opacity));
-        // Triangle wave peaking at t=0.5 — stacking order follows presence,
+        // Triangle wave peaking at t=0.5 - stacking order follows presence,
         // independent of the exact opacity/scale curve shape above.
         const front = 1 - Math.abs(t - 0.5) * 2;
         el.style.zIndex = String(Math.round(front * 100));

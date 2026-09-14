@@ -10,7 +10,7 @@
 
 **Reference spec:** `docs/superpowers/specs/2026-07-04-split-screen-component-details-design.md`
 
-**Verification note:** The docs app has no unit-test harness. Each task's check step is (a) `cd apps/docs && npx tsc --noEmit` clean, and (b) Playwright visual check via the running dev server. There is no `typecheck` npm script — call `tsc` directly. Do NOT scaffold a test framework.
+**Verification note:** The docs app has no unit-test harness. Each task's check step is (a) `cd apps/docs && npx tsc --noEmit` clean, and (b) Playwright visual check via the running dev server. There is no `typecheck` npm script - call `tsc` directly. Do NOT scaffold a test framework.
 
 ---
 
@@ -21,7 +21,7 @@ These blocks in the current file stay byte-for-byte; only their placement in JSX
 - Lines ~85–360: all preview subcomponents (`BtnDefault`…`HeroParallax`) and the `previews` render map.
 - `UTIL_CODE`, `depsFor()` helper.
 - `Reveal` component.
-- The `!slug` loading state and the `!meta || !currentStyle` 404 state JSX (reused verbatim, minus the `<Navbar />` line — see Task 1).
+- The `!slug` loading state and the `!meta || !currentStyle` 404 state JSX (reused verbatim, minus the `<Navbar />` line - see Task 1).
 - `navGroups`, `categoryLabel`, install-command / deps derivation.
 
 Removed entirely: the `Navbar` component, `activeSection` state, the `toc` array, the IntersectionObserver scroll-spy `useEffect`, the right-hand "On this page" `<aside>`, the `view` state (replaced by `showCode`).
@@ -49,14 +49,14 @@ In the loading + 404 returns, remove the `<Navbar />` line (keep everything else
 
 - [ ] **Step 2: Replace the main return's outer structure**
 
-Replace the entire final `return ( ... )` of `ComponentPageInner` (the `<div className="min-h-dvh bg-background">…</footer></div>`) with the split shell below. It references two helpers added in later tasks — for THIS task, inline the stage as a plain centered preview and stub the edge nav as an empty fragment so it compiles:
+Replace the entire final `return ( ... )` of `ComponentPageInner` (the `<div className="min-h-dvh bg-background">…</footer></div>`) with the split shell below. It references two helpers added in later tasks - for THIS task, inline the stage as a plain centered preview and stub the edge nav as an empty fragment so it compiles:
 
 ```tsx
 return (
   <div className="relative bg-background lg:h-dvh lg:overflow-hidden">
     <div className="grain-overlay" />
 
-    {/* Edge nav — implemented in Task 3; placeholder keeps layout stable */}
+    {/* Edge nav - implemented in Task 3; placeholder keeps layout stable */}
     <EdgeNav navGroups={navGroups} activeSlug={slug} />
 
     <div className="flex flex-col lg:h-dvh lg:flex-row">
@@ -134,20 +134,20 @@ return (
             </div>
           )}
 
-          {/* Installation — keep existing block verbatim */}
+          {/* Installation - keep existing block verbatim */}
           <section id="installation" className="mt-14">
             {/* PASTE the existing Installation <section> inner content here
                 (the <h2>Installation</h2> through the manual-install steps),
                 unchanged except: remove `scroll-mt-28` from the section. */}
           </section>
 
-          {/* Props — keep existing table, restyled heading */}
+          {/* Props - keep existing table, restyled heading */}
           <section id="props" className="mt-14">
             {/* PASTE the existing Props <section> inner content here,
                 unchanged except: remove `scroll-mt-28`. */}
           </section>
 
-          {/* Notes — slot only; renders nothing until data exists */}
+          {/* Notes - slot only; renders nothing until data exists */}
           {Array.isArray((meta as { notes?: string[] }).notes) &&
             (meta as { notes?: string[] }).notes!.length > 0 && (
               <section className="mt-14">
@@ -272,7 +272,7 @@ git commit -m "feat: split-screen shell + left docs column for component page"
 
 ---
 
-## Task 2: Right stage — toolbar, code drawer, reset, fullscreen
+## Task 2: Right stage - toolbar, code drawer, reset, fullscreen
 
 Replace the `Stage`, `PreviewCard`, and `FullscreenStage` stubs with real implementations sharing one `StageToolbar`.
 
@@ -523,7 +523,7 @@ Wrap the Task-1 `{fullscreen && <FullscreenStage … />}` in `<AnimatePresence>`
 - [ ] **Step 2: Typecheck**
 
 Run: `cd apps/docs && npx tsc --noEmit`
-Expected: no errors. (If `ThemeToggle` renders a `<button>` that visually clashes in the pill, that is fine for now — sizing handled by its own styles.)
+Expected: no errors. (If `ThemeToggle` renders a `<button>` that visually clashes in the pill, that is fine for now - sizing handled by its own styles.)
 
 - [ ] **Step 3: Visual check**
 
@@ -641,7 +641,7 @@ git commit -m "feat: fade-on-hover edge nav"
 
 - [ ] **Step 1: Confirm removed code is gone**
 
-Grep the file — each must return nothing:
+Grep the file - each must return nothing:
 
 ```bash
 cd apps/docs && grep -nE "IntersectionObserver|activeSection|On this page|function Navbar|setView\(" app/components/\[slug\]/page.tsx

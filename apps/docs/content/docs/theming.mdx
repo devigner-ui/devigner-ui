@@ -20,7 +20,7 @@ via the CLI render correctly in both light and dark mode with zero extra work.
 | Shadow | `--shadow-card`, `--shadow-subtle`, `--shadow-elevated` | Elevation |
 
 Component source should always use the Tailwind utility for the semantic name
-(`bg-background`, `text-foreground`, `border-border`, `shadow-card`) — never a
+(`bg-background`, `text-foreground`, `border-border`, `shadow-card`) - never a
 literal like `bg-white` or an inline `shadow-[...]` value, since those don't
 adapt to dark mode.
 
@@ -29,14 +29,14 @@ adapt to dark mode.
 Dark mode is a single `.dark` class applied to `<html>`. Theme preference is
 read from `localStorage` (or `prefers-color-scheme` on first visit) by an
 inline script that runs before paint, so there's no flash of the wrong theme.
-Every token above has a corresponding value scoped under `.dark` — you don't
+Every token above has a corresponding value scoped under `.dark` - you don't
 need to write `dark:` variants in component source for colors that already
 come from these tokens.
 
 ## Overriding tokens in your project
 
 Because every token is a CSS custom property, you can override any of them in
-your own global stylesheet after installing a component — no rebuild of the
+your own global stylesheet after installing a component - no rebuild of the
 component itself required:
 
 ```css

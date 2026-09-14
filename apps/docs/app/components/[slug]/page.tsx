@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { Button } from "@devignerui/ui";
-import { CopyButton } from "../../../components/copy-button";
+import { MagneticButton } from "@devignerui/ui";
 import { CodeBlock } from "../../../components/code-block";
 import { IconButton } from "../../../components/icon-button";
+import { RangeSlider } from "../../../components/range-slider";
 import { useTheme } from "../../../components/theme-provider";
 import { components } from "@/lib/registry";
 import { COMPONENT_CATEGORIES } from "@devignerui/shared";
@@ -15,130 +15,229 @@ import {
   SPRING_PRESS,
   SPRING_PANEL,
   SPRING_LAYOUT,
-  SPRING_SWAP,
 } from "@devignerui/ui/lib/animations";
-
+import {
+  IconCode,
+  IconMaximize,
+  IconMinimize,
+  IconMoon,
+  IconRestart,
+  IconSettings,
+  IconSun2,
+} from "@devigner-ui/icons";
+import { cn } from "cn";
 const categoryLabel = (key: string) =>
   COMPONENT_CATEGORIES[key as keyof typeof COMPONENT_CATEGORIES] ?? key;
 
-function Reveal({
-  children,
-  className,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 20, filter: "blur(4px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.7, delay, ease: EASE_OUT }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+/** Bare npm packages the copy-paste source imports - the manual install's step 1. */
+const npmDeps = (code: string) =>
+  Array.from(
+    new Set(
+      [...code.matchAll(/ from "([^".][^"]*)"/g)]
+        .map(([, spec]) =>
+          spec.startsWith("@")
+            ? spec.split("/").slice(0, 2).join("/")
+            : spec.split("/")[0],
+        )
+        .filter((pkg) => pkg !== "react"),
+    ),
   );
-}
 
 /* ─── Live previews (one per component) ─── */
 
-function BtnDefault() {
-  return (
-    <div className="flex flex-wrap items-center justify-center gap-3">
-      <Button>Button</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="secondary">Secondary</Button>
-    </div>
-  );
-}
-
-function CardDefault() {
-  return (
-    <div className="w-full max-w-70 rounded-2xl border border-border bg-background shadow-card">
-      <div className="flex flex-col space-y-1.5 p-6">
-        <div className="text-lg font-semibold tracking-tight text-foreground">
-          Project Atlas
-        </div>
-        <p className="text-[13px] leading-relaxed text-text-muted">
-          Deployed to production two hours ago. All checks passing.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function InpDefault() {
-  return (
-    <input
-      placeholder="you@example.com"
-      className="flex h-10 w-full max-w-65 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    />
-  );
-}
-
-function BadgeDefault() {
-  return (
-    <div className="flex flex-wrap items-center justify-center gap-2">
-      <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
-        Default
-      </span>
-      <span className="inline-flex items-center rounded-full bg-surface px-2.5 py-0.5 text-xs font-medium text-foreground">
-        Secondary
-      </span>
-      <span className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-foreground">
-        Outline
-      </span>
-    </div>
-  );
-}
-
-function HeroDefault() {
-  return (
-    <div className="text-center">
-      <div className="text-2xl/tight font-semibold tracking-tight text-foreground">
-        Build faster.
-      </div>
-      <p className="mx-auto mt-2 max-w-65 text-[13px] leading-relaxed text-text-secondary">
-        A clean hero with animated text reveal and a clear primary action.
-      </p>
-      <div className="mt-4 flex justify-center gap-2">
-        <button className="h-9 rounded-lg bg-foreground px-4 text-[13px] font-medium text-background active:scale-[0.98]">
-          Get started
-        </button>
-        <button className="h-9 rounded-lg border border-border px-4 text-[13px] font-medium text-foreground active:scale-[0.98]">
-          Learn more
-        </button>
-      </div>
-    </div>
-  );
-}
-
-const previews: Record<string, React.ReactNode> = {
-  button: <BtnDefault />,
-  card: <CardDefault />,
-  input: <InpDefault />,
-  badge: <BadgeDefault />,
-  "hero-section": <HeroDefault />,
+const MAGNETIC_DEFAULTS = {
+  strength: 3,
+  labelStrength: 4,
+  field: 40,
+  tilt: 15,
 };
+type MagneticConfig = typeof MAGNETIC_DEFAULTS;
 
-const UTIL_CODE = `import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+const MAGNETIC_KNOBS: {
+  key: keyof MagneticConfig;
+  min: number;
+  max: number;
+  step: number;
+  hint: string;
+}[] = [
+  { key: "strength", min: 0, max: 10, step: 0.5, hint: "pill travel" },
+  { key: "labelStrength", min: 0, max: 6, step: 0.5, hint: "label travel" },
+  { key: "field", min: 0, max: 100, step: 4, hint: "px" },
+  { key: "tilt", min: 0, max: 45, step: 1, hint: "deg" },
+];
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+/** The Usage section's snippet, written from whatever the knobs currently say
+ *  - copying it gives you the button you are looking at, not a fixed example. */
+const magneticUsage = (
+  c: MagneticConfig,
+) => `import { MagneticButton } from "@/components/ui/magnetic-button";
+
+export function Example() {
+  return (
+    <MagneticButton
+      strength={${c.strength}}
+      labelStrength={${c.labelStrength}}
+      field={${c.field}}
+      tilt={${c.tilt}}
+      className="bg-linear-to-b from-brand-secondary to-brand text-brand-foreground uppercase"
+    >
+      Get started
+    </MagneticButton>
+  );
 }`;
 
-/** npm install line for the manual install, derived from what the source imports. */
-function depsFor(code: string) {
-  const pkgs = ["clsx", "tailwind-merge"];
-  if (code.includes("class-variance-authority"))
-    pkgs.push("class-variance-authority");
-  if (code.includes("motion/react")) pkgs.push("motion");
-  return `npm i ${pkgs.join(" ")}`;
+function Knob({
+  name,
+  hint,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  name: string;
+  hint: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-2 font-mono text-[11px]">
+        <span className="text-foreground/60">{name}</span>
+        <span className="tabular-nums text-foreground/70">
+          {/* Stepping by 0.05 lands on 0.35000000000000003 - round for display
+              only, so the value handed to the component stays exact. */}
+          {+value.toFixed(2)} <span className="text-foreground/30">{hint}</span>
+        </span>
+      </div>
+      <RangeSlider
+        aria-label={name}
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        showTicks={false}
+        onValueChange={onChange}
+        className="h-7"
+      />
+    </div>
+  );
+}
+
+/** Props dropdown, pinned to the stage's top-right corner. */
+function ConfigMenu({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: globalThis.PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      className="absolute right-4 top-4 z-30 flex flex-col items-end gap-2"
+    >
+      <IconButton
+        active={open}
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Configure props"
+        aria-expanded={open}
+        title="Props"
+      >
+        <IconSettings className="size-5" variant={open ? "Bulk" : "Outline"} />
+      </IconButton>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={SPRING_PANEL}
+            className="w-64 origin-top-right rounded-2xl border border-border/60 bg-background/80 p-3 backdrop-blur-xl"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** Live prop playground. The config is the page's, not its own: the Usage
+ *  section renders from the same state, so the snippet tracks the knobs. */
+function MagneticPlayground({
+  cfg,
+  setCfg,
+}: {
+  cfg: MagneticConfig;
+  setCfg: React.Dispatch<React.SetStateAction<MagneticConfig>>;
+}) {
+  const [showField, setShowField] = useState(true);
+
+  return (
+    // Fills the stage so the config button can sit in its top-right corner
+    // while the button itself stays centred.
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="relative inline-flex">
+        {/* The field is padding cancelled by margin, so the button's own box is
+            just the pill - a negative inset of `field` traces the real edge of
+            the pull without adding any layout of its own. */}
+        <span
+          aria-hidden
+          style={{ inset: -cfg.field }}
+          className={`pointer-events-none absolute rounded-full border border-dashed transition-colors duration-200 ${
+            showField ? "border-primary/15" : "border-transparent"
+          }`}
+        />
+        <MagneticButton
+          {...cfg}
+          className="bg-linear-to-b from-brand-hover to-brand text-brand-foreground uppercase"
+        >
+          Get started
+        </MagneticButton>
+      </div>
+
+      <ConfigMenu>
+        <div className="flex flex-col gap-3">
+          {MAGNETIC_KNOBS.map((k) => (
+            <Knob
+              key={k.key}
+              name={k.key}
+              hint={k.hint}
+              min={k.min}
+              max={k.max}
+              step={k.step}
+              value={cfg[k.key]}
+              onChange={(v) => setCfg((c) => ({ ...c, [k.key]: v }))}
+            />
+          ))}
+          <label className="flex items-center gap-2 font-mono text-[11px] text-foreground/60">
+            <input
+              type="checkbox"
+              checked={showField}
+              onChange={(e) => setShowField(e.target.checked)}
+              className="accent-primary"
+            />
+            show field
+          </label>
+        </div>
+      </ConfigMenu>
+    </div>
+  );
 }
 
 const dotGrid: React.CSSProperties = {
@@ -149,10 +248,6 @@ const dotGrid: React.CSSProperties = {
 /* ─── Icons (15px stroke icons, lucide paths) ─── */
 
 const icon = {
-  reset: <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />,
-  code: <path d="m18 16 4-4-4-4M6 8l-4 4 4 4m8.5-12-5 16" />,
-  fullscreen: <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />,
-  minimize: <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />,
   copy: (
     <>
       <rect width="14" height="14" x="8" y="8" rx="2" />
@@ -163,13 +258,6 @@ const icon = {
   download: (
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
   ),
-  sun: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-    </>
-  ),
-  moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
   sidebar: (
     <>
       <rect width="18" height="18" x="3" y="3" rx="5" />
@@ -178,7 +266,7 @@ const icon = {
   ),
 } as const;
 
-function Icon({ d, size = 15 }: { d: React.ReactNode; size?: number }) {
+function Icon({ d, size = 18 }: { d: React.ReactNode; size?: number }) {
   return (
     <svg
       width={size}
@@ -232,7 +320,11 @@ function PillToolbar({
         aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen preview"}
         title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       >
-        <Icon d={isFullscreen ? icon.minimize : icon.fullscreen} />
+        {isFullscreen ? (
+          <IconMinimize className="size-4" />
+        ) : (
+          <IconMaximize className="size-4" />
+        )}
       </IconButton>
       <IconButton
         onClick={() => {
@@ -246,10 +338,10 @@ function PillToolbar({
           key={resetSpins}
           className="inline-flex"
           initial={{ rotate: 0 }}
-          animate={{ rotate: reduce ? 0 : -360 }}
-          transition={{ duration: 0.5, ease: EASE_OUT }}
+          animate={{ rotate: reduce ? 0 : 360 }}
+          transition={{ duration: 1, ease: EASE_OUT }}
         >
-          <Icon d={icon.reset} />
+          <IconRestart className="size-4" />
         </motion.span>
       </IconButton>
       <IconButton
@@ -258,35 +350,64 @@ function PillToolbar({
         aria-label="Toggle theme"
         title="Theme"
       >
-        <Icon d={theme === "dark" ? icon.sun : icon.moon} />
+        {theme === "dark" ? (
+          <IconSun2 className="size-4" />
+        ) : (
+          <IconMoon className="size-4" />
+        )}
       </IconButton>
       <IconButton
         active={showCode}
-        label="Example Usage"
+        label="Source Code"
         onClick={() => setShowCode(!showCode)}
         aria-label="Toggle code"
         aria-pressed={showCode}
         title="View code"
       >
-        <Icon d={icon.code} />
+        <IconCode className="size-4" />
       </IconButton>
     </div>
   );
 }
 
-function IconCopy({ code }: { code: string }) {
+/** Copy-to-clipboard in the toolbar's icon style. Pass `text` for the labelled
+ *  variant - it drops the icon's rotate-swap, which would spin the word too. */
+function IconCopy({ code, text }: { code: string; text?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <IconButton
       size="sm"
-      iconKey={copied ? "check" : "copy"}
+      iconKey={text ? undefined : copied ? "check" : "copy"}
       onClick={async () => {
         await navigator.clipboard.writeText(code);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
       aria-label="Copy code"
+      // Locked while the check shows, so a second click can't re-arm the
+      // timeout and leave the button stuck confirming.
+      disabled={copied}
+      className={cn(
+        "text-foreground/60! hover:text-foreground! disabled:cursor-default",
+        text
+          ? copied
+            ? "h-7 w-auto! pl-3 pr-2 rounded-full!"
+            : "h-7 w-auto! pl-2 pr-3 rounded-full!"
+          : "",
+      )}
     >
+      {text && (
+        // Both words stack in one grid cell, so the box is always as wide as
+        // the longer of them and the button never resizes mid-copy.
+        <span className="mr-1 grid justify-items-center text-center text-xs font-medium">
+          <span aria-hidden className="invisible col-start-1 row-start-1">
+            {copied ? text : "Copied"}
+          </span>
+          <span className="col-start-1 row-start-1">
+            {copied ? "Copied" : text}
+          </span>
+        </span>
+      )}
       <Icon d={copied ? icon.check : icon.copy} size={13} />
     </IconButton>
   );
@@ -315,24 +436,137 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
   );
 }
 
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
+
+/** Height changes follow the pointer 1:1 while dragging - a spring here would
+ *  trail the cursor and feel like lag. */
+const INSTANT = { duration: 0 } as const;
+
+/** Height of the resize grip between stage and drawer (`h-2`). */
+const HANDLE_H = 8;
+
+/** Floor for the stage so its preview never clips: the tallest preview box
+ *  (a pill inside its 40px magnet field) centred, with the floating toolbar
+ *  clearing it top and bottom, plus breathing room. Previews mount as
+ *  `absolute inset-0` fillers, so nothing here is measurable from the stage -
+ *  ponytail: one constant beats a ref that reads 0. Raise it if a preview
+ *  outgrows it. */
+const STAGE_MIN = 280;
+
+/** The gap between stage and drawer, doubling as the drag grip. */
+function ResizeHandle({
+  disabled,
+  dragging,
+  pct,
+  onStart,
+  onMove,
+  onEnd,
+  onNudge,
+}: {
+  disabled: boolean;
+  dragging: boolean;
+  pct: number;
+  onStart: () => void;
+  onMove: (clientY: number) => void;
+  onEnd: () => void;
+  onNudge: (delta: number) => void;
+}) {
+  return (
+    <div
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Resize code panel"
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={15}
+      aria-valuemax={85}
+      tabIndex={disabled ? -1 : 0}
+      className={`group relative z-20 flex h-2 shrink-0 touch-none items-center justify-center outline-none ${
+        disabled ? "pointer-events-none" : "cursor-ns-resize"
+      }`}
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        onStart();
+      }}
+      onPointerMove={(e) => dragging && onMove(e.clientY)}
+      onPointerUp={onEnd}
+      onPointerCancel={onEnd}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowUp") onNudge(5);
+        else if (e.key === "ArrowDown") onNudge(-5);
+        else return;
+        e.preventDefault();
+      }}
+    >
+      {/* Padded hit area - 8px of gap is too thin to grab reliably. */}
+      <span className="absolute inset-x-0 -inset-y-1.5" />
+      <span
+        className={`pointer-events-none relative flex gap-1 transition-opacity ${
+          disabled ? "opacity-0" : dragging ? "opacity-100" : "opacity-40"
+        } group-hover:opacity-100 group-focus-visible:opacity-100`}
+      >
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="size-1 rounded-full bg-text-muted" />
+        ))}
+      </span>
+    </div>
+  );
+}
+
 /** Desktop right panel: floating stage card + code drawer that expands below it.
  * In fullscreen the same element goes `fixed inset-0` and Motion's layout
- * animation morphs it there — no separate overlay. */
+ * animation morphs it there - no separate overlay. */
 function StagePanel(props: StageProps) {
+  const colRef = useRef<HTMLDivElement>(null);
+  // The drawer owns a percentage of the column; the stage flexes into the rest,
+  // so shrinking one always hands the space straight to the other.
+  const [codePct, setCodePct] = useState(46);
+  const [dragging, setDragging] = useState(false);
+  /** Column content box - the drawer's % height resolves against it, so the
+   *  column's own padding has to come off both ends or the grip drifts from
+   *  the cursor. */
+  const columnBox = () => {
+    const el = colRef.current;
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const bottom = parseFloat(cs.paddingBottom);
+    return {
+      bottom: r.bottom - bottom,
+      height: r.height - parseFloat(cs.paddingTop) - bottom,
+    };
+  };
+
+  /** How far the drawer may grow before the stage starts clipping. */
+  const maxPct = (columnHeight: number) =>
+    Math.max(15, ((columnHeight - HANDLE_H - STAGE_MIN) / columnHeight) * 100);
+
+  const setPct = (
+    pctFor: (box: { bottom: number; height: number }) => number,
+  ) => {
+    const box = columnBox();
+    if (!box) return;
+    setCodePct(clamp(pctFor(box), 15, maxPct(box.height)));
+  };
+
+  const resize = (clientY: number) =>
+    setPct((box) => ((box.bottom - clientY) / box.height) * 100);
+
   return (
     <motion.div
+      ref={colRef}
       layout
       transition={SPRING_LAYOUT}
-      className={
+      className={`${
         props.isFullscreen
-          ? "fixed inset-0 z-100 flex flex-col gap-2 bg-background p-3"
-          : "flex h-full flex-col gap-2 p-3 pl-0"
-      }
+          ? "fixed inset-0 z-100 flex flex-col bg-background p-3"
+          : "flex h-full flex-col p-3 pl-0"
+      } ${dragging ? "cursor-ns-resize select-none" : ""}`}
     >
       <motion.div
         layout
-        transition={SPRING_LAYOUT}
-        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-surface"
+        transition={dragging ? INSTANT : SPRING_LAYOUT}
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-surface2 py-6"
         // style={dotGrid}
       >
         <div key={props.previewKey}>
@@ -346,14 +580,23 @@ function StagePanel(props: StageProps) {
           <PillToolbar {...props} />
         </div>
       </motion.div>
+      <ResizeHandle
+        disabled={!props.showCode}
+        dragging={dragging}
+        pct={codePct}
+        onStart={() => setDragging(true)}
+        onMove={resize}
+        onEnd={() => setDragging(false)}
+        onNudge={(d) => setPct(() => codePct + d)}
+      />
       <motion.div
         initial={false}
         animate={{
-          height: props.showCode ? "46%" : 0,
+          height: props.showCode ? `${codePct}%` : 0,
           opacity: props.showCode ? 1 : 0,
         }}
-        transition={SPRING_PANEL}
-        className="shrink-0 overflow-hidden rounded-2xl bg-surface"
+        transition={dragging ? INSTANT : SPRING_PANEL}
+        className="shrink-0 overflow-hidden rounded-2xl bg-surface2"
         aria-hidden={!props.showCode}
       >
         <div className="flex h-full flex-col">
@@ -427,37 +670,32 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function TreeRow({
-  name,
-  file,
-  accent,
-}: {
-  name: string;
-  file?: boolean;
-  accent?: boolean;
-}) {
+function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className={`flex items-center gap-2 p-2 ${accent ? "text-primary" : "text-foreground"}`}
-    >
-      <span className="inline-flex shrink-0 text-text-muted">
-        {file ? (
-          <Icon
-            size={15}
-            d={
-              <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4" />
-            }
-          />
-        ) : (
-          <Icon
-            size={15}
-            d={
-              <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-            }
-          />
-        )}
-      </span>
-      <span className="text-sm">{name}</span>
+    <code className="rounded-md bg-surface px-1.5 py-0.5 font-mono text-[13px] text-foreground/70">
+      {children}
+    </code>
+  );
+}
+
+function StepLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="mt-8 mb-4 text-xs tracking-[0.18em] text-foreground/35 uppercase">
+      {children}
+    </h3>
+  );
+}
+
+/** A single shell command with its copy button. */
+function CommandRow({ command }: { command: string }) {
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-border/60 p-1.5">
+      <div className="flex items-center justify-between gap-2 rounded-lg bg-surface2 px-4 py-3 font-mono text-[13px] text-text-secondary">
+        <span className="truncate">
+          <span className="text-text-muted">$</span> {command}
+        </span>
+        <IconCopy code={command} />
+      </div>
     </div>
   );
 }
@@ -699,9 +937,9 @@ export default function ComponentPage({
 function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState<string>("");
   const [showCode, setShowCode] = useState(false);
-  const [installTab, setInstallTab] = useState<"cli" | "manual">("cli");
   const [fullscreen, setFullscreen] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
+  const [cfg, setCfg] = useState<MagneticConfig>(MAGNETIC_DEFAULTS);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen((v) => !v);
@@ -760,11 +998,14 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
     );
   }
 
-  const preview = previews[slug];
+  const isMagnetic = slug === "magnetic-button";
+  const preview = isMagnetic ? (
+    <MagneticPlayground cfg={cfg} setCfg={setCfg} />
+  ) : undefined;
   const props = meta.props;
-  const usage = meta.usage;
-  const deps = depsFor(meta.code);
+  const usage = isMagnetic ? magneticUsage(cfg) : meta.usage;
   const installCmd = `npx devignerui add ${slug}`;
+  const deps = npmDeps(meta.code);
   const fileName = `${slug}.tsx`;
 
   const stageProps: StageProps = {
@@ -774,7 +1015,10 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
     fileName,
     showCode,
     setShowCode,
-    onReset: () => setPreviewKey((k) => k + 1),
+    onReset: () => {
+      setPreviewKey((k) => k + 1);
+      setCfg(MAGNETIC_DEFAULTS);
+    },
     onFullscreen: () => setFullscreen((v) => !v),
     isFullscreen: fullscreen,
   };
@@ -844,7 +1088,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                 <PreviewCard {...stageProps} />
               </div>
 
-              <Reveal className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <h1 className="text-3xl tracking-tighter text-foreground sm:text-4xl md:text-5xl">
                   {meta.name}
                 </h1>
@@ -854,157 +1098,72 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                 <p className="text-sm text-foreground/35">
                   {categoryLabel(meta.category)}
                 </p>
-              </Reveal>
+              </div>
 
               <section id="installation" className="mt-6">
                 <SectionTitle>Installation</SectionTitle>
 
-                <div className="w-full overflow-hidden rounded-xl border border-border/60">
-                  <div className="flex h-10 items-center border-b border-border/50 px-3">
-                    <div className="flex items-center gap-0.5" role="tablist">
-                      {(["cli", "manual"] as const).map((tab) => (
-                        <button
-                          key={tab}
-                          role="tab"
-                          data-state={
-                            installTab === tab ? "active" : "inactive"
-                          }
-                          onClick={() => setInstallTab(tab)}
-                          className={`relative h-7 rounded-md px-3 text-sm transition-colors ${
-                            installTab === tab
-                              ? "text-foreground"
-                              : "text-text-muted hover:text-foreground"
-                          }`}
-                        >
-                          {installTab === tab && (
-                            <motion.span
-                              layoutId="install-tab"
-                              transition={SPRING_LAYOUT}
-                              className="absolute inset-0 rounded-md bg-surface-hover"
-                            />
-                          )}
-                          <span className="relative z-10 uppercase">{tab}</span>
-                        </button>
+                <StepLabel>Requirements</StepLabel>
+                <ul className="flex list-disc flex-col gap-2 pl-5 text-sm/relaxed text-foreground/50 marker:text-foreground/30">
+                  <li>React 18+ with Tailwind CSS v4.</li>
+                  <li>
+                    A <InlineCode>components.json</InlineCode> at the project
+                    root - <InlineCode>npx devignerui init</InlineCode> writes
+                    one and creates <InlineCode>components/ui</InlineCode>.
+                  </li>
+                  {deps.length > 0 && (
+                    <li>
+                      npm packages:{" "}
+                      {deps.map((dep, i) => (
+                        <span key={dep}>
+                          {i > 0 && ", "}
+                          <InlineCode>{dep}</InlineCode>
+                        </span>
                       ))}
-                    </div>
-                  </div>
+                      .
+                    </li>
+                  )}
+                </ul>
 
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {installTab === "cli" ? (
-                      <motion.div
-                        key="cli"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={SPRING_SWAP}
-                        className="p-1.5"
-                      >
-                        <div className="flex items-center justify-between gap-2 rounded-lg bg-(--code-bg) px-4 py-3 font-mono text-[13px] text-text-secondary">
-                          <span className="truncate">
-                            <span className="text-text-muted">$</span>{" "}
-                            {installCmd}
-                          </span>
-                          <IconCopy code={installCmd} />
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="manual"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={SPRING_SWAP}
-                        className="space-y-8 p-4"
-                      >
-                        {/* 1 · dependencies */}
-                        <div className="relative border-l border-border pl-6">
-                          <span className="absolute -left-0.75 top-1 h-4 w-1.5 rounded-full bg-text-muted/60" />
-                          <h3 className="text-sm font-semibold text-foreground">
-                            Install dependencies
-                          </h3>
-                          <div className="relative mt-3 overflow-hidden rounded-xl border border-border bg-background-200">
-                            <div className="absolute right-2 top-2 z-10">
-                              <CopyButton
-                                code={deps}
-                                componentName={`deps-${slug}`}
-                              />
-                            </div>
-                            <CodeBlock code={deps} lang="bash" numbered />
-                          </div>
-                        </div>
+                <StepLabel>With the CLI</StepLabel>
+                <CommandRow command={installCmd} />
+                <p className="mt-3 text-sm/relaxed text-foreground/40">
+                  Writes <InlineCode>components/ui/{fileName}</InlineCode> into
+                  your project and prints the dependencies it needs.
+                </p>
 
-                        {/* 2 · util file */}
-                        <div className="relative border-l border-border pl-6">
-                          <span className="absolute -left-0.75 top-1 h-4 w-1.5 rounded-full bg-text-muted/60" />
-                          <h3 className="text-sm font-semibold text-foreground">
-                            Add util file
-                          </h3>
-                          <div className="mt-3 inline-flex rounded-lg border border-border bg-background-200 px-3 py-1 font-mono text-xs text-text-secondary">
-                            lib/utils.ts
-                          </div>
-                          <div className="relative mt-2 overflow-hidden rounded-xl border border-border bg-background-200">
-                            <div className="absolute right-2 top-2 z-10">
-                              <CopyButton
-                                code={UTIL_CODE}
-                                componentName="util-cn"
-                              />
-                            </div>
-                            <CodeBlock code={UTIL_CODE} lang="ts" numbered />
-                          </div>
-                        </div>
-
-                        {/* 3 · source code */}
-                        <div className="relative border-l border-border pl-6">
-                          <span className="absolute -left-0.75 top-1 h-4 w-1.5 rounded-full bg-text-muted/60" />
-                          <h3 className="text-sm font-semibold text-foreground">
-                            Copy the source code
-                          </h3>
-                          <div className="mt-3 inline-flex rounded-lg border border-border bg-background-200 px-3 py-1 font-mono text-xs text-text-secondary">
-                            components/ui/{fileName}
-                          </div>
-                          <div className="relative mt-2 overflow-hidden rounded-xl border border-border bg-background-200">
-                            <div className="absolute right-2 top-2 z-10">
-                              <CopyButton
-                                code={meta.code}
-                                componentName={`src-${slug}`}
-                              />
-                            </div>
-                            <CodeBlock
-                              code={meta.code}
-                              lang="tsx"
-                              numbered
-                              expandable
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </section>
-
-              <section id="file-structure">
-                <SectionTitle>File Structure</SectionTitle>
-                <div className="overflow-hidden rounded-xl border border-border/60 p-2">
-                  <TreeRow name="your-project" />
-                  <div className="relative ml-6 before:absolute before:-left-2 before:inset-y-0 before:w-px before:bg-border">
-                    <TreeRow name="components/ui" />
-                    <div className="relative ml-6 before:absolute before:-left-2 before:inset-y-0 before:w-px before:bg-border">
-                      <TreeRow name={fileName} file accent />
-                    </div>
-                    <TreeRow name="lib" />
-                    <div className="relative ml-6 before:absolute before:-left-2 before:inset-y-0 before:w-px before:bg-border">
-                      <TreeRow name="utils.ts" file />
-                    </div>
-                  </div>
-                </div>
+                <StepLabel>Manually</StepLabel>
+                <ol className="flex list-decimal flex-col gap-6 pl-5 marker:text-sm marker:text-foreground/30">
+                  {deps.length > 0 && (
+                    <li>
+                      <p className="mb-3 text-sm/relaxed text-foreground/50">
+                        Install the dependencies.
+                      </p>
+                      <CommandRow command={`npm i ${deps.join(" ")}`} />
+                    </li>
+                  )}
+                  <li>
+                    <p className="text-sm/relaxed text-foreground/50">
+                      Create <InlineCode>components/ui/{fileName}</InlineCode>{" "}
+                      and paste the source from the preview's{" "}
+                      <InlineCode>Source Code</InlineCode> panel.
+                    </p>
+                  </li>
+                  <li>
+                    <p className="text-sm/relaxed text-foreground/50">
+                      Import it from{" "}
+                      <InlineCode>@/components/ui/{slug}</InlineCode> - see
+                      Usage below.
+                    </p>
+                  </li>
+                </ol>
               </section>
 
               <section id="usage">
                 <SectionTitle>Usage</SectionTitle>
                 <figure className="relative overflow-hidden rounded-xl border border-border/60">
                   <div className="absolute right-2 top-2 z-10">
-                    <CopyButton code={usage} componentName={`usage-${slug}`} />
+                    <IconCopy code={usage} text="Copy" />
                   </div>
                   <div className="p-1.5">
                     <div className="overflow-hidden rounded-lg">
@@ -1041,7 +1200,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                             </code>
                           ) : (
                             <span className="shrink-0 text-sm text-foreground/30">
-                              —
+                              -
                             </span>
                           )}
                         </div>
@@ -1071,7 +1230,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
                 </p>
                 <p className="max-w-prose text-lg/relaxed text-foreground/80">
                   Every component here is meant to be copied into your project
-                  and owned by you — edit the source freely. If a component
+                  and owned by you - edit the source freely. If a component
                   breaks in your setup,{" "}
                   <Link
                     href="/components"

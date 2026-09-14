@@ -6,13 +6,13 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomEase } from "gsap/CustomEase";
-import { Button } from "@devignerui/ui";
+import { Button } from "../chrome/button";
 import { Starburst } from "./starburst";
 import { HeroCarousel } from "./hero-carousel";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, CustomEase);
 
-// Spring-like eases — registered once, referenced by name in tweens.
+// Spring-like eases - registered once, referenced by name in tweens.
 if (typeof window !== "undefined") {
   CustomEase.create("hero-out", "0.16,1,0.3,1");
   CustomEase.create("hero-spring", "0.34,1.56,0.64,1");
@@ -47,7 +47,7 @@ export function Hero() {
             duration: 0.9,
             clearProps: "filter",
           })
-          // Headline words rise out of a clip mask — editorial reveal.
+          // Headline words rise out of a clip mask - editorial reveal.
           .from(
             words ?? [],
             {
@@ -100,7 +100,7 @@ export function Hero() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* clipboard unavailable — leave the command selectable */
+      /* clipboard unavailable - leave the command selectable */
     }
   };
 
@@ -115,7 +115,7 @@ export function Hero() {
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pt-24 pb-16 sm:pb-20">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
-          {/* The library IS the hero — an ambient carousel of real components */}
+          {/* The library IS the hero - an ambient carousel of real components */}
           <div ref={stageRef} className="min-w-0 lg:order-2">
             <HeroCarousel />
           </div>

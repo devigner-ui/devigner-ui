@@ -1,5 +1,5 @@
 // Single source of truth for the component docs (grid + [slug] page).
-// Holds the curated, standalone copy-paste source per component — deliberately
+// Holds the curated, standalone copy-paste source per component - deliberately
 // distinct from the internal packages/ui source (different import paths,
 // tokens, forwardRef). One style per component; each installs as
 // components/ui/<slug>.tsx.
@@ -26,408 +26,307 @@ export interface ComponentData {
 
 /** Slug-keyed registry the docs read from. */
 export const components: Record<string, ComponentData> = {
-  button: {
-    slug: "button",
-    name: "Button",
-    description: "Flexible button component with multiple variants and sizes",
-    category: "primitives",
-    variants: ["Default", "Destructive", "Outline", "Secondary", "Ghost", "Link"],
+  "magnetic-button": {
+    slug: "magnetic-button",
+    name: "Magnetic Button",
+    description:
+      "A button that leans toward the cursor from inside an invisible field, with a label that tilts in 3D as it follows",
+    category: "animation",
+    variants: ["Default", "Outline", "As link", "Disabled"],
     props: [
       {
-        name: "variant",
-        type: '"default" | "destructive" | "outline" | "secondary" | "ghost" | "link"',
-        default: '"default"',
-        description: "Visual style of the button.",
+        name: "children",
+        type: "ReactNode",
+        default: "-",
+        description: "Label or content of the pill.",
       },
       {
-        name: "size",
-        type: '"sm" | "md" | "lg" | "icon"',
-        default: '"md"',
-        description: "Controls height and padding.",
+        name: "href",
+        type: "string",
+        default: "-",
+        description: "Renders an <a> instead of a <button>.",
       },
       {
-        name: "pressScale",
+        name: "strength",
         type: "number",
-        default: "0.96",
-        description: "Scale applied on press.",
+        default: "3",
+        description:
+          "Pill travel toward the cursor, 0-10. At 10 the pill moves half the cursor's own offset from centre.",
       },
       {
-        name: "ripple",
-        type: "boolean",
-        default: "false",
-        description: "Spawn a Material-style ripple from the press point.",
+        name: "labelStrength",
+        type: "number",
+        default: "6",
+        description:
+          "Label travel inside the pill, 0-10, on the same scale as strength. The parallax comes from the two differing.",
+      },
+      {
+        name: "field",
+        type: "number",
+        default: "40",
+        description:
+          "Radius of the invisible magnetic field around the pill, in px. 0 disables it.",
+      },
+      {
+        name: "tilt",
+        type: "number",
+        default: "15",
+        description:
+          "Peak tilt of the label, in degrees, reached once the cursor is at the pill's own edge. 0 keeps it flat.",
       },
       {
         name: "className",
         type: "string",
-        default: "—",
-        description: "Additional classes merged via cn().",
+        default: "-",
+        description: "Classes for the visible pill - the surface you style.",
       },
       {
-        name: "children",
-        type: "ReactNode",
-        default: "—",
-        description: "Button label or content.",
+        name: "disabled",
+        type: "boolean",
+        default: "false",
+        description: "Stops the magnetism and soft-disables links.",
       },
+    ],
+    notes: [
+      "Needs gsap: npm i gsap. Nothing else - no plugins, no @gsap/react.",
+      "The field is padding cancelled by an equal negative margin, so a button that pulls from 40px away still costs its neighbours no layout space. Fields of adjacent buttons can overlap; lower `field` when they sit close together.",
+      "Magnetism is gated behind (hover: hover) and (pointer: fine) plus prefers-reduced-motion, so touch and reduced-motion visitors get a plain, still pill.",
+      'Every tween carries overwrite: "auto" - without it the in-flight follow tween reclaims x/y mid-release and the pill visibly snaps back.',
     ],
     code: `"use client";
 
-import { useCallback, useRef, useState, forwardRef } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import gsap from "gsap";
+import { cn } from "cn";
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer rounded-lg text-sm/5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-border bg-background hover:bg-surface",
-        secondary: "bg-surface text-foreground hover:bg-surface-hover",
-        ghost: "hover:bg-surface hover:text-foreground",
-        link: "text-accent underline-offset-4 hover:underline",
-      },
-      size: {
-        sm: "h-9 rounded-lg px-3 py-1.5",
-        md: "h-10 rounded-lg px-4 py-2",
-        lg: "h-11 rounded-lg px-8 py-2.5",
-        icon: "size-10 rounded-lg",
-      },
-    },
-    defaultVariants: { variant: "default", size: "md" },
-  }
-);
+// The pill is pulled toward the cursor while the cursor is anywhere inside an
+// invisible field around it - the field is the button's own padding box, with
+// a matching negative margin so the field costs no layout space. Listening on
+// the field (not the pill) is what keeps the pull stable: the pill slides out
+// from under the cursor, so a pill-mounted listener would fight its own
+// hover state.
 
-function useHoverCapable() {
-  const [canHover, setCanHover] = useState(true);
-  useState(() => {
-    if (typeof window !== "undefined") {
-      setCanHover(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
-    }
-  });
-  return canHover;
+// Pointer-follow pull - short, so the release always wins the handoff.
+const MAGNET = { duration: 0.4, ease: "power2.out", overwrite: "auto" } as const;
+// Release back to rest - overshoots once, the way a magnet lets go.
+const RELEASE = {
+  duration: 0.7,
+  ease: "elastic.out(1, 0.4)",
+  overwrite: "auto",
+} as const;
+
+// strength and labelStrength are 0-10 dials, not raw ratios: 10 travels half
+// the cursor's own offset, which is as far as either should ever go.
+const TRAVEL_SCALE = 20;
+
+interface MagneticButtonBaseProps {
+  children: React.ReactNode;
+  /** Classes for the visible pill - this is the surface you style. */
+  className?: string;
+  /** Pill travel toward the cursor, 0-10. */
+  strength?: number;
+  /** Label travel inside the pill, 0-10. Differs from strength for parallax. */
+  labelStrength?: number;
+  /** Radius of the magnetic field around the pill, in px. 0 disables it. */
+  field?: number;
+  /** Peak tilt of the label, in degrees, reached at the pill's own edge. */
+  tilt?: number;
+  disabled?: boolean;
 }
 
-export const Button = forwardRef(
-  ({ className, variant, size, pressScale = 0.96, ripple = false, onPointerDown, children, ...props }, ref) => {
-    const reduce = useReducedMotion();
-    const canHover = useHoverCapable();
-    const [ripples, setRipples] = useState([]);
-    const nextId = useRef(0);
+type AnchorProps = MagneticButtonBaseProps &
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "className" | "href"> & {
+    href: string;
+  };
 
-    const handlePointerDown = useCallback((event) => {
-      if (ripple && !reduce) {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height) * 2;
-        setRipples((prev) => [
-          ...prev,
-          { id: nextId.current++, x: event.clientX - rect.left, y: event.clientY - rect.top, size },
-        ]);
-      }
-      onPointerDown?.(event);
-    }, [ripple, reduce, onPointerDown]);
+type ButtonProps = MagneticButtonBaseProps &
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "className"> & {
+    href?: undefined;
+  };
 
-    return (
-      <motion.button
-        ref={ref}
-        whileTap={reduce ? undefined : { scale: pressScale }}
-        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30, mass: 0.6 }}
-        onPointerDown={handlePointerDown}
-        className={cn(buttonVariants({ variant, size }), ripple && "relative overflow-hidden", className)}
-        {...props}
-      >
-        {ripple && !reduce ? (
-          <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-            <AnimatePresence>
-              {ripples.map((r) => (
-                <motion.span
-                  key={r.id}
-                  className="absolute rounded-full bg-current"
-                  style={{ left: r.x, top: r.y, width: r.size, height: r.size, x: "-50%", y: "-50%" }}
-                  initial={{ scale: 0, opacity: 0.3 }}
-                  animate={{ scale: 1, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                  onAnimationComplete={() => setRipples((prev) => prev.filter((x) => x.id !== r.id))}
-                />
-              ))}
-            </AnimatePresence>
-          </span>
-        ) : null}
-        {children}
-      </motion.button>
-    );
-  }
-);`,
-    usage: `import { Button } from "@/components/ui/button";
+export type MagneticButtonProps = AnchorProps | ButtonProps;
 
-export default function Example() {
-  return (
-    <div className="flex gap-3">
-      <Button>Button</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="secondary">Secondary</Button>
-    </div>
-  );
-}`,
-  },
-  card: {
-    slug: "card",
-    name: "Card",
-    description:
-      "Compound card component with header, content, and footer sections",
-    category: "primitives",
-    variants: ["Default", "Interactive", "Header Only"],
-    props: [
-      {
-        name: "className",
-        type: "string",
-        default: "—",
-        description: "Extra classes for the card container.",
-      },
-      {
-        name: "children",
-        type: "ReactNode",
-        default: "—",
-        description: "Card sections — header, content, footer.",
-      },
-    ],
-    code: `import { cn } from "@/lib/utils";
+/** Flat view of the union, so the shared attributes destructure in one pass. */
+type AnyProps = MagneticButtonBaseProps &
+  Omit<React.AnchorHTMLAttributes<HTMLElement>, "className" | "type"> &
+  Omit<React.ButtonHTMLAttributes<HTMLElement>, "className"> & {
+    href?: string;
+  };
 
-        function Card({ className, ...props }) {
-          return (
-            <div className={cn("rounded-2xl border border-border bg-background shadow-card", className)} {...props} />
+export function MagneticButton(props: MagneticButtonProps) {
+  const {
+    children,
+    className,
+    strength = 3,
+    labelStrength = 4,
+    field = 40,
+    tilt = 15,
+    disabled = false,
+    href,
+    target,
+    rel,
+    tabIndex,
+    type,
+    ...rest
+  } = props as AnyProps;
+
+  const fieldRef = React.useRef<HTMLElement>(null);
+  const pillRef = React.useRef<HTMLSpanElement>(null);
+  const labelRef = React.useRef<HTMLSpanElement>(null);
+
+  React.useEffect(() => {
+    const root = fieldRef.current;
+    const pill = pillRef.current;
+    const label = labelRef.current;
+    if (!root || !pill || !label || disabled) return;
+
+    const pull = strength / TRAVEL_SCALE;
+    const labelPull = labelStrength / TRAVEL_SCALE;
+
+    // Magnetism is a pointer affordance: no fine pointer, no pull. matchMedia
+    // also unwinds it if the user plugs in a mouse or flips reduced motion.
+    const mm = gsap.matchMedia();
+    mm.add(
+      "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)",
+      () => {
+        const onMove = (event: PointerEvent) => {
+          const r = root.getBoundingClientRect();
+          const x = gsap.utils.mapRange(
+            r.left,
+            r.right,
+            -r.width / 2,
+            r.width / 2,
+            event.clientX,
           );
-        }
+          const y = gsap.utils.mapRange(
+            r.top,
+            r.bottom,
+            -r.height / 2,
+            r.height / 2,
+            event.clientY,
+          );
 
-        function CardHeader({ className, ...props }) {
-          return <div className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />;
-        }
+          gsap.to(pill, { x: x * pull, y: y * pull, ...MAGNET });
 
-        function CardTitle({ className, ...props }) {
-          return <div className={cn("text-2xl/8 font-semibold tracking-[-0.96px] text-foreground", className)} {...props} />;
-        }
+          // Normalised cursor position over the pill itself (-0.5 .. 0.5 on
+          // each axis), taken from where the pill currently sits: its live
+          // offset is the transform GSAP is already tracking, and the pill is
+          // centred in the field, so the field's box minus the padding is the
+          // pill's. Doubling means the tilt peaks at exactly \`tilt\` degrees as
+          // the cursor reaches the pill's own edge.
+          const nx =
+            (x - (gsap.getProperty(pill, "x") as number)) /
+            Math.max(1, r.width - 2 * field);
+          const ny =
+            (y - (gsap.getProperty(pill, "y") as number)) /
+            Math.max(1, r.height - 2 * field);
 
-        function CardContent({ className, ...props }) {
-          return <div className={cn("p-6 pt-0", className)} {...props} />;
-        }`,
-    usage: `import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+          gsap.to(label, {
+            x: x * labelPull,
+            y: y * labelPull,
+            rotateX: -ny * tilt * 2,
+            rotateY: nx * tilt * 2,
+            transformPerspective: 800,
+            transformOrigin: "50% 50%",
+            ...MAGNET,
+          });
+        };
 
-export default function Example() {
+        const onLeave = () => {
+          gsap.to(pill, { x: 0, y: 0, ...RELEASE });
+          gsap.to(label, {
+            x: 0,
+            y: 0,
+            rotateX: 0,
+            rotateY: 0,
+            ...RELEASE,
+          });
+        };
+
+        root.addEventListener("pointermove", onMove, { passive: true });
+        root.addEventListener("pointerleave", onLeave);
+        return () => {
+          root.removeEventListener("pointermove", onMove);
+          root.removeEventListener("pointerleave", onLeave);
+          gsap.set([pill, label], { clearProps: "transform" });
+        };
+      },
+    );
+
+    return () => {
+      mm.revert();
+      gsap.killTweensOf([pill, label]);
+    };
+  }, [disabled, strength, labelStrength, field, tilt]);
+
+  const isLink = typeof href === "string";
+  const Element = (isLink ? "a" : "button") as React.ElementType;
+
+  const elementProps = isLink
+    ? {
+        href: disabled ? undefined : href,
+        target,
+        rel:
+          target === "_blank"
+            ? [
+                ...new Set(
+                  ((rel || "") + " noopener noreferrer").trim().split(/\\s+/),
+                ),
+              ].join(" ")
+            : rel,
+        role: disabled ? "link" : undefined,
+        "aria-disabled": disabled || undefined,
+        tabIndex: disabled ? -1 : tabIndex,
+      }
+    : { type: type ?? "button", disabled, tabIndex };
+
   return (
-    <Card className="max-w-sm">
-      <CardHeader>
-        <CardTitle>Project Atlas</CardTitle>
-      </CardHeader>
-      <CardContent>Deployed to production two hours ago.</CardContent>
-    </Card>
-  );
-}`,
-  },
-  input: {
-    slug: "input",
-    name: "Input",
-    description: "Form input components with label, error states, and textarea",
-    category: "forms",
-    variants: ["Text Input", "Password", "With Icon", "Textarea"],
-    props: [
-      {
-        name: "type",
-        type: "string",
-        default: '"text"',
-        description: "Native HTML input type.",
-      },
-      {
-        name: "placeholder",
-        type: "string",
-        default: "—",
-        description: "Placeholder text shown when empty.",
-      },
-      {
-        name: "className",
-        type: "string",
-        default: "—",
-        description: "Additional classes merged via cn().",
-      },
-    ],
-    code: `import { cn } from "@/lib/utils";
-
-const Input = ({ className, type, ...props }) => (
-  <input
-    type={type}
-    className={cn(
-      "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base/6 placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-      className
-    )}
-    {...props}
-  />
-);`,
-    usage: `import { Input } from "@/components/ui/input";
-
-export default function Example() {
-  return <Input type="email" placeholder="you@example.com" />;
-}`,
-  },
-  badge: {
-    slug: "badge",
-    name: "Badge",
-    description: "Small label component for status, categories, and tags",
-    category: "primitives",
-    variants: [
-      "Default",
-      "Secondary",
-      "Outline",
-      "Destructive",
-      "Success",
-      "Warning",
-    ],
-    props: [
-      {
-        name: "variant",
-        type: '"default" | "secondary" | "outline"',
-        default: '"default"',
-        description: "Color treatment of the badge.",
-      },
-      {
-        name: "className",
-        type: "string",
-        default: "—",
-        description: "Additional classes merged via cn().",
-      },
-      {
-        name: "children",
-        type: "ReactNode",
-        default: "—",
-        description: "Badge label.",
-      },
-    ],
-    code: `import { cva } from "class-variance-authority";
-import { cn } from "@/lib/utils";
-
-const badgeVariants = cva(
-  "inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs/4 font-medium transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "border-transparent bg-accent text-accent-foreground",
-        secondary: "border-transparent bg-surface text-foreground",
-        outline: "border-border text-foreground",
-      },
-    },
-    defaultVariants: { variant: "default" },
-  }
-);
-
-function Badge({ className, variant, ...props }) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
-}`,
-    usage: `import { Badge } from "@/components/ui/badge";
-
-export default function Example() {
-  return (
-    <div className="flex gap-2">
-      <Badge>Default</Badge>
-      <Badge variant="secondary">Secondary</Badge>
-      <Badge variant="outline">Outline</Badge>
-    </div>
-  );
-}`,
-  },
-  "hero-section": {
-    slug: "hero-section",
-    name: "Hero Section",
-    description: "Animated hero section with multiple layout variants",
-    category: "marketing",
-    variants: ["Centered", "Split", "Minimal"],
-    props: [
-      {
-        name: "title",
-        type: "string",
-        default: "—",
-        description: "Main headline text.",
-      },
-      {
-        name: "description",
-        type: "string",
-        default: "—",
-        description: "Supporting paragraph below the title.",
-      },
-      {
-        name: "primaryAction",
-        type: "ReactNode",
-        default: "—",
-        description: "Primary call-to-action element.",
-      },
-      {
-        name: "secondaryAction",
-        type: "ReactNode",
-        default: "—",
-        description: "Secondary call-to-action element.",
-      },
-      {
-        name: "className",
-        type: "string",
-        default: "—",
-        description: "Additional classes for the section.",
-      },
-    ],
-    code: `import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
-
-export function HeroSection({ title, description, primaryAction, secondaryAction, className }) {
-  return (
-    <section className={cn("flex flex-col items-center justify-center py-12 text-center", className)}>
-      <motion.h1
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-5xl/14 font-semibold tracking-[-2.88px] text-foreground"
+    <Element
+      ref={fieldRef}
+      // The field is padding cancelled by margin: it grows the hit area
+      // without moving anything around it.
+      style={{ padding: field, margin: -field }}
+      className={cn(
+        "group inline-flex bg-transparent focus-visible:outline-none",
+        disabled && "pointer-events-none opacity-60",
+      )}
+      {...elementProps}
+      {...rest}
+    >
+      <span
+        ref={pillRef}
+        className={cn(
+          "relative inline-flex cursor-pointer items-center justify-center rounded-full bg-surface px-8 py-4 text-sm font-medium whitespace-nowrap text-foreground will-change-transform group-focus-visible:ring-2 group-focus-visible:ring-accent group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background",
+          className,
+        )}
       >
-        {title}
-      </motion.h1>
-      {description && (
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-6 max-w-2xl text-base/6 text-text-secondary"
+        <span
+          ref={labelRef}
+          className="inline-flex items-center gap-2 will-change-transform"
         >
-          {description}
-        </motion.p>
-      )}
-      {(primaryAction || secondaryAction) && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8 flex gap-4"
-        >
-          {primaryAction}
-          {secondaryAction}
-        </motion.div>
-      )}
-    </section>
+          {children}
+        </span>
+      </span>
+    </Element>
   );
 }`,
-    usage: `import { HeroSection } from "@/components/ui/hero-section";
-import { Button } from "@/components/ui/button";
+    usage: `import { MagneticButton } from "@/components/ui/magnetic-button";
 
 export default function Example() {
   return (
-    <HeroSection
-      title="Build faster."
-      description="A clean hero with animated text reveal."
-      primaryAction={<Button>Get started</Button>}
-      secondaryAction={<Button variant="outline">Learn more</Button>}
-    />
+    <div className="flex flex-wrap items-center justify-center gap-20">
+      <MagneticButton>Get started</MagneticButton>
+
+      {/* Gradients live in your classes - the component ships flat colours. */}
+      <MagneticButton className="bg-linear-to-b from-accent-secondary to-accent text-accent-foreground">
+        Read the docs
+      </MagneticButton>
+
+      {/* A link, pulling harder and tilting less */}
+      <MagneticButton href="/pricing" strength={10} tilt={6}>
+        Pricing
+      </MagneticButton>
+    </div>
   );
 }`,
   },
@@ -435,18 +334,13 @@ export default function Example() {
 
 /* ─── CLI-facing registry (served by /api/registry → consumed by the CLI) ─── */
 
-const UTIL_CODE = `import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}`;
-
 /** npm dependencies a component needs, derived from what its source imports. */
 export function dependenciesFor(code: string): string[] {
-  const deps = ["clsx", "tailwind-merge"];
-  if (code.includes("class-variance-authority")) deps.push("class-variance-authority");
+  const deps = ["cn"];
+  if (code.includes("class-variance-authority"))
+    deps.push("class-variance-authority");
   if (code.includes("motion/react")) deps.push("motion");
+  if (code.includes('from "gsap"')) deps.push("gsap");
   return deps;
 }
 
@@ -482,6 +376,6 @@ export function getRegistryComponent(slug: string) {
     props: c.props,
     file,
     dependencies: dependenciesFor(c.code),
-    files: { "lib/utils.ts": UTIL_CODE, [file]: c.code },
+    files: { [file]: c.code },
   };
 }

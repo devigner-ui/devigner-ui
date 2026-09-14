@@ -2,20 +2,176 @@
 
 @variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tokens come in three layers, and every value is written exactly once.
+
+     1 · Palette - the literal colours, and the only place an oklch() is
+                   typed. `.dark` lands on <html>, the same element as :root,
+                   so it overrides only what genuinely differs.
+     2 · Roles   - semantic names built from the palette with var(). One
+                   declaration each: a role resolves against whichever palette
+                   its element carries, so the dark theme needs no second copy.
+     3 · @theme  - the Tailwind mapping. `inline`, so a utility reads the live
+                   variable rather than a build-time snapshot of it.
+
+   `.shadcn-scope` at the bottom is the exception, and deliberately so: a
+   self-contained palette that /components swaps in over its own subtree.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1 · Palette · light (warm paper + navy ink) ─────────────────────────── */
+:root {
+  --background: oklch(96% 0.006 90);
+  --background-100: oklch(97.5% 0.006 90);
+  --background-200: oklch(93.5% 0.008 90);
+  --foreground: oklch(20% 0.02 265);
+
+  --surface: oklch(94% 0.008 90);
+  --surface2: oklch(0.97 0 0);
+  --surface-hover: oklch(91% 0.01 90);
+
+  /* --foreground carried as alpha - keep the three in step when retuning ink. */
+  --border: oklch(20% 0.02 265 / 0.12);
+  --border-hover: oklch(20% 0.02 265 / 0.22);
+
+  --gray-100: oklch(94% 0.008 90);
+  --gray-200: oklch(90% 0.01 90);
+  --gray-600: oklch(62% 0.014 265);
+  --gray-800: oklch(44% 0.018 265);
+  --gray-900: oklch(32% 0.02 265);
+  --gray-1000: oklch(20% 0.02 265);
+
+  --text-secondary: oklch(42% 0.018 265);
+  --text-tertiary: oklch(54% 0.016 265);
+  --text-muted: oklch(64% 0.014 265);
+
+  /* Vermilion. Called --brand rather than --accent because .shadcn-scope
+     re-points --accent at a neutral tint: --brand is the brand everywhere,
+     that subtree included. Reach for it (or brand-* utilities) when you mean
+     the colour, and for --accent when you mean "the accent of this scope". */
+  --brand: oklch(54% 0.216 27);
+  --brand-hover: oklch(60% 0.212 26.03);
+  --brand-secondary: oklch(67% 0.19 45);
+  --brand-tertiary: oklch(80% 0.15 78);
+
+  --success: oklch(58% 0.15 149.482);
+  --warning: oklch(66.597% 0.15768 58.06);
+  --destructive: oklch(57.677% 0.21482 27.53);
+
+  --code-bg: var(--background-100);
+
+  --shadow-card-val: 0 0 0 1px oklch(20% 0.02 265 / 0.06);
+  --shadow-subtle-val: 0 1px 2px oklch(20% 0.02 265 / 0.05);
+  --shadow-elevated-val:
+    0 12px 40px -12px oklch(20% 0.02 265 / 0.18),
+    0 0 0 1px oklch(20% 0.02 265 / 0.05);
+}
+
+/* ── 1 · Palette · dark (cool navy ground + warm off-white ink) ──────────── */
+.dark {
+  --background: oklch(13% 0.016 265);
+  --background-100: oklch(15% 0.017 265);
+  --background-200: oklch(17.5% 0.018 265);
+  --foreground: oklch(92% 0.008 90);
+
+  --surface: oklch(16.5% 0.018 265);
+  --surface2: oklch(0.1957 0 0);
+  --surface-hover: oklch(20.5% 0.02 265);
+
+  --border: oklch(92% 0.008 90 / 0.12);
+  --border-hover: oklch(92% 0.008 90 / 0.22);
+
+  --gray-100: oklch(20.5% 0.02 265);
+  --gray-200: oklch(26% 0.02 265);
+  --gray-600: oklch(52% 0.014 265);
+  --gray-800: oklch(70% 0.012 265);
+  --gray-900: oklch(85% 0.01 90);
+  --gray-1000: oklch(96% 0.006 90);
+
+  --text-secondary: oklch(70% 0.012 265);
+  --text-tertiary: oklch(56% 0.013 265);
+  --text-muted: oklch(46% 0.014 265);
+
+  --brand: oklch(64% 0.201 26.03);
+  --brand-hover: oklch(70% 0.19 27);
+  --brand-secondary: oklch(70% 0.185 45);
+  --brand-tertiary: oklch(82% 0.15 80);
+
+  --success: oklch(76% 0.16 151.736);
+  --warning: oklch(83.685% 0.16435 84.431);
+  --destructive: oklch(64% 0.201 26.03);
+
+  --code-bg: var(--background-200);
+
+  --shadow-card-val: 0 0 0 1px oklch(92% 0.008 90 / 0.06);
+  --shadow-subtle-val: 0 1px 2px oklch(0% 0 0 / 0.4);
+  --shadow-elevated-val:
+    0 12px 44px -12px oklch(0% 0 0 / 0.6), 0 0 0 1px oklch(92% 0.008 90 / 0.05);
+}
+
+/* ── 1 · Palette · the same in both themes ──────────────────────────────── */
+:root {
+  /* Ink for anything sitting on the brand colour, in either theme. */
+  --brand-foreground: oklch(96% 0.006 90);
+
+  /* The terminal panel stays dark in light mode, the way code blocks do. */
+  --terminal: oklch(15% 0.016 265);
+  --terminal-foreground: oklch(90% 0.008 90);
+  --terminal-muted: oklch(60% 0.013 265);
+}
+
+/* ── 2 · Roles ──────────────────────────────────────────────────────────────
+   Declared once, on the element that also carries the palette, so `.dark`
+   needs no copy of any of this. */
+:root {
+  --accent: var(--brand);
+  --accent-hover: var(--brand-hover);
+  --accent-secondary: var(--brand-secondary);
+  --accent-tertiary: var(--brand-tertiary);
+  --accent-foreground: var(--brand-foreground);
+
+  --text-primary: var(--foreground);
+  /* Ink for a panel that inverts the page - the page's own ground colour. */
+  --text-on-dark: var(--background);
+
+  --success-foreground: var(--brand-foreground);
+  --warning-foreground: var(--brand-foreground);
+  --destructive-foreground: var(--brand-foreground);
+
+  /* shadcn-compatible names, aliased onto Devigner tokens so the site looks
+     the same site-wide; .shadcn-scope below replaces them wholesale. */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--background-100);
+  --popover-foreground: var(--foreground);
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--background-200);
+  --muted-foreground: var(--text-muted);
+  --input: var(--border);
+  --ring: var(--accent);
+}
+
+/* ── 3 · Tailwind mapping ────────────────────────────────────────────────────
+   `inline` keeps the var() reference in the generated utility, so a utility
+   follows whichever palette its element sits under - including .shadcn-scope
+   - with no rebuild. Add a token here only after it exists above. */
 @theme inline {
-  /* Colors — Premium Dark System */
+  /* Ground and ink */
   --color-background: var(--background);
   --color-background-100: var(--background-100);
   --color-background-200: var(--background-200);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
   --color-surface-hover: var(--surface-hover);
 
   /* Border */
   --color-border: var(--border);
   --color-border-hover: var(--border-hover);
 
-  /* Text scale */
+  /* Grey ramp */
   --color-gray-100: var(--gray-100);
   --color-gray-200: var(--gray-200);
   --color-gray-600: var(--gray-600);
@@ -30,27 +186,34 @@
   --color-text-muted: var(--text-muted);
   --color-text-on-dark: var(--text-on-dark);
 
-  /* Accent */
+  /* Brand - always vermilion, in every scope */
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-tertiary: var(--brand-tertiary);
+  --color-brand-foreground: var(--brand-foreground);
+
+  /* Accent - the brand at :root, shadcn's neutral tint inside .shadcn-scope */
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-hover: var(--accent-hover);
   --color-accent-secondary: var(--accent-secondary);
   --color-accent-tertiary: var(--accent-tertiary);
 
-  /* Utility */
+  /* Status */
   --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Terminal — always dark, both themes */
+  /* Terminal - dark in both themes */
   --color-terminal: var(--terminal);
   --color-terminal-foreground: var(--terminal-foreground);
   --color-terminal-muted: var(--terminal-muted);
 
-  /* shadcn-compatible semantic layer — global defaults alias existing Devigner
-     tokens (zero visual change site-wide); .shadcn-scope overrides these with
-     literal shadcn values for /components and /components/[slug] only. */
+  /* shadcn-compatible names */
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -61,13 +224,11 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning-foreground: var(--warning-foreground);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius: 0.625rem;
 
-  /* Typography — Clash Display (headlines) + Geist (body/mono) */
+  /* Typography - Clash Display (headlines) + Geist (body/mono) */
   --font-display: var(--font-sans);
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
@@ -85,203 +246,80 @@
   --radius-3xl: 24px;
   --radius-pill: 9999px;
 
-  /* Shadows */
+  /* Shadows - the -val originals live in the palette; these are the utilities */
   --shadow-card: var(--shadow-card-val);
   --shadow-subtle: var(--shadow-subtle-val);
   --shadow-elevated: var(--shadow-elevated-val);
 
-  /* Easing — keep in sync with the motion tokens in packages/ui/src/lib/animations.ts */
+  /* Easing - keep in sync with the motion tokens in packages/ui/src/lib/animations.ts */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Light theme — warm paper + navy ink + vermilion (from remidevigner.pro) */
-:root {
-  --code-bg: var(--background-100);
-  --background: oklch(96% 0.006 90);
-  --background-100: oklch(97.5% 0.006 90);
-  --background-200: oklch(93.5% 0.008 90);
-  --foreground: oklch(20% 0.02 265);
-  --surface: oklch(94% 0.008 90);
-  --surface-hover: oklch(91% 0.01 90);
-
-  --border: oklch(20% 0.02 265 / 0.12);
-  --border-hover: oklch(20% 0.02 265 / 0.22);
-
-  --gray-100: oklch(94% 0.008 90);
-  --gray-200: oklch(90% 0.01 90);
-  --gray-600: oklch(62% 0.014 265);
-  --gray-800: oklch(44% 0.018 265);
-  --gray-900: oklch(32% 0.02 265);
-  --gray-1000: oklch(20% 0.02 265);
-
-  --text-primary: oklch(20% 0.02 265);
-  --text-secondary: oklch(42% 0.018 265);
-  --text-tertiary: oklch(54% 0.016 265);
-  --text-muted: oklch(64% 0.014 265);
-  --text-on-dark: oklch(96% 0.006 90);
-
-  --accent: oklch(60% 0.212 26.03);
-  --accent-foreground: oklch(96% 0.006 90);
-  --accent-hover: oklch(54% 0.216 27);
-  --accent-secondary: oklch(67% 0.19 45);
-  --accent-tertiary: oklch(80% 0.15 78);
-
-  --success: oklch(58% 0.15 149.482);
-  --warning: oklch(66.597% 0.15768 58.06);
-  --destructive: oklch(57.677% 0.21482 27.53);
-  --destructive-foreground: oklch(96% 0.006 90);
-
-  --shadow-card-val: 0 0 0 1px oklch(20% 0.02 265 / 0.06);
-  --shadow-subtle-val: 0 1px 2px oklch(20% 0.02 265 / 0.05);
-  --shadow-elevated-val:
-    0 12px 40px -12px oklch(20% 0.02 265 / 0.18),
-    0 0 0 1px oklch(20% 0.02 265 / 0.05);
-
-  /* Terminal panel is dark in both themes (like code blocks) */
-  --terminal: oklch(15% 0.016 265);
-  --terminal-foreground: oklch(90% 0.008 90);
-  --terminal-muted: oklch(60% 0.013 265);
-
-  /* shadcn-compatible aliases — default to existing Devigner values, no visual
-     change outside .shadcn-scope (see below). */
-  --card: var(--surface);
-  --card-foreground: var(--foreground);
-  --popover: var(--background-100);
-  --popover-foreground: var(--foreground);
-  --primary: var(--foreground);
-  --primary-foreground: var(--background);
-  --secondary: var(--surface);
-  --secondary-foreground: var(--foreground);
-  --muted: var(--background-200);
-  --muted-foreground: var(--text-muted);
-  --success-foreground: var(--accent-foreground);
-  --warning-foreground: var(--accent-foreground);
-  --input: var(--border);
-  --ring: var(--accent);
-}
-
-/* Dark theme — cool navy ink + warm off-white + vermilion (from remidevigner.pro) */
-.dark {
-  --code-bg: var(--background-200);
-  --background: oklch(13% 0.016 265);
-  --background-100: oklch(15% 0.017 265);
-  --background-200: oklch(17.5% 0.018 265);
-  --foreground: oklch(92% 0.008 90);
-  --surface: oklch(16.5% 0.018 265);
-  --surface-hover: oklch(20.5% 0.02 265);
-
-  --border: oklch(92% 0.008 90 / 0.12);
-  --border-hover: oklch(92% 0.008 90 / 0.22);
-
-  --gray-100: oklch(20.5% 0.02 265);
-  --gray-200: oklch(26% 0.02 265);
-  --gray-600: oklch(52% 0.014 265);
-  --gray-800: oklch(70% 0.012 265);
-  --gray-900: oklch(85% 0.01 90);
-  --gray-1000: oklch(96% 0.006 90);
-
-  --text-primary: oklch(92% 0.008 90);
-  --text-secondary: oklch(70% 0.012 265);
-  --text-tertiary: oklch(56% 0.013 265);
-  --text-muted: oklch(46% 0.014 265);
-  --text-on-dark: oklch(13% 0.016 265);
-
-  --accent: oklch(64% 0.201 26.03);
-  --accent-foreground: oklch(96% 0.006 90);
-  --accent-hover: oklch(70% 0.19 27);
-  --accent-secondary: oklch(70% 0.185 45);
-  --accent-tertiary: oklch(82% 0.15 80);
-
-  --success: oklch(76% 0.16 151.736);
-  --warning: oklch(83.685% 0.16435 84.431);
-  --destructive: oklch(64% 0.201 26.03);
-  --destructive-foreground: oklch(96% 0.006 90);
-
-  --shadow-card-val: 0 0 0 1px oklch(92% 0.008 90 / 0.06);
-  --shadow-subtle-val: 0 1px 2px oklch(0% 0 0 / 0.4);
-  --shadow-elevated-val:
-    0 12px 44px -12px oklch(0% 0 0 / 0.6), 0 0 0 1px oklch(92% 0.008 90 / 0.05);
-
-  /* shadcn-compatible aliases — see :root block above for rationale. */
-  --card: var(--surface);
-  --card-foreground: var(--foreground);
-  --popover: var(--background-100);
-  --popover-foreground: var(--foreground);
-  --primary: var(--foreground);
-  --primary-foreground: var(--background);
-  --secondary: var(--surface);
-  --secondary-foreground: var(--foreground);
-  --muted: var(--background-200);
-  --muted-foreground: var(--text-muted);
-  --success-foreground: var(--accent-foreground);
-  --warning-foreground: var(--accent-foreground);
-  --input: var(--border);
-  --ring: var(--accent);
-}
-
-/* ─── shadcn scope — /components and /components/[slug] only (see layout.tsx) ───
-   Verbatim shadcn defaults: deliberately grayscale, no Devigner brand color.
-   Tokens with no shadcn slot (success/warning/terminal/code-bg/text-*) are not
-   listed here and keep their normal global values inside this scope too. */
+/* ── shadcn palette · the /components subtree ────────────────────────────────
+   Applied by apps/docs/app/components/layout.tsx. Values are shadcn's own
+   defaults; several of its neutrals share one colour, so each is written once
+   and the rest alias it. Mind the one trap: --accent here is shadcn's neutral
+   hover tint, not the brand - use brand-* utilities for vermilion inside this
+   subtree. */
 .shadcn-scope {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
 
-  /* Devigner surface tokens with no direct shadcn slot — scoped to the same
-     neutral shades so existing bg-surface/bg-background-200/etc. classes
-     stay internally consistent here without needing per-usage renames. */
-  --background-100: oklch(1 0 0);
-  --background-200: oklch(0.97 0 0);
-  --surface: oklch(0.97 0 0);
-  --surface-hover: oklch(0.97 0 0);
-  --border-hover: oklch(0.922 0 0);
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --popover: var(--background);
+  --popover-foreground: var(--foreground);
+  --secondary-foreground: var(--primary);
+  --muted: var(--secondary);
+  --accent: var(--secondary);
+  --accent-foreground: var(--primary);
+  --destructive-foreground: var(--primary-foreground);
+  --input: var(--border);
+
+  /* Devigner names this palette also has to answer to */
+  --background-100: var(--background);
+  --background-200: var(--secondary);
+  --surface: var(--secondary);
+  --surface-hover: var(--secondary);
+  --border-hover: var(--border);
 }
 
 .dark .shadcn-scope {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.145 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
 
-  --background-100: oklch(0.205 0 0);
-  --background-200: oklch(0.269 0 0);
-  --surface: oklch(0.269 0 0);
-  --surface-hover: oklch(0.269 0 0);
-  --border-hover: oklch(1 0 0 / 10%);
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary-foreground: var(--card);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--secondary);
+  --accent: var(--secondary);
+  --accent-foreground: var(--foreground);
+  --destructive-foreground: var(--background);
+
+  --background-100: var(--card);
+  --background-200: var(--secondary);
+  --surface: var(--secondary);
+  --surface-hover: var(--secondary);
+  --border-hover: var(--border);
 }
 
 body {
@@ -485,7 +523,7 @@ html.lenis body {
   transform-style: preserve-3d;
 }
 
-/* ─── Code blocks (shiki) — dual theme via --shiki-light/--shiki-dark vars ─── */
+/* ─── Code blocks (shiki) - dual theme via --shiki-light/--shiki-dark vars ─── */
 
 .code-shiki pre,
 .code-shiki .shiki {
@@ -505,26 +543,10 @@ html.lenis body {
   line-height: 2;
   white-space: pre-wrap;
   word-break: break-word;
-  counter-reset: line;
 }
 
 .code-shiki .line {
   display: block;
-}
-
-.code-shiki.numbered .line {
-  padding-left: 2.25rem;
-  text-indent: -2.25rem;
-}
-
-.code-shiki.numbered .line::before {
-  counter-increment: line;
-  content: counter(line);
-  display: inline-block;
-  width: 1.25rem;
-  margin-right: 1rem;
-  text-align: right;
-  color: var(--text-muted);
 }
 
 /* ─── Scrollbars ─── */

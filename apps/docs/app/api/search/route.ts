@@ -7,7 +7,7 @@ export const { GET } = createSearchAPI("simple", {
     Promise.all(
       source.getPages().map(async (page) => {
         // `getPage()`'s generic inference doesn't carry DocMethods (getText)
-        // through fumadocs-mdx 14.x's collection types — exists at runtime,
+        // through fumadocs-mdx 14.x's collection types - exists at runtime,
         // just not surfaced on the inferred PageData type (see [[...slug]]/page.tsx).
         const data = page.data as typeof page.data & DocMethods;
         return {

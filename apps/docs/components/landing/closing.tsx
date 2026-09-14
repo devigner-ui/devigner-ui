@@ -9,7 +9,7 @@ import { Starburst } from "./starburst";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-/* Circular rotating badge with the burst at its core — the portfolio's seal */
+/* Circular rotating badge with the burst at its core - the portfolio's seal */
 function RotatingSeal() {
   return (
     <div className="relative size-32 sm:size-36">
