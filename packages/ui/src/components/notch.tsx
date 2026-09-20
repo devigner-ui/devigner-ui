@@ -29,24 +29,60 @@ import {
 import type { NotchRecord, NotchStatus } from "../lib/notch-queue";
 import { IconCheck, IconAlertTriangle, IconClose, IconSpinner } from "@devigner-ui/icons";
 
-/** The anchor is a lozenge parked above the viewport edge, wide and short. It
- *  is never itself visible - only its contribution to the bridge is. Without a
- *  second shape there is nothing to fuse with and the droplet just fades in. */
-const ANCHOR_W = 120;
-const ANCHOR_H = 40;
-const ANCHOR_TOP = -24;
+/** How far the anchor overhangs the notch on each side.
+ *
+ *  This single number is what makes the shape a notch rather than a droplet.
+ *  A metaball merge lays a concave fillet into the junction of two shapes, and
+ *  the fillet curves toward whichever shape is narrower. An anchor WIDER than
+ *  the notch therefore flares outward into the viewport edge, which is the
+ *  shape we want; an anchor narrower than the notch pinches inward and the
+ *  result reads as an hourglass waist instead. */
+const FLARE = 56;
 
-/** Travel. Deliberately short: the bridge carries the effect, and extra
- *  distance buys nothing but latency. At Y_FROM the droplet is still fully
- *  merged with the anchor, which is why nothing is legible until it moves. */
-const Y_FROM = -8;
-const Y_TO = 16;
+/** The anchor's height. Only its bottom edge is ever near the viewport, since
+ *  the shape sits entirely above it - the height just has to clear the blur's
+ *  reach so the top of the anchor cannot bleed back into view. */
+const ANCHOR_H = 56;
 
-/** Blur radius from the 0-10 viscosity prop. Higher sigma means the halos
- *  overlap for longer, so the neck stretches further before it snaps - which
- *  is what reads as a thicker liquid. The exact thresholds where the bridge
- *  stops forming, or stops letting go, have not been measured across the
- *  full range, so none are asserted here. */
+/** How far the anchor's bottom edge sits ABOVE the viewport top.
+ *
+ *  Flush at 0 does not work: the anchor's bottom edge is a straight line wider
+ *  than the notch, so its far ends survive the alpha crush on their own and
+ *  paint as two bars either side of the notch, which read as detached wings
+ *  rather than a flare. Lifted clear of the edge, the anchor alone never
+ *  exceeds the threshold anywhere, and the only thing that dips back into view
+ *  is where its blur SUMS with the notch's - which is precisely the fillet.
+ *  The flare then tapers off on its own instead of ending in a hard stop. */
+const ANCHOR_LIFT = 6;
+
+/** The anchor is a stadium sitting just above the viewport top, so the shape
+ *  itself is never on screen and only its fillet is ever seen. `rounded-full`
+ *  matters: the flat part of its bottom edge spans (anchor width - ANCHOR_H)
+ *  and the ends curve up and away, so the anchor's extremities stay further
+ *  from the edge than its middle and cannot show as stray blobs. */
+const anchorWidth = (width: number) => width + FLARE * 2;
+
+/** Resting position: the notch's top edge flush with the viewport's, so its
+ *  rounded top corners sit exactly where the anchor's fillet can weld them to
+ *  the edge. Unlike the droplet this replaced, the notch never travels far
+ *  enough to break the merge - it grows down out of the edge and stays welded,
+ *  so there is no snap and no detached state. */
+const Y_TO = 0;
+
+/** Clearance above the notch's own height when hidden, so nothing peeks. */
+const HIDE_GAP = 8;
+
+/** The last stretch of emergence, over which the content fades in. Held off
+ *  the start so text is never legible while the notch is still mostly behind
+ *  the edge. Fixed rather than derived from the height: the fade should feel
+ *  the same on a one-line notch and an expanded one. */
+const REVEAL = 24;
+
+/** Blur radius from the 0-10 viscosity prop. Higher sigma spreads each shape's
+ *  halo further, so the two sum above the threshold over a wider span and the
+ *  fillet welding the notch to the edge grows. At this notch's dimensions the
+ *  difference across the range is real but not dramatic, and it has not been
+ *  measured end to end, so no specific thresholds are claimed here. */
 export const sigmaFor = (viscosity: number) =>
   4 + (Math.min(10, Math.max(0, viscosity)) / 10) * 10;
 
@@ -76,13 +112,26 @@ function NotchGoo({
       className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
       style={{ filter: `url(#${filterId})` }}
     >
-      {/* Parked above the edge. Nothing about it is meant to be seen. */}
+      {/* The anchor, doubled exactly like the notch blobs below: a border
+          coloured stadium with a background coloured one inset 1px on each
+          side. Both bottom edges sit flush at y 0 rather than the fill being
+          inset vertically, so the 1px rim shows only down the flare's sides,
+          which is where the outline needs to be continuous with the notch's
+          own. A single anchor would make the whole flare solid border colour. */}
       <div
         className="absolute rounded-full bg-border"
         style={{
-          width: ANCHOR_W,
+          width: anchorWidth(width),
           height: ANCHOR_H,
-          top: ANCHOR_TOP,
+          top: -(ANCHOR_H + ANCHOR_LIFT),
+        }}
+      />
+      <div
+        className="absolute rounded-full bg-background"
+        style={{
+          width: anchorWidth(width) - 2,
+          height: ANCHOR_H,
+          top: -(ANCHOR_H + ANCHOR_LIFT),
         }}
       />
       <motion.div className="absolute" style={{ y }}>
@@ -236,20 +285,29 @@ export function Toaster({
      so they physically cannot drift apart - there is only one number. Two
      independent animations with identical configs still desync, because they
      start on different frames. */
-  const raw = useMotionValue(Y_FROM);
+  /* Where the notch sits when hidden: its whole measured height above the
+     edge, plus clearance. Derived rather than constant because an expanded
+     notch is taller than a one-line one, and a fixed offset that tucks the
+     small one away leaves the tall one's bottom rows on screen. */
+  const hiddenY = -(height + HIDE_GAP);
+
+  const raw = useMotionValue(hiddenY);
   const y = useSpring(raw, current?.status ? SPRING_GOO : SPRING_RETRACT);
 
   React.useEffect(() => {
-    raw.set(current ? Y_TO : Y_FROM);
-  }, [current, raw]);
+    raw.set(current ? Y_TO : hiddenY);
+  }, [current, hiddenY, raw]);
 
   /* Content opacity as a pure function of the same shared value, not a second
-     animation: 0 below y=8 (still merged with the anchor, nothing legible
-     yet), 1 at y=16 (settled). Reusing it on the way out is what makes the
-     exit sequence itself - descending back through y=8 already reads as
-     invisible well before the droplet finishes re-merging with the anchor,
-     with no separate delay or timer needed. */
-  const contentOpacity = useTransform(y, [Y_FROM, 8, Y_TO], [0, 0, 1]);
+     animation: 0 while the notch is still more than REVEAL behind the edge,
+     reaching 1 exactly as it settles. Reusing it on the way out is what makes
+     the exit sequence itself - withdrawing back past -REVEAL already reads as
+     invisible well before the notch is fully tucked away, with no separate
+     delay or timer needed. Clamped, so a spring overshoot past Y_TO cannot
+     drive opacity above 1. */
+  const contentOpacity = useTransform(y, [Y_TO - REVEAL, Y_TO], [0, 1], {
+    clamp: true,
+  });
 
   /* Reduced motion drops the filter entirely rather than tuning it down. A
      full-width SVG filter re-rasterizing every frame is precisely the class of
@@ -406,7 +464,16 @@ export function Toaster({
                 element resolves against it rather than the viewport. */}
             <motion.div
               ref={surface}
-              className="flex justify-center"
+              /* `relative` is load-bearing, not cosmetic. The goo layer beside
+                 this one is absolutely positioned, so it paints in the
+                 positioned phase; an untransformed static sibling paints in
+                 the earlier in-flow phase and ends up UNDER it. That only
+                 bites at rest, because motion drops `transform` to `none` once
+                 y settles on 0 - so the notch would lose its text the instant
+                 it stopped moving, while the status glyph survived on its own
+                 `relative` wrapper. Positioning this layer keeps it above the
+                 blobs at every y, transform or not. */
+              className="relative flex justify-center"
               style={reduced ? undefined : { y, opacity: contentOpacity }}
               initial={reduced ? { opacity: 0, y: -2 } : false}
               animate={reduced ? { opacity: 1, y: 0 } : undefined}
