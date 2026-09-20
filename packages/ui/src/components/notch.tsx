@@ -11,9 +11,17 @@ import {
   type MotionValue,
 } from "motion/react";
 import { cn } from "cn";
-import { EASE_OUT, SPRING_GOO, SPRING_LAYOUT, SPRING_RETRACT } from "../lib/easing";
-import { useNotches, pauseTimers, resumeTimers } from "../lib/notch-store";
-import type { NotchRecord } from "../lib/notch-queue";
+import {
+  EASE_OUT,
+  SPRING_GOO,
+  SPRING_LAYOUT,
+  SPRING_PRESS,
+  SPRING_RETRACT,
+  SPRING_SWAP,
+} from "../lib/easing";
+import { useNotches, pauseTimers, resumeTimers, toast } from "../lib/notch-store";
+import type { NotchRecord, NotchStatus } from "../lib/notch-queue";
+import { IconCheck, IconAlertTriangle, IconClose, IconSpinner } from "@devigner-ui/icons";
 
 /** The anchor is a lozenge parked above the viewport edge, wide and short. It
  *  is never itself visible - only its contribution to the bridge is. Without a
@@ -293,7 +301,7 @@ export function Toaster({
                   className,
                 )}
               >
-                <NotchBody record={current} count={list.length} />
+                <NotchBody record={current} count={list.length} reduced={reduced} />
               </motion.div>
             </motion.div>
           </motion.div>
@@ -303,22 +311,105 @@ export function Toaster({
   );
 }
 
-/* Task 6 replaces this wholesale. It exists only so this file has a running
-   deliverable to look at. */
+/** Colour and glyph per status. `default` carries no icon at all, a plain
+ *  message with a decorative dot in front of it says less than one without. */
+const STATUS: Record<
+  NotchStatus,
+  { icon: React.ReactNode | null; tone: string }
+> = {
+  default: { icon: null, tone: "text-foreground" },
+  success: { icon: <IconCheck />, tone: "text-success" },
+  error: { icon: <IconClose />, tone: "text-destructive" },
+  warning: { icon: <IconAlertTriangle />, tone: "text-warning" },
+  loading: { icon: <IconSpinner className="animate-spin" />, tone: "text-text-secondary" },
+};
+
 function NotchBody({
   record,
   count,
+  reduced,
 }: {
   record: NotchRecord;
   count: number;
+  reduced: boolean;
 }) {
+  // The escape hatch is terminal: nothing structured renders alongside it, so
+  // a consumer who takes over the surface takes over all of it.
+  if (record.content !== undefined) {
+    return <>{record.content as React.ReactNode}</>;
+  }
+
+  const { icon, tone } = STATUS[record.status];
+  const glyph = (record.icon as React.ReactNode) ?? icon;
+
   return (
     <>
-      <span className="text-[15px] font-medium text-foreground">
-        {record.title as React.ReactNode}
-      </span>
+      {glyph && (
+        /* popLayout takes the outgoing glyph out of flow so the incoming one
+           lands exactly where it sat, the same way MenuDock's Glyph does it.
+           Keyed by status, so loading to success is a swap rather than a
+           reconciliation that would leave the spinner class on the check. */
+        <span className="relative grid size-5 shrink-0 place-items-center [&_svg]:size-5">
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.span
+              key={record.status}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+              exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+              transition={reduced ? { duration: 0.12, ease: EASE_OUT } : SPRING_SWAP}
+              className={cn("grid place-items-center", tone)}
+            >
+              {glyph}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-[15px] font-medium text-foreground">
+          {record.title as React.ReactNode}
+        </span>
+        {record.description !== undefined && (
+          <span className="truncate text-[13px] text-text-secondary">
+            {record.description as React.ReactNode}
+          </span>
+        )}
+      </div>
+
+      {record.cancel && (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.96 }}
+          transition={SPRING_PRESS}
+          onClick={() => {
+            record.cancel?.onClick?.();
+            toast.dismiss(record.id);
+          }}
+          className="shrink-0 rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          {record.cancel.label}
+        </motion.button>
+      )}
+
+      {record.action && (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.96 }}
+          transition={SPRING_PRESS}
+          onClick={() => {
+            record.action?.onClick();
+            toast.dismiss(record.id);
+          }}
+          className="shrink-0 rounded-full bg-foreground px-3 py-1.5 text-[13px] font-medium text-background outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          {record.action.label}
+        </motion.button>
+      )}
+
       {count > 1 && (
-        <span className="text-[13px] text-text-muted">+{count - 1}</span>
+        <span className="shrink-0 text-[13px] tabular-nums text-text-muted">
+          +{count - 1}
+        </span>
       )}
     </>
   );
