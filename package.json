@@ -7,7 +7,7 @@
     "lint": "turbo lint --ui=tui",
     "clean": "turbo clean --ui=tui",
     "shot": "node scripts/shot.mjs",
-    "test": "node scripts/menu-path.check.mts"
+    "test": "node scripts/menu-path.check.mts && node scripts/notch-queue.check.mts"
   },
   "devDependencies": {
     "eslint": "^10.10.0",
