@@ -1001,7 +1001,7 @@ export interface DeleteButtonProps extends DivProps {
   /** ms the tick holds before returning to the trash. 0 keeps the tick. */
   resetAfter?: number;
   /** Actions sit right of the trash by default; \`left\` flips them. Mutually
-   *  exclusive — an explicit \`right\` wins. */
+   *  exclusive, an explicit \`right\` wins. */
   left?: boolean;
   right?: boolean;
   disabled?: boolean;
@@ -2496,6 +2496,9 @@ toast.promise(deploy(), {
       "Opaque fills only. The liquid merge is alpha compositing, so a translucent notch cannot bridge, and backdrop-filter does not survive a filter on the same subtree. Glassmorphism and this effect are mutually exclusive.",
       "Reduced motion drops the filter entirely for a plain fade. A full-width SVG filter re-rasterizing every frame is what that setting exists to prevent.",
       "One notch at a time. A second notification morphs the surface in place and raises a counter rather than stacking.",
+      "Deltas from Sonner: no position prop, it is always top center. No richColors. No visibleToasts, the stack is always collapsed behind the counter. expand means hover-to-expand the pending list, not Sonner's expand-the-stack.",
+      "On Safari, the SVG filter behind the goo effect is rasterized on the CPU rather than the GPU, and the cost grows with the pill's size. A large, frequently updated notch is the case to watch.",
+      "Mounting two <Toaster /> instances at once renders two overlapping notches and announces every notification twice. Render exactly one.",
     ],
     code: `"use client";
 
@@ -2596,8 +2599,13 @@ function remainingMs(record: NotchRecord, elapsed: number): number {
 // loader, or anywhere else with no provider in scope.
 
 /** Default time on screen. Long enough to read two lines, short enough that
- *  a burst drains rather than queueing up behind the counter. */
-const DEFAULT_DURATION = 4000;
+ *  a burst drains rather than queueing up behind the counter. Mutable so
+ *  \`<Toaster duration>\` can override it. */
+let defaultDuration = 4000;
+
+function setDefaultDuration(ms: number) {
+  defaultDuration = ms;
+}
 
 let list: NotchRecord[] = [];
 const listeners = new Set<() => void>();
@@ -2634,9 +2642,20 @@ function useNotches(): NotchRecord[] {
    silently grants a full extra duration. */
 const timers = new Map<
   string,
-  { handle: ReturnType<typeof setTimeout>; startedAt: number; elapsed: number }
+  {
+    /** Absent while paused: banked here with no live handle so
+     *  resumeTimers can find and start it. */
+    handle: ReturnType<typeof setTimeout> | undefined;
+    startedAt: number;
+    elapsed: number;
+  }
 >();
-let paused = false;
+
+/* Reason-counted rather than a single boolean, so a pointer leaving while the
+   window is still blurred cannot resume a background toast's timer out from
+   under the blur pause. */
+const pauseReasons = new Set<string>();
+const isPaused = () => pauseReasons.size > 0;
 
 function schedule(id: string) {
   const record = list.find((n) => n.id === id);
@@ -2645,7 +2664,13 @@ function schedule(id: string) {
   const left = remainingMs(record, banked);
   if (left === Infinity) return;
   const existing = timers.get(id);
-  if (existing) clearTimeout(existing.handle);
+  if (existing?.handle) clearTimeout(existing.handle);
+  if (isPaused()) {
+    // No live handle while paused, so a notch created (or settled) mid-pause
+    // still lands in \`timers\` and resumeTimers can discover and start it.
+    timers.set(id, { handle: undefined, startedAt: Date.now(), elapsed: banked });
+    return;
+  }
   timers.set(id, {
     handle: setTimeout(() => remove(id), left),
     startedAt: Date.now(),
@@ -2663,18 +2688,24 @@ function unschedule(id: string) {
 /** Banks elapsed time on every live timer and stops the clock. Called on
  *  pointer enter and on window blur - without the blur case a notification
  *  expires while the user is in another tab and is never seen. */
-function pauseTimers() {
-  if (paused) return;
-  paused = true;
+function pauseTimers(reason: string) {
+  const wasPaused = isPaused();
+  pauseReasons.add(reason);
+  if (wasPaused) return;
   for (const [id, t] of timers) {
+    if (!t.handle) continue;
     clearTimeout(t.handle);
-    timers.set(id, { ...t, elapsed: t.elapsed + (Date.now() - t.startedAt) });
+    timers.set(id, {
+      ...t,
+      handle: undefined,
+      elapsed: t.elapsed + (Date.now() - t.startedAt),
+    });
   }
 }
 
-function resumeTimers() {
-  if (!paused) return;
-  paused = false;
+function resumeTimers(reason: string) {
+  pauseReasons.delete(reason);
+  if (isPaused()) return;
   for (const id of timers.keys()) schedule(id);
 }
 
@@ -2713,12 +2744,12 @@ function create(
     content: options.content,
     action: options.action,
     cancel: options.cancel,
-    duration: options.duration ?? DEFAULT_DURATION,
+    duration: options.duration ?? defaultDuration,
     createdAt: Date.now(),
   };
   setList(addNotch(list, record));
   unschedule(id);
-  if (!paused) schedule(id);
+  schedule(id);
   return id;
 }
 
@@ -2737,7 +2768,7 @@ function settle(
     updateNotch(list, id, { status, title, duration, createdAt: Date.now() }),
   );
   unschedule(id);
-  if (!paused) schedule(id);
+  schedule(id);
 }
 
 const resolveMessage = <T,>(
@@ -2783,12 +2814,16 @@ const toast = Object.assign(base, {
     },
     options: NotchOptions = {},
   ): Promise<T> => {
-    const duration = options.duration ?? DEFAULT_DURATION;
+    const duration = options.duration ?? defaultDuration;
     const id = create("loading", msgs.loading, { ...options, duration: Infinity });
+    // The derived promise is discarded rather than returned - callers get
+    // \`p\` back unchanged, below - but a success/error formatter that itself
+    // throws would otherwise reject it with nothing attached, an unhandled
+    // rejection in SSR or Node. The catch only needs to exist.
     p.then(
       (value) => settle(id, "success", resolveMessage(msgs.success, value), duration),
       (err) => settle(id, "error", resolveMessage(msgs.error, err), duration),
-    );
+    ).catch(() => {});
     return p;
   },
 
@@ -2823,8 +2858,9 @@ const Y_TO = 16;
 
 /** Blur radius from the 0-10 viscosity prop. Higher sigma means the halos
  *  overlap for longer, so the neck stretches further before it snaps - which
- *  is what reads as a thicker liquid. Below about 4 the bridge never forms at
- *  all; above about 14 it never lets go within the travel distance. */
+ *  is what reads as a thicker liquid. The exact thresholds where the bridge
+ *  stops forming, or stops letting go, have not been measured across the
+ *  full range, so none are asserted here. */
 const sigmaFor = (viscosity: number) =>
   4 + (Math.min(10, Math.max(0, viscosity)) / 10) * 10;
 
@@ -2937,10 +2973,17 @@ function useContentSize(ref: React.RefObject<HTMLElement | null>) {
     const el = ref.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-      const box = entry.contentRect;
+      // Border box, not entry.contentRect: the measured element carries
+      // px-4 py-3 with box-sizing: border-box (Tailwind preflight), so the
+      // content box is 32px narrower and 24px shorter than the pill actually
+      // shown. offsetWidth/offsetHeight covers browsers without
+      // borderBoxSize.
+      const borderBox = entry.borderBoxSize?.[0];
+      const w = borderBox ? borderBox.inlineSize : el.offsetWidth;
+      const h = borderBox ? borderBox.blockSize : el.offsetHeight;
       setSize({
-        width: Math.max(MIN_W, Math.round(box.width)),
-        height: Math.max(MIN_H, Math.round(box.height)),
+        width: Math.max(MIN_W, Math.round(w)),
+        height: Math.max(MIN_H, Math.round(h)),
       });
     });
     ro.observe(el);
@@ -2967,6 +3010,7 @@ export interface ToasterProps {
 
 export function Toaster({
   viscosity = 5,
+  duration,
   expand = false,
   offset = 0,
   hotkey = ["altKey", "KeyT"],
@@ -2996,6 +3040,12 @@ export function Toaster({
   const filterId = React.useId();
   const sigma = sigmaFor(viscosity);
 
+  /* Per-notch duration passed to toast() still wins, since create()/settle()
+     only fall back to this when the caller did not supply one. */
+  React.useEffect(() => {
+    if (duration !== undefined) setDefaultDuration(duration);
+  }, [duration]);
+
   const [open, setOpen] = React.useState(false);
 
   /* Collapse whenever the rendered notch changes. An expanded panel that
@@ -3015,13 +3065,24 @@ export function Toaster({
   }, [open]);
 
   /* Without this a notification expires while the user is in another tab
-     and is never seen. Hover pausing alone does not cover it. */
+     and is never seen. Hover pausing alone does not cover it.
+
+     "blur" and "hover" are separate pause reasons, so a pointer leaving
+     while the window is still blurred cannot cancel the blur pause.
+     Cleanup releases both reasons on unmount - otherwise a Toaster that
+     unmounts (route change) while blurred, or while hovered so
+     onPointerLeave never fires, leaves that reason held in module scope for
+     the rest of the session and no future toast ever auto-dismisses. */
   React.useEffect(() => {
-    window.addEventListener("blur", pauseTimers);
-    window.addEventListener("focus", resumeTimers);
+    const onBlur = () => pauseTimers("blur");
+    const onFocus = () => resumeTimers("blur");
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
     return () => {
-      window.removeEventListener("blur", pauseTimers);
-      window.removeEventListener("focus", resumeTimers);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      resumeTimers("blur");
+      resumeTimers("hover");
     };
   }, []);
 
@@ -3113,11 +3174,13 @@ export function Toaster({
                 layout
                 transition={SPRING_LAYOUT}
                 onPointerEnter={() => {
-                  pauseTimers();
+                  pauseTimers("hover");
                   if (expand) setOpen(true);
                 }}
                 onPointerLeave={() => {
-                  resumeTimers();
+                  // Only releases "hover" - if the window is also blurred,
+                  // that reason is untouched and timers stay paused.
+                  resumeTimers("hover");
                   if (expand) setOpen(false);
                 }}
                 style={{ minWidth: MIN_W, minHeight: MIN_H, borderRadius: RADIUS }}

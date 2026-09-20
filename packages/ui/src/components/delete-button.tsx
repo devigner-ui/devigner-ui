@@ -198,7 +198,7 @@ export interface DeleteButtonProps extends DivProps {
   /** ms the tick holds before returning to the trash. 0 keeps the tick. */
   resetAfter?: number;
   /** Actions sit right of the trash by default; `left` flips them. Mutually
-   *  exclusive — an explicit `right` wins. */
+   *  exclusive, an explicit `right` wins. */
   left?: boolean;
   right?: boolean;
   disabled?: boolean;

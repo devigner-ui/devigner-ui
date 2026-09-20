@@ -11,8 +11,17 @@ import {
 } from "./notch-queue";
 
 /** Default time on screen. Long enough to read two lines, short enough that a
- *  burst drains rather than queueing up behind the counter. */
-const DEFAULT_DURATION = 4000;
+ *  burst drains rather than queueing up behind the counter. Mutable via
+ *  `setDefaultDuration` so `<Toaster duration>` can override it - a plain
+ *  const would leave that prop permanently ignored. */
+let defaultDuration = 4000;
+
+/** Sets the default auto-dismiss duration used by every `toast()` call that
+ *  does not pass its own `duration`. Called by the Toaster from its
+ *  `duration` prop; a per-notch `duration` still wins over this. */
+export function setDefaultDuration(ms: number) {
+  defaultDuration = ms;
+}
 
 /* Module-level state, deliberately. useSyncExternalStore over a plain array is
    React's own primitive for this, and keeping the array outside React is the
@@ -57,9 +66,21 @@ export function useNotches(): NotchRecord[] {
    duration. */
 const timers = new Map<
   string,
-  { handle: ReturnType<typeof setTimeout>; startedAt: number; elapsed: number }
+  {
+    /** Absent while paused: a paused notch is banked here with no live
+     *  handle so `resumeTimers` can find and start it. */
+    handle: ReturnType<typeof setTimeout> | undefined;
+    startedAt: number;
+    elapsed: number;
+  }
 >();
-let paused = false;
+
+/* Reason-counted rather than a single boolean. Two independent things pause
+   the clock (window blur, pointer hover), and either one releasing must not
+   resume timers the other still wants paused - a hover ending while the
+   window is still blurred must not un-pause a background toast. */
+const pauseReasons = new Set<string>();
+const isPaused = () => pauseReasons.size > 0;
 
 function schedule(id: string) {
   const record = list.find((n) => n.id === id);
@@ -68,7 +89,15 @@ function schedule(id: string) {
   const left = remainingMs(record, banked);
   if (left === Infinity) return;
   const existing = timers.get(id);
-  if (existing) clearTimeout(existing.handle);
+  if (existing?.handle) clearTimeout(existing.handle);
+  if (isPaused()) {
+    // No live handle while paused. Without banking an entry here, a notch
+    // created (or settled) mid-pause never appears in `timers` at all, and
+    // resumeTimers, which only walks timers.keys(), never discovers it - so
+    // it never auto-dismisses even once the pause lifts.
+    timers.set(id, { handle: undefined, startedAt: Date.now(), elapsed: banked });
+    return;
+  }
   timers.set(id, {
     handle: setTimeout(() => remove(id), left),
     startedAt: Date.now(),
@@ -85,19 +114,28 @@ function unschedule(id: string) {
 
 /** Banks elapsed time on every live timer and stops the clock. Called on
  *  pointer enter and on window blur - without the blur case a notification
- *  expires while the user is in another tab and is never seen at all. */
-export function pauseTimers() {
-  if (paused) return;
-  paused = true;
+ *  expires while the user is in another tab and is never seen at all.
+ *
+ *  `reason` identifies who is asking, so an unrelated `resumeTimers` call
+ *  cannot cancel this pause out from under its caller. */
+export function pauseTimers(reason: string) {
+  const wasPaused = isPaused();
+  pauseReasons.add(reason);
+  if (wasPaused) return;
   for (const [id, t] of timers) {
+    if (!t.handle) continue;
     clearTimeout(t.handle);
-    timers.set(id, { ...t, elapsed: t.elapsed + (Date.now() - t.startedAt) });
+    timers.set(id, {
+      ...t,
+      handle: undefined,
+      elapsed: t.elapsed + (Date.now() - t.startedAt),
+    });
   }
 }
 
-export function resumeTimers() {
-  if (!paused) return;
-  paused = false;
+export function resumeTimers(reason: string) {
+  pauseReasons.delete(reason);
+  if (isPaused()) return;
   for (const id of timers.keys()) schedule(id);
 }
 
@@ -138,14 +176,16 @@ function create(
     content: options.content,
     action: options.action,
     cancel: options.cancel,
-    duration: options.duration ?? DEFAULT_DURATION,
+    duration: options.duration ?? defaultDuration,
     createdAt: Date.now(),
   };
   setList(addNotch(list, record));
   /* Re-adding a live id refreshes it, so its old timer is stale by definition
-     and has to be thrown away rather than left to fire against the new one. */
+     and has to be thrown away rather than left to fire against the new one.
+     schedule() always runs now, paused or not - it is schedule's own job to
+     bank a handle-less entry when paused, not the caller's to skip it. */
   unschedule(id);
-  if (!paused) schedule(id);
+  schedule(id);
   return id;
 }
 
@@ -164,7 +204,7 @@ function settle(
     updateNotch(list, id, { status, title, duration, createdAt: Date.now() }),
   );
   unschedule(id);
-  if (!paused) schedule(id);
+  schedule(id);
 }
 
 const resolveMessage = <T,>(
@@ -212,15 +252,21 @@ export const toast = Object.assign(base, {
     },
     options: NotchOptions = {},
   ): Promise<T> => {
-    const duration = options.duration ?? DEFAULT_DURATION;
+    const duration = options.duration ?? defaultDuration;
     const id = create("loading", msgs.loading, {
       ...options,
       duration: Infinity,
     });
+    /* The derived promise is intentionally discarded rather than returned -
+       callers get back `p` unchanged, below. But discarding it silently also
+       throws away any rejection it produces, and a `success`/`error`
+       formatter that itself throws rejects it with nothing attached, which is
+       an unhandled rejection in SSR or Node. The catch here only needs to
+       exist, not do anything. */
     p.then(
       (value) => settle(id, "success", resolveMessage(msgs.success, value), duration),
       (err) => settle(id, "error", resolveMessage(msgs.error, err), duration),
-    );
+    ).catch(() => {});
     return p;
   },
 

@@ -2,7 +2,7 @@ import type { Variants, Transition } from "motion/react";
 
 // Shared motion tokens. Easing curves mirror the CSS custom properties in
 // globals.css; springs are the canonical physics used across components.
-// Strong custom variants — defaults like `ease-in`/`ease-out` feel weak.
+// Strong custom variants: defaults like `ease-in`/`ease-out` feel weak.
 
 export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 export const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
@@ -19,7 +19,7 @@ export const SPRING_PRESS = {
   mass: 0.6,
 } as const;
 
-/** Content swaps — label/icon slots trading places inside a control. */
+/** Content swaps, label/icon slots trading places inside a control. */
 export const SPRING_SWAP = {
   type: "spring",
   stiffness: 460,
@@ -27,7 +27,7 @@ export const SPRING_SWAP = {
   mass: 0.55,
 } as const;
 
-/** Overlay panel entrances — modals and sheets summoned by pointer. */
+/** Overlay panel entrances (modals and sheets summoned by pointer). */
 export const SPRING_PANEL = {
   type: "spring",
   stiffness: 420,
@@ -35,7 +35,7 @@ export const SPRING_PANEL = {
   mass: 0.5,
 } as const;
 
-/** Shared-layout glides — pills, indicators and panels morphing between positions. */
+/** Shared-layout glides, pills, indicators and panels morphing between positions. */
 export const SPRING_LAYOUT = {
   type: "spring",
   stiffness: 360,
@@ -108,7 +108,7 @@ export const springTransition: Transition = SPRING_LAYOUT;
 
 /* ─── GSAP tween vars ─── */
 // GSAP takes plain tween vars, not motion transitions, so these stay separate
-// from the springs above. Every one carries overwrite: "auto" — without it an
+// from the springs above. Every one carries overwrite: "auto", without it an
 // in-flight follow tween reclaims x/y mid-release and the element snaps back.
 
 /** Pointer-follow pull. Short, so the release always wins the handoff. */
@@ -118,7 +118,7 @@ export const GSAP_MAGNET = {
   overwrite: "auto",
 } as const;
 
-/** Release back to rest — overshoots once, the way a magnet lets go. */
+/** Release back to rest, overshoots once, the way a magnet lets go. */
 export const GSAP_MAGNET_RELEASE = {
   duration: 0.7,
   ease: "elastic.out(1, 0.4)",

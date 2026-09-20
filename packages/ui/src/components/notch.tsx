@@ -19,7 +19,13 @@ import {
   SPRING_RETRACT,
   SPRING_SWAP,
 } from "../lib/easing";
-import { useNotches, pauseTimers, resumeTimers, toast } from "../lib/notch-store";
+import {
+  useNotches,
+  pauseTimers,
+  resumeTimers,
+  setDefaultDuration,
+  toast,
+} from "../lib/notch-store";
 import type { NotchRecord, NotchStatus } from "../lib/notch-queue";
 import { IconCheck, IconAlertTriangle, IconClose, IconSpinner } from "@devigner-ui/icons";
 
@@ -38,8 +44,9 @@ const Y_TO = 16;
 
 /** Blur radius from the 0-10 viscosity prop. Higher sigma means the halos
  *  overlap for longer, so the neck stretches further before it snaps - which
- *  is what reads as a thicker liquid. Below about 4 the bridge never forms at
- *  all; above about 14 it never lets go within the travel distance. */
+ *  is what reads as a thicker liquid. The exact thresholds where the bridge
+ *  stops forming, or stops letting go, have not been measured across the
+ *  full range, so none are asserted here. */
 export const sigmaFor = (viscosity: number) =>
   4 + (Math.min(10, Math.max(0, viscosity)) / 10) * 10;
 
@@ -174,10 +181,18 @@ function useContentSize(ref: React.RefObject<HTMLElement | null>) {
     const el = ref.current;
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
-      const box = entry.contentRect;
+      // Border box, not entry.contentRect: the measured element carries
+      // px-4 py-3 with box-sizing: border-box (Tailwind preflight), so the
+      // content box is 32px narrower and 24px shorter than the pill the
+      // user actually sees, and the blob underneath would be under-sized by
+      // exactly that much. borderBoxSize is missing in older Safari, hence
+      // the offsetWidth/offsetHeight fallback.
+      const borderBox = entry.borderBoxSize?.[0];
+      const w = borderBox ? borderBox.inlineSize : el.offsetWidth;
+      const h = borderBox ? borderBox.blockSize : el.offsetHeight;
       setSize({
-        width: Math.max(MIN_W, Math.round(box.width)),
-        height: Math.max(MIN_H, Math.round(box.height)),
+        width: Math.max(MIN_W, Math.round(w)),
+        height: Math.max(MIN_H, Math.round(h)),
       });
     });
     ro.observe(el);
@@ -204,6 +219,7 @@ export interface ToasterProps {
 
 export function Toaster({
   viscosity = 5,
+  duration,
   expand = false,
   offset = 0,
   hotkey = ["altKey", "KeyT"],
@@ -241,6 +257,14 @@ export function Toaster({
   const filterId = React.useId();
   const sigma = sigmaFor(viscosity);
 
+  /* Applies the prop default to the store. A per-notch `duration` passed to
+     toast() still wins, since create()/settle() only fall back to this when
+     the caller did not supply one. Skipped entirely when the prop is
+     omitted, leaving the store's own built-in default in place. */
+  React.useEffect(() => {
+    if (duration !== undefined) setDefaultDuration(duration);
+  }, [duration]);
+
   const [open, setOpen] = React.useState(false);
 
   /* Collapse whenever the rendered notch changes. An expanded panel that
@@ -261,13 +285,28 @@ export function Toaster({
 
   /* Without this a notification expires while the user is in another tab and
      is never seen. Hover pausing alone does not cover it, the pointer is not
-     on the page at all. */
+     on the page at all.
+
+     "blur" and "hover" are separate, named pause reasons (see notch-store),
+     so a pointer leaving while the window is still blurred cannot cancel the
+     blur pause out from under it.
+
+     Cleanup releases both reasons unconditionally on unmount, not just the
+     listeners. A Toaster that unmounts (route change) while the window is
+     blurred, or while hovered so onPointerLeave never fires, would otherwise
+     leave that reason held in module scope for the rest of the session, and
+     no future toast would ever auto-dismiss. Releasing a reason this
+     instance never held is a harmless no-op. */
   React.useEffect(() => {
-    window.addEventListener("blur", pauseTimers);
-    window.addEventListener("focus", resumeTimers);
+    const onBlur = () => pauseTimers("blur");
+    const onFocus = () => resumeTimers("blur");
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
     return () => {
-      window.removeEventListener("blur", pauseTimers);
-      window.removeEventListener("focus", resumeTimers);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      resumeTimers("blur");
+      resumeTimers("hover");
     };
   }, []);
 
@@ -379,11 +418,15 @@ export function Toaster({
                 layout
                 transition={SPRING_LAYOUT}
                 onPointerEnter={() => {
-                  pauseTimers();
+                  pauseTimers("hover");
                   if (expand) setOpen(true);
                 }}
                 onPointerLeave={() => {
-                  resumeTimers();
+                  // Only releases the "hover" reason. If the window is also
+                  // blurred, that reason is untouched and timers stay
+                  // paused, which is what stops a hover-then-leave from
+                  // silently cancelling the blur pause.
+                  resumeTimers("hover");
                   if (expand) setOpen(false);
                 }}
                 style={{
