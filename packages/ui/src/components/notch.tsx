@@ -7,10 +7,11 @@ import {
   useMotionValue,
   useReducedMotion,
   useSpring,
+  useTransform,
   type MotionValue,
 } from "motion/react";
 import { cn } from "cn";
-import { SPRING_GOO, SPRING_LAYOUT, SPRING_RETRACT } from "../lib/easing";
+import { EASE_OUT, SPRING_GOO, SPRING_LAYOUT, SPRING_RETRACT } from "../lib/easing";
 import { useNotches, pauseTimers, resumeTimers } from "../lib/notch-store";
 import type { NotchRecord } from "../lib/notch-queue";
 
@@ -78,6 +79,10 @@ function NotchGoo({
             width: width + 2,
             height: height + 2,
             left: -(width + 2) / 2,
+            // Explicit, not left to resolve from static position - an
+            // ancestor or sibling change could otherwise shift this and
+            // silently break the 1px proud edge the outline depends on.
+            top: 0,
             borderRadius: radius + 1,
           }}
         />
@@ -138,6 +143,9 @@ function GooFilter({ id, sigma }: { id: string; sigma: number }) {
  *  single-line notch reads as a pill and a grown one keeps the same corner
  *  rather than swapping shape as it expands. */
 const RADIUS = 22;
+/** Width floor. Below this a one- or two-word title ("Saved") reads as a
+ *  stray badge rather than a notification - the pill needs enough width to
+ *  look intentional even when the content itself is short. */
 const MIN_W = 180;
 const MIN_H = 44;
 
@@ -209,6 +217,14 @@ export function Toaster({
     raw.set(current ? Y_TO : Y_FROM);
   }, [current, raw]);
 
+  /* Content opacity as a pure function of the same shared value, not a second
+     animation: 0 below y=8 (still merged with the anchor, nothing legible
+     yet), 1 at y=16 (settled). Reusing it on the way out is what makes the
+     exit sequence itself - descending back through y=8 already reads as
+     invisible well before the droplet finishes re-merging with the anchor,
+     with no separate delay or timer needed. */
+  const contentOpacity = useTransform(y, [Y_FROM, 8, Y_TO], [0, 0, 1]);
+
   /* Reduced motion drops the filter entirely rather than tuning it down. A
      full-width SVG filter re-rasterizing every frame is precisely the class of
      thing that setting exists to prevent, and a slower goo is still goo. */
@@ -224,7 +240,18 @@ export function Toaster({
 
       <AnimatePresence>
         {current && (
-          <motion.div key="notch">
+          <motion.div
+            key="notch"
+            initial={false}
+            // Gates AnimatePresence's unmount to the full retract, not to
+            // when the content reads as gone. Content opacity already hits 0
+            // at y=8 via the transform above; this keeps the blob itself
+            // on screen for the rest of its rise back into the anchor. Only
+            // needed on the animated path - reduced mode never renders the
+            // blob, so there is nothing here for it to hold open.
+            exit={reduced ? undefined : { opacity: 0 }}
+            transition={reduced ? undefined : SPRING_RETRACT}
+          >
             {!reduced && (
               <NotchGoo
                 y={y}
@@ -240,11 +267,11 @@ export function Toaster({
                 element resolves against it rather than the viewport. */}
             <motion.div
               className="flex justify-center"
-              style={reduced ? undefined : { y }}
+              style={reduced ? undefined : { y, opacity: contentOpacity }}
               initial={reduced ? { opacity: 0, y: -2 } : false}
               animate={reduced ? { opacity: 1, y: 0 } : undefined}
-              exit={reduced ? { opacity: 0, y: -2 } : { opacity: 0 }}
-              transition={reduced ? { duration: 0.15 } : SPRING_RETRACT}
+              exit={reduced ? { opacity: 0, y: -2 } : undefined}
+              transition={reduced ? { duration: 0.15, ease: EASE_OUT } : undefined}
             >
               <motion.div
                 ref={content}
