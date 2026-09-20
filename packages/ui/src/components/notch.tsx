@@ -275,11 +275,22 @@ export function Toaster({
      whatever is being typed. The hotkey is how a keyboard user reaches it
      deliberately, which is the pattern Sonner established. */
   React.useEffect(() => {
+    // Modifier flags the hotkey does not name must be absent, not just the
+    // ones it does name present. Checking only "every listed modifier is
+    // held" also matches Ctrl+Alt+T or Alt+Shift+T against the default
+    // ["altKey", "KeyT"], silently swallowing preventDefault() on
+    // combinations the user may need for something else.
+    const MODIFIERS = ["altKey", "ctrlKey", "shiftKey", "metaKey"] as const;
     const onKey = (e: KeyboardEvent) => {
-      const hit = hotkey.every((k) =>
-        k.endsWith("Key") ? e[k as "altKey"] : e.code === k,
+      const matchesHotkey = hotkey.every((k) =>
+        k.endsWith("Key") && (MODIFIERS as readonly string[]).includes(k)
+          ? e[k as "altKey"]
+          : e.code === k,
       );
-      if (!hit) return;
+      const noExtraModifiers = MODIFIERS.every(
+        (m) => hotkey.includes(m) === e[m],
+      );
+      if (!matchesHotkey || !noExtraModifiers) return;
       e.preventDefault();
       surface.current?.querySelector("button")?.focus();
     };
@@ -390,14 +401,19 @@ export function Toaster({
                 )}
               >
                 <div className="flex w-full flex-col">
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    onClick={() => setOpen((v) => !v)}
-                    className="flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-                  >
-                    <NotchBody record={current} count={list.length} reduced={reduced} />
-                  </button>
+                  {/* Row is a plain, non-interactive flex container. The
+                      trigger button and the action/cancel buttons are its
+                      siblings, never nested, since a <button> cannot contain
+                      a <button> (see NotchBody). */}
+                  <div className="flex items-center gap-3">
+                    <NotchBody
+                      record={current}
+                      count={list.length}
+                      reduced={reduced}
+                      open={open}
+                      onToggle={() => setOpen((v) => !v)}
+                    />
+                  </div>
 
                   <AnimatePresence initial={false}>
                     {open && list.length > 1 && (
@@ -446,15 +462,30 @@ function NotchBody({
   record,
   count,
   reduced,
+  open,
+  onToggle,
 }: {
   record: NotchRecord;
   count: number;
   reduced: boolean;
+  /** Whether the pending-list panel below this row is open. Only the
+   *  trigger button (never the row, never the action/cancel buttons) reports
+   *  this via `aria-expanded`. */
+  open: boolean;
+  onToggle: () => void;
 }) {
-  // The escape hatch is terminal: nothing structured renders alongside it, so
-  // a consumer who takes over the surface takes over all of it.
+  // The escape hatch is terminal: nothing structured, not even the expand
+  // trigger, renders alongside it. It gets its own non-button container
+  // rather than being wrapped in the trigger button, since arbitrary
+  // consumer content may itself contain interactive elements that a
+  // surrounding <button> would collide with the same way the action/cancel
+  // buttons did.
   if (record.content !== undefined) {
-    return <>{record.content as React.ReactNode}</>;
+    return (
+      <div className="flex min-w-0 flex-1 items-center">
+        {record.content as React.ReactNode}
+      </div>
+    );
   }
 
   const { icon, tone } = STATUS[record.status];
@@ -462,37 +493,51 @@ function NotchBody({
 
   return (
     <>
-      {glyph && (
-        /* popLayout takes the outgoing glyph out of flow so the incoming one
-           lands exactly where it sat, the same way MenuDock's Glyph does it.
-           Keyed by status, so loading to success is a swap rather than a
-           reconciliation that would leave the spinner class on the check. */
-        <span className="relative grid size-5 shrink-0 place-items-center [&_svg]:size-5">
-          <AnimatePresence initial={false} mode="popLayout">
-            <motion.span
-              key={record.status}
-              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
-              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-              exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
-              transition={reduced ? { duration: 0.12, ease: EASE_OUT } : SPRING_SWAP}
-              className={cn("grid place-items-center", tone)}
-            >
-              {glyph}
-            </motion.span>
-          </AnimatePresence>
-        </span>
-      )}
-
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-[15px] font-medium text-foreground">
-          {record.title as React.ReactNode}
-        </span>
-        {record.description !== undefined && (
-          <span className="truncate text-[13px] text-text-secondary">
-            {record.description as React.ReactNode}
+      {/* The trigger wraps only non-interactive content, the glyph and the
+          text block. The action and cancel buttons below are its siblings,
+          never its children: a <button> cannot contain a <button>, the
+          parser closes the outer one at the first nested one, so the DOM
+          stops matching the JSX and the inner button's click target,
+          keyboard reachability and screen-reader role all go wrong. Grows to
+          fill the row so the whole text area stays clickable. */}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={onToggle}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      >
+        {glyph && (
+          /* popLayout takes the outgoing glyph out of flow so the incoming one
+             lands exactly where it sat, the same way MenuDock's Glyph does it.
+             Keyed by status, so loading to success is a swap rather than a
+             reconciliation that would leave the spinner class on the check. */
+          <span className="relative grid size-5 shrink-0 place-items-center [&_svg]:size-5">
+            <AnimatePresence initial={false} mode="popLayout">
+              <motion.span
+                key={record.status}
+                initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+                transition={reduced ? { duration: 0.12, ease: EASE_OUT } : SPRING_SWAP}
+                className={cn("grid place-items-center", tone)}
+              >
+                {glyph}
+              </motion.span>
+            </AnimatePresence>
           </span>
         )}
-      </div>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="truncate text-[15px] font-medium text-foreground">
+            {record.title as React.ReactNode}
+          </span>
+          {record.description !== undefined && (
+            <span className="truncate text-[13px] text-text-secondary">
+              {record.description as React.ReactNode}
+            </span>
+          )}
+        </div>
+      </button>
 
       {record.cancel && (
         <motion.button
