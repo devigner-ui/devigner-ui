@@ -50,6 +50,25 @@ export const SPRING_MOUSE = {
   mass: 0.3,
 } as const;
 
+/** The droplet's descent through the viewport edge. Heavy on purpose: mass is
+ *  what reads as liquid. SPRING_PANEL (mass 0.5) is the nearest existing
+ *  token and it lands as a card being dealt, not as something with weight
+ *  being squeezed through a membrane. */
+export const SPRING_GOO = {
+  type: "spring",
+  stiffness: 260,
+  damping: 26,
+  mass: 1.1,
+} as const;
+
+/** Retracting back into the anchor. Over-damped, so it never bounces: an exit
+ *  that wobbles reads as indecision, and nobody is watching the way out. */
+export const SPRING_RETRACT = {
+  type: "spring",
+  stiffness: 300,
+  damping: 34,
+} as const;
+
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },

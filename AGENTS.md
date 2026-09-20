@@ -28,13 +28,15 @@ All animation easing/physics MUST come from the shared motion tokens - never wri
 cubic-beziers, ad-hoc spring configs, or default easings (`ease-in`, `ease-out`, `easeOut`
 string forms are too weak).
 
-- **JS/TSX (motion/react):** import from `@devignerui/ui/lib/animations`
-  (source: `packages/ui/src/lib/animations.ts`) and pick by purpose:
+- **JS/TSX (motion/react):** import from `@devignerui/ui/lib/easing`
+  (source: `packages/ui/src/lib/easing.ts`) and pick by purpose:
   - `SPRING_PRESS` - press/hover feedback on buttons and tappable surfaces
   - `SPRING_SWAP` - label/icon slots trading places inside a control
   - `SPRING_PANEL` - overlay panel entrances (modals, sheets, drawers)
   - `SPRING_LAYOUT` - shared-layout glides (pills, indicators, panels morphing)
   - `SPRING_MOUSE` - cursor-follow physics (magnetic, tilt, dock)
+  - `SPRING_GOO` - liquid/viscous entrances (the notch droplet)
+  - `SPRING_RETRACT` - over-damped exits that must not bounce
   - `EASE_OUT` / `EASE_IN_OUT` / `EASE_DRAWER` - tween easings; `EASE_OUT_CSS` for inline styles
 - **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`
   (defined as `--ease-*` in both `globals.css` files). Never `ease-[cubic-bezier(...)]`.
