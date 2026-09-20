@@ -2440,7 +2440,7 @@ function SearchPanel() {
     slug: "notch",
     name: "Notch",
     description:
-      "A notification that is squeezed through the top edge of the viewport as a liquid droplet, with a neck that stretches and snaps",
+      "A notification that grows down out of the top edge of the viewport and stays welded to it",
     category: "animation",
     variants: ["Success", "Error", "Promise", "With action", "Expanded"],
     props: [
@@ -2449,7 +2449,7 @@ function SearchPanel() {
         type: "number",
         default: "5",
         description:
-          "0-10. Higher is a longer, lazier neck before the bridge snaps.",
+          "0-10. Higher spreads the blur further, growing the concave fillet that welds the notch to the edge. The effect across the range is real but modest.",
       },
       {
         name: "duration",
@@ -2842,25 +2842,35 @@ export type { NotchOptions, NotchStatus, NotchRecord };
 
 // ─── Component ───
 
-/** The anchor is a lozenge parked above the viewport edge, wide and short. It
- *  is never itself visible - only its contribution to the bridge is. Without
- *  a second shape there is nothing to fuse with and the droplet just fades
- *  in. */
-const ANCHOR_W = 120;
-const ANCHOR_H = 40;
-const ANCHOR_TOP = -24;
+/** How far the anchor overhangs the notch on each side. An anchor wider than
+ *  the notch makes the metaball merge flare outward into the viewport edge;
+ *  narrower and it pinches inward into an hourglass waist instead. */
+const FLARE = 56;
+/** Anchor height. Only its bottom edge is ever near the viewport - it just
+ *  has to clear the blur's reach so its top cannot bleed back into view. */
+const ANCHOR_H = 56;
+/** How far the anchor's bottom edge sits above the viewport top. Lifted
+ *  clear rather than flush, so the anchor alone never crosses the alpha
+ *  cutoff and only its blur summing with the notch's does - which is the
+ *  flare, tapering off on its own instead of ending in a hard edge. */
+const ANCHOR_LIFT = 6;
+const anchorWidth = (width: number) => width + FLARE * 2;
 
-/** Travel. Deliberately short: the bridge carries the effect, and extra
- *  distance buys nothing but latency. At Y_FROM the droplet is still fully
- *  merged with the anchor, which is why nothing is legible until it moves. */
-const Y_FROM = -8;
-const Y_TO = 16;
+/** Resting position: the notch's top edge flush with the viewport's, welded
+ *  there by the anchor's fillet. It never travels far enough to break the
+ *  merge, so unlike the droplet this replaced there is no snap. */
+const Y_TO = 0;
+/** Clearance above the notch's own height when hidden, so nothing peeks. */
+const HIDE_GAP = 8;
+/** Last stretch of emergence over which content fades in, fixed rather than
+ *  derived from height so a one-line and an expanded notch fade the same. */
+const REVEAL = 24;
 
-/** Blur radius from the 0-10 viscosity prop. Higher sigma means the halos
- *  overlap for longer, so the neck stretches further before it snaps - which
- *  is what reads as a thicker liquid. The exact thresholds where the bridge
- *  stops forming, or stops letting go, have not been measured across the
- *  full range, so none are asserted here. */
+/** Blur radius from the 0-10 viscosity prop. Higher sigma spreads each
+ *  shape's halo further, so the two sum above the alpha cutoff over a wider
+ *  span and the fillet welding the notch to the edge grows. The difference
+ *  across the range is real but modest, and has not been measured end to
+ *  end, so no specific thresholds are asserted here. */
 const sigmaFor = (viscosity: number) =>
   4 + (Math.min(10, Math.max(0, viscosity)) / 10) * 10;
 
@@ -2890,10 +2900,16 @@ function NotchGoo({
       className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
       style={{ filter: \`url(#\${filterId})\` }}
     >
-      {/* Parked above the edge. Nothing about it is meant to be seen. */}
+      {/* Anchor, doubled like the notch blobs below: a border coloured
+          stadium with a background coloured one inset 1px, so the outline
+          stays continuous with the notch's own down the flare's sides. */}
       <div
         className="absolute rounded-full bg-border"
-        style={{ width: ANCHOR_W, height: ANCHOR_H, top: ANCHOR_TOP }}
+        style={{ width: anchorWidth(width), height: ANCHOR_H, top: -(ANCHOR_H + ANCHOR_LIFT) }}
+      />
+      <div
+        className="absolute rounded-full bg-background"
+        style={{ width: anchorWidth(width) - 2, height: ANCHOR_H, top: -(ANCHOR_H + ANCHOR_LIFT) }}
       />
       <motion.div className="absolute" style={{ y }}>
         {/* Border blob first, so the fill paints over its middle and leaves
@@ -2993,7 +3009,8 @@ function useContentSize(ref: React.RefObject<HTMLElement | null>) {
 }
 
 export interface ToasterProps {
-  /** 0-10. Higher is a longer, lazier neck before the bridge snaps. */
+  /** 0-10. Higher spreads the blur further, growing the concave fillet that
+   *  welds the notch to the edge. */
   viscosity?: number;
   /** Default auto-dismiss in ms. Per-notch \`duration\` overrides it. */
   duration?: number;
@@ -3025,17 +3042,26 @@ export function Toaster({
 
   /* One motion value, two consumers. The blob and the content both read this,
      so they physically cannot drift apart - there is only one number. */
-  const raw = useMotionValue(Y_FROM);
+  /* Hidden position: the notch's whole measured height above the edge, plus
+     clearance. Derived rather than constant, since a fixed offset that
+     tucks a one-line notch away leaves an expanded one's bottom rows on
+     screen. */
+  const hiddenY = -(height + HIDE_GAP);
+
+  const raw = useMotionValue(hiddenY);
   const y = useSpring(raw, current?.status ? SPRING_GOO : SPRING_RETRACT);
 
   React.useEffect(() => {
-    raw.set(current ? Y_TO : Y_FROM);
-  }, [current, raw]);
+    raw.set(current ? Y_TO : hiddenY);
+  }, [current, hiddenY, raw]);
 
-  /* Content opacity as a pure function of the same shared value: 0 below
-     y=8 (still merged with the anchor), 1 at y=16 (settled). Reusing it on
-     the way out is what makes the exit sequence itself. */
-  const contentOpacity = useTransform(y, [Y_FROM, 8, Y_TO], [0, 0, 1]);
+  /* Content opacity as a pure function of the same shared value: 0 while
+     still more than REVEAL behind the edge, 1 once settled. Reusing it on
+     the way out is what makes the exit sequence itself. Clamped so a spring
+     overshoot past Y_TO cannot push opacity above 1. */
+  const contentOpacity = useTransform(y, [Y_TO - REVEAL, Y_TO], [0, 1], {
+    clamp: true,
+  });
 
   const filterId = React.useId();
   const sigma = sigmaFor(viscosity);
@@ -3148,8 +3174,8 @@ export function Toaster({
             initial={false}
             // Gates AnimatePresence's unmount to the full retract, not to
             // when the content reads as gone. Content opacity already hits
-            // 0 at y=8; this keeps the blob on screen for the rest of the
-            // rise back into the anchor.
+            // 0 well before the notch is tucked away; this keeps the blob
+            // on screen for the rest of the withdrawal.
             exit={reduced ? undefined : { opacity: 0 }}
             transition={reduced ? undefined : SPRING_RETRACT}
           >
@@ -3162,7 +3188,14 @@ export function Toaster({
                 element resolves against it rather than the viewport. */}
             <motion.div
               ref={surface}
-              className="flex justify-center"
+              // \`relative\` is load-bearing, not cosmetic. The goo layer
+              // beside this one is absolutely positioned, so an untransformed
+              // static sibling paints under it. That only bites at rest,
+              // because motion drops \`transform\` to \`none\` once y settles on
+              // 0 - so the notch would lose its text the instant it stopped
+              // moving. Positioning this layer keeps it above the blobs at
+              // every y, transform or not.
+              className="relative flex justify-center"
               style={reduced ? undefined : { y, opacity: contentOpacity }}
               initial={reduced ? { opacity: 0, y: -2 } : false}
               animate={reduced ? { opacity: 1, y: 0 } : undefined}

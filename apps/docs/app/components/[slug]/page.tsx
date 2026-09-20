@@ -381,8 +381,8 @@ function MenuDockPreview() {
  *  promise that morphs the same surface from loading into success or error
  *  rather than replacing it. There is no timeout/retract button: the auto
  *  dismiss after DEFAULT_DURATION already exercises that path. The viscosity
- *  knob is here, not on the Toaster itself, so the bridge's neck length can
- *  be compared without editing code.
+ *  knob is here, not on the Toaster itself, so the size of the fillet
+ *  welding the notch to the edge can be compared without editing code.
  *
  *  The Toaster itself is fixed to the real viewport top, not to this stage -
  *  it has no idea it is being previewed inside a boxed card. So the notch
