@@ -11,14 +11,16 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "tsup": "^8.4.0",
-    "typescript": "~5.8.0"
+    "tsup": "^8.5.1",
+    "typescript": "~6.0.3"
   }
 }

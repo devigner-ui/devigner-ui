@@ -9,7 +9,7 @@ import { motion } from "motion/react";
 import { ThemeToggle } from "../theme-provider";
 import { lenisRef } from "./smooth-scroll";
 import { cn } from "cn";
-import { SPRING_PRESS } from "@devignerui/ui/lib/animations";
+import { SPRING_PRESS } from "@devignerui/ui/lib/easing";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -73,8 +73,12 @@ export function Navbar() {
 
       const onMove = (e: PointerEvent) => {
         const r = el.getBoundingClientRect();
-        xTo(gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.4));
-        yTo(gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.4));
+        xTo(
+          gsap.utils.clamp(-8, 8, (e.clientX - (r.left + r.width / 2)) * 0.4),
+        );
+        yTo(
+          gsap.utils.clamp(-6, 6, (e.clientY - (r.top + r.height / 2)) * 0.4),
+        );
       };
       const onLeave = () =>
         gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.5)" });
@@ -139,7 +143,8 @@ export function Navbar() {
   /* Escape closes the menu */
   useEffect(() => {
     if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    const onKey = (e: KeyboardEvent) =>
+      e.key === "Escape" && setMenuOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);

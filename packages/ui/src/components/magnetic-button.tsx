@@ -3,7 +3,7 @@
 import * as React from "react";
 import gsap from "gsap";
 import { cn } from "cn";
-import { GSAP_MAGNET, GSAP_MAGNET_RELEASE } from "../lib/animations";
+import { GSAP_MAGNET, GSAP_MAGNET_RELEASE } from "../lib/easing";
 
 // The pill is pulled toward the cursor while the cursor is anywhere inside an
 // invisible field around it - the field is the button's own padding box, with

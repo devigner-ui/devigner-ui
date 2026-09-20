@@ -1,9 +1,14 @@
 {
-  "$schema": "https://v2-10-3.turborepo.dev/schema.json",
+  "$schema": "https://turborepo.dev/schema.json",
+  // Windows: turbo's stream writer aborts (0xC0000409) when it has a TTY *and*
+  // npm_command/npm_config_user_agent are set, i.e. every `pnpm dev`/`pnpm build`.
+  // TUI is unaffected, and turbo still falls back to stream when there is no TTY (CI).
+  // 2.10.13 ignores this key, so the scripts pass --ui=tui too - keep both.
+  "ui": "tui",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,

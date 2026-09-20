@@ -1,5 +1,11 @@
+import path from "node:path";
+
 import tseslint from "typescript-eslint";
 import betterTailwind from "eslint-plugin-better-tailwindcss";
+
+// better-tailwindcss resolves `entryPoint` against cwd, and turbo runs `lint`
+// from each package dir — so these must be absolute, not repo-relative.
+const entry = (p) => path.join(import.meta.dirname, p);
 
 const rules = {
   "better-tailwindcss/enforce-canonical-classes": "warn",
@@ -27,7 +33,7 @@ export default [
     files: ["packages/ui/src/**/*.{ts,tsx}"],
     settings: {
       "better-tailwindcss": {
-        entryPoint: "packages/ui/src/styles/globals.css",
+        entryPoint: entry("packages/ui/src/styles/globals.css"),
       },
     },
   },
@@ -35,7 +41,7 @@ export default [
     ...base,
     files: ["apps/docs/**/*.{ts,tsx}"],
     settings: {
-      "better-tailwindcss": { entryPoint: "apps/docs/app/globals.css" },
+      "better-tailwindcss": { entryPoint: entry("apps/docs/app/globals.css") },
     },
   },
 ];

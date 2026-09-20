@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { MagneticButton } from "@devignerui/ui";
+import {
+  ChartCard,
+  DeleteButton,
+  MagneticButton,
+  MenuDock,
+  Timeline,
+  type MenuDockItem,
+} from "@devignerui/ui";
 import { CodeBlock } from "../../../components/code-block";
 import { IconButton } from "../../../components/icon-button";
 import { RangeSlider } from "../../../components/range-slider";
@@ -15,15 +22,29 @@ import {
   SPRING_PRESS,
   SPRING_PANEL,
   SPRING_LAYOUT,
-} from "@devignerui/ui/lib/animations";
+} from "@devignerui/ui/lib/easing";
 import {
+  IconArchive,
+  IconBrush,
   IconCode,
+  IconBookmark,
+  IconHeart,
+  IconArrowUpDown,
+  IconHistory,
+  IconHomeAngle2,
+  IconInbox,
+  IconLamp,
+  IconLibrary,
+  IconLogout,
   IconMaximize,
   IconMinimize,
   IconMoon,
   IconRestart,
+  IconSearchNormal,
   IconSettings,
   IconSun2,
+  IconUser,
+  IconComponent,
 } from "@devigner-ui/icons";
 import { cn } from "cn";
 const categoryLabel = (key: string) =>
@@ -85,6 +106,40 @@ export function Example() {
     </MagneticButton>
   );
 }`;
+
+const DELETE_DEFAULTS = {
+  side: "right" as "left" | "right",
+  async: true,
+  resetAfter: 1400,
+  disabled: false,
+};
+type DeleteConfig = typeof DELETE_DEFAULTS;
+
+const deleteUsage = (c: DeleteConfig) => {
+  const props = [
+    c.side === "left" ? "left" : null,
+    `resetAfter={${c.resetAfter}}`,
+    c.disabled ? "disabled" : null,
+    `onConfirm={${
+      c.async
+        ? '() => fetch("/api/rows/7", { method: "DELETE" })'
+        : '() => console.log("deleted")'
+    }}`,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { DeleteButton } from "@/components/ui/delete-button";
+
+export function Example() {
+  return (
+    <DeleteButton
+${props}
+    />
+  );
+}`;
+};
 
 function Knob({
   name,
@@ -177,6 +232,149 @@ function ConfigMenu({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Sample series for the Chart Card preview - same numbers as its Usage snippet. */
+const CHART_CARD_SALES = [
+  { label: "Feb", value: 6420 },
+  { label: "Mar", value: 9180 },
+  { label: "Apr", value: 12340 },
+  { label: "May", value: 8760 },
+  { label: "Jun", value: 16520 },
+  { label: "Jul", value: 13070 },
+  { label: "Aug", value: 15960 },
+];
+
+/** Sample rail for the Timeline preview - same steps as its Usage snippet. */
+const TIMELINE_STEPS = [
+  {
+    title: "Project Kickoff",
+    description: "Define goals and gather requirements.",
+  },
+  { title: "Planning", description: "Create the roadmap and strategy." },
+  { title: "Design & Build", description: "Design, develop, and iterate." },
+  { title: "Launch", description: "Test, deploy, and provide support." },
+];
+
+/** The MenuDock's search panel, passed to its Search item as `content`. It is
+ *  ordinary markup with its own state - the dock morphs into whatever this
+ *  renders and never learns that it is a search box.
+ *
+ *  It searches this registry, so the results are real components. Capped,
+ *  because the surface animates to fit its content: an uncapped list would
+ *  have the panel lurching a row taller on every keystroke. */
+const SEARCH_LIMIT = 4;
+
+function MenuDockSearch() {
+  const [query, setQuery] = useState("");
+  const all = Object.values(components);
+  const q = query.trim().toLowerCase();
+  const hits = (
+    q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all
+  ).slice(0, SEARCH_LIMIT);
+
+  return (
+    <div className="flex w-72 flex-col gap-1">
+      <div className="flex h-10 items-center gap-3 rounded-full bg-surface2 px-3">
+        <IconSearchNormal className="size-5 shrink-0 text-text-muted" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search components"
+          aria-label="Search components"
+          className="w-full bg-transparent text-[15px] text-foreground outline-none! placeholder:text-text-muted"
+        />
+      </div>
+
+      {hits.length === 0 ? (
+        <p className="px-3 py-2 text-[15px] text-text-muted">
+          Nothing matches “{query.trim()}”.
+        </p>
+      ) : (
+        // Capped once, by SEARCH_LIMIT above. A second slice here just means
+        // two numbers to keep in agreement.
+        hits.map((c) => (
+          <Link
+            key={c.slug}
+            href={`/components/${c.slug}`}
+            className="flex h-10 items-center gap-3 rounded-2xl px-3 text-[15px] text-foreground transition-colors hover:bg-surface-hover"
+          >
+            <IconComponent className="size-5 shrink-0 text-text-muted" />
+            <span className="flex-1 truncate">{c.name}</span>
+          </Link>
+        ))
+      )}
+    </div>
+  );
+}
+
+/** Sample dock for the MenuDock preview - same items as its Usage snippet.
+ *  Account nests two deep, which is what shows the stack is not capped. */
+const MENU_DOCK_ITEMS: MenuDockItem[] = [
+  {
+    id: "home",
+    label: "Home",
+    icon: <IconHomeAngle2 strokeWidth={2} />,
+    activeIcon: <IconHomeAngle2 variant="Bold" />,
+  },
+  {
+    id: "search",
+    label: "Search",
+    icon: <IconSearchNormal strokeWidth={2} />,
+    activeIcon: <IconSearchNormal variant="Bold" />,
+    content: <MenuDockSearch />,
+  },
+  {
+    id: "saved",
+    label: "Saved",
+    icon: <IconHeart strokeWidth={2} />,
+    activeIcon: <IconHeart variant="Bold" />,
+  },
+  {
+    id: "library",
+    label: "Library",
+    icon: <IconLibrary strokeWidth={2} />,
+    activeIcon: <IconLibrary variant="Bold" />,
+    items: [
+      { label: "Recently viewed", icon: <IconHistory /> },
+      { label: "Bookmarked", icon: <IconBookmark /> },
+      { label: "Downloads", icon: <IconArchive /> },
+    ],
+  },
+  {
+    id: "account",
+    label: "Account",
+    icon: <IconArrowUpDown className="size-3.5!" strokeWidth={2} />,
+    items: [
+      {
+        label: "Profile",
+        icon: <IconUser />,
+        items: [
+          { label: "Personal", icon: <IconUser /> },
+          { label: "Work", icon: <IconArchive /> },
+          { label: "Ideas", icon: <IconLamp /> },
+        ],
+      },
+      { label: "Appearance", icon: <IconBrush /> },
+      { label: "Invite a friend", icon: <IconInbox /> },
+      { label: "Sign out", icon: <IconLogout />, destructive: true },
+    ],
+  },
+];
+
+/** The dock, with `active` wired to the last leaf picked - without state the
+ *  outline/solid swap has nothing to swap on. */
+function MenuDockPreview() {
+  const [active, setActive] = useState("home");
+
+  return (
+    <MenuDock
+      active={active}
+      items={MENU_DOCK_ITEMS.map((item) =>
+        item.items ? item : { ...item, onSelect: () => setActive(item.id!) },
+      )}
+    />
+  );
+}
+
 /** Live prop playground. The config is the page's, not its own: the Usage
  *  section renders from the same state, so the snippet tracks the knobs. */
 function MagneticPlayground({
@@ -240,6 +438,108 @@ function MagneticPlayground({
   );
 }
 
+/** Reads as tabs, behaves as a radio group - each press swaps a prop on the
+ *  same button rather than revealing a different panel. */
+function SideTabs({
+  value,
+  onChange,
+}: {
+  value: DeleteConfig["side"];
+  onChange: (side: DeleteConfig["side"]) => void;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Actions position"
+      className="inline-flex rounded-full border border-border/60 bg-surface/60 p-0.5"
+    >
+      {(["left", "right"] as const).map((side) => (
+        <button
+          key={side}
+          type="button"
+          role="radio"
+          aria-checked={value === side}
+          onClick={() => onChange(side)}
+          className={`relative rounded-full px-3 py-1 font-mono text-[11px] transition-colors cursor-pointer ${
+            value === side ? "text-foreground" : "text-foreground/50"
+          }`}
+        >
+          {value === side && (
+            <motion.span
+              layoutId="delete-side-tab"
+              transition={SPRING_PANEL}
+              className="absolute inset-0 rounded-full bg-background shadow-elevated"
+            />
+          )}
+          <span className="relative">{side}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function DeleteButtonPlayground({
+  cfg,
+  setCfg,
+}: {
+  cfg: DeleteConfig;
+  setCfg: React.Dispatch<React.SetStateAction<DeleteConfig>>;
+}) {
+  const set = <K extends keyof DeleteConfig>(k: K, v: DeleteConfig[K]) =>
+    setCfg((c) => ({ ...c, [k]: v }));
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <DeleteButton
+        left={cfg.side === "left"}
+        resetAfter={cfg.resetAfter}
+        disabled={cfg.disabled}
+        // Without a promise a synchronous confirm skips the spinner and cuts
+        // straight to the tick, so the pending phase never plays.
+        onConfirm={
+          cfg.async
+            ? () => new Promise((resolve) => setTimeout(resolve, 900))
+            : () => undefined
+        }
+      />
+
+      <ConfigMenu>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-mono text-[11px] text-foreground/60">
+              actions
+            </span>
+            <SideTabs value={cfg.side} onChange={(v) => set("side", v)} />
+          </div>
+          <Knob
+            name="resetAfter"
+            hint="ms, 0 keeps the tick"
+            min={0}
+            max={4000}
+            step={200}
+            value={cfg.resetAfter}
+            onChange={(v) => set("resetAfter", v)}
+          />
+          {(["async", "disabled"] as const).map((k) => (
+            <label
+              key={k}
+              className="flex items-center gap-2 font-mono text-[11px] text-foreground/60"
+            >
+              <input
+                type="checkbox"
+                checked={cfg[k]}
+                onChange={(e) => set(k, e.target.checked)}
+                className="accent-primary"
+              />
+              {k === "async" ? "async confirm" : k}
+            </label>
+          ))}
+        </div>
+      </ConfigMenu>
+    </div>
+  );
+}
+
 const dotGrid: React.CSSProperties = {
   backgroundImage: "radial-gradient(var(--border) 1px, transparent 1px)",
   backgroundSize: "22px 22px",
@@ -295,6 +595,8 @@ type StageProps = {
   onReset: () => void;
   onFullscreen: () => void;
   isFullscreen?: boolean;
+  /** Overrides STAGE_MIN for a preview that needs more room than the default. */
+  stageMin?: number;
 };
 
 function PillToolbar({
@@ -321,9 +623,9 @@ function PillToolbar({
         title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       >
         {isFullscreen ? (
-          <IconMinimize className="size-4" />
+          <IconMinimize className="size-4" strokeWidth={2} />
         ) : (
-          <IconMaximize className="size-4" />
+          <IconMaximize className="size-4" strokeWidth={2} />
         )}
       </IconButton>
       <IconButton
@@ -341,7 +643,7 @@ function PillToolbar({
           animate={{ rotate: reduce ? 0 : 360 }}
           transition={{ duration: 1, ease: EASE_OUT }}
         >
-          <IconRestart className="size-4" />
+          <IconRestart className="size-4" strokeWidth={2} />
         </motion.span>
       </IconButton>
       <IconButton
@@ -351,9 +653,9 @@ function PillToolbar({
         title="Theme"
       >
         {theme === "dark" ? (
-          <IconSun2 className="size-4" />
+          <IconSun2 className="size-4" strokeWidth={2} />
         ) : (
-          <IconMoon className="size-4" />
+          <IconMoon className="size-4" strokeWidth={2} />
         )}
       </IconButton>
       <IconButton
@@ -364,7 +666,7 @@ function PillToolbar({
         aria-pressed={showCode}
         title="View code"
       >
-        <IconCode className="size-4" />
+        <IconCode className="size-4" strokeWidth={2} />
       </IconButton>
     </div>
   );
@@ -450,8 +752,8 @@ const HANDLE_H = 8;
  *  (a pill inside its 40px magnet field) centred, with the floating toolbar
  *  clearing it top and bottom, plus breathing room. Previews mount as
  *  `absolute inset-0` fillers, so nothing here is measurable from the stage -
- *  ponytail: one constant beats a ref that reads 0. Raise it if a preview
- *  outgrows it. */
+ *  ponytail: one constant beats a ref that reads 0. A preview that outgrows it
+ *  passes its own `stageMin` rather than raising the floor for every page. */
 const STAGE_MIN = 280;
 
 /** The gap between stage and drawer, doubling as the drag grip. */
@@ -537,9 +839,11 @@ function StagePanel(props: StageProps) {
     };
   };
 
+  const stageMin = props.stageMin ?? STAGE_MIN;
+
   /** How far the drawer may grow before the stage starts clipping. */
   const maxPct = (columnHeight: number) =>
-    Math.max(15, ((columnHeight - HANDLE_H - STAGE_MIN) / columnHeight) * 100);
+    Math.max(15, ((columnHeight - HANDLE_H - stageMin) / columnHeight) * 100);
 
   const setPct = (
     pctFor: (box: { bottom: number; height: number }) => number,
@@ -569,7 +873,7 @@ function StagePanel(props: StageProps) {
         className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-surface2 py-6"
         // style={dotGrid}
       >
-        <div key={props.previewKey}>
+        <div key={props.previewKey} className="flex w-full justify-center px-6">
           {props.preview ?? (
             <p className="text-[13px] text-text-muted">
               Preview coming soon for this component.
@@ -596,6 +900,10 @@ function StagePanel(props: StageProps) {
           opacity: props.showCode ? 1 : 0,
         }}
         transition={dragging ? INSTANT : SPRING_PANEL}
+        // The drag clamps itself, but the untouched default percentage never
+        // passed through maxPct - so the floor is enforced in CSS instead,
+        // where it also survives a window resize with nothing to re-run.
+        style={{ maxHeight: `calc(100% - ${stageMin + HANDLE_H}px)` }}
         className="shrink-0 overflow-hidden rounded-2xl bg-surface2"
         aria-hidden={!props.showCode}
       >
@@ -631,7 +939,7 @@ function PreviewCard(props: StageProps) {
         }`}
         style={dotGrid}
       >
-        <div key={props.previewKey}>
+        <div key={props.previewKey} className="flex w-full justify-center">
           {props.preview ?? (
             <p className="text-[13px] text-text-muted">
               Preview coming soon for this component.
@@ -736,8 +1044,8 @@ function SidebarItem({
       />
       {/* static ruler ticks */}
       <span className="pointer-events-none absolute left-0 top-0 h-px w-4 bg-foreground/30" />
-      <span className="pointer-events-none absolute left-0 top-1/4 h-px w-[13px] bg-foreground/30" />
-      <span className="pointer-events-none absolute left-0 top-3/4 h-px w-[13px] bg-foreground/30" />
+      <span className="pointer-events-none absolute left-0 top-1/4 h-px w-3.25 bg-foreground/30" />
+      <span className="pointer-events-none absolute left-0 top-3/4 h-px w-3.25 bg-foreground/30" />
       <motion.div
         animate={{
           opacity: isActive ? 1 : anyHovered ? (isHovered ? 1 : 0.3) : 0.55,
@@ -940,6 +1248,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   const [fullscreen, setFullscreen] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
   const [cfg, setCfg] = useState<MagneticConfig>(MAGNETIC_DEFAULTS);
+  const [deleteCfg, setDeleteCfg] = useState<DeleteConfig>(DELETE_DEFAULTS);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen((v) => !v);
@@ -1001,9 +1310,26 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
   const isMagnetic = slug === "magnetic-button";
   const preview = isMagnetic ? (
     <MagneticPlayground cfg={cfg} setCfg={setCfg} />
+  ) : slug === "chart-card" ? (
+    <ChartCard
+      total={90744}
+      data={CHART_CARD_SALES}
+      defaultActive={4}
+      notifications={3}
+    />
+  ) : slug === "delete-button" ? (
+    <DeleteButtonPlayground cfg={deleteCfg} setCfg={setDeleteCfg} />
+  ) : slug === "timeline" ? (
+    <Timeline steps={TIMELINE_STEPS} className="w-full max-w-md" />
+  ) : slug === "menu-dock" ? (
+    <MenuDockPreview />
   ) : undefined;
   const props = meta.props;
-  const usage = isMagnetic ? magneticUsage(cfg) : meta.usage;
+  const usage = isMagnetic
+    ? magneticUsage(cfg)
+    : slug === "delete-button"
+      ? deleteUsage(deleteCfg)
+      : meta.usage;
   const installCmd = `npx devignerui add ${slug}`;
   const deps = npmDeps(meta.code);
   const fileName = `${slug}.tsx`;
@@ -1018,9 +1344,14 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
     onReset: () => {
       setPreviewKey((k) => k + 1);
       setCfg(MAGNETIC_DEFAULTS);
+      setDeleteCfg(DELETE_DEFAULTS);
     },
     onFullscreen: () => setFullscreen((v) => !v),
     isFullscreen: fullscreen,
+    // The rail is the one preview taller than the default floor. The dock
+    // needs headroom too, or the panel's own growth fights the stage's.
+    stageMin:
+      slug === "timeline" ? 560 : slug === "menu-dock" ? 420 : undefined,
   };
 
   const breadcrumb = (
@@ -1216,7 +1547,7 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
               {Array.isArray(meta.notes) && meta.notes.length > 0 && (
                 <section id="notes">
                   <SectionTitle>Notes</SectionTitle>
-                  <ul className="flex list-disc flex-col gap-1 pl-5 text-lg/relaxed font-light tracking-wide text-foreground/80">
+                  <ul className="flex max-w-prose list-disc flex-col gap-4 pl-5 text-[17px]/[1.7] text-foreground/75 marker:text-foreground/25">
                     {meta.notes.map((n, i) => (
                       <li key={i}>{n}</li>
                     ))}

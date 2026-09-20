@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, type HTMLMotionProps } from "motion/react";
-import { SPRING_PRESS, SPRING_SWAP } from "@devignerui/ui/lib/animations";
+import { SPRING_PRESS, SPRING_SWAP } from "@devignerui/ui/lib/easing";
 
 const sizes = {
   sm: { dim: "size-6", radius: "rounded-md" },

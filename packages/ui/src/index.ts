@@ -2,3 +2,22 @@ export {
   MagneticButton,
   type MagneticButtonProps,
 } from "./components/magnetic-button";
+export {
+  ChartCard,
+  type ChartCardProps,
+  type ChartCardPoint,
+} from "./components/chart-card";
+export {
+  DeleteButton,
+  type DeleteButtonProps,
+} from "./components/delete-button";
+export {
+  Timeline,
+  type TimelineProps,
+  type TimelineStep,
+} from "./components/timeline";
+export {
+  MenuDock,
+  type MenuDockProps,
+  type MenuDockItem,
+} from "./components/menu-dock";

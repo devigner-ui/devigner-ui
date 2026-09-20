@@ -6,7 +6,16 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ThemeToggle } from "../../components/theme-provider";
 import { Button } from "../../components/chrome/button";
-import { MagneticButton } from "@devignerui/ui";
+import { DeleteButton, MagneticButton, MenuDock } from "@devignerui/ui";
+import {
+  IconBrush,
+  IconHeart,
+  IconHome2,
+  IconLogout,
+  IconMagnifer,
+  IconSearchNormal,
+  IconStars,
+} from "@devigner-ui/icons";
 import { Input } from "../../components/chrome/input";
 import { components } from "@/lib/registry";
 
@@ -121,6 +130,97 @@ function MagneticButtonPreview() {
       <MagneticButton className="bg-linear-to-b from-brand to-brand-hover text-brand-foreground uppercase">
         Hover me
       </MagneticButton>
+    </div>
+  );
+}
+
+// ponytail: static miniature, not the live ChartCard - the real card is wider
+// than a grid cell and its entrance animation would fire inside a Reveal that
+// is already animating. The tile only has to say "bar chart with a tooltip".
+function ChartCardPreview() {
+  const bars = [30, 52, 68, 44, 92, 62, 80];
+  return (
+    <div className="flex h-20 w-full items-end gap-1.5 px-2">
+      {bars.map((h, i) => (
+        <div key={i} className="relative flex flex-1 justify-center">
+          {i === 4 && (
+            <span className="absolute -top-5 left-1/2 -translate-x-1/2 rounded-md bg-accent px-1.5 py-0.5 text-[9px] font-medium text-accent-foreground">
+              16,520
+            </span>
+          )}
+          <div
+            className="w-full rounded-md bg-surface-hover"
+            style={{ height: `${h}%` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Live, not a mockup: it fits a grid cell at full size, and one click plays
+// the whole thing. The card's children already stopPropagation, so pressing it
+// never navigates.
+function DeleteButtonPreview() {
+  return (
+    <div className="flex items-center justify-center py-2">
+      {/* A promise, so the preview plays the pending phase too - without one a
+          synchronous confirm skips the spinner and cuts straight to the tick. */}
+      <DeleteButton
+        onConfirm={() => new Promise((resolve) => setTimeout(resolve, 900))}
+      />
+    </div>
+  );
+}
+
+/** Deliberately shorter than the docs preview's dock: the card is 220px tall
+ *  with overflow hidden, so a two-item menu is the deepest one that still fits
+ *  once the pill has grown into it.
+ *
+ *  The dock sits at the bottom rather than centred, because the panel grows
+ *  upward: centred, its top would clear the card and be clipped. 172px is the
+ *  card's own 220 less its p-6 either side - hardcoded because the card gives
+ *  the preview no box of its own to fill. */
+function MenuDockPreview() {
+  const [active, setActive] = useState("home");
+
+  return (
+    <div className="flex h-43 items-end justify-center">
+      <MenuDock
+        active={active}
+        items={[
+          {
+            id: "home",
+            label: "Home",
+            icon: <IconHome2 />,
+            activeIcon: <IconHome2 variant="Bold" />,
+            onSelect: () => setActive("home"),
+          },
+          {
+            id: "search",
+            label: "Search",
+            icon: <IconSearchNormal />,
+            activeIcon: <IconSearchNormal variant="Bold" />,
+            onSelect: () => setActive("search"),
+          },
+          {
+            id: "saved",
+            label: "Saved",
+            icon: <IconHeart />,
+            activeIcon: <IconHeart variant="Bold" />,
+            onSelect: () => setActive("saved"),
+          },
+          {
+            id: "account",
+            label: "Account",
+            icon: <IconStars />,
+            items: [
+              { label: "Appearance", icon: <IconBrush /> },
+              { label: "Sign out", icon: <IconLogout />, destructive: true },
+            ],
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -701,6 +801,9 @@ const slugOf = (name: string) => name.toLowerCase().replace(/\s+/g, "-");
 
 const componentPreviews = [
   { name: "Magnetic Button", component: <MagneticButtonPreview /> },
+  { name: "Chart Card", component: <ChartCardPreview /> },
+  { name: "Delete Button", component: <DeleteButtonPreview /> },
+  { name: "Menu Dock", component: <MenuDockPreview /> },
   { name: "Button", component: <ButtonPreview /> },
   { name: "Input", component: <InputPreview /> },
   { name: "Table", component: <TablePreview /> },

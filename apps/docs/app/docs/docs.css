@@ -5,6 +5,10 @@
    rules inside fumadocs-ui's preset. */
 @import "tailwindcss";
 @import "fumadocs-ui/css/preset.css";
+/* fumadocs-ui v16 split the colour tokens out of preset.css into a theme file.
+   Needed for the ones the bridge below does not cover (diff, callout, overlay);
+   its `.dark` block is inert here because the bridge is `@theme inline`. */
+@import "fumadocs-ui/css/lib/default-colors.css";
 
 /* Bridge Fumadocs' --color-fd-* tokens onto Devigner's own OKLCH variables
    (defined in app/globals.css) instead of fumadocs-ui/css/neutral.css's
