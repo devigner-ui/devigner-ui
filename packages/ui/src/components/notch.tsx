@@ -239,6 +239,24 @@ export function Toaster({
   const filterId = React.useId();
   const sigma = sigmaFor(viscosity);
 
+  const [open, setOpen] = React.useState(false);
+
+  /* Collapse whenever the rendered notch changes. An expanded panel that
+     silently swaps its contents for a different notification is the kind of
+     thing that gets the wrong button pressed. */
+  React.useEffect(() => {
+    setOpen(false);
+  }, [current?.id]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <div
       className="pointer-events-none fixed inset-x-0 top-0 z-100"
@@ -285,8 +303,14 @@ export function Toaster({
                 ref={content}
                 layout
                 transition={SPRING_LAYOUT}
-                onPointerEnter={pauseTimers}
-                onPointerLeave={resumeTimers}
+                onPointerEnter={() => {
+                  pauseTimers();
+                  if (expand) setOpen(true);
+                }}
+                onPointerLeave={() => {
+                  resumeTimers();
+                  if (expand) setOpen(false);
+                }}
                 style={{
                   minWidth: MIN_W,
                   minHeight: MIN_H,
@@ -301,7 +325,37 @@ export function Toaster({
                   className,
                 )}
               >
-                <NotchBody record={current} count={list.length} reduced={reduced} />
+                <div className="flex w-full flex-col">
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => setOpen((v) => !v)}
+                    className="flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                  >
+                    <NotchBody record={current} count={list.length} reduced={reduced} />
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {open && list.length > 1 && (
+                      <motion.ul
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={SPRING_LAYOUT}
+                        className="mt-2 flex flex-col gap-1 border-t border-border pt-2"
+                      >
+                        {list.slice(1).map((n) => (
+                          <li
+                            key={n.id}
+                            className="truncate text-[13px] text-text-secondary"
+                          >
+                            {n.title as React.ReactNode}
+                          </li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </div>
               </motion.div>
             </motion.div>
           </motion.div>
