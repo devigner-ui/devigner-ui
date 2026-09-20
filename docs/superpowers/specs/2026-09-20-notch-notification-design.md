@@ -3,9 +3,10 @@
 **Date:** 2026-09-20
 **Target package:** `@devignerui/ui`
 **New files:** `packages/ui/src/components/notch.tsx`,
-`packages/ui/src/lib/notch-store.ts`
+`packages/ui/src/lib/notch-store.ts`, `packages/ui/src/lib/notch-queue.ts`,
+`scripts/notch-queue.check.mts`
 **Touched:** `packages/ui/src/lib/easing.ts`, `packages/ui/src/index.ts`,
-`apps/docs/lib/registry.ts`
+`apps/docs/lib/registry.ts`, `package.json`, `AGENTS.md`
 **Reference technique:** Lucas Bebber's CSS/SVG "gooey" metaball filter
 
 ## Goal
@@ -204,30 +205,53 @@ re-merges with the anchor before unmounting.
 
 ## 5. Store
 
-`packages/ui/src/lib/notch-store.ts` - a module-level array plus
-`useSyncExternalStore`.
+Split in two, following the `menu-path.ts` / `menu-dock.tsx` precedent already
+in this package: the pure logic lives apart from the component so it stays
+pure, and runnable.
 
-No context and no provider. `useSyncExternalStore` is React's own primitive for
-this, is roughly 40 lines, and is what allows `toast()` to be imported and
-called from anywhere, including outside a React tree. `<Toaster />` subscribes;
-it does not own the state.
+### `packages/ui/src/lib/notch-queue.ts` - React-free
+
+Every state transition as a pure function over an immutable list. Imports
+nothing, so `scripts/notch-queue.check.mts` can execute it under plain Node
+with `node:assert/strict`, exactly as `menu-path.check.mts` does for the dock.
+
+Content fields are typed `unknown` here, not `React.ReactNode`, for the same
+reason `MenuNode.content` is: the queue only ever moves them around, never
+inspects them, and typing them as React would drag React into the module.
 
 ```ts
-type NotchStatus = "default" | "success" | "error" | "warning" | "loading";
+export type NotchStatus =
+  | "default" | "success" | "error" | "warning" | "loading";
 
-interface NotchRecord {
+export interface NotchRecord {
   id: string;
   status: NotchStatus;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  icon?: React.ReactNode;
-  content?: React.ReactNode;        // escape hatch; wins over the structured slots
+  title?: unknown;
+  description?: unknown;
+  icon?: unknown;
+  content?: unknown;              // escape hatch; wins over the structured slots
   action?: { label: string; onClick: () => void };
   cancel?: { label: string; onClick?: () => void };
-  duration?: number;                 // Infinity pins it
+  duration: number;               // Infinity pins it
   createdAt: number;
 }
+
+export function addNotch(list: NotchRecord[], record: NotchRecord): NotchRecord[];
+export function updateNotch(
+  list: NotchRecord[], id: string, patch: Partial<NotchRecord>,
+): NotchRecord[];
+export function dismissNotch(list: NotchRecord[], id?: string): NotchRecord[];
+/** ms left before `id` expires, given elapsed run time. Infinity never expires. */
+export function remainingMs(record: NotchRecord, elapsed: number): number;
 ```
+
+### `packages/ui/src/lib/notch-store.ts` - React binding
+
+A module-level array, `useSyncExternalStore`, the timer scheduling, and the
+`toast()` API surface. No context and no provider: `useSyncExternalStore` is
+React's own primitive for this and is what allows `toast()` to be imported and
+called from anywhere, including outside a React tree. `<Toaster />` subscribes;
+it does not own the state.
 
 ### Morph-in-place semantics
 
@@ -344,15 +368,18 @@ Each is a clean later addition; none changes the architecture above.
 
 ## 10. Testing
 
-- **Store unit test** - add, dismiss, promise resolve, promise reject, morph
-  ordering, counter arithmetic. Pure functions, no DOM.
-- **Timer behaviour** - pause on hover, pause on blur, resume, `Infinity` pins.
-- **Reduced motion** - assert the `<filter>` element is not mounted when
-  `prefers-reduced-motion: reduce` is set.
-- **Accessibility** - assert the live region exists before any notification is
-  created; assert `role="alert"` only on `error`.
-- **Visual** - the bridge snap is not unit-testable. Verify by hand in the docs
-  preview at `viscosity` 0, 5 and 10, in both themes, in Chrome and Safari.
+No test framework is used. The repo's convention is a `node:assert/strict`
+self-check under Node's own type stripping, run from the root `test` script -
+see `scripts/menu-path.check.mts`. The notch follows it.
+
+- **`scripts/notch-queue.check.mts`** - add, update, dismiss one, dismiss all,
+  newest-first ordering, counter arithmetic, `remainingMs` including the
+  `Infinity` case. Pure functions, no DOM, no framework.
+- **Root `test` script** - extended to run both check scripts, so neither can
+  rot unnoticed.
+- **Visual** - the bridge snap is not unit-testable. Verify against the docs
+  preview with `scripts/shot.mjs` at `viscosity` 0, 5 and 10, in both themes,
+  and by hand in Safari.
 
 ## 11. Docs registry entry
 
