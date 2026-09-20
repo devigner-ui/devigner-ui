@@ -40,7 +40,7 @@ string forms are too weak).
   - `EASE_OUT` / `EASE_IN_OUT` / `EASE_DRAWER` - tween easings; `EASE_OUT_CSS` for inline styles
 - **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`
   (defined as `--ease-*` in both `globals.css` files). Never `ease-[cubic-bezier(...)]`.
-- New curves/springs require adding a token to `animations.ts` (and `--ease-*` CSS vars if
+- New curves/springs require adding a token to `easing.ts` (and `--ease-*` CSS vars if
   used from CSS) first - keep both in sync. No one-off values in components.
 
 ## IMPORTANT
