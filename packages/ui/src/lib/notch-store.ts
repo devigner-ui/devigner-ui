@@ -191,8 +191,8 @@ function create(
 
 /** Patches a live notch and restarts its clock. Used by promise settlement,
  *  which must morph the surface rather than replace it - a dismiss plus a
- *  create would retract the droplet and play the whole goo entrance again for
- *  what is really one notification changing its mind. */
+ *  create would withdraw the notch behind the edge and play its whole
+ *  entrance again for what is really one notification changing its mind. */
 function settle(
   id: string,
   status: NotchStatus,
