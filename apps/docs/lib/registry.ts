@@ -2883,13 +2883,17 @@ function notchSides(spec: NotchPathSpec): string {
   const right = w - f;
 
   return [
-    \`A \${f} \${f} 0 0 1 \${right} \${f}\`,
+    // Inverted, so sweep 0 against the clockwise traversal. Sweep 1 here puts
+    // the centre of curvature inside the shape and the corner bulges out as a
+    // rounded shoulder instead of scooping in to meet the edge.
+    \`A \${f} \${f} 0 0 0 \${right} \${f}\`,
     \`L \${right} \${height - r}\`,
+    // Ordinary corners keep the traversal's own direction.
     \`A \${r} \${r} 0 0 1 \${right - r} \${height}\`,
     \`L \${left + r} \${height}\`,
     \`A \${r} \${r} 0 0 1 \${left} \${height - r}\`,
     \`L \${left} \${f}\`,
-    \`A \${f} \${f} 0 0 1 0 0\`,
+    \`A \${f} \${f} 0 0 0 0 0\`,
   ].join(" ");
 }
 

@@ -77,8 +77,10 @@ export function notchOutline(spec: NotchPathSpec): string {
  *  bottom, back up and out at the left flare, ending on the origin. Shared so
  *  the fill and the stroke can never disagree about the shape.
  *
- *  Every arc is sweep 1 because the traversal is clockwise throughout. A 0
- *  anywhere turns that corner inside out. */
+ *  The traversal is clockwise, so the two bottom corners are sweep 1 and the
+ *  two inverted top ones are sweep 0. An inverted corner IS a corner that
+ *  turns the other way; matching the flags up would quietly make all four
+ *  convex and the notch would render as a rounded hump. */
 function sides(spec: NotchPathSpec): string {
   const { height } = spec;
   const { radius: r, flare: f } = notchRadii(spec);
@@ -88,15 +90,22 @@ function sides(spec: NotchPathSpec): string {
   const right = w - f;
 
   return [
-    // Top-right, inverted: bows outward against its chord, so the surface is
-    // wider at the edge than it is at the body.
-    `A ${f} ${f} 0 0 1 ${right} ${f}`,
+    // Top-right, INVERTED: sweep 0, against the clockwise traversal. That flag
+    // is the whole difference between a notch and a hump. Sweep 1 here puts
+    // the centre of curvature inside the shape and the corner bulges outward
+    // as a rounded shoulder; sweep 0 puts it out at (w, f), the outer corner,
+    // so the boundary scoops IN and the surface flares to meet the edge. Both
+    // run between the same two points, which is why the wrong one looks
+    // plausible until you see it beside the right one.
+    `A ${f} ${f} 0 0 0 ${right} ${f}`,
     `L ${right} ${height - r}`,
+    // The bottom corners are ordinary, so they keep the traversal's own
+    // direction. Only the inverted pair reverses.
     `A ${r} ${r} 0 0 1 ${right - r} ${height}`,
     `L ${left + r} ${height}`,
     `A ${r} ${r} 0 0 1 ${left} ${height - r}`,
     `L ${left} ${f}`,
     // Top-left, inverted, mirroring the right.
-    `A ${f} ${f} 0 0 1 0 0`,
+    `A ${f} ${f} 0 0 0 0 0`,
   ].join(" ");
 }

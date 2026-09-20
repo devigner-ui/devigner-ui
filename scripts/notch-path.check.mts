@@ -53,18 +53,23 @@ const d = notchPath(spec());
 assert.ok(d.startsWith("M 0 0 L 236 0 "), d.slice(0, 40));
 assert.ok(d.endsWith("Z"));
 
-// Four arcs, one per corner, and every one sweep 1 - the traversal is
-// clockwise throughout, so a 0 anywhere would kink that corner inside out.
+// Four arcs, one per corner. The sweep flags are NOT uniform, and that is the
+// entire point: the traversal is clockwise, so the ordinary bottom corners are
+// sweep 1, while the inverted top pair is sweep 0. Making all four agree is
+// the bug this asserts against - it renders as a rounded hump, because an
+// inverted corner is precisely a corner that turns the other way. Both
+// versions connect the same two points, so the wrong one looks plausible.
 const arcs = d.match(/A [^A]*/g) ?? [];
 assert.equal(arcs.length, 4);
-for (const a of arcs) assert.match(a, /^A [\d.]+ [\d.]+ 0 0 1 /);
+assert.match(arcs[0], /^A 18 18 0 0 0 /, "top-right must be inverted");
+assert.match(arcs[1], /^A 16 16 0 0 1 /, "bottom-right must be ordinary");
+assert.match(arcs[2], /^A 16 16 0 0 1 /, "bottom-left must be ordinary");
+assert.match(arcs[3], /^A 18 18 0 0 0 /, "top-left must be inverted");
 
-// The two top arcs carry the flare radius, the two bottom ones the corner
-// radius. Mixing them up is the failure that looks almost right.
-assert.match(arcs[0], /^A 18 18 /);
-assert.match(arcs[1], /^A 16 16 /);
-assert.match(arcs[2], /^A 16 16 /);
-assert.match(arcs[3], /^A 18 18 /);
+// Stated as a count too, so a future edit that flips one corner without
+// flipping its mirror fails here rather than rendering lopsided.
+assert.equal((d.match(/A [\d.]+ [\d.]+ 0 0 0 /g) ?? []).length, 2);
+assert.equal((d.match(/A [\d.]+ [\d.]+ 0 0 1 /g) ?? []).length, 2);
 
 // Both body walls sit exactly one flare in from the outer edges, so the shape
 // is symmetric and the body lands where the caller's content does.
@@ -92,8 +97,9 @@ assert.equal((notchPath(spec()).match(/L /g) ?? []).length, 4);
 assert.equal((o.match(/A [^A]*/g) ?? []).length, 4);
 assert.ok(d.includes(o.slice(o.indexOf("A"), o.length - 0)), "sides shared");
 
-// Ends on the origin, so the two flares meet the edge at the same height.
-assert.ok(o.endsWith("A 18 18 0 0 1 0 0"), o.slice(-24));
+// Ends on the origin, so the two flares meet the edge at the same height, and
+// still inverted - the stroke has to trace the same scoop the fill does.
+assert.ok(o.endsWith("A 18 18 0 0 0 0 0"), o.slice(-24));
 
 /* ─── Degenerate boxes still produce a closed path ─── */
 
