@@ -27,46 +27,17 @@ import {
   toast,
 } from "../lib/notch-store";
 import type { NotchRecord, NotchStatus } from "../lib/notch-queue";
+import {
+  notchOuterWidth,
+  notchOutline,
+  notchPath,
+} from "../lib/notch-path";
 import { IconCheck, IconAlertTriangle, IconClose, IconSpinner } from "@devigner-ui/icons";
 
-/** How far the anchor overhangs the notch on each side.
- *
- *  This single number is what makes the shape a notch rather than a droplet.
- *  A metaball merge lays a concave fillet into the junction of two shapes, and
- *  the fillet curves toward whichever shape is narrower. An anchor WIDER than
- *  the notch therefore flares outward into the viewport edge, which is the
- *  shape we want; an anchor narrower than the notch pinches inward and the
- *  result reads as an hourglass waist instead. */
-const FLARE = 56;
-
-/** The anchor's height. Only its bottom edge is ever near the viewport, since
- *  the shape sits entirely above it - the height just has to clear the blur's
- *  reach so the top of the anchor cannot bleed back into view. */
-const ANCHOR_H = 56;
-
-/** How far the anchor's bottom edge sits ABOVE the viewport top.
- *
- *  Flush at 0 does not work: the anchor's bottom edge is a straight line wider
- *  than the notch, so its far ends survive the alpha crush on their own and
- *  paint as two bars either side of the notch, which read as detached wings
- *  rather than a flare. Lifted clear of the edge, the anchor alone never
- *  exceeds the threshold anywhere, and the only thing that dips back into view
- *  is where its blur SUMS with the notch's - which is precisely the fillet.
- *  The flare then tapers off on its own instead of ending in a hard stop. */
-const ANCHOR_LIFT = 6;
-
-/** The anchor is a stadium sitting just above the viewport top, so the shape
- *  itself is never on screen and only its fillet is ever seen. `rounded-full`
- *  matters: the flat part of its bottom edge spans (anchor width - ANCHOR_H)
- *  and the ends curve up and away, so the anchor's extremities stay further
- *  from the edge than its middle and cannot show as stray blobs. */
-const anchorWidth = (width: number) => width + FLARE * 2;
-
 /** Resting position: the notch's top edge flush with the viewport's, so its
- *  rounded top corners sit exactly where the anchor's fillet can weld them to
- *  the edge. Unlike the droplet this replaced, the notch never travels far
- *  enough to break the merge - it grows down out of the edge and stays welded,
- *  so there is no snap and no detached state. */
+ *  inverted top corners meet the edge exactly. The notch is welded to that
+ *  edge rather than floating below it - it grows down out of the edge and
+ *  withdraws back behind it, and never exists as a detached shape. */
 const Y_TO = 0;
 
 /** Clearance above the notch's own height when hidden, so nothing peeks. */
@@ -78,128 +49,59 @@ const HIDE_GAP = 8;
  *  the same on a one-line notch and an expanded one. */
 const REVEAL = 24;
 
-/** Blur radius from the 0-10 viscosity prop. Higher sigma spreads each shape's
- *  halo further, so the two sum above the threshold over a wider span and the
- *  fillet welding the notch to the edge grows. At this notch's dimensions the
- *  difference across the range is real but not dramatic, and it has not been
- *  measured end to end, so no specific thresholds are claimed here. */
-export const sigmaFor = (viscosity: number) =>
-  4 + (Math.min(10, Math.max(0, viscosity)) / 10) * 10;
-
-/** The filtered layer. Solid shapes only - the filter blurs and then
- *  alpha-crushes every descendant, so text put in here comes out as fringed
- *  mush. That constraint is the entire reason the notch is two layers.
+/** The surface: one path, filled and stroked.
  *
- *  Two blobs, not one: a border-coloured blob sits a pixel proud of a
- *  background-coloured one, so the outline is gooed too and stretches with the
- *  neck. A CSS border would simply be blurred into the fill and vanish. */
-function NotchGoo({
+ *  Replaces an SVG metaball filter that produced the flare as a blur artifact.
+ *  The path gives the concave radius as a number anyone can set, a real 1px
+ *  stroke for the border instead of a second shape peeking out from behind the
+ *  first, no per-frame re-rasterize, and no constraint that the fill be
+ *  opaque. The geometry itself lives in ../lib/notch-path so it can be checked
+ *  without a browser.
+ *
+ *  `overflow-visible` matters: the stroke straddles the path, so half of it
+ *  falls outside the viewBox and an svg clipping to its own bounds would shave
+ *  the outline down to nothing along the sides. */
+function NotchSurface({
   y,
   width,
   height,
   radius,
-  filterId,
+  flare,
 }: {
   y: MotionValue<number>;
   width: number;
   height: number;
   radius: number;
-  filterId: string;
+  flare: number;
 }) {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
-      style={{ filter: `url(#${filterId})` }}
-    >
-      {/* The anchor, doubled exactly like the notch blobs below: a border
-          coloured stadium with a background coloured one inset 1px on each
-          side. Both bottom edges sit flush at y 0 rather than the fill being
-          inset vertically, so the 1px rim shows only down the flare's sides,
-          which is where the outline needs to be continuous with the notch's
-          own. A single anchor would make the whole flare solid border colour. */}
-      <div
-        className="absolute rounded-full bg-border"
-        style={{
-          width: anchorWidth(width),
-          height: ANCHOR_H,
-          top: -(ANCHOR_H + ANCHOR_LIFT),
-        }}
-      />
-      <div
-        className="absolute rounded-full bg-background"
-        style={{
-          width: anchorWidth(width) - 2,
-          height: ANCHOR_H,
-          top: -(ANCHOR_H + ANCHOR_LIFT),
-        }}
-      />
-      <motion.div className="absolute" style={{ y }}>
-        {/* Border blob first, so the fill paints over its middle and leaves
-            exactly the 1px proud edge showing. */}
-        <div
-          className="absolute bg-border"
-          style={{
-            width: width + 2,
-            height: height + 2,
-            left: -(width + 2) / 2,
-            // Explicit, not left to resolve from static position - an
-            // ancestor or sibling change could otherwise shift this and
-            // silently break the 1px proud edge the outline depends on.
-            top: 0,
-            borderRadius: radius + 1,
-          }}
-        />
-        <div
-          className="absolute bg-background"
-          style={{
-            width,
-            height,
-            left: -width / 2,
-            top: 1,
-            borderRadius: radius,
-          }}
-        />
-      </motion.div>
-    </div>
-  );
-}
+  const spec = { width, height, radius, flare };
+  const outer = notchOuterWidth(spec);
 
-/** The filter itself. Two nodes, and three things that are easy to get wrong:
- *
- *  1. The region must be declared. A <filter> defaults to -10%/+10% of the
- *     bounding box, and a stretched neck exceeds that and is clipped clean
- *     through. This is the single most common reason a goo demo looks broken.
- *  2. No feBlend. Published versions end with feBlend against SourceGraphic to
- *     keep inner content crisp; here there is no inner content, so that node
- *     only re-composites the sharp un-gooed silhouette on top of the liquid
- *     one and cancels the effect outright.
- *  3. The alpha row is the whole trick: newAlpha = 18*A - 7 puts a hard cutoff
- *     at A of about 0.39, so two blurred halos read as one solid shape while
- *     they overlap above it and as two the instant they do not. The neck
- *     stretching, thinning and snapping is emergent. Do not animate it. */
-function GooFilter({ id, sigma }: { id: string; sigma: number }) {
   return (
-    <svg
+    <motion.svg
       aria-hidden
-      className="pointer-events-none absolute size-0"
       focusable="false"
+      className="pointer-events-none absolute left-1/2 top-0 overflow-visible"
+      width={outer}
+      height={height}
+      viewBox={`0 0 ${outer} ${height}`}
+      /* x centres the surface on the notch at whatever width the content
+         measured; doing it here rather than with a flex parent keeps the
+         transform on one element, so it composites with y instead of
+         fighting it. */
+      style={{ y, x: -outer / 2 }}
     >
-      <defs>
-        <filter id={id} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur
-            in="SourceGraphic"
-            stdDeviation={sigma}
-            result="blur"
-          />
-          <feColorMatrix
-            in="blur"
-            mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"
-          />
-        </filter>
-      </defs>
-    </svg>
+      <path d={notchPath(spec)} fill="var(--background)" />
+      {/* Stroked separately, and deliberately from the OPEN outline: the
+          closed path includes the viewport edge, and stroking that lays a
+          hairline straight across the top of the notch. */}
+      <path
+        d={notchOutline(spec)}
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth={1}
+      />
+    </motion.svg>
   );
 }
 
@@ -251,8 +153,12 @@ function useContentSize(ref: React.RefObject<HTMLElement | null>) {
 }
 
 export interface ToasterProps {
-  /** 0-10. Higher is a longer, lazier neck before the bridge snaps. */
-  viscosity?: number;
+  /** Radius of the two inverted top corners, in px, which is also how far the
+   *  surface overhangs the content on each side. This is an exact radius, not
+   *  a tuning hint: 0 gives square corners welded flat to the edge. Clamped
+   *  against the notch's own height, so a value taller than the side wall can
+   *  accommodate comes back smaller than asked. */
+  flare?: number;
   /** Default auto-dismiss in ms. Per-notch `duration` overrides it. */
   duration?: number;
   /** Whether hovering expands the notch. Click-to-expand is always on. */
@@ -267,7 +173,7 @@ export interface ToasterProps {
 }
 
 export function Toaster({
-  viscosity = 5,
+  flare = 18,
   duration,
   expand = false,
   offset = 0,
@@ -309,11 +215,9 @@ export function Toaster({
     clamp: true,
   });
 
-  /* Reduced motion drops the filter entirely rather than tuning it down. A
-     full-width SVG filter re-rasterizing every frame is precisely the class of
-     thing that setting exists to prevent, and a slower goo is still goo. */
-  const filterId = React.useId();
-  const sigma = sigmaFor(viscosity);
+  /* Reduced motion renders the surface as a plain bordered box rather than
+     the flared path: the flare exists to sell the notch emerging from the
+     edge, and with the motion gone there is nothing for it to sell. */
 
   /* Applies the prop default to the store. A per-notch `duration` passed to
      toast() still wins, since create()/settle() only fall back to this when
@@ -433,8 +337,6 @@ export function Toaster({
         {announceError}
       </div>
 
-      {!reduced && <GooFilter id={filterId} sigma={sigma} />}
-
       <AnimatePresence>
         {current && (
           <motion.div
@@ -442,29 +344,29 @@ export function Toaster({
             initial={false}
             // Gates AnimatePresence's unmount to the full retract, not to
             // when the content reads as gone. Content opacity already hits 0
-            // at y=8 via the transform above; this keeps the blob itself
-            // on screen for the rest of its rise back into the anchor. Only
-            // needed on the animated path - reduced mode never renders the
-            // blob, so there is nothing here for it to hold open.
+            // partway through via the transform above; this keeps the surface
+            // itself on screen for the rest of its withdrawal behind the edge.
+            // Only needed on the animated path - reduced mode renders no
+            // separate surface, so there is nothing here for it to hold open.
             exit={reduced ? undefined : { opacity: 0 }}
             transition={reduced ? undefined : SPRING_RETRACT}
           >
             {!reduced && (
-              <NotchGoo
+              <NotchSurface
                 y={y}
                 width={width}
                 height={height}
                 radius={RADIUS}
-                filterId={filterId}
+                flare={flare}
               />
             )}
 
-            {/* Sibling of the goo layer, never a child. `filter` creates a
-                containing block, so anything positioned inside the filtered
-                element resolves against it rather than the viewport. */}
+            {/* Sibling of the surface, never a child: the surface is an svg
+                sized to its own geometry, and the content has to be free to
+                size itself. */}
             <motion.div
               ref={surface}
-              /* `relative` is load-bearing, not cosmetic. The goo layer beside
+              /* `relative` is load-bearing, not cosmetic. The surface beside
                  this one is absolutely positioned, so it paints in the
                  positioned phase; an untransformed static sibling paints in
                  the earlier in-flow phase and ends up UNDER it. That only
