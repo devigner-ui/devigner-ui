@@ -1,7 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { motion, type MotionValue } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  type MotionValue,
+} from "motion/react";
+import { cn } from "cn";
+import { SPRING_GOO, SPRING_LAYOUT, SPRING_RETRACT } from "../lib/easing";
+import { useNotches, pauseTimers, resumeTimers } from "../lib/notch-store";
+import type { NotchRecord } from "../lib/notch-queue";
 
 /** The anchor is a lozenge parked above the viewport edge, wide and short. It
  *  is never itself visible - only its contribution to the bridge is. Without a
@@ -120,5 +131,168 @@ function GooFilter({ id, sigma }: { id: string; sigma: number }) {
         </filter>
       </defs>
     </svg>
+  );
+}
+
+/** Corner radius of the resting pill. Half the minimum height, so a
+ *  single-line notch reads as a pill and a grown one keeps the same corner
+ *  rather than swapping shape as it expands. */
+const RADIUS = 22;
+const MIN_W = 180;
+const MIN_H = 44;
+
+/** Measures the content so the blob underneath can match it.
+ *
+ *  The blob has no content of its own, so nothing sizes it, yet it has to
+ *  track a pill sized by its own text through an entrance, a status morph and
+ *  an expand. A ResizeObserver is the honest answer: the alternative, a hidden
+ *  twin of the children rendered under [&_*]:invisible, sizes with zero lag
+ *  but runs the children's effects twice and collides their refs, which breaks
+ *  the moment anyone uses the `content` escape hatch.
+ *
+ *  The one-frame measurement lag it costs is invisible because both layers
+ *  spring toward the same target rather than snapping to raw numbers. */
+function useContentSize(ref: React.RefObject<HTMLElement | null>) {
+  const [size, setSize] = React.useState({ width: MIN_W, height: MIN_H });
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const box = entry.contentRect;
+      setSize({
+        width: Math.max(MIN_W, Math.round(box.width)),
+        height: Math.max(MIN_H, Math.round(box.height)),
+      });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
+}
+
+export interface ToasterProps {
+  /** 0-10. Higher is a longer, lazier neck before the bridge snaps. */
+  viscosity?: number;
+  /** Default auto-dismiss in ms. Per-notch `duration` overrides it. */
+  duration?: number;
+  /** Whether hovering expands the notch. Click-to-expand is always on. */
+  expand?: boolean;
+  /** Extra px below the top edge, for consumers with a fixed header of their
+   *  own. The component does not know about anyone else's layout. */
+  offset?: number;
+  /** Moves focus into the notch. Toasts must never take focus by themselves. */
+  hotkey?: string[];
+  /** Classes for the content surface, not the fixed wrapper. */
+  className?: string;
+}
+
+export function Toaster({
+  viscosity = 5,
+  expand = false,
+  offset = 0,
+  className,
+}: ToasterProps) {
+  const reduced = useReducedMotion() ?? false;
+  const list = useNotches();
+  const current = list[0];
+  const content = React.useRef<HTMLDivElement>(null);
+  const { width, height } = useContentSize(content);
+
+  /* One motion value, two consumers. The blob and the content both read this,
+     so they physically cannot drift apart - there is only one number. Two
+     independent animations with identical configs still desync, because they
+     start on different frames. */
+  const raw = useMotionValue(Y_FROM);
+  const y = useSpring(raw, current?.status ? SPRING_GOO : SPRING_RETRACT);
+
+  React.useEffect(() => {
+    raw.set(current ? Y_TO : Y_FROM);
+  }, [current, raw]);
+
+  /* Reduced motion drops the filter entirely rather than tuning it down. A
+     full-width SVG filter re-rasterizing every frame is precisely the class of
+     thing that setting exists to prevent, and a slower goo is still goo. */
+  const filterId = React.useId();
+  const sigma = sigmaFor(viscosity);
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-x-0 top-0 z-100"
+      style={{ paddingTop: offset }}
+    >
+      {!reduced && <GooFilter id={filterId} sigma={sigma} />}
+
+      <AnimatePresence>
+        {current && (
+          <motion.div key="notch">
+            {!reduced && (
+              <NotchGoo
+                y={y}
+                width={width}
+                height={height}
+                radius={RADIUS}
+                filterId={filterId}
+              />
+            )}
+
+            {/* Sibling of the goo layer, never a child. `filter` creates a
+                containing block, so anything positioned inside the filtered
+                element resolves against it rather than the viewport. */}
+            <motion.div
+              className="flex justify-center"
+              style={reduced ? undefined : { y }}
+              initial={reduced ? { opacity: 0, y: -2 } : false}
+              animate={reduced ? { opacity: 1, y: 0 } : undefined}
+              exit={reduced ? { opacity: 0, y: -2 } : { opacity: 0 }}
+              transition={reduced ? { duration: 0.15 } : SPRING_RETRACT}
+            >
+              <motion.div
+                ref={content}
+                layout
+                transition={SPRING_LAYOUT}
+                onPointerEnter={pauseTimers}
+                onPointerLeave={resumeTimers}
+                style={{
+                  minWidth: MIN_W,
+                  minHeight: MIN_H,
+                  borderRadius: RADIUS,
+                }}
+                className={cn(
+                  "pointer-events-auto flex items-center gap-3 px-4 py-3",
+                  // Transparent background on purpose: the goo layer paints
+                  // the surface. Giving this one a background would draw a
+                  // hard-edged pill on top of the liquid one and flatten it.
+                  reduced && "border border-border bg-background shadow-subtle",
+                  className,
+                )}
+              >
+                <NotchBody record={current} count={list.length} />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* Task 6 replaces this wholesale. It exists only so this file has a running
+   deliverable to look at. */
+function NotchBody({
+  record,
+  count,
+}: {
+  record: NotchRecord;
+  count: number;
+}) {
+  return (
+    <>
+      <span className="text-[15px] font-medium text-foreground">
+        {record.title as React.ReactNode}
+      </span>
+      {count > 1 && (
+        <span className="text-[13px] text-text-muted">+{count - 1}</span>
+      )}
+    </>
   );
 }
