@@ -50,7 +50,7 @@ export const SPRING_MOUSE = {
   mass: 0.3,
 } as const;
 
-/** The droplet's descent through the viewport edge. Heavy on purpose: mass is
+/** The notch emerging through the viewport edge. Heavy on purpose: mass is
  *  what reads as liquid. SPRING_PANEL (mass 0.5) is the nearest existing
  *  token and it lands as a card being dealt, not as something with weight
  *  being squeezed through a membrane. */
