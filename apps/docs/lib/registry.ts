@@ -2447,9 +2447,9 @@ function SearchPanel() {
       {
         name: "flare",
         type: "number",
-        default: "18",
+        default: "8",
         description:
-          "Radius in px of the two inverted top corners, which is also how far the surface overhangs the content on each side. Clamped against the notch's own height.",
+          "Radius in px of the two inverted top corners, which is also how far the surface overhangs the content on each side. The arc eats into the notch's height, so keep it well under a quarter of it or the corners read as ears rather than a notch. Clamped against that height anyway.",
       },
       {
         name: "duration",
@@ -2957,10 +2957,10 @@ function NotchSurface({
   );
 }
 
-/** Corner radius of the resting pill. Half the minimum height, so a
- *  single-line notch reads as a pill and a grown one keeps the same corner
- *  rather than swapping shape as it expands. */
-const RADIUS = 22;
+/** The two bottom corners. Sized against the height rather than set to half
+ *  of it: half makes a stadium, and a stadium leaves no corners for the
+ *  inverted ones at the top to read against. */
+const RADIUS = 11;
 /** Width floor. Below this a one- or two-word title ("Saved") reads as a
  *  stray badge rather than a notification - the pill needs enough width to
  *  look intentional even when the content itself is short. */
@@ -3015,7 +3015,7 @@ export interface ToasterProps {
 }
 
 export function Toaster({
-  flare = 18,
+  flare = 8,
   duration,
   expand = false,
   offset = 0,

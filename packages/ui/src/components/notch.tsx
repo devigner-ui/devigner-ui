@@ -105,10 +105,14 @@ function NotchSurface({
   );
 }
 
-/** Corner radius of the resting pill. Half the minimum height, so a
- *  single-line notch reads as a pill and a grown one keeps the same corner
- *  rather than swapping shape as it expands. */
-const RADIUS = 22;
+/** The two bottom corners.
+ *
+ *  Sized against the notch's height on purpose, not set to half of it. Half
+ *  makes a stadium, and a stadium has no corners left for the inverted ones at
+ *  the top to read against - the shape stops being a notch and becomes a pill
+ *  with dents. Roughly a fifth of the height keeps the silhouette squarely
+ *  rectangular, which is what makes the top corners legible as inversions. */
+const RADIUS = 11;
 /** Width floor. Below this a one- or two-word title ("Saved") reads as a
  *  stray badge rather than a notification - the pill needs enough width to
  *  look intentional even when the content itself is short. */
@@ -154,10 +158,14 @@ function useContentSize(ref: React.RefObject<HTMLElement | null>) {
 
 export interface ToasterProps {
   /** Radius of the two inverted top corners, in px, which is also how far the
-   *  surface overhangs the content on each side. This is an exact radius, not
-   *  a tuning hint: 0 gives square corners welded flat to the edge. Clamped
-   *  against the notch's own height, so a value taller than the side wall can
-   *  accommodate comes back smaller than asked. */
+   *  surface overhangs the content on each side. An exact radius, not a tuning
+   *  hint: 0 gives square corners welded flat to the edge.
+   *
+   *  Small by default, and that is the point. The arc is subtractive - it eats
+   *  into the notch's height - so a value that looks modest as a number takes
+   *  a third of a one-line notch and turns the top corners into ears. Keep it
+   *  well under a quarter of the height. Clamped against that height anyway,
+   *  so an over-large value comes back smaller than asked. */
   flare?: number;
   /** Default auto-dismiss in ms. Per-notch `duration` overrides it. */
   duration?: number;
@@ -173,7 +181,7 @@ export interface ToasterProps {
 }
 
 export function Toaster({
-  flare = 18,
+  flare = 8,
   duration,
   expand = false,
   offset = 0,
