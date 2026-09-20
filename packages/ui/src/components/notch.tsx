@@ -206,12 +206,14 @@ export function Toaster({
   viscosity = 5,
   expand = false,
   offset = 0,
+  hotkey = ["altKey", "KeyT"],
   className,
 }: ToasterProps) {
   const reduced = useReducedMotion() ?? false;
   const list = useNotches();
   const current = list[0];
   const content = React.useRef<HTMLDivElement>(null);
+  const surface = React.useRef<HTMLDivElement>(null);
   const { width, height } = useContentSize(content);
 
   /* One motion value, two consumers. The blob and the content both read this,
@@ -257,11 +259,72 @@ export function Toaster({
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
+  /* Without this a notification expires while the user is in another tab and
+     is never seen. Hover pausing alone does not cover it, the pointer is not
+     on the page at all. */
+  React.useEffect(() => {
+    window.addEventListener("blur", pauseTimers);
+    window.addEventListener("focus", resumeTimers);
+    return () => {
+      window.removeEventListener("blur", pauseTimers);
+      window.removeEventListener("focus", resumeTimers);
+    };
+  }, []);
+
+  /* A toast must never take focus by itself, it would yank the caret out of
+     whatever is being typed. The hotkey is how a keyboard user reaches it
+     deliberately, which is the pattern Sonner established. */
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const hit = hotkey.every((k) =>
+        k.endsWith("Key") ? e[k as "altKey"] : e.code === k,
+      );
+      if (!hit) return;
+      e.preventDefault();
+      surface.current?.querySelector("button")?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [hotkey]);
+
+  /** Only string title/description can be announced through text. An element
+   *  title reads through the visible layer instead, joining unknown children
+   *  into a string is not a safe operation. */
+  const announce =
+    current && (current.status !== "error")
+      ? [current.title, current.description]
+          .filter((v): v is string => typeof v === "string")
+          .join(". ")
+      : "";
+  const announceError =
+    current && current.status === "error"
+      ? [current.title, current.description]
+          .filter((v): v is string => typeof v === "string")
+          .join(". ")
+      : "";
+
   return (
     <div
       className="pointer-events-none fixed inset-x-0 top-0 z-100"
       style={{ paddingTop: offset }}
     >
+      {/* Mounted empty and permanently, with notifications written into it. A
+          live region that mounts together with its content is not announced
+          at all, screen readers only report changes to regions they were
+          already watching. This is the single most common toast
+          accessibility bug.
+
+          Two regions, not one with a swapped role: changing role/aria-live on
+          a live element is unreliable across screen readers, so each severity
+          gets its own permanent region and only the matching one is ever
+          written to. */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {announce}
+      </div>
+      <div role="alert" aria-live="assertive" aria-atomic="true" className="sr-only">
+        {announceError}
+      </div>
+
       {!reduced && <GooFilter id={filterId} sigma={sigma} />}
 
       <AnimatePresence>
@@ -292,6 +355,7 @@ export function Toaster({
                 containing block, so anything positioned inside the filtered
                 element resolves against it rather than the viewport. */}
             <motion.div
+              ref={surface}
               className="flex justify-center"
               style={reduced ? undefined : { y, opacity: contentOpacity }}
               initial={reduced ? { opacity: 0, y: -2 } : false}
