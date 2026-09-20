@@ -2436,6 +2436,854 @@ function SearchPanel() {
   ]}
 />`,
   },
+  "notch": {
+    slug: "notch",
+    name: "Notch",
+    description:
+      "A notification that is squeezed through the top edge of the viewport as a liquid droplet, with a neck that stretches and snaps",
+    category: "animation",
+    variants: ["Success", "Error", "Promise", "With action", "Expanded"],
+    props: [
+      {
+        name: "viscosity",
+        type: "number",
+        default: "5",
+        description:
+          "0-10. Higher is a longer, lazier neck before the bridge snaps.",
+      },
+      {
+        name: "duration",
+        type: "number",
+        default: "4000",
+        description:
+          "Default auto-dismiss in ms. Infinity pins the notch until it is dismissed by hand.",
+      },
+      {
+        name: "expand",
+        type: "boolean",
+        default: "false",
+        description:
+          "Whether hovering expands the notch. Click-to-expand is always on.",
+      },
+      {
+        name: "offset",
+        type: "number",
+        default: "0",
+        description:
+          "Extra px below the top edge, for consumers with a fixed header of their own.",
+      },
+      {
+        name: "hotkey",
+        type: "string[]",
+        default: '["altKey","KeyT"]',
+        description:
+          "Moves focus into the notch. Notifications never take focus on their own.",
+      },
+      {
+        name: "className",
+        type: "string",
+        default: "-",
+        description: "Classes for the content surface, not the fixed wrapper.",
+      },
+    ],
+    usage: `toast.success("Deployed");
+toast.promise(deploy(), {
+  loading: "Deploying...",
+  success: "Live",
+  error: "Failed",
+});`,
+    notes: [
+      "Opaque fills only. The liquid merge is alpha compositing, so a translucent notch cannot bridge, and backdrop-filter does not survive a filter on the same subtree. Glassmorphism and this effect are mutually exclusive.",
+      "Reduced motion drops the filter entirely for a plain fade. A full-width SVG filter re-rasterizing every frame is what that setting exists to prevent.",
+      "One notch at a time. A second notification morphs the surface in place and raises a counter rather than stacking.",
+    ],
+    code: `"use client";
+
+import * as React from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
+import { cn } from "cn";
+import { IconCheck, IconAlertTriangle, IconClose, IconSpinner } from "@devigner-ui/icons";
+
+// Motion tokens, inlined - a copy-paste install has neither the shared
+// easing module nor the package it lives in.
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+const SPRING_PRESS = { type: "spring", stiffness: 500, damping: 30, mass: 0.6 } as const;
+const SPRING_SWAP = { type: "spring", stiffness: 460, damping: 30, mass: 0.55 } as const;
+const SPRING_LAYOUT = { type: "spring", stiffness: 360, damping: 32, mass: 0.6 } as const;
+/** The droplet's descent through the viewport edge. Heavy on purpose: mass is
+ *  what reads as liquid rather than a card being dealt. */
+const SPRING_GOO = { type: "spring", stiffness: 260, damping: 26, mass: 1.1 } as const;
+/** Retracting back into the anchor. Over-damped, so it never bounces - an
+ *  exit that wobbles reads as indecision, and nobody watches the way out. */
+const SPRING_RETRACT = { type: "spring", stiffness: 300, damping: 34 } as const;
+
+// ─── Queue, inlined ───
+// Pure functions over an immutable list, kept apart from the store below so
+// the state machine stays checkable on its own, with no DOM or React in it.
+// The list is ordered newest first: the notch renders index 0, so the thing
+// that just happened is always what is on screen.
+
+type NotchStatus = "default" | "success" | "error" | "warning" | "loading";
+
+interface NotchRecord {
+  id: string;
+  status: NotchStatus;
+  /** Content slots are \`unknown\`, not React types, so this stays free of
+   *  React and the queue never looks inside them, only moves them around. */
+  title?: unknown;
+  description?: unknown;
+  icon?: unknown;
+  /** Escape hatch. Wins over the structured slots when both are given. */
+  content?: unknown;
+  action?: { label: string; onClick: () => void };
+  cancel?: { label: string; onClick?: () => void };
+  /** Infinity pins the notch until something dismisses it by hand. */
+  duration: number;
+  createdAt: number;
+}
+
+/** Adds a notch, or refreshes one already in the list. Refreshing keeps its
+ *  position rather than moving it to the front - a promise resolving is old
+ *  news finishing, not new news arriving. */
+function addNotch(list: NotchRecord[], record: NotchRecord): NotchRecord[] {
+  const at = list.findIndex((n) => n.id === record.id);
+  if (at === -1) return [record, ...list];
+  const next = list.slice();
+  next[at] = record;
+  return next;
+}
+
+/** Patches one record. An unknown id is a no-op, not a throw: a promise can
+ *  settle after its notch was dismissed by hand, which is ordinary. */
+function updateNotch(
+  list: NotchRecord[],
+  id: string,
+  patch: Partial<NotchRecord>,
+): NotchRecord[] {
+  const at = list.findIndex((n) => n.id === id);
+  if (at === -1) return list;
+  const next = list.slice();
+  next[at] = { ...next[at], ...patch };
+  return next;
+}
+
+/** Removes one notch, or every notch when no id is given. */
+function dismissNotch(list: NotchRecord[], id?: string): NotchRecord[] {
+  if (id === undefined) return [];
+  return list.some((n) => n.id === id) ? list.filter((n) => n.id !== id) : list;
+}
+
+/** Milliseconds left before a record expires, given how long its timer has
+ *  actually run. Elapsed is passed in, not read from a clock, so this stays
+ *  pure - the store owns the clock, and pausing is elapsed not advancing. */
+function remainingMs(record: NotchRecord, elapsed: number): number {
+  if (record.duration === Infinity) return Infinity;
+  return Math.max(0, record.duration - elapsed);
+}
+
+// ─── Store, inlined ───
+// Module-level state, deliberately: useSyncExternalStore over a plain array
+// is React's own primitive for this, and keeping the array outside React is
+// the whole reason toast() can be called from an event handler, a router
+// loader, or anywhere else with no provider in scope.
+
+/** Default time on screen. Long enough to read two lines, short enough that
+ *  a burst drains rather than queueing up behind the counter. */
+const DEFAULT_DURATION = 4000;
+
+let list: NotchRecord[] = [];
+const listeners = new Set<() => void>();
+
+const emit = () => {
+  for (const l of listeners) l();
+};
+
+const setList = (next: NotchRecord[]) => {
+  if (next === list) return;
+  list = next;
+  emit();
+};
+
+const subscribe = (fn: () => void) => {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+};
+
+const snapshot = () => list;
+/** The server snapshot must be a stable reference, not a fresh []. A new
+ *  array every call makes React think the store changed on every render. */
+const EMPTY: NotchRecord[] = [];
+const serverSnapshot = () => EMPTY;
+
+function useNotches(): NotchRecord[] {
+  return React.useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+}
+
+/* One timer per notch, tracked by id. Pausing banks the elapsed time rather
+   than guessing, so resuming schedules exactly what was left - a hover never
+   silently grants a full extra duration. */
+const timers = new Map<
+  string,
+  { handle: ReturnType<typeof setTimeout>; startedAt: number; elapsed: number }
+>();
+let paused = false;
+
+function schedule(id: string) {
+  const record = list.find((n) => n.id === id);
+  if (!record) return;
+  const banked = timers.get(id)?.elapsed ?? 0;
+  const left = remainingMs(record, banked);
+  if (left === Infinity) return;
+  const existing = timers.get(id);
+  if (existing) clearTimeout(existing.handle);
+  timers.set(id, {
+    handle: setTimeout(() => remove(id), left),
+    startedAt: Date.now(),
+    elapsed: banked,
+  });
+}
+
+function unschedule(id: string) {
+  const t = timers.get(id);
+  if (!t) return;
+  clearTimeout(t.handle);
+  timers.delete(id);
+}
+
+/** Banks elapsed time on every live timer and stops the clock. Called on
+ *  pointer enter and on window blur - without the blur case a notification
+ *  expires while the user is in another tab and is never seen. */
+function pauseTimers() {
+  if (paused) return;
+  paused = true;
+  for (const [id, t] of timers) {
+    clearTimeout(t.handle);
+    timers.set(id, { ...t, elapsed: t.elapsed + (Date.now() - t.startedAt) });
+  }
+}
+
+function resumeTimers() {
+  if (!paused) return;
+  paused = false;
+  for (const id of timers.keys()) schedule(id);
+}
+
+function remove(id: string) {
+  unschedule(id);
+  setList(dismissNotch(list, id));
+}
+
+let counter = 0;
+const nextId = () => \`notch-\${++counter}\`;
+
+interface NotchOptions {
+  id?: string;
+  description?: React.ReactNode;
+  icon?: React.ReactNode;
+  /** Renders instead of the structured slots. */
+  content?: React.ReactNode;
+  action?: { label: string; onClick: () => void };
+  cancel?: { label: string; onClick?: () => void };
+  /** Infinity pins the notch until it is dismissed by hand. */
+  duration?: number;
+}
+
+function create(
+  status: NotchStatus,
+  title: React.ReactNode,
+  options: NotchOptions = {},
+): string {
+  const id = options.id ?? nextId();
+  const record: NotchRecord = {
+    id,
+    status,
+    title,
+    description: options.description,
+    icon: options.icon,
+    content: options.content,
+    action: options.action,
+    cancel: options.cancel,
+    duration: options.duration ?? DEFAULT_DURATION,
+    createdAt: Date.now(),
+  };
+  setList(addNotch(list, record));
+  unschedule(id);
+  if (!paused) schedule(id);
+  return id;
+}
+
+/** Patches a live notch and restarts its clock. Used by promise settlement,
+ *  which must morph the surface rather than replace it - a dismiss plus a
+ *  create would retract the droplet and replay the whole goo entrance for
+ *  what is really one notification changing its mind. */
+function settle(
+  id: string,
+  status: NotchStatus,
+  title: React.ReactNode,
+  duration: number,
+) {
+  if (!list.some((n) => n.id === id)) return;
+  setList(
+    updateNotch(list, id, { status, title, duration, createdAt: Date.now() }),
+  );
+  unschedule(id);
+  if (!paused) schedule(id);
+}
+
+const resolveMessage = <T,>(
+  msg: React.ReactNode | ((value: T) => React.ReactNode),
+  value: T,
+): React.ReactNode =>
+  typeof msg === "function" ? (msg as (v: T) => React.ReactNode)(value) : msg;
+
+function base(
+  titleOrOptions: React.ReactNode | (NotchOptions & { title?: React.ReactNode }),
+  options?: NotchOptions,
+): string {
+  // Object-form call: toast({ title, description, action }).
+  if (
+    titleOrOptions !== null &&
+    typeof titleOrOptions === "object" &&
+    !React.isValidElement(titleOrOptions) &&
+    !Array.isArray(titleOrOptions)
+  ) {
+    const { title, ...rest } = titleOrOptions as NotchOptions & {
+      title?: React.ReactNode;
+    };
+    return create("default", title, rest);
+  }
+  return create("default", titleOrOptions as React.ReactNode, options);
+}
+
+const toast = Object.assign(base, {
+  success: (t: React.ReactNode, o?: NotchOptions) => create("success", t, o),
+  error: (t: React.ReactNode, o?: NotchOptions) => create("error", t, o),
+  warning: (t: React.ReactNode, o?: NotchOptions) => create("warning", t, o),
+  /** Defaults to pinned: a spinner that vanishes on a timer leaves the user
+   *  believing the work was abandoned. */
+  loading: (t: React.ReactNode, o?: NotchOptions) =>
+    create("loading", t, { duration: Infinity, ...o }),
+
+  promise: <T,>(
+    p: Promise<T>,
+    msgs: {
+      loading: React.ReactNode;
+      success: React.ReactNode | ((value: T) => React.ReactNode);
+      error: React.ReactNode | ((err: unknown) => React.ReactNode);
+    },
+    options: NotchOptions = {},
+  ): Promise<T> => {
+    const duration = options.duration ?? DEFAULT_DURATION;
+    const id = create("loading", msgs.loading, { ...options, duration: Infinity });
+    p.then(
+      (value) => settle(id, "success", resolveMessage(msgs.success, value), duration),
+      (err) => settle(id, "error", resolveMessage(msgs.error, err), duration),
+    );
+    return p;
+  },
+
+  dismiss: (id?: string) => {
+    if (id === undefined) {
+      for (const key of [...timers.keys()]) unschedule(key);
+      setList(dismissNotch(list));
+      return;
+    }
+    remove(id);
+  },
+});
+
+export { toast };
+export type { NotchOptions, NotchStatus, NotchRecord };
+
+// ─── Component ───
+
+/** The anchor is a lozenge parked above the viewport edge, wide and short. It
+ *  is never itself visible - only its contribution to the bridge is. Without
+ *  a second shape there is nothing to fuse with and the droplet just fades
+ *  in. */
+const ANCHOR_W = 120;
+const ANCHOR_H = 40;
+const ANCHOR_TOP = -24;
+
+/** Travel. Deliberately short: the bridge carries the effect, and extra
+ *  distance buys nothing but latency. At Y_FROM the droplet is still fully
+ *  merged with the anchor, which is why nothing is legible until it moves. */
+const Y_FROM = -8;
+const Y_TO = 16;
+
+/** Blur radius from the 0-10 viscosity prop. Higher sigma means the halos
+ *  overlap for longer, so the neck stretches further before it snaps - which
+ *  is what reads as a thicker liquid. Below about 4 the bridge never forms at
+ *  all; above about 14 it never lets go within the travel distance. */
+const sigmaFor = (viscosity: number) =>
+  4 + (Math.min(10, Math.max(0, viscosity)) / 10) * 10;
+
+/** The filtered layer. Solid shapes only - the filter blurs and then
+ *  alpha-crushes every descendant, so text put in here comes out as fringed
+ *  mush. That constraint is the entire reason the notch is two layers.
+ *
+ *  Two blobs, not one: a border-coloured blob sits a pixel proud of a
+ *  background-coloured one, so the outline is gooed too and stretches with
+ *  the neck. A CSS border would simply be blurred into the fill and vanish. */
+function NotchGoo({
+  y,
+  width,
+  height,
+  radius,
+  filterId,
+}: {
+  y: MotionValue<number>;
+  width: number;
+  height: number;
+  radius: number;
+  filterId: string;
+}) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
+      style={{ filter: \`url(#\${filterId})\` }}
+    >
+      {/* Parked above the edge. Nothing about it is meant to be seen. */}
+      <div
+        className="absolute rounded-full bg-border"
+        style={{ width: ANCHOR_W, height: ANCHOR_H, top: ANCHOR_TOP }}
+      />
+      <motion.div className="absolute" style={{ y }}>
+        {/* Border blob first, so the fill paints over its middle and leaves
+            exactly the 1px proud edge showing. */}
+        <div
+          className="absolute bg-border"
+          style={{
+            width: width + 2,
+            height: height + 2,
+            left: -(width + 2) / 2,
+            top: 0,
+            borderRadius: radius + 1,
+          }}
+        />
+        <div
+          className="absolute bg-background"
+          style={{
+            width,
+            height,
+            left: -width / 2,
+            top: 1,
+            borderRadius: radius,
+          }}
+        />
+      </motion.div>
+    </div>
+  );
+}
+
+/** The filter itself. Two nodes, and three things that are easy to get wrong:
+ *
+ *  1. The region must be declared. A <filter> defaults to -10%/+10% of the
+ *     bounding box, and a stretched neck exceeds that and is clipped clean
+ *     through. This is the single most common reason a goo demo looks broken.
+ *  2. No feBlend. Published versions end with feBlend against SourceGraphic to
+ *     keep inner content crisp; here there is no inner content, so that node
+ *     only re-composites the sharp un-gooed silhouette on top of the liquid
+ *     one and cancels the effect outright.
+ *  3. The alpha row is the whole trick: newAlpha = 18*A - 7 puts a hard cutoff
+ *     at A of about 0.39, so two blurred halos read as one solid shape while
+ *     they overlap above it and as two the instant they do not. The neck
+ *     stretching, thinning and snapping is emergent. Do not animate it. */
+function GooFilter({ id, sigma }: { id: string; sigma: number }) {
+  return (
+    <svg aria-hidden className="pointer-events-none absolute size-0" focusable="false">
+      <defs>
+        <filter id={id} x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation={sigma} result="blur" />
+          <feColorMatrix
+            in="blur"
+            mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"
+          />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
+/** Corner radius of the resting pill. Half the minimum height, so a
+ *  single-line notch reads as a pill and a grown one keeps the same corner
+ *  rather than swapping shape as it expands. */
+const RADIUS = 22;
+/** Width floor. Below this a one- or two-word title ("Saved") reads as a
+ *  stray badge rather than a notification - the pill needs enough width to
+ *  look intentional even when the content itself is short. */
+const MIN_W = 180;
+const MIN_H = 44;
+
+/** Measures the content so the blob underneath can match it. The blob has no
+ *  content of its own, so nothing sizes it, yet it has to track a pill sized
+ *  by its own text through an entrance, a status morph and an expand. A
+ *  ResizeObserver is the honest answer here. */
+function useContentSize(ref: React.RefObject<HTMLElement | null>) {
+  const [size, setSize] = React.useState({ width: MIN_W, height: MIN_H });
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const box = entry.contentRect;
+      setSize({
+        width: Math.max(MIN_W, Math.round(box.width)),
+        height: Math.max(MIN_H, Math.round(box.height)),
+      });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
+}
+
+export interface ToasterProps {
+  /** 0-10. Higher is a longer, lazier neck before the bridge snaps. */
+  viscosity?: number;
+  /** Default auto-dismiss in ms. Per-notch \`duration\` overrides it. */
+  duration?: number;
+  /** Whether hovering expands the notch. Click-to-expand is always on. */
+  expand?: boolean;
+  /** Extra px below the top edge, for consumers with a fixed header of their
+   *  own. The component does not know about anyone else's layout. */
+  offset?: number;
+  /** Moves focus into the notch. Toasts must never take focus by themselves. */
+  hotkey?: string[];
+  /** Classes for the content surface, not the fixed wrapper. */
+  className?: string;
+}
+
+export function Toaster({
+  viscosity = 5,
+  expand = false,
+  offset = 0,
+  hotkey = ["altKey", "KeyT"],
+  className,
+}: ToasterProps) {
+  const reduced = useReducedMotion() ?? false;
+  const notches = useNotches();
+  const current = notches[0];
+  const content = React.useRef<HTMLDivElement>(null);
+  const surface = React.useRef<HTMLDivElement>(null);
+  const { width, height } = useContentSize(content);
+
+  /* One motion value, two consumers. The blob and the content both read this,
+     so they physically cannot drift apart - there is only one number. */
+  const raw = useMotionValue(Y_FROM);
+  const y = useSpring(raw, current?.status ? SPRING_GOO : SPRING_RETRACT);
+
+  React.useEffect(() => {
+    raw.set(current ? Y_TO : Y_FROM);
+  }, [current, raw]);
+
+  /* Content opacity as a pure function of the same shared value: 0 below
+     y=8 (still merged with the anchor), 1 at y=16 (settled). Reusing it on
+     the way out is what makes the exit sequence itself. */
+  const contentOpacity = useTransform(y, [Y_FROM, 8, Y_TO], [0, 0, 1]);
+
+  const filterId = React.useId();
+  const sigma = sigmaFor(viscosity);
+
+  const [open, setOpen] = React.useState(false);
+
+  /* Collapse whenever the rendered notch changes. An expanded panel that
+     silently swaps its contents for a different notification is how the
+     wrong button gets pressed. */
+  React.useEffect(() => {
+    setOpen(false);
+  }, [current?.id]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  /* Without this a notification expires while the user is in another tab
+     and is never seen. Hover pausing alone does not cover it. */
+  React.useEffect(() => {
+    window.addEventListener("blur", pauseTimers);
+    window.addEventListener("focus", resumeTimers);
+    return () => {
+      window.removeEventListener("blur", pauseTimers);
+      window.removeEventListener("focus", resumeTimers);
+    };
+  }, []);
+
+  /* A toast must never take focus by itself, it would yank the caret out of
+     whatever is being typed. The hotkey is how a keyboard user reaches it
+     deliberately. */
+  React.useEffect(() => {
+    const MODIFIERS = ["altKey", "ctrlKey", "shiftKey", "metaKey"] as const;
+    const onKey = (e: KeyboardEvent) => {
+      const matchesHotkey = hotkey.every((k) =>
+        k.endsWith("Key") && (MODIFIERS as readonly string[]).includes(k)
+          ? e[k as "altKey"]
+          : e.code === k,
+      );
+      const noExtraModifiers = MODIFIERS.every(
+        (m) => hotkey.includes(m) === e[m],
+      );
+      if (!matchesHotkey || !noExtraModifiers) return;
+      e.preventDefault();
+      surface.current?.querySelector("button")?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [hotkey]);
+
+  /** Only string title/description can be announced through text. */
+  const announce =
+    current && current.status !== "error"
+      ? [current.title, current.description]
+          .filter((v): v is string => typeof v === "string")
+          .join(". ")
+      : "";
+  const announceError =
+    current && current.status === "error"
+      ? [current.title, current.description]
+          .filter((v): v is string => typeof v === "string")
+          .join(". ")
+      : "";
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-x-0 top-0 z-100"
+      style={{ paddingTop: offset }}
+    >
+      {/* Mounted empty and permanently, with notifications written into it.
+          A live region that mounts together with its content is not
+          announced at all. Two regions, not one with a swapped role:
+          changing role/aria-live on a live element is unreliable across
+          screen readers. */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {announce}
+      </div>
+      <div role="alert" aria-live="assertive" aria-atomic="true" className="sr-only">
+        {announceError}
+      </div>
+
+      {!reduced && <GooFilter id={filterId} sigma={sigma} />}
+
+      <AnimatePresence>
+        {current && (
+          <motion.div
+            key="notch"
+            initial={false}
+            // Gates AnimatePresence's unmount to the full retract, not to
+            // when the content reads as gone. Content opacity already hits
+            // 0 at y=8; this keeps the blob on screen for the rest of the
+            // rise back into the anchor.
+            exit={reduced ? undefined : { opacity: 0 }}
+            transition={reduced ? undefined : SPRING_RETRACT}
+          >
+            {!reduced && (
+              <NotchGoo y={y} width={width} height={height} radius={RADIUS} filterId={filterId} />
+            )}
+
+            {/* Sibling of the goo layer, never a child. \`filter\` creates a
+                containing block, so anything positioned inside the filtered
+                element resolves against it rather than the viewport. */}
+            <motion.div
+              ref={surface}
+              className="flex justify-center"
+              style={reduced ? undefined : { y, opacity: contentOpacity }}
+              initial={reduced ? { opacity: 0, y: -2 } : false}
+              animate={reduced ? { opacity: 1, y: 0 } : undefined}
+              exit={reduced ? { opacity: 0, y: -2 } : undefined}
+              transition={reduced ? { duration: 0.15, ease: EASE_OUT } : undefined}
+            >
+              <motion.div
+                ref={content}
+                layout
+                transition={SPRING_LAYOUT}
+                onPointerEnter={() => {
+                  pauseTimers();
+                  if (expand) setOpen(true);
+                }}
+                onPointerLeave={() => {
+                  resumeTimers();
+                  if (expand) setOpen(false);
+                }}
+                style={{ minWidth: MIN_W, minHeight: MIN_H, borderRadius: RADIUS }}
+                className={cn(
+                  "pointer-events-auto flex items-center gap-3 px-4 py-3",
+                  // Transparent background on purpose: the goo layer paints
+                  // the surface. Giving this one a background would draw a
+                  // hard-edged pill on top of the liquid one.
+                  reduced && "border border-border bg-background shadow-subtle",
+                  className,
+                )}
+              >
+                <div className="flex w-full flex-col">
+                  <div className="flex items-center gap-3">
+                    <NotchBody
+                      record={current}
+                      count={notches.length}
+                      reduced={reduced}
+                      open={open}
+                      onToggle={() => setOpen((v) => !v)}
+                    />
+                  </div>
+
+                  <AnimatePresence initial={false}>
+                    {open && notches.length > 1 && (
+                      <motion.ul
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={SPRING_LAYOUT}
+                        className="mt-2 flex flex-col gap-1 border-t border-border pt-2"
+                      >
+                        {notches.slice(1).map((n) => (
+                          <li key={n.id} className="truncate text-[13px] text-text-secondary">
+                            {n.title as React.ReactNode}
+                          </li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** Colour and glyph per status. \`default\` carries no icon at all, a plain
+ *  message with a decorative dot in front of it says less than one without. */
+const STATUS: Record<NotchStatus, { icon: React.ReactNode | null; tone: string }> = {
+  default: { icon: null, tone: "text-foreground" },
+  success: { icon: <IconCheck />, tone: "text-success" },
+  error: { icon: <IconClose />, tone: "text-destructive" },
+  warning: { icon: <IconAlertTriangle />, tone: "text-warning" },
+  loading: { icon: <IconSpinner className="animate-spin" />, tone: "text-text-secondary" },
+};
+
+function NotchBody({
+  record,
+  count,
+  reduced,
+  open,
+  onToggle,
+}: {
+  record: NotchRecord;
+  count: number;
+  reduced: boolean;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  // The escape hatch is terminal: nothing structured, not even the expand
+  // trigger, renders alongside it.
+  if (record.content !== undefined) {
+    return (
+      <div className="flex min-w-0 flex-1 items-center">
+        {record.content as React.ReactNode}
+      </div>
+    );
+  }
+
+  const { icon, tone } = STATUS[record.status];
+  const glyph = (record.icon as React.ReactNode) ?? icon;
+
+  return (
+    <>
+      {/* The trigger wraps only non-interactive content, the glyph and the
+          text block. The action and cancel buttons below are its siblings,
+          never its children: a <button> cannot contain a <button>. */}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={onToggle}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      >
+        {glyph && (
+          <span className="relative grid size-5 shrink-0 place-items-center [&_svg]:size-5">
+            <AnimatePresence initial={false} mode="popLayout">
+              <motion.span
+                key={record.status}
+                initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+                transition={reduced ? { duration: 0.12, ease: EASE_OUT } : SPRING_SWAP}
+                className={cn("grid place-items-center", tone)}
+              >
+                {glyph}
+              </motion.span>
+            </AnimatePresence>
+          </span>
+        )}
+
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="truncate text-[15px] font-medium text-foreground">
+            {record.title as React.ReactNode}
+          </span>
+          {record.description !== undefined && (
+            <span className="truncate text-[13px] text-text-secondary">
+              {record.description as React.ReactNode}
+            </span>
+          )}
+        </div>
+      </button>
+
+      {record.cancel && (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.96 }}
+          transition={SPRING_PRESS}
+          onClick={() => {
+            record.cancel?.onClick?.();
+            toast.dismiss(record.id);
+          }}
+          className="shrink-0 rounded-full px-3 py-1.5 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          {record.cancel.label}
+        </motion.button>
+      )}
+
+      {record.action && (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.96 }}
+          transition={SPRING_PRESS}
+          onClick={() => {
+            record.action?.onClick();
+            toast.dismiss(record.id);
+          }}
+          className="shrink-0 rounded-full bg-foreground px-3 py-1.5 text-[13px] font-medium text-background outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          {record.action.label}
+        </motion.button>
+      )}
+
+      {count > 1 && (
+        <span className="shrink-0 text-[13px] tabular-nums text-text-muted">
+          +{count - 1}
+        </span>
+      )}
+    </>
+  );
+}
+`,
+  },
 };
 
 /* ─── CLI-facing registry (served by /api/registry → consumed by the CLI) ─── */

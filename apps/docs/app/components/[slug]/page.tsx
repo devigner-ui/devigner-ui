@@ -9,6 +9,8 @@ import {
   MagneticButton,
   MenuDock,
   Timeline,
+  Toaster,
+  toast,
   type MenuDockItem,
 } from "@devignerui/ui";
 import { CodeBlock } from "../../../components/code-block";
@@ -372,6 +374,66 @@ function MenuDockPreview() {
         item.items ? item : { ...item, onSelect: () => setActive(item.id!) },
       )}
     />
+  );
+}
+
+/** Buttons that fire the three ways a notch appears - a plain status, and a
+ *  promise that morphs the same surface from loading into success or error
+ *  rather than replacing it. There is no timeout/retract button: the auto
+ *  dismiss after DEFAULT_DURATION already exercises that path. The viscosity
+ *  knob is here, not on the Toaster itself, so the bridge's neck length can
+ *  be compared without editing code.
+ *
+ *  The Toaster itself is fixed to the real viewport top, not to this stage -
+ *  it has no idea it is being previewed inside a boxed card. So the notch
+ *  renders pinned above the whole docs page rather than inside the dotted
+ *  preview box, which is expected and not a bug in this preview. */
+function NotchPreview() {
+  const [viscosity, setViscosity] = useState(5);
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <Toaster viscosity={viscosity} />
+      <button
+        type="button"
+        onClick={() => toast.success("Deployed")}
+        className="cursor-pointer rounded-full bg-foreground px-4 py-2 text-[13px] font-medium text-background transition-opacity duration-200 hover:opacity-90"
+      >
+        Success
+      </button>
+      <button
+        type="button"
+        onClick={() => toast.error("Deploy failed")}
+        className="cursor-pointer rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors duration-200 hover:bg-surface-hover"
+      >
+        Error
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          toast.promise(new Promise((resolve) => setTimeout(resolve, 2000)), {
+            loading: "Deploying...",
+            success: "Live",
+            error: "Failed",
+          })
+        }
+        className="cursor-pointer rounded-full border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors duration-200 hover:bg-surface-hover"
+      >
+        Promise
+      </button>
+
+      <ConfigMenu>
+        <Knob
+          name="viscosity"
+          hint="0-10"
+          min={0}
+          max={10}
+          step={1}
+          value={viscosity}
+          onChange={setViscosity}
+        />
+      </ConfigMenu>
+    </div>
   );
 }
 
@@ -1323,6 +1385,8 @@ function ComponentPageInner({ params }: { params: Promise<{ slug: string }> }) {
     <Timeline steps={TIMELINE_STEPS} className="w-full max-w-md" />
   ) : slug === "menu-dock" ? (
     <MenuDockPreview />
+  ) : slug === "notch" ? (
+    <NotchPreview />
   ) : undefined;
   const props = meta.props;
   const usage = isMagnetic

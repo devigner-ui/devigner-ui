@@ -21,3 +21,6 @@ export {
   type MenuDockProps,
   type MenuDockItem,
 } from "./components/menu-dock";
+export { Toaster, type ToasterProps } from "./components/notch";
+export { toast, type NotchOptions } from "./lib/notch-store";
+export type { NotchStatus, NotchRecord } from "./lib/notch-queue";
