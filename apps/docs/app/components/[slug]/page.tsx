@@ -380,20 +380,20 @@ function MenuDockPreview() {
 /** Buttons that fire the three ways a notch appears - a plain status, and a
  *  promise that morphs the same surface from loading into success or error
  *  rather than replacing it. There is no timeout/retract button: the auto
- *  dismiss after DEFAULT_DURATION already exercises that path. The viscosity
- *  knob is here, not on the Toaster itself, so the size of the fillet
- *  welding the notch to the edge can be compared without editing code.
+ *  dismiss after DEFAULT_DURATION already exercises that path. The flare
+ *  knob is here, not on the Toaster itself, so the size of the inverted top
+ *  corners can be compared without editing code.
  *
  *  The Toaster itself is fixed to the real viewport top, not to this stage -
  *  it has no idea it is being previewed inside a boxed card. So the notch
  *  renders pinned above the whole docs page rather than inside the dotted
  *  preview box, which is expected and not a bug in this preview. */
 function NotchPreview() {
-  const [viscosity, setViscosity] = useState(5);
+  const [flare, setFlare] = useState(18);
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
-      <Toaster viscosity={viscosity} />
+      <Toaster flare={flare} />
       <button
         type="button"
         onClick={() => toast.success("Deployed")}
@@ -424,13 +424,13 @@ function NotchPreview() {
 
       <ConfigMenu>
         <Knob
-          name="viscosity"
-          hint="0-10"
+          name="flare"
+          hint="px"
           min={0}
-          max={10}
+          max={32}
           step={1}
-          value={viscosity}
-          onChange={setViscosity}
+          value={flare}
+          onChange={setFlare}
         />
       </ConfigMenu>
     </div>
