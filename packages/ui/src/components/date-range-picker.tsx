@@ -21,7 +21,19 @@ import {
   type MonthGridDay,
 } from "../lib/date-range";
 
-const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
+const WEEKDAYS = [
+  ["M", "Monday"],
+  ["T", "Tuesday"],
+  ["W", "Wednesday"],
+  ["T", "Thursday"],
+  ["F", "Friday"],
+  ["S", "Saturday"],
+  ["S", "Sunday"],
+] as const;
+
+// Matches the fill's rendered height (h-10 row minus inset-y-0.5), set via
+// style so motion can scale-correct the corners during layout animation.
+const FILL_RADIUS = 18;
 
 const formatMonthLabel = (date: Date) =>
   date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -31,6 +43,8 @@ const formatShortDate = (date: Date) =>
 
 const formatFullDate = (date: Date) =>
   date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+
+const formatNights = (nights: number) => `${nights} ${nights === 1 ? "night" : "nights"}`;
 
 /** First non-disabled day of the month containing `monthAnchor`, or null if
  *  every day in that month is disabled. Used both for the roving-tabindex
@@ -76,7 +90,7 @@ export interface DateRangePickerSlotProps {
 }
 
 export interface DateRangePickerProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "onClick" | "defaultValue"> {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue"> {
   value?: DateRange | null;
   defaultValue?: DateRange | null;
   onValueChange?: (range: DateRange | null) => void;
@@ -101,15 +115,16 @@ export interface DateRangePickerProps
 
 function NavButton({
   label,
+  reduced,
   children,
   className,
   ...rest
-}: { label: string } & React.ComponentProps<typeof motion.button>) {
+}: { label: string; reduced: boolean } & React.ComponentProps<typeof motion.button>) {
   return (
     <motion.button
       type="button"
       aria-label={label}
-      whileTap={{ scale: 0.92 }}
+      whileTap={reduced ? undefined : { scale: 0.92 }}
       transition={SPRING_PRESS}
       className={cn(
         "relative inline-grid size-8 cursor-pointer place-items-center rounded-full bg-surface-hover text-text-secondary transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40",
@@ -169,6 +184,7 @@ export function DateRangePicker({
   // Per-instance: a shared layoutId would make two pickers on one page swap
   // range highlights.
   const rangeId = React.useId();
+  const presetsId = React.useId();
   const today = React.useMemo(() => startOfDay(new Date()), []);
 
   const [focusedDate, setFocusedDate] = React.useState<Date>(() => value?.start ?? today);
@@ -245,16 +261,11 @@ export function DateRangePicker({
         event.preventDefault();
         moveFocusMonths(date, 1);
         break;
-      case "Enter":
-      case " ":
-        event.preventDefault();
-        handleDayClick(date);
-        break;
     }
   };
 
   const liveMessage = value
-    ? `${startLabel} ${formatFullDate(value.start)}, ${endLabel.toLowerCase()} ${formatFullDate(value.end)}, ${nightsBetween(value.start, value.end)} nights`
+    ? `${startLabel} ${formatFullDate(value.start)}, ${endLabel.toLowerCase()} ${formatFullDate(value.end)}, ${formatNights(nightsBetween(value.start, value.end))}`
     : "";
 
   // Tracks which preset was last applied and the exact range it produced, so
@@ -267,8 +278,15 @@ export function DateRangePicker({
 
   const applyPreset = (preset: DateRangePreset) => {
     const anchor = value?.start ?? pendingStart ?? today;
-    const range = preset.getRange(anchor);
+    const raw = preset.getRange(anchor);
+    let start = startOfDay(raw.start);
+    let end = startOfDay(raw.end);
+    if (compareDays(start, end) > 0) [start, end] = [end, start];
+    if (isDisabled(start)) return;
+    const range = { start, end: clampRangeEnd(start, end, isDisabled) };
     setValue(range);
+    const rangeMonth = startOfMonth(start);
+    if (rangeMonth.getTime() !== month.getTime()) setMonth(rangeMonth);
     setPendingStart(null);
     setHoverDate(null);
     setActivePreset({ id: preset.id, range });
@@ -306,20 +324,17 @@ export function DateRangePicker({
       ? clampRangeEnd(pendingStart, hoverDate, isDisabled)
       : null;
 
-  const displayRange: DateRange | null = value
-    ? value
-    : pendingStart
-      ? {
-          start:
-            compareDays(pendingStart, previewEnd ?? pendingStart) <= 0
-              ? pendingStart
-              : (previewEnd ?? pendingStart),
-          end:
-            compareDays(pendingStart, previewEnd ?? pendingStart) <= 0
-              ? (previewEnd ?? pendingStart)
-              : pendingStart,
-        }
-      : null;
+  // A pending start wins over `value` so a controlled parent that only
+  // accepts complete ranges still sees the first click reflected.
+  const previewOther = previewEnd ?? pendingStart;
+  const displayRange: DateRange | null =
+    pendingStart && previewOther
+      ? compareDays(pendingStart, previewOther) <= 0
+        ? { start: pendingStart, end: previewOther }
+        : { start: previewOther, end: pendingStart }
+      : value;
+  const headerStart = pendingStart ?? value?.start ?? null;
+  const headerEnd = pendingStart ? null : (value?.end ?? null);
 
   const weeks = React.useMemo(() => getMonthGrid(month), [month]);
 
@@ -331,20 +346,16 @@ export function DateRangePicker({
     return firstEnabledDayInMonth(month, isDisabled);
   }, [focusedDate, month, isDisabled]);
 
-  const atMinMonth =
-    minDate !== undefined &&
-    month.getFullYear() === startOfMonth(minDate).getFullYear() &&
-    month.getMonth() === startOfMonth(minDate).getMonth();
-  const atMaxMonth =
-    maxDate !== undefined &&
-    month.getFullYear() === startOfMonth(maxDate).getFullYear() &&
-    month.getMonth() === startOfMonth(maxDate).getMonth();
+  const monthTime = startOfMonth(month).getTime();
+  const atMinMonth = minDate !== undefined && monthTime <= startOfMonth(minDate).getTime();
+  const atMaxMonth = maxDate !== undefined && monthTime >= startOfMonth(maxDate).getTime();
 
   return (
     <div
       {...slotProps?.root}
       className={cn(
         "w-fit rounded-3xl border border-border bg-surface p-5",
+        slotProps?.root?.className,
         className,
         classNames?.root,
       )}
@@ -362,7 +373,7 @@ export function DateRangePicker({
               {startLabel}
             </div>
             <div className="text-lg font-semibold text-foreground">
-              {value ? formatShortDate(value.start) : "Add date"}
+              {headerStart ? formatShortDate(headerStart) : "Add date"}
             </div>
           </div>
           <div className="h-8 w-px bg-border" />
@@ -371,7 +382,7 @@ export function DateRangePicker({
               {endLabel}
             </div>
             <div className="text-lg font-semibold text-foreground">
-              {value ? formatShortDate(value.end) : "Add date"}
+              {headerEnd ? formatShortDate(headerEnd) : "Add date"}
             </div>
           </div>
         </div>
@@ -392,10 +403,19 @@ export function DateRangePicker({
       </div>
 
       <div className="flex items-center justify-between pt-4 pb-2">
-        <div className="text-sm font-semibold text-foreground">{formatMonthLabel(month)}</div>
+        <motion.div
+          key={monthTime}
+          initial={reduced ? false : { opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduced ? { duration: 0 } : SPRING_SWAP}
+          className="text-sm font-semibold text-foreground"
+        >
+          {formatMonthLabel(month)}
+        </motion.div>
         <div className="flex items-center gap-1">
           <NavButton
             label="Previous month"
+            reduced={!!reduced}
             disabled={atMinMonth}
             onClick={() => setMonth((m) => addMonths(m, -1))}
           >
@@ -403,6 +423,7 @@ export function DateRangePicker({
           </NavButton>
           <NavButton
             label="Next month"
+            reduced={!!reduced}
             disabled={atMaxMonth}
             onClick={() => setMonth((m) => addMonths(m, 1))}
           >
@@ -412,43 +433,80 @@ export function DateRangePicker({
       </div>
 
       <div role="grid" aria-label={formatMonthLabel(month)} className={cn("select-none", classNames?.grid)}>
-        <div className="grid grid-cols-7 text-center text-xs font-medium text-text-tertiary">
-          {WEEKDAY_LABELS.map((label, i) => (
-            <div key={i}>{label}</div>
+        <div role="row" className="grid grid-cols-7 text-center text-xs font-medium text-text-tertiary">
+          {WEEKDAYS.map(([short, full]) => (
+            <div key={full} role="columnheader" aria-label={full}>
+              {short}
+            </div>
           ))}
         </div>
-        {weeks.map((week, wi) => (
-          <div role="row" key={wi} className="grid grid-cols-7">
-            {week.map((cell) => (
-              <DayCell
-                key={cell.date.getTime()}
-                cell={cell}
-                disabled={!cell.inMonth || isDisabled(cell.date)}
-                isToday={isSameDay(cell.date, today)}
-                isStart={!!displayRange && cell.inMonth && isSameDay(cell.date, displayRange.start)}
-                isEnd={!!displayRange && cell.inMonth && isSameDay(cell.date, displayRange.end)}
-                inRange={
-                  !!displayRange &&
-                  cell.inMonth &&
-                  isWithinRange(cell.date, displayRange.start, displayRange.end)
+        {weeks.map((week, wi) => {
+          const inRangeCols = displayRange
+            ? week.flatMap((cell, col) =>
+                cell.inMonth && isWithinRange(cell.date, displayRange.start, displayRange.end)
+                  ? [col]
+                  : [],
+              )
+            : [];
+          const first = inRangeCols[0];
+          const last = inRangeCols.at(-1);
+          const fill =
+            displayRange && first !== undefined && last !== undefined
+              ? {
+                  first,
+                  last,
+                  roundLeft: first === 0 || isSameDay(week[first]!.date, displayRange.start),
+                  roundRight: last === 6 || isSameDay(week[last]!.date, displayRange.end),
                 }
-                isFocused={!!tabbableDate && isSameDay(cell.date, tabbableDate)}
-                rangeId={rangeId}
-                reduced={!!reduced}
-                onSelect={() => handleDayClick(cell.date)}
-                onHoverStart={() => canHover && setHoverDate(cell.date)}
-                onHoverEnd={() => canHover && setHoverDate(null)}
-                onFocusDate={() => setFocusedDate(cell.date)}
-                onFocusable={(el) => {
-                  if (el) dayRefs.current.set(cell.date.getTime(), el);
-                  else dayRefs.current.delete(cell.date.getTime());
-                }}
-                onKeyDown={(event) => handleDayKeyDown(cell.date, event)}
-                className={classNames?.day}
-              />
-            ))}
-          </div>
-        ))}
+              : null;
+          return (
+            <div role="row" key={wi} className="relative grid grid-cols-7">
+              {fill && (
+                <motion.div
+                  aria-hidden="true"
+                  layout
+                  layoutId={`${rangeId}-row-${wi}`}
+                  transition={reduced ? { duration: 0 } : SPRING_LAYOUT}
+                  className="pointer-events-none absolute inset-y-0.5 bg-accent/15"
+                  style={{
+                    left: `${(fill.first / 7) * 100}%`,
+                    width: `${((fill.last - fill.first + 1) / 7) * 100}%`,
+                    borderTopLeftRadius: fill.roundLeft ? FILL_RADIUS : 0,
+                    borderBottomLeftRadius: fill.roundLeft ? FILL_RADIUS : 0,
+                    borderTopRightRadius: fill.roundRight ? FILL_RADIUS : 0,
+                    borderBottomRightRadius: fill.roundRight ? FILL_RADIUS : 0,
+                  }}
+                />
+              )}
+              {week.map((cell) => (
+                <DayCell
+                  key={cell.date.getTime()}
+                  cell={cell}
+                  disabled={!cell.inMonth || isDisabled(cell.date)}
+                  isToday={isSameDay(cell.date, today)}
+                  isStart={!!displayRange && isSameDay(cell.date, displayRange.start)}
+                  isEnd={!!displayRange && isSameDay(cell.date, displayRange.end)}
+                  inRange={
+                    !!displayRange &&
+                    isWithinRange(cell.date, displayRange.start, displayRange.end)
+                  }
+                  isFocused={!!tabbableDate && isSameDay(cell.date, tabbableDate)}
+                  reduced={!!reduced}
+                  onSelect={() => handleDayClick(cell.date)}
+                  onHoverStart={() => canHover && setHoverDate(cell.date)}
+                  onHoverEnd={() => canHover && setHoverDate(null)}
+                  onFocusDate={() => setFocusedDate(cell.date)}
+                  onFocusable={(el) => {
+                    if (el) dayRefs.current.set(cell.date.getTime(), el);
+                    else dayRefs.current.delete(cell.date.getTime());
+                  }}
+                  onKeyDown={(event) => handleDayKeyDown(cell.date, event)}
+                  className={classNames?.day}
+                />
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       {(presets?.length || onClear) && (
@@ -466,18 +524,26 @@ export function DateRangePicker({
                   key={preset.id}
                   type="button"
                   aria-pressed={active}
-                  whileTap={{ scale: 0.96 }}
+                  whileTap={reduced ? undefined : { scale: 0.96 }}
                   transition={SPRING_PRESS}
                   onClick={() => applyPreset(preset)}
                   className={cn(
                     "relative rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors",
                     active
-                      ? "border-transparent bg-accent text-accent-foreground"
+                      ? "border-transparent text-accent-foreground"
                       : "text-text-secondary hover:bg-surface-hover",
                     classNames?.presetButton,
                   )}
                 >
-                  {preset.label}
+                  {active && (
+                    <motion.span
+                      aria-hidden="true"
+                      layoutId={`${presetsId}-active`}
+                      transition={reduced ? { duration: 0 } : SPRING_LAYOUT}
+                      className="absolute inset-0 rounded-full bg-accent"
+                    />
+                  )}
+                  <span className="relative">{preset.label}</span>
                 </motion.button>
               );
             })}
@@ -512,7 +578,6 @@ function DayCell({
   isEnd,
   inRange,
   isFocused,
-  rangeId,
   reduced,
   onSelect,
   onHoverStart,
@@ -529,7 +594,6 @@ function DayCell({
   isEnd: boolean;
   inRange: boolean;
   isFocused: boolean;
-  rangeId: string;
   reduced: boolean;
   onSelect: () => void;
   onHoverStart: () => void;
@@ -542,7 +606,6 @@ function DayCell({
   if (!cell.inMonth) return <div aria-hidden="true" />;
 
   const endpoint = isStart || isEnd;
-  const dayOfWeek = (cell.date.getDay() + 6) % 7; // Monday = 0
 
   return (
     <div
@@ -554,22 +617,11 @@ function DayCell({
       onPointerEnter={disabled ? undefined : onHoverStart}
       onPointerLeave={disabled ? undefined : onHoverEnd}
     >
-      {inRange && !disabled && (
-        <motion.div
-          layoutId={endpoint ? undefined : `${rangeId}-fill-${cell.date.getTime()}`}
-          transition={reduced ? { duration: 0 } : SPRING_LAYOUT}
-          className={cn(
-            "absolute inset-y-0.5 inset-x-0 bg-accent/15",
-            isStart && "rounded-l-full",
-            isEnd && "rounded-r-full",
-            dayOfWeek === 0 && !isStart && "rounded-l-full",
-            dayOfWeek === 6 && !isEnd && "rounded-r-full",
-          )}
-        />
-      )}
-      <button
+      <motion.button
         ref={onFocusable}
         type="button"
+        whileTap={disabled || reduced ? undefined : { scale: 0.9 }}
+        transition={SPRING_PRESS}
         tabIndex={isFocused ? 0 : -1}
         disabled={disabled}
         onClick={onSelect}
@@ -585,7 +637,7 @@ function DayCell({
         )}
       >
         {cell.date.getDate()}
-      </button>
+      </motion.button>
       {isToday && !endpoint && (
         <span className="absolute bottom-0.5 size-1 rounded-full bg-text-tertiary" />
       )}

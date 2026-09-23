@@ -58,6 +58,102 @@ describe("DateRangePicker", () => {
     ).toBe(true);
   });
 
+  it("disables Previous month when minDate is after the visible month", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        minDate={new Date(2026, 10, 15)}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Previous month" }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
+  it("disables Next month at maxDate's month", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        maxDate={new Date(2026, 8, 20)}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Next month" }).hasAttribute("disabled"),
+    ).toBe(true);
+    expect(
+      screen.getByRole("button", { name: "Previous month" }).hasAttribute("disabled"),
+    ).toBe(false);
+  });
+
+  it("reports month changes to a controlled parent", () => {
+    const onMonthChange = vi.fn();
+    render(<DateRangePicker month={new Date(2026, 8, 1)} onMonthChange={onMonthChange} />);
+    fireEvent.click(screen.getByRole("button", { name: "Next month" }));
+    const [next] = onMonthChange.mock.calls.at(-1)!;
+    expect(next.getFullYear()).toBe(2026);
+    expect(next.getMonth()).toBe(9);
+    expect(next.getDate()).toBe(1);
+  });
+
+  it("shows the pending start when a controlled parent only accepts complete ranges", () => {
+    function CompleteRangesOnly() {
+      const [value, setValue] = React.useState<{ start: Date; end: Date }>({
+        start: new Date(2026, 8, 4),
+        end: new Date(2026, 8, 10),
+      });
+      return (
+        <DateRangePicker
+          defaultMonth={new Date(2026, 8, 1)}
+          value={value}
+          onValueChange={(r) => r && setValue(r)}
+        />
+      );
+    }
+    render(<CompleteRangesOnly />);
+    fireEvent.click(screen.getByRole("gridcell", { name: "20" }).querySelector("button")!);
+    expect(screen.getByRole("gridcell", { name: "20" }).getAttribute("aria-selected")).toBe(
+      "true",
+    );
+    expect(screen.getByRole("gridcell", { name: "6" }).getAttribute("aria-selected")).toBe(
+      "false",
+    );
+    expect(screen.getByText("Sep 20")).toBeTruthy();
+    expect(screen.getAllByText("Add date").length).toBe(1);
+
+    fireEvent.click(screen.getByRole("gridcell", { name: "22" }).querySelector("button")!);
+    expect(screen.getByText("Sep 22")).toBeTruthy();
+    expect(screen.getByRole("gridcell", { name: "21" }).getAttribute("aria-selected")).toBe(
+      "true",
+    );
+  });
+
+  it("labels weekday column headers with full names", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    const headers = screen.getAllByRole("columnheader");
+    expect(headers.map((h) => h.getAttribute("aria-label"))).toEqual([
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ]);
+  });
+
+  it("merges slotProps.root className with className", () => {
+    const { container } = render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        className="prop-class"
+        slotProps={{ root: { className: "slot-class" } }}
+      />,
+    );
+    const root = container.firstElementChild!;
+    expect(root.classList.contains("prop-class")).toBe(true);
+    expect(root.classList.contains("slot-class")).toBe(true);
+  });
+
   it("uses the default check-in/check-out labels", () => {
     render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
     expect(screen.getByText("Check-in")).toBeTruthy();
@@ -141,14 +237,16 @@ describe("DateRangePicker", () => {
     expect(onValueChange).not.toHaveBeenCalled();
   });
 
-  it("moves focus with arrow keys and selects with Enter", () => {
+  it("moves focus with arrow keys and selects the focused day", () => {
     render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
     const day4 = screen.getByRole("gridcell", { name: "4" }).querySelector("button")!;
     day4.focus();
     fireEvent.keyDown(day4, { key: "ArrowRight" });
     const day5 = screen.getByRole("gridcell", { name: "5" }).querySelector("button")!;
     expect(document.activeElement).toBe(day5);
-    fireEvent.keyDown(day5, { key: "Enter" });
+    // Enter/Space rely on native button activation, which jsdom does not
+    // synthesize from keydown, so activate the focused button directly.
+    fireEvent.click(document.activeElement!);
     expect(screen.getByRole("gridcell", { name: "5" }).getAttribute("aria-selected")).toBe(
       "true",
     );
@@ -295,6 +393,87 @@ describe("DateRangePicker", () => {
     expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
       "true",
     );
+  });
+
+  it("clamps a preset's range at the first disabled day", () => {
+    const onValueChange = vi.fn();
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 6) }}
+        isDateDisabled={(d) => d.getMonth() === 8 && d.getDate() === 9}
+        onValueChange={onValueChange}
+        presets={[
+          {
+            id: "week",
+            label: "1 week",
+            getRange: (anchor) => ({ start: anchor, end: addDaysForTest(anchor, 7) }),
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "1 week" }));
+    const [range] = onValueChange.mock.calls.at(-1)!;
+    expect(range.start.getDate()).toBe(4);
+    expect(range.end.getDate()).toBe(8);
+    expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+  });
+
+  it("ignores a preset whose start is disabled", () => {
+    const onValueChange = vi.fn();
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        minDate={new Date(2026, 8, 10)}
+        onValueChange={onValueChange}
+        presets={[
+          {
+            id: "early",
+            label: "Early",
+            getRange: () => ({ start: new Date(2026, 8, 2), end: new Date(2026, 8, 12) }),
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Early" }));
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it("moves the visible month to a preset's range", () => {
+    const onValueChange = vi.fn();
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        onValueChange={onValueChange}
+        presets={[
+          {
+            id: "october",
+            label: "October",
+            getRange: () => ({ start: new Date(2026, 9, 8, 15), end: new Date(2026, 9, 5) }),
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "October" }));
+    expect(screen.getByText("October 2026")).toBeTruthy();
+    const [range] = onValueChange.mock.calls.at(-1)!;
+    expect(range.start).toEqual(new Date(2026, 9, 5));
+    expect(range.end).toEqual(new Date(2026, 9, 8));
+    expect(screen.getByRole("button", { name: "October" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+  });
+
+  it("uses the singular for a one-night range", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 5) }}
+      />,
+    );
+    expect(screen.getByText(/check-out September 5, 1 night$/)).toBeTruthy();
   });
 
   it("renders a badge via renderBadge and updates it with the range", () => {
