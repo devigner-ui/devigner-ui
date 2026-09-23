@@ -23,7 +23,7 @@ accommodation.
 
 Calendar grid, header (labels + optional badge), and presets/clear footer all live in
 this one component rather than being split into a headless-primitive + composed-card
-pair — matching how `Timeline`/`ChartCard`/`MenuDock` stay single-file with slots.
+pair, matching how `Timeline`/`ChartCard`/`MenuDock` stay single-file with slots.
 
 ## Props API
 
@@ -85,7 +85,7 @@ time-of-day/timezone footguns when comparing dates.
 
 Presets are consumer-defined data (`getRange(anchor)`), not baked into the component.
 There is a single accent color for the whole component (existing design tokens), not a
-per-preset color mapping — the video's per-preset hues are out of scope for v1.
+per-preset color mapping, the video's per-preset hues are out of scope for v1.
 
 ## Selection behavior
 
@@ -102,7 +102,7 @@ State machine, independent of the controlled `value`:
 
 Calendar grid: weeks as rows, leading/trailing days from adjacent months rendered
 dimmed and non-interactive. A small dot renders under today's date when it's in the
-visible month. Month navigation (prev/next) is a required control, not optional — the
+visible month. Month navigation (prev/next) is a required control, not optional. The
 demo only shows one month, but a picker that can't change months isn't usable for a
 real booking flow.
 
@@ -111,7 +111,7 @@ and keyboard-focusable.
 
 ## Animation
 
-Mapped to existing tokens in `packages/ui/src/lib/easing.ts` — no new curves needed:
+Mapped to existing tokens in `packages/ui/src/lib/easing.ts`, no new curves needed:
 
 - Range pill fill (hover preview growing/shrinking, commit snapping to final shape) →
   `SPRING_LAYOUT`.
