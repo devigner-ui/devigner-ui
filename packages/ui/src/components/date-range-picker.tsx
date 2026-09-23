@@ -1,15 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "cn";
 import { IconChevronLeft, IconChevronRight } from "@devigner-ui/icons";
-import { SPRING_PRESS } from "../lib/easing";
+import { SPRING_LAYOUT, SPRING_PRESS } from "../lib/easing";
 import { useControllableState } from "../lib/hooks/use-controllable-state";
+import { useHoverCapable } from "../lib/hooks/use-hover-capable";
 import {
   addMonths,
+  clampRangeEnd,
+  compareDays,
   getMonthGrid,
   isSameDay,
+  isWithinRange,
   startOfDay,
   startOfMonth,
   type MonthGridDay,
@@ -137,6 +141,51 @@ export function DateRangePicker({
     [minDate, maxDate, isDateDisabled],
   );
 
+  const [pendingStart, setPendingStart] = React.useState<Date | null>(null);
+  const [hoverDate, setHoverDate] = React.useState<Date | null>(null);
+  const canHover = useHoverCapable();
+  const reduced = useReducedMotion();
+  // Per-instance: a shared layoutId would make two pickers on one page swap
+  // range highlights.
+  const rangeId = React.useId();
+
+  const handleDayClick = (date: Date) => {
+    if (isDisabled(date)) return;
+    if (pendingStart === null) {
+      if (value !== null) setValue(null);
+      setPendingStart(date);
+      return;
+    }
+    const chronological =
+      compareDays(date, pendingStart) < 0
+        ? { start: date, end: pendingStart }
+        : { start: pendingStart, end: date };
+    const end = clampRangeEnd(chronological.start, chronological.end, isDisabled);
+    setValue({ start: chronological.start, end });
+    setPendingStart(null);
+    setHoverDate(null);
+  };
+
+  const previewEnd =
+    pendingStart && hoverDate && canHover
+      ? clampRangeEnd(pendingStart, hoverDate, isDisabled)
+      : null;
+
+  const displayRange: DateRange | null = value
+    ? value
+    : pendingStart
+      ? {
+          start:
+            compareDays(pendingStart, previewEnd ?? pendingStart) <= 0
+              ? pendingStart
+              : (previewEnd ?? pendingStart),
+          end:
+            compareDays(pendingStart, previewEnd ?? pendingStart) <= 0
+              ? (previewEnd ?? pendingStart)
+              : pendingStart,
+        }
+      : null;
+
   const weeks = React.useMemo(() => getMonthGrid(month), [month]);
   const today = React.useMemo(() => startOfDay(new Date()), []);
 
@@ -213,6 +262,18 @@ export function DateRangePicker({
                 cell={cell}
                 disabled={!cell.inMonth || isDisabled(cell.date)}
                 isToday={isSameDay(cell.date, today)}
+                isStart={!!displayRange && cell.inMonth && isSameDay(cell.date, displayRange.start)}
+                isEnd={!!displayRange && cell.inMonth && isSameDay(cell.date, displayRange.end)}
+                inRange={
+                  !!displayRange &&
+                  cell.inMonth &&
+                  isWithinRange(cell.date, displayRange.start, displayRange.end)
+                }
+                rangeId={rangeId}
+                reduced={!!reduced}
+                onSelect={() => handleDayClick(cell.date)}
+                onHoverStart={() => canHover && setHoverDate(cell.date)}
+                onHoverEnd={() => canHover && setHoverDate(null)}
                 className={classNames?.day}
               />
             ))}
@@ -227,28 +288,75 @@ function DayCell({
   cell,
   disabled,
   isToday,
+  isStart,
+  isEnd,
+  inRange,
+  rangeId,
+  reduced,
+  onSelect,
+  onHoverStart,
+  onHoverEnd,
   className,
 }: {
   cell: MonthGridDay;
   disabled: boolean;
   isToday: boolean;
+  isStart: boolean;
+  isEnd: boolean;
+  inRange: boolean;
+  rangeId: string;
+  reduced: boolean;
+  onSelect: () => void;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
   className?: string;
 }) {
   if (!cell.inMonth) return <div aria-hidden="true" />;
+
+  const endpoint = isStart || isEnd;
+  const dayOfWeek = (cell.date.getDay() + 6) % 7; // Monday = 0
+
   return (
     <div
       role="gridcell"
       aria-label={String(cell.date.getDate())}
       aria-disabled={disabled}
-      className={cn(
-        "relative grid h-10 place-items-center text-sm",
-        disabled ? "text-text-tertiary/50" : "text-foreground",
-        className,
-      )}
+      aria-selected={inRange}
+      className="relative grid h-10 place-items-center"
+      onPointerEnter={disabled ? undefined : onHoverStart}
+      onPointerLeave={disabled ? undefined : onHoverEnd}
     >
-      {cell.date.getDate()}
-      {isToday && (
-        <span className="absolute bottom-1 size-1 rounded-full bg-text-tertiary" />
+      {inRange && !disabled && (
+        <motion.div
+          layoutId={endpoint ? undefined : `${rangeId}-fill-${cell.date.getTime()}`}
+          transition={reduced ? { duration: 0 } : SPRING_LAYOUT}
+          className={cn(
+            "absolute inset-y-0.5 inset-x-0 bg-accent/15",
+            isStart && "rounded-l-full",
+            isEnd && "rounded-r-full",
+            dayOfWeek === 0 && !isStart && "rounded-l-full",
+            dayOfWeek === 6 && !isEnd && "rounded-r-full",
+          )}
+        />
+      )}
+      <button
+        type="button"
+        tabIndex={-1}
+        disabled={disabled}
+        onClick={onSelect}
+        className={cn(
+          "relative z-10 grid size-8 cursor-pointer place-items-center rounded-full text-sm transition-colors",
+          disabled
+            ? "cursor-not-allowed text-text-tertiary/50"
+            : "text-foreground hover:bg-surface-hover",
+          endpoint && "bg-accent text-accent-foreground hover:bg-accent",
+          className,
+        )}
+      >
+        {cell.date.getDate()}
+      </button>
+      {isToday && !endpoint && (
+        <span className="absolute bottom-0.5 size-1 rounded-full bg-text-tertiary" />
       )}
     </div>
   );
