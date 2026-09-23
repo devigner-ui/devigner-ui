@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home page, full draft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro { max-width: 1240px; margin: 0 auto 28px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 820px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .page { max-width: 1240px; margin: 0 auto; position: relative; }
+  .ann { position: absolute; right: -8px; transform: translateX(100%); width: 0; }
+  .note { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.5; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 6px 9px; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin: 10px 0 14px; max-width: 760px; }
+
+  .C { --paper: oklch(15.5% 0.01 265); --paper2: oklch(19.5% 0.012 265); --paper3: oklch(24% 0.012 265); --ink: oklch(94.5% 0.006 265); --ink2: oklch(72% 0.01 265); --muted: oklch(50% 0.012 265); --rule: oklch(27% 0.012 265); --blue: oklch(68% 0.17 262);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; }
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; letter-spacing: -0.04em; font-variation-settings: "opsz" 96; line-height: 1.02; }
+  .wrap { padding: 0 48px; }
+  section.s { padding: 88px 48px; border-top: 1px solid var(--rule); }
+  .h2 { font-size: 46px; }
+  .lede { margin-top: 14px; font-size: 16px; line-height: 1.6; color: var(--ink2); max-width: 520px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 48px; }
+  .wm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 21px; letter-spacing: -0.03em; }
+  .wm i { font-style: normal; color: var(--blue); }
+  .navr { display: flex; align-items: center; gap: 26px; font-size: 14px; color: var(--ink2); }
+  .navr .tgl { width: 32px; height: 32px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--rule); display: grid; place-items: center; }
+  .navr .get { color: var(--paper); background: var(--ink); font-weight: 500; border-radius: 99px; padding: 8px 14px; }
+
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 36px 48px 72px; }
+  .h1 { font-size: 64px; }
+  .h1 .m { white-space: nowrap; }
+  .h1 .m span { display: inline-block; }
+  .sub { margin-top: 22px; font-size: 17px; line-height: 1.6; color: var(--ink2); max-width: 480px; }
+  .say { margin-top: 38px; font-size: 30px; line-height: 1.25; }
+  .pick { display: inline-flex; align-items: center; gap: 8px; border-radius: 14px; padding: 2px 12px 4px; background: var(--paper3); box-shadow: inset 0 -2px 0 var(--blue); }
+  .cmdrow { display: flex; gap: 16px; align-items: center; margin-top: 18px; }
+  .cmd { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 16px; border-radius: 99px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 13.5px; white-space: nowrap; }
+  .cmd .d { color: var(--blue); } .cmd .s { color: var(--ink); }
+  .cmd .go { font-family: "Geist", sans-serif; font-weight: 600; font-size: 13px; background: var(--ink); color: var(--paper); border-radius: 99px; padding: 8px 14px; }
+  .cmdrow a { font-size: 14px; color: var(--ink2); white-space: nowrap; }
+  .stage { position: relative; background: var(--paper2); border-radius: 26px; box-shadow: inset 0 1px 3px rgba(0,0,0,.5), 0 0 0 1px oklch(24% 0.012 265); display: grid; place-items: center; min-height: 500px; }
+  .stage .tl { position: absolute; top: 14px; left: 14px; font-family: "Geist Mono", monospace; font-size: 11px; color: var(--ink2); border: 1px solid var(--rule); border-radius: 99px; padding: 4px 10px; }
+  .stage .tr { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+  .tg { font-size: 12px; font-weight: 500; color: var(--ink2); background: var(--paper3); border-radius: 99px; padding: 6px 11px; display: inline-flex; align-items: center; gap: 6px; }
+  .tg i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .stage .bl { position: absolute; left: 18px; right: 18px; bottom: 16px; font-size: 13px; color: var(--ink2); line-height: 1.5; }
+  .stage .bl b { font-family: "Bricolage Grotesque", sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin-right: 8px; }
+  .stage .bl em { font-style: normal; color: var(--blue); }
+  .cal { width: 300px; background: var(--paper3); border-radius: 18px; padding: 14px; box-shadow: 0 18px 40px -18px rgba(0,0,0,.8); margin-bottom: 40px; }
+  .cal-h { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .g7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; font-size: 11.5px; color: var(--ink2); }
+  .g7 span { padding: 6px 0; border-radius: 7px; }
+  .g7 .in { background: oklch(30% 0.03 262); color: var(--ink); border-radius: 0; }
+  .g7 .e { background: var(--blue); color: var(--paper); }
+
+  .filters { margin-top: 26px; display: flex; gap: 18px; font-size: 13.5px; color: var(--ink2); }
+  .filters b { color: var(--ink); font-weight: 500; }
+  .filters sup { font-family: "Geist Mono", monospace; font-size: 10px; color: var(--muted); margin-left: 2px; }
+  .wall { margin-top: 28px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 60px; line-height: 1.12; letter-spacing: -0.04em; color: var(--ink2); max-width: 1100px; }
+  .wall .h { color: var(--ink); text-decoration: underline; text-decoration-color: var(--blue); text-decoration-thickness: 3px; text-underline-offset: 8px; }
+  .wall .sl { color: oklch(33% 0.012 265); font-weight: 400; padding: 0 8px; }
+  .wall sup { font-family: "Geist Mono", monospace; font-size: 12px; letter-spacing: 0; color: var(--blue); vertical-align: 34px; margin-left: 3px; }
+  .cap { margin-top: 22px; font-size: 15px; color: var(--ink2); }
+  .cap b { color: var(--ink); font-weight: 500; }
+
+  .manners { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0 56px; margin-top: 44px; }
+  .manners div { padding: 26px 0; border-top: 1px solid var(--rule); }
+  .manners h4 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.03em; }
+  .manners p { margin-top: 10px; font-size: 15.5px; line-height: 1.6; color: var(--ink2); max-width: 460px; }
+  .manners code, .steps code { font-family: "Geist Mono", monospace; font-size: 13px; color: var(--ink); }
+
+  .inst { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; margin-top: 40px; align-items: start; }
+  .steps div { padding: 20px 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 34px 1fr; gap: 4px 12px; }
+  .steps .n { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--muted); padding-top: 4px; }
+  .steps b { font-family: "Geist Mono", monospace; font-weight: 500; font-size: 14.5px; }
+  .steps b .s { color: var(--blue); }
+  .steps p { grid-column: 2; font-size: 15px; line-height: 1.55; color: var(--ink2); }
+  .out { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 18px 0; font-family: "Geist Mono", monospace; font-size: 13px; line-height: 2; color: var(--ink2); }
+  .out .lbl { font-size: 11px; color: var(--muted); display: block; line-height: 1.4; margin-bottom: 8px; }
+  .out .ok { color: oklch(74% 0.15 155); }
+  .out .w { color: var(--ink); }
+
+  .faq { margin-top: 36px; max-width: 900px; }
+  .faq div { border-top: 1px solid var(--rule); padding: 22px 0; }
+  .faq h4 { display: flex; justify-content: space-between; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 23px; letter-spacing: -0.025em; }
+  .faq h4 span { font-family: "Geist", sans-serif; font-weight: 400; color: var(--muted); }
+  .faq p { margin-top: 10px; font-size: 15.5px; line-height: 1.65; color: var(--ink2); max-width: 720px; }
+
+  .pro { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: end; }
+  .pro .price { display: flex; gap: 36px; }
+  .pro .price div { border-top: 1px solid var(--rule); padding-top: 14px; min-width: 150px; }
+  .pro .price b { font-family: "Bricolage Grotesque", sans-serif; font-size: 34px; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+  .pro .price span { display: block; font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .pro a { display: inline-block; margin-top: 18px; font-size: 14.5px; color: var(--ink); border-bottom: 1px solid var(--blue); padding-bottom: 2px; }
+
+  footer.f { padding: 96px 48px 28px; border-top: 1px solid var(--rule); }
+  footer.f .big { font-size: 96px; }
+  footer.f .cta { margin-top: 28px; display: flex; gap: 14px; align-items: center; }
+  footer.f .cta .btn { background: var(--blue); color: var(--paper); font-weight: 600; font-size: 15px; border-radius: 99px; padding: 13px 22px; }
+  footer.f .row { margin-top: 80px; display: flex; justify-content: space-between; font-size: 13px; color: var(--ink2); border-top: 1px solid var(--rule); padding-top: 18px; }
+  footer.f .row span { display: flex; gap: 22px; }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Section 2 · the home page, top to bottom</h1>
+    <p>Dark theme shown; light mode uses the same layout with bone paper and graphite ink. Only the six real components appear, so this is what launch day looks like. Blue notes explain behaviour and aren't part of the page.</p>
+  </div>
+
+  <div class="page">
+  <div class="C">
+
+    <!-- NAV -->
+    <div class="nav"><span class="wm">devigner<i>.</i></span><span class="navr"><span>Components</span><span>Docs</span><span>Pro</span><span class="tgl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="get">Get started</span></span></div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div>
+        <h1 class="display h1">Animated React components with <span class="m"><span>m</span><span style="transform:translateY(3px) rotate(4deg)">a</span><span style="transform:translateY(5px) rotate(7deg)">n</span><span style="transform:translateY(3px) rotate(4deg)">n</span><span>ers.</span></span></h1>
+        <p class="sub">Paste one in and it's finished. Keyboard focus, loading states, reduced motion and dark mode are already worked out, and the CLI copies the component into your repo as one file you can edit. Free for React and Tailwind CSS.</p>
+        <p class="display say">Add the <span class="pick">Date Range Picker <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span><br>to your app.</p>
+        <div class="cmdrow"><span class="cmd"><span class="d">$</span> npx devignerui add <span class="s">date-range-picker</span> <span class="go">Copy</span></span><a>Browse the library &rarr;</a></div>
+      </div>
+      <div class="stage">
+        <span class="tl">forms</span>
+        <span class="tr"><span class="tg"><i></i>Dark</span><span class="tg"><i></i>Reduced motion</span><span class="tg">&#8634;</span></span>
+        <div class="cal">
+          <div class="cal-h"><span>September 2026</span><span style="color:var(--ink2)">&lsaquo; &rsaquo;</span></div>
+          <div class="g7">
+            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+            <span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+            <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="e">12</span><span class="in">13</span>
+            <span class="in">14</span><span class="in">15</span><span class="e">16</span><span>17</span><span>18</span><span>19</span><span>20</span>
+            <span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span>
+          </div>
+        </div>
+        <div class="bl"><b>Date Range Picker</b>A calendar that shows the range before you commit to it.<br><em>Try it:</em> pick a day, then move across the calendar.</div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Hero · "manners" bows once after the entrance and again on hover (still under reduced motion). The picker is a searchable list of every component, newest first; choosing one swaps the stage and rewrites the command. "Add the" reads right for any name. The ↺ button remounts the demo.</p>
+
+  <div class="C">
+    <!-- LIBRARY WALL -->
+    <section class="s" style="border-top:0">
+      <h2 class="display h2">Every component so far</h2>
+      <div class="filters"><b>All<sup>6</sup></b><span>Forms<sup>1</sup></span><span>Navigation<sup>1</sup></span><span>Data Display<sup>2</sup></span><span>Primitives<sup>1</sup></span><span>Animation<sup>1</sup></span></div>
+      <p class="wall"><span>Date Range Picker</span><sup>new</sup><span class="sl">/</span><span class="h">Menu Dock</span><span class="sl">/</span><span>Delete Button</span><span class="sl">/</span><span>Chart Card</span><span class="sl">/</span><span>Timeline</span><span class="sl">/</span><span>Magnetic Button</span></p>
+      <p class="cap"><b>Menu Dock</b> · A dock that grows into its own menus, nested as deep as you need.</p>
+    </section>
+  </div>
+  <p class="note">Library · every name is a link to its page, so crawlers see all of them. Hover or focus shows its description on the caption line; picking a category dims the names outside it. Past ~60 names it shows the newest 60 and "and 140 more", linking to /components. "new" marks components added in the last 14 days.</p>
+
+  <div class="C">
+    <!-- MANNERS -->
+    <section class="s" style="border-top:0">
+      <h2 class="display h2">What we mean by manners</h2>
+      <div class="manners">
+        <div><h4>Calm when you ask for calm</h4><p>Every component reads the reduced motion setting. With it on, springs and slides drop to a fade or stop moving entirely.</p></div>
+        <div><h4>Fine without a mouse</h4><p>Controls are real buttons and links with a visible focus ring. Menus and calendars also answer to the arrow keys and Escape.</p></div>
+        <div><h4>Right in both themes</h4><p>Colors come from CSS variables, so light and dark mode work without a single <code>dark:</code> class in the source.</p></div>
+        <div><h4>Yours to rewrite</h4><p>The CLI writes one <code>.tsx</code> file. Its props are typed and exported, and every class name sits in the file where you can change it.</p></div>
+      </div>
+    </section>
+  </div>
+  <p class="note">Manners · four promises that are true for every component today, and the checklist every new one has to pass. "Fine without a mouse" needs the Timeline keyboard gap fixed or reworded before launch (see my note in the terminal).</p>
+
+  <div class="C">
+    <!-- INSTALL -->
+    <section class="s" style="border-top:0">
+      <h2 class="display h2">Two commands, then it's your code</h2>
+      <div class="inst">
+        <div class="steps">
+          <div><span class="n">1</span><b>npx devignerui init</b><p>Once per project. Creates components.json and a components/ui folder.</p></div>
+          <div><span class="n">2</span><b>npx devignerui add <span class="s">date-range-picker</span></b><p>Writes the component into components/ui and prints the npm packages it uses.</p></div>
+          <div><span class="n">3</span><b style="font-family:Geist">Open the file</b><p>From here it's a normal component in your codebase. Change whatever you like.</p></div>
+        </div>
+        <div class="out"><span class="lbl">What step 2 prints</span>Adding components...<br><br><span class="w">📦 date-range-picker</span><br>&nbsp;&nbsp;<span class="ok">✓ components/ui/date-range-picker.tsx</span><br><br>&nbsp;&nbsp;Install dependencies:<br>&nbsp;&nbsp;<span class="w">npm i cn motion react @devigner-ui/icons @devignerui/ui</span><br><br><span class="w">Done!</span></div>
+      </div>
+    </section>
+  </div>
+  <p class="note">Install · follows whatever the hero picker selected, so the command, filename and package list are always that component's real ones, read from the registry. Printed as plain typography between two rules, with no fake terminal window.</p>
+
+  <div class="C">
+    <!-- FAQ -->
+    <section class="s" style="border-top:0">
+      <h2 class="display h2">Before you install</h2>
+      <div class="faq">
+        <div><h4>Is Devigner UI free? <span>&minus;</span></h4><p>Yes. Every component on the site is free and MIT licensed, including for commercial work. Pro will be a separate paid set, and nothing that's free now moves behind it.</p></div>
+        <div><h4>How do I add a component to my project? <span>+</span></h4></div>
+        <div><h4>Does it work with shadcn/ui? <span>+</span></h4></div>
+        <div><h4>Do I need Framer Motion? <span>+</span></h4></div>
+        <div><h4>Will it work with the Next.js App Router? <span>+</span></h4></div>
+        <div><h4>How do dark mode and theming work? <span>+</span></h4></div>
+      </div>
+    </section>
+  </div>
+  <p class="note">FAQ · native details/summary, so it works without JavaScript; also emitted as FAQPage structured data. Full answers are in the terminal message.</p>
+
+  <div class="C">
+    <!-- PRO -->
+    <section class="s" id="pricing" style="border-top:0;padding-top:72px;padding-bottom:72px">
+      <div class="pro">
+        <div>
+          <h2 class="display" style="font-size:40px">Pro components are on the way</h2>
+          <p class="lede">Pro will be a separate, paid set of components. It isn't on sale yet, and everything that's free stays free.</p>
+          <a>Follow @devignerui on X to hear when it opens</a>
+        </div>
+        <div class="price"><div><b>$14.99</b><span>a month</span></div><div><b>$149.99</b><span>once, for good</span></div></div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="f">
+      <p class="display big">Mind your manners.</p>
+      <div class="cta"><span class="btn">Browse components</span><span class="cmd"><span class="d">$</span> npx devignerui <span class="s">init</span> <span class="go">Copy</span></span></div>
+      <div class="row"><span><span>Components</span><span>Docs</span><span>Pro</span><span>X</span></span><span>&copy; 2026 Devigner UI &middot; MIT license</span></div>
+    </footer>
+  </div>
+  <p class="note">Pro teaser keeps id="pricing" so /pricing still lands here. Footer closes on the hook, with a second way in: the browse button, or the init command for people ready to start.</p>
+
+  </div>
+</body>
+</html>

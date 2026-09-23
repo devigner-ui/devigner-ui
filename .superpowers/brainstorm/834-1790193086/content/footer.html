@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Footer, your direction polished</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro, .wrap { max-width: 1240px; margin: 0 auto; }
+  .intro { margin-bottom: 26px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 880px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .note { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.55; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin: 12px 0 0; max-width: 900px; }
+  .label { margin: 34px 0 12px; font-size: 13px; font-weight: 600; }
+
+  .F { --paper: oklch(15.2% 0.006 260); --paper2: oklch(17.2% 0.007 260); --ink: oklch(95.5% 0.003 260); --ink2: oklch(72% 0.008 260); --muted: oklch(52% 0.009 260); --rule: oklch(95.5% 0.003 260 / .08); --blue: oklch(68% 0.175 262);
+       --word: oklch(21% 0.008 260); --word-hi: oklch(95.5% 0.003 260 / .07); --word-lo: oklch(0% 0 0 / .55);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; }
+  .F.L { --paper: oklch(97.6% 0.003 260); --paper2: oklch(99.2% 0.002 260); --ink: oklch(19% 0.012 260); --ink2: oklch(40% 0.012 260); --muted: oklch(55% 0.01 260); --rule: oklch(19% 0.012 260 / .1); --blue: oklch(53% 0.215 264);
+         --word: oklch(93.4% 0.005 260); --word-hi: oklch(100% 0 0 / .9); --word-lo: oklch(19% 0.03 260 / .08); }
+
+  .top { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; padding: 64px 56px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.035em; }
+  .brand i { font-style: normal; color: var(--blue); }
+  .tile { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--ink); color: var(--paper); font-size: 18px; padding-bottom: 2px; }
+  .tile i { color: var(--blue); }
+  .tag { margin-top: 16px; font-size: 15px; line-height: 1.6; color: var(--ink2); max-width: 360px; }
+  .init { margin-top: 22px; display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 5px 0 14px; border-radius: 99px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 13px; color: var(--ink2); }
+  .init .d { color: var(--blue); }
+  .init .go { font-family: "Geist", sans-serif; font-weight: 600; font-size: 12.5px; background: var(--ink); color: var(--paper); border-radius: 99px; padding: 7px 12px; }
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; justify-self: end; width: 100%; max-width: 360px; }
+  .cols h4 { font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+  .cols a { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink2); padding: 5px 0; text-decoration: none; }
+  .cols a.hv { color: var(--ink); }
+  .cols a.hv::after { content: "\2192"; color: var(--blue); font-size: 13px; }
+
+  .mark { position: relative; margin-top: 36px; height: 250px; overflow: hidden; }
+  .mark .w { position: absolute; left: 44px; bottom: -82px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 330px; line-height: 1; letter-spacing: -0.065em; white-space: nowrap; color: var(--word); text-shadow: 0 -1px 0 var(--word-lo), 0 1px 0 var(--word-hi); user-select: none; }
+  .mark .w span { display: inline-block; transform-origin: 50% 90%; }
+  .mark .w span.b1 { transform: translateY(10px) rotate(-5deg); }
+  .mark .w span.b2 { transform: translateY(4px) rotate(-2deg); }
+  .mark .w .dot { color: var(--blue); text-shadow: none; }
+  .mark .cursor { position: absolute; left: 468px; top: 92px; width: 18px; height: 18px; }
+  .bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); padding: 18px 56px; font-size: 13px; color: var(--muted); background: var(--paper); position: relative; }
+  .bottom span { display: flex; gap: 18px; align-items: center; }
+  .up { display: inline-flex; align-items: center; gap: 6px; color: var(--ink2); }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Footer: your current direction, polished</h1>
+    <p>The same shape as the footer on the site now: brand and links up top, the giant wordmark cropped by the bottom bar. Every piece is refined, and the wordmark does one small, on-brand thing. The "Mind your manners." statement footer is gone.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="label">Dark</p>
+    <div class="F">
+      <div class="top">
+        <div>
+          <span class="brand"><span class="tile">d<i>.</i></span>devigner<i>.</i></span>
+          <p class="tag">Animated React components for Tailwind CSS. Free, MIT licensed, and yours to edit once they're in your repo.</p>
+          <span class="init"><span class="d">$</span> npx devignerui init <span class="go">Copy</span></span>
+        </div>
+        <div class="cols">
+          <div><h4>Library</h4><a class="hv">Components</a><a>Docs</a><a>Pro</a></div>
+          <div><h4>Elsewhere</h4><a>X (@devignerui)</a><a>Installation guide</a><a>Theming guide</a></div>
+        </div>
+      </div>
+      <div class="mark">
+        <div class="w" aria-hidden="true"><span>d</span><span>e</span><span>v</span><span>i</span><span class="b2">g</span><span class="b1">n</span><span class="b2">e</span><span>r</span><span class="dot">.</span></div>
+        <svg class="cursor" viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-3 6z" fill="#fff" stroke="#000" stroke-width="1.2"/></svg>
+      </div>
+      <div class="bottom"><span>&copy; 2026 Devigner UI &middot; MIT license</span><span>Built with React, Tailwind CSS and Motion<span class="up">&uarr; Top</span></span></div>
+    </div>
+    <p class="note">The wordmark is set in the new display face with the cobalt period, and it looks pressed into the page: a dark lip above each letter, a faint catch of light below. Move the pointer across it and the letters under the cursor dip in a small bow, then spring back. That echoes the "manners" bow in the hero, so the page opens and closes on the same gesture. It stays still with reduced motion on or on touch screens. The links are two short groups instead of one long row. GitHub is gone, since the repo isn't public, and Twitter is labelled X. There's also a "↑ Top" link and the init command for anyone ready to start.</p>
+
+    <p class="label">Light</p>
+    <div class="F L">
+      <div class="top">
+        <div>
+          <span class="brand"><span class="tile">d<i>.</i></span>devigner<i>.</i></span>
+          <p class="tag">Animated React components for Tailwind CSS. Free, MIT licensed, and yours to edit once they're in your repo.</p>
+          <span class="init"><span class="d">$</span> npx devignerui init <span class="go">Copy</span></span>
+        </div>
+        <div class="cols">
+          <div><h4>Library</h4><a>Components</a><a>Docs</a><a>Pro</a></div>
+          <div><h4>Elsewhere</h4><a>X (@devignerui)</a><a>Installation guide</a><a>Theming guide</a></div>
+        </div>
+      </div>
+      <div class="mark">
+        <div class="w" aria-hidden="true"><span>d</span><span>e</span><span>v</span><span>i</span><span>g</span><span>n</span><span>e</span><span>r</span><span class="dot">.</span></div>
+      </div>
+      <div class="bottom"><span>&copy; 2026 Devigner UI &middot; MIT license</span><span>Built with React, Tailwind CSS and Motion<span class="up">&uarr; Top</span></span></div>
+    </div>
+  </div>
+</body>
+</html>

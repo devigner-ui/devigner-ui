@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "cn";
 import { IconSpinner } from "@devigner-ui/icons";
 import { SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "../lib/easing";
+import { useControllableState } from "../lib/hooks/use-controllable-state";
 
 /** Lid pivot, in the glyph's own 24px units. */
 const LID_HINGE = "9.244px 7.147px";
@@ -35,7 +36,7 @@ const RADIUS = 24;
 const INSET = 4;
 const INNER_RADIUS = RADIUS - INSET;
 
-type Phase = "idle" | "armed" | "pending" | "done";
+export type DeleteButtonStatus = "idle" | "armed" | "pending" | "done";
 
 const glyph = {
   viewBox: "0 0 24 24",
@@ -179,10 +180,30 @@ type DivProps = Omit<
   | "onAnimationIteration"
 >;
 
+export interface DeleteButtonClassNames {
+  root?: string;
+  tile?: string;
+  confirmation?: string;
+}
+
+export interface DeleteButtonSlotProps {
+  root?: Pick<React.HTMLAttributes<HTMLDivElement>, "id" | "title">;
+}
+
+export interface DeleteConfirmationRenderProps {
+  status: DeleteButtonStatus;
+}
+
 export interface DeleteButtonProps extends DivProps {
   /** Return a promise and the tile waits on it: spinner, then tick, or back to
    *  the trash if it rejects. */
   onConfirm?: () => void | Promise<unknown>;
+  /** Controlled confirmation state. */
+  status?: DeleteButtonStatus;
+  /** Initial confirmation state when uncontrolled. */
+  defaultStatus?: DeleteButtonStatus;
+  /** Fires whenever the confirmation state requests a transition. */
+  onStatusChange?: (status: DeleteButtonStatus) => void;
   /** Cancel, Escape, or a second press on the tile. */
   onCancel?: () => void;
   /** Handles a rejected `onConfirm`. Without it the rejection is re-thrown. */
@@ -202,6 +223,10 @@ export interface DeleteButtonProps extends DivProps {
   left?: boolean;
   right?: boolean;
   disabled?: boolean;
+  /** Custom content rendered beside the preset confirmation actions. */
+  renderConfirmation?: (props: DeleteConfirmationRenderProps) => React.ReactNode;
+  classNames?: DeleteButtonClassNames;
+  slotProps?: DeleteButtonSlotProps;
 }
 
 function ActionButton({
@@ -236,6 +261,9 @@ function ActionButton({
 
 export function DeleteButton({
   onConfirm,
+  status,
+  defaultStatus = "idle",
+  onStatusChange,
   onCancel,
   onError,
   label = "Delete",
@@ -247,11 +275,18 @@ export function DeleteButton({
   left = false,
   right = false,
   disabled = false,
+  renderConfirmation,
+  classNames,
+  slotProps,
   className,
   style,
   ...rest
 }: DeleteButtonProps) {
-  const [phase, setPhase] = React.useState<Phase>("idle");
+  const [phase, setPhase] = useControllableState({
+    value: status,
+    defaultValue: defaultStatus,
+    onValueChange: onStatusChange,
+  });
   const onLeft = left && !right;
   const reduced = useReducedMotion();
   const tile = React.useRef<HTMLButtonElement>(null);
@@ -284,6 +319,7 @@ export function DeleteButton({
 
   return (
     <motion.div
+      {...slotProps?.root}
       layout={!reduced}
       transition={SPRING_LAYOUT}
       className={cn(
@@ -324,6 +360,7 @@ export function DeleteButton({
         className={cn(
           "relative grid size-12 shrink-0 cursor-pointer place-items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           phase === "done" ? "text-brand" : "text-foreground",
+          classNames?.tile,
         )}
       >
         <TrashGlyph
@@ -352,6 +389,7 @@ export function DeleteButton({
             className={cn(
               "relative flex h-12 items-center gap-2.5 bg-surface px-3",
               onLeft && "flex-row-reverse",
+              classNames?.confirmation,
             )}
           >
             <span
@@ -363,6 +401,7 @@ export function DeleteButton({
                   : "-left-1.5 [clip-path:polygon(100%_0,0_50%,100%_100%)]",
               )}
             />
+            {renderConfirmation?.({ status: phase })}
             <ActionButton
               label={confirmLabel}
               delay={0}
@@ -371,10 +410,21 @@ export function DeleteButton({
                 // Confirming unmounts the pill along with this button; the
                 // tile has to claim focus first or it lands on <body>.
                 tile.current?.focus();
-                const result = onConfirm?.();
-                if (!(result instanceof Promise)) return setPhase("done");
+                let result: void | Promise<unknown>;
+                try {
+                  result = onConfirm?.();
+                } catch (error) {
+                  setPhase("idle");
+                  if (onError) onError(error);
+                  else throw error;
+                  return;
+                }
+                if (!result || typeof result.then !== "function") {
+                  setPhase("done");
+                  return;
+                }
                 setPhase("pending");
-                result.then(
+                Promise.resolve(result).then(
                   () => setPhase((p) => (p === "pending" ? "done" : p)),
                   (error: unknown) => {
                     setPhase((p) => (p === "pending" ? "idle" : p));

@@ -7,7 +7,12 @@
     "lint": "turbo lint --ui=tui",
     "clean": "turbo clean --ui=tui",
     "shot": "node scripts/shot.mjs",
-    "test": "node scripts/menu-path.check.mts && node scripts/notch-queue.check.mts && node scripts/notch-path.check.mts"
+    "test": "node scripts/menu-path.check.mts",
+    "registry:generate": "node scripts/registry/generate.mts",
+    "registry:check": "node scripts/registry/generate.mts --check",
+    "registry:validate": "node scripts/registry/validate.mts",
+    "registry:fixtures": "node scripts/registry/compile-fixtures.mts",
+    "registry:ci": "pnpm registry:check && pnpm registry:validate && pnpm registry:fixtures"
   },
   "devDependencies": {
     "eslint": "^10.10.0",

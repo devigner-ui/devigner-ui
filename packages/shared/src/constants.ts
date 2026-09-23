@@ -13,4 +13,12 @@ export const COMPONENT_CATEGORIES = {
   layout: "Layout",
 } as const;
 
-export const FREE_COMPONENTS = ["magnetic-button"];
+// Every shipped component is free until the first Pro one lands.
+export const FREE_COMPONENTS = [
+  "magnetic-button",
+  "chart-card",
+  "delete-button",
+  "timeline",
+  "menu-dock",
+  "date-range-picker",
+];

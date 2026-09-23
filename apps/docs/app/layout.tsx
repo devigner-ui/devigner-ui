@@ -35,7 +35,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Clash Display - heavy grotesque display face (Fontshare).
+        {/* Cabinet Grotesk - the display face (Fontshare).
             ponytail: CDN link for now; self-host via next/font/local if perf matters. */}
         <link
           rel="preconnect"
@@ -49,7 +49,7 @@ export default function RootLayout({
         />
         <link
           rel="stylesheet"
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700,800&display=swap"
         />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

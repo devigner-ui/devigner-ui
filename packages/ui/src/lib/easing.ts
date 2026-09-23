@@ -50,10 +50,10 @@ export const SPRING_MOUSE = {
   mass: 0.3,
 } as const;
 
-/** The notch emerging through the viewport edge. Heavy on purpose: mass is
- *  what reads as liquid. SPRING_PANEL (mass 0.5) is the nearest existing
- *  token and it lands as a card being dealt, not as something with weight
- *  being squeezed through a membrane. */
+/** Liquid/viscous entrances. Heavy on purpose: mass is what reads as liquid.
+ *  SPRING_PANEL (mass 0.5) is the nearest existing token and it lands as a
+ *  card being dealt, not as something with weight being squeezed through a
+ *  membrane. */
 export const SPRING_GOO = {
   type: "spring",
   stiffness: 260,
@@ -67,6 +67,14 @@ export const SPRING_RETRACT = {
   type: "spring",
   stiffness: 300,
   damping: 34,
+} as const;
+
+/** Tracking the pointer with a shape (a range band chasing the hovered day).
+ *  A tween, not a spring: it follows many targets a second, and momentum
+ *  would overshoot each one. Short enough that it never trails the cursor. */
+export const TWEEN_FOLLOW = {
+  duration: 0.18,
+  ease: EASE_OUT,
 } as const;
 
 export const fadeIn: Variants = {

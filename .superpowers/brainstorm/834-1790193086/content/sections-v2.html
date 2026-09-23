@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reworked sections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro, .page, .cards { max-width: 1240px; margin: 0 auto; }
+  .intro { margin-bottom: 28px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 840px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .label { max-width: 1240px; margin: 44px auto 12px; font-size: 13px; font-weight: 600; color: #1b1b1f; }
+  .label span { font-weight: 400; color: #56555c; }
+  .note { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.5; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 6px 9px; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin: 10px 0 0; max-width: 820px; }
+
+  .C { --paper: oklch(15.5% 0.01 265); --paper2: oklch(19.5% 0.012 265); --paper3: oklch(24% 0.012 265); --ink: oklch(94.5% 0.006 265); --ink2: oklch(72% 0.01 265); --muted: oklch(50% 0.012 265); --rule: oklch(27% 0.012 265); --blue: oklch(68% 0.17 262); --green: oklch(74% 0.15 155);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; }
+  .L { --paper: oklch(97.6% 0.003 260); --paper2: oklch(94.8% 0.004 260); --paper3: oklch(92.6% 0.006 260); --ink: oklch(19% 0.012 260); --ink2: oklch(40% 0.012 260); --muted: oklch(55% 0.01 260); --rule: oklch(88% 0.006 260); --blue: oklch(53% 0.215 264); }
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; letter-spacing: -0.04em; font-variation-settings: "opsz" 96; line-height: 1.02; }
+  section.s { padding: 84px 48px; }
+  .h2 { font-size: 46px; }
+
+  /* shared bits */
+  .cal { width: 280px; background: var(--paper3); color: var(--ink); border-radius: 18px; padding: 13px; box-shadow: 0 18px 40px -20px rgba(0,0,0,.55); }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
+  .g7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; font-size: 11px; color: var(--ink2); }
+  .g7 span { padding: 5px 0; border-radius: 7px; }
+  .g7 .in { background: color-mix(in oklab, var(--blue) 22%, var(--paper3)); color: var(--ink); border-radius: 0; }
+  .g7 .e { background: var(--blue); color: var(--paper); }
+  .chip { display: inline-flex; align-items: center; gap: 10px; vertical-align: middle; transform: translateY(-3px); height: 46px; padding: 0 8px 0 16px; border-radius: 99px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 16px; font-weight: 400; letter-spacing: 0; white-space: nowrap; }
+  .chip .d { color: var(--blue); }
+  .chip .cp { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--paper3); color: var(--ink2); }
+  .chip.file { padding: 0 16px; gap: 8px; }
+
+  /* ── manners: the proof bench ── */
+  .say { margin-top: 26px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 36px; line-height: 1.32; letter-spacing: -0.03em; color: var(--muted); max-width: 1080px; }
+  .say .t { color: var(--ink2); text-decoration: underline; text-decoration-style: dotted; text-decoration-color: oklch(40% 0.012 265); text-decoration-thickness: 2px; text-underline-offset: 7px; cursor: pointer; }
+  .say .t.on { color: var(--ink); text-decoration-style: solid; text-decoration-color: var(--blue); text-decoration-thickness: 3px; }
+  .bench { margin-top: 34px; position: relative; border-radius: 26px; overflow: hidden; box-shadow: 0 0 0 1px var(--rule); display: grid; grid-template-columns: 1fr 1fr; min-height: 430px; }
+  .half { position: relative; display: grid; place-items: center; background: var(--paper2); color: var(--ink); }
+  .half .tag { position: absolute; top: 14px; left: 16px; font-family: "Geist Mono", monospace; font-size: 11px; color: var(--ink2); }
+  .bench .showing { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 2; font-size: 12.5px; color: oklch(94.5% 0.006 265); background: oklch(24% 0.012 265); box-shadow: 0 0 0 1px oklch(32% 0.012 265); border-radius: 99px; padding: 7px 14px; white-space: nowrap; }
+  .bench .showing b { font-weight: 600; }
+  .benchcap { margin-top: 16px; display: flex; justify-content: space-between; gap: 24px; font-size: 15px; line-height: 1.55; color: var(--ink2); }
+  .benchcap code { font-family: "Geist Mono", monospace; font-size: 13px; color: var(--ink); }
+  .others { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+  .others .o { border-radius: 20px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); padding: 14px; min-height: 210px; position: relative; display: grid; place-items: center; }
+  .others .o .k { position: absolute; top: 12px; left: 14px; font-size: 12px; color: var(--ink2); }
+  .sw { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink); background: var(--paper3); border-radius: 99px; padding: 6px 8px 6px 14px; position: absolute; top: 10px; right: 10px; }
+  .sw i { width: 34px; height: 20px; border-radius: 99px; background: var(--blue); position: relative; }
+  .sw i::after { content: ""; position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--paper); }
+  .keys { position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
+  .keys b { font-family: "Geist Mono", monospace; font-weight: 500; font-size: 10.5px; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 6px; display: grid; place-items: center; background: var(--paper3); color: var(--ink2); box-shadow: inset 0 -2px 0 oklch(18% 0.01 265); }
+  .keys b.lit { background: var(--blue); color: var(--paper); box-shadow: inset 0 -2px 0 oklch(50% 0.17 262); }
+  .code { font-family: "Geist Mono", monospace; font-size: 10.5px; line-height: 1.75; color: var(--ink2); white-space: pre; align-self: start; justify-self: start; margin-top: 30px; overflow: hidden; width: 100%; }
+  .code .c { color: var(--blue); }
+  .code .fn { color: var(--ink); }
+
+  /* ── install ── */
+  .inline { margin-top: 30px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 34px; line-height: 1.55; letter-spacing: -0.03em; color: var(--ink); max-width: 1120px; }
+  .inline .q { color: var(--ink2); }
+  .strip { margin-top: 44px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px; }
+  .strip h4 { font-size: 12.5px; font-weight: 500; color: var(--muted); padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+  .out { padding-top: 14px; font-family: "Geist Mono", monospace; font-size: 13px; line-height: 1.95; color: var(--ink2); }
+  .out .w { color: var(--ink); } .out .ok { color: var(--green); }
+  .tree { padding-top: 14px; font-family: "Geist Mono", monospace; font-size: 13px; line-height: 2; color: var(--ink2); }
+  .tree .n { color: var(--ink); }
+  .tree em { font-style: normal; font-family: "Geist", sans-serif; font-size: 11px; font-weight: 600; margin-left: 8px; padding: 1px 7px; border-radius: 5px; background: var(--blue); color: var(--paper); }
+  .tree em.g { background: var(--paper3); color: var(--ink2); }
+
+  /* ── pricing options ── */
+  .cards { display: flex; flex-direction: column; gap: 36px; }
+  .dir { cursor: pointer; border-radius: 26px; padding: 22px; background: #f6f6f8; border: 2px solid transparent; transition: border-color .2s; }
+  .dir:hover { border-color: #c4c3cb; }
+  .dir.selected { border-color: #1b1b1f; }
+  .dir-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+  .dir-letter { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #1b1b1f; color: #f6f6f8; font-weight: 600; font-size: 14px; }
+  .dir-head h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+  .dir-head p { margin-top: 3px; color: #56555c; font-size: 14.5px; line-height: 1.55; max-width: 880px; }
+
+  /* P1 price list */
+  .plist { margin-top: 34px; max-width: 980px; }
+  .prow { padding: 20px 0; border-top: 1px solid var(--rule); }
+  .prow .line { display: flex; align-items: baseline; gap: 14px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 38px; letter-spacing: -0.035em; }
+  .prow .line .dots { flex: 1; border-bottom: 3px dotted oklch(36% 0.012 265); transform: translateY(-9px); }
+  .prow .line .p { font-variant-numeric: tabular-nums; }
+  .prow.pro .line { color: var(--ink2); }
+  .prow .sub { margin-top: 6px; display: flex; justify-content: space-between; font-size: 14.5px; color: var(--ink2); }
+  .prow .sub b { font-weight: 500; font-size: 12px; border-radius: 99px; padding: 2px 10px; background: oklch(74% 0.15 155 / .16); color: var(--green); }
+  .prow.pro .sub b { background: var(--paper3); color: var(--ink2); }
+  .pfoot { margin-top: 20px; display: flex; justify-content: space-between; font-size: 14.5px; color: var(--ink2); max-width: 980px; }
+  .pfoot a { color: var(--ink); border-bottom: 1px solid var(--blue); padding-bottom: 1px; }
+
+  /* P2 now / later */
+  .nl { margin-top: 30px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; }
+  .now { border-radius: 26px; background: var(--ink); color: var(--paper); padding: 30px 34px; }
+  .later { border-radius: 26px; box-shadow: inset 0 0 0 1px var(--rule); padding: 30px 34px; color: var(--ink2); }
+  .nl .k { font-size: 13px; font-weight: 600; }
+  .now .big { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 150px; line-height: .9; letter-spacing: -0.06em; margin-top: 18px; }
+  .now p { margin-top: 18px; font-size: 16px; line-height: 1.55; max-width: 380px; color: oklch(34% 0.012 265); }
+  .now .btn { display: inline-block; margin-top: 24px; background: var(--paper); color: var(--ink); font-weight: 600; font-size: 14.5px; border-radius: 99px; padding: 12px 20px; }
+  .later .pl { margin-top: 26px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 34px; letter-spacing: -0.035em; color: var(--ink); line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .later .pl span { font-family: "Geist", sans-serif; font-weight: 400; font-size: 15px; letter-spacing: 0; color: var(--ink2); margin-left: 8px; }
+  .later p { margin-top: 22px; font-size: 15px; line-height: 1.55; max-width: 330px; }
+  .later a { display: inline-block; margin-top: 18px; color: var(--ink); font-size: 14.5px; border-bottom: 1px solid var(--blue); }
+
+  /* P3 receipt */
+  .rc { display: grid; grid-template-columns: 1fr 380px; gap: 56px; align-items: center; }
+  .rc .txt p { margin-top: 18px; font-size: 16px; line-height: 1.6; color: var(--ink2); max-width: 440px; }
+  .rc .txt a { display: inline-block; margin-top: 18px; color: var(--ink); font-size: 14.5px; border-bottom: 1px solid var(--blue); }
+  .receipt { position: relative; background: oklch(96.5% 0.008 85); color: oklch(24% 0.01 60); font-family: "Geist Mono", monospace; font-size: 13px; line-height: 1.9; padding: 26px 26px 30px; transform: rotate(1.5deg); box-shadow: 0 30px 50px -24px rgba(0,0,0,.9);
+             -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%; padding-bottom: 38px; }
+  .receipt .hd { text-align: center; font-weight: 500; letter-spacing: .12em; }
+  .receipt .sm { text-align: center; font-size: 11px; color: oklch(50% 0.01 60); }
+  .receipt hr { border: 0; border-top: 1.5px dashed oklch(70% 0.01 60); margin: 12px 0; }
+  .receipt .r { display: flex; gap: 6px; }
+  .receipt .r .f { flex: 1; overflow: hidden; white-space: nowrap; }
+  .receipt .r .f::after { content: " ....................................................."; color: oklch(70% 0.01 60); }
+  .receipt .tot { font-weight: 600; font-size: 15px; }
+  .receipt .dim { color: oklch(52% 0.01 60); }
+  .receipt .thx { margin-top: 14px; text-align: center; font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Three reworked sections</h1>
+    <p>"What we mean by manners" and the install section each get one reworked version below; reply in the terminal. Pricing gets three new options. Click the one you want. Everything reads from the registry, so it all works the same at 6 components or 600.</p>
+  </div>
+
+  <!-- ═════════ MANNERS ═════════ -->
+  <p class="label">What we mean by manners <span>· the sentence becomes the tabs, the stage proves each one</span></p>
+  <div class="page">
+    <div class="C">
+      <section class="s">
+        <h2 class="display h2">What we mean by manners</h2>
+        <p class="say">Every component <span class="t">keeps still when asked</span>, <span class="t on">looks right in both themes</span>, <span class="t">answers to the keyboard</span> and <span class="t">leaves the code with you</span>.</p>
+        <div class="bench">
+          <span class="showing">Showing <b>Date Range Picker</b> &#8964;</span>
+          <div class="half L"><span class="tag">light</span>
+            <div class="cal"><div class="cal-h"><span>September 2026</span><span>&lsaquo; &rsaquo;</span></div><div class="g7"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="e">12</span><span class="in">13</span><span class="in">14</span><span class="in">15</span><span class="e">16</span><span>17</span><span>18</span><span>19</span><span>20</span></div></div>
+          </div>
+          <div class="half"><span class="tag">dark</span>
+            <div class="cal"><div class="cal-h"><span>September 2026</span><span>&lsaquo; &rsaquo;</span></div><div class="g7"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="e">12</span><span class="in">13</span><span class="in">14</span><span class="in">15</span><span class="e">16</span><span>17</span><span>18</span><span>19</span><span>20</span></div></div>
+          </div>
+        </div>
+        <div class="benchcap"><span>One component, one file, two themes. Both halves are live. The colors come from CSS variables, so there's no <code>dark:</code> class anywhere in the source.</span></div>
+
+        <div class="others">
+          <div class="o"><span class="k">keeps still when asked</span><span class="sw">Reduced motion <i></i></span>
+            <div class="cal" style="transform:scale(.62)"><div class="cal-h"><span>September 2026</span><span>&lsaquo; &rsaquo;</span></div><div class="g7"><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="e">12</span><span class="in">13</span><span class="in">14</span><span class="in">15</span><span class="e">16</span><span>17</span><span>18</span><span>19</span><span>20</span></div></div>
+          </div>
+          <div class="o"><span class="k">answers to the keyboard</span>
+            <div class="cal" style="transform:scale(.62) translateY(-24px)"><div class="cal-h"><span>September 2026</span><span>&lsaquo; &rsaquo;</span></div><div class="g7"><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="e" style="outline:2px solid var(--ink);outline-offset:2px">12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span></div></div>
+            <div class="keys"><b>Tab</b><b class="lit">&larr;</b><b>&rarr;</b><b>&uarr;</b><b>&darr;</b><b>Enter</b><b>Esc</b></div>
+          </div>
+          <div class="o"><span class="k">leaves the code with you</span>
+<div class="code"><span class="fn">components/ui/date-range-picker.tsx</span>
+
+  return (
+    &lt;div
+      className={cn(
+        <span class="c">"flex w-105 max-w-full flex-col</span>
+        <span class="c"> rounded-[26px] bg-surface-hover p-2.5"</span>,
+        className,
+      )}
+    &gt;
+      &lt;div className=<span class="c">"truncate text-[15px]/6</span>
+        <span class="c">font-semibold text-foreground"</span>&gt;</div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p class="note">Clicking a phrase in the sentence swaps what the stage proves, with the underline gliding between phrases. "Showing" is a small switcher that defaults to whatever the hero picker chose, so your pick follows you down the page. The three smaller panels are the other tabs, shown here for review. Keeps still: a real Reduced motion switch around the live component. Keyboard: keycaps light up as the component hears keys. Code: the actual file, fetched on demand, with class names tinted.</p>
+  </div>
+
+  <!-- ═════════ INSTALL ═════════ -->
+  <p class="label">Two commands, then it's your code <span>· the instructions are a sentence with the commands in it</span></p>
+  <div class="page">
+    <div class="C">
+      <section class="s">
+        <h2 class="display h2">Two commands, then it's your code</h2>
+        <p class="inline"><span class="q">Run</span> <span class="chip"><span class="d">$</span> npx devignerui init <span class="cp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span></span> <span class="q">once in your project. After that,</span> <span class="chip"><span class="d">$</span> npx devignerui add date-range-picker <span class="cp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span></span> <span class="q">writes</span> <span class="chip file"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>date-range-picker.tsx</span> <span class="q">into components/ui, and from then on it's a normal file in your repo.</span></p>
+        <div class="strip">
+          <div><h4>What the add command prints</h4>
+            <div class="out">Adding components...<br><br><span class="w">📦 date-range-picker</span><br>&nbsp;&nbsp;<span class="ok">✓ components/ui/date-range-picker.tsx</span><br><br>&nbsp;&nbsp;Install dependencies:<br>&nbsp;&nbsp;<span class="w">npm i cn motion react @devigner-ui/icons @devignerui/ui</span><br><br><span class="w">Done!</span></div>
+          </div>
+          <div><h4>Where it lands</h4>
+            <div class="tree">your-app/<br>&nbsp;&nbsp;app/<br>&nbsp;&nbsp;components/<br>&nbsp;&nbsp;&nbsp;&nbsp;ui/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="n">date-range-picker.tsx</span><em>new</em><br>&nbsp;&nbsp;<span class="n">components.json</span><em class="g">from init</em></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p class="note">The commands sit inside the sentence as copy buttons, set in the same type as the words around them. The add command, filename, printed output and package list all follow the component picked in the hero, and all come from the registry. The output is plain type between rules, with no fake terminal window.</p>
+  </div>
+
+  <!-- ═════════ PRICING OPTIONS ═════════ -->
+  <p class="label">Pricing <span>· three options, click one</span></p>
+  <div class="cards">
+
+    <section class="card dir" data-choice="price-list" onclick="toggleSelect(this)">
+      <header class="dir-head"><span class="dir-letter">A</span><div><h2>The price list</h2><p>Set like a price list in a good shop: names, dotted leaders, prices. Big type, no boxes. Free sits first and reads as the loudest line, with the two Pro prices underneath marked as not on sale yet.</p></div></header>
+      <div class="C">
+        <section class="s" style="padding-top:64px;padding-bottom:64px">
+          <h2 class="display h2">What it costs</h2>
+          <div class="plist">
+            <div class="prow"><div class="line"><span>Every component here</span><span class="dots"></span><span class="p">Free</span></div><div class="sub"><span>MIT licensed, for personal and commercial work.</span><b>Available now</b></div></div>
+            <div class="prow pro"><div class="line"><span>Pro, monthly</span><span class="dots"></span><span class="p">$14.99</span></div><div class="sub"><span>A separate set of paid components.</span><b>Not on sale yet</b></div></div>
+            <div class="prow pro"><div class="line"><span>Pro, lifetime</span><span class="dots"></span><span class="p">$149.99</span></div><div class="sub"><span>One payment, when Pro opens.</span><b>Not on sale yet</b></div></div>
+          </div>
+          <div class="pfoot"><span>Nothing that's free now will move into Pro.</span><a>Follow @devignerui on X to hear when Pro opens</a></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="card dir" data-choice="now-later" onclick="toggleSelect(this)">
+      <header class="dir-head"><span class="dir-letter">B</span><div><h2>Now and later</h2><p>Two unequal panels. "Now" is a bright block with a huge $0 and the browse button, so the free offer is the obvious action. "Later" is a quiet outlined panel with the Pro prices and the X link.</p></div></header>
+      <div class="C">
+        <section class="s" style="padding-top:64px;padding-bottom:64px">
+          <h2 class="display h2">What it costs</h2>
+          <div class="nl">
+            <div class="now"><span class="k">Now</span><div class="big">$0</div><p>Every component on the site, MIT licensed. No account, no seat limits.</p><span class="btn">Browse components</span></div>
+            <div class="later"><span class="k">Later</span><div class="pl">$14.99<span>a month</span><br>$149.99<span>once</span></div><p>Pro will be a separate set of paid components. It isn't on sale yet, and what's free stays free.</p><a>Follow @devignerui on X for the opening</a></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="card dir" data-choice="receipt" onclick="toggleSelect(this)">
+      <header class="dir-head"><span class="dir-letter">C</span><div><h2>The receipt</h2><p>A paper receipt for everything you take today, totalling $0.00, with Pro listed underneath as not yet open. The component count on it updates from the registry. It has a sense of humour, while the text beside it stays plain.</p></div></header>
+      <div class="C">
+        <section class="s" style="padding-top:64px;padding-bottom:64px">
+          <div class="rc">
+            <div class="txt"><h2 class="display h2">What it costs</h2><p>Every component on the site is free and MIT licensed. Pro will be a separate paid set, and it isn't on sale yet. Nothing free moves into it.</p><a>Follow @devignerui on X to hear when Pro opens</a></div>
+            <div class="receipt">
+              <div class="hd">DEVIGNER UI</div>
+              <div class="sm">devignerui.com &middot; thank you for visiting</div>
+              <hr>
+              <div class="r"><span class="f">Components &times; 6</span><span>$0.00</span></div>
+              <div class="r"><span class="f">Source code, MIT</span><span>$0.00</span></div>
+              <div class="r"><span class="f">Account</span><span>not needed</span></div>
+              <hr>
+              <div class="r tot"><span class="f">TOTAL</span><span>$0.00</span></div>
+              <hr>
+              <div class="r dim"><span class="f">Pro, monthly</span><span>$14.99</span></div>
+              <div class="r dim"><span class="f">Pro, lifetime</span><span>$149.99</span></div>
+              <div class="sm">Pro is not on sale yet</div>
+              <div class="thx">Mind your manners.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

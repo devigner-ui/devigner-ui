@@ -11,15 +11,37 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles": "./src/styles/globals.css"
+    "./motion": {
+      "types": "./dist/motion.d.ts",
+      "import": "./dist/motion.js",
+      "require": "./dist/motion.cjs"
+    },
+    "./hooks": {
+      "types": "./dist/hooks.d.ts",
+      "import": "./dist/hooks.js",
+      "require": "./dist/hooks.cjs"
+    },
+    "./menu-path": {
+      "types": "./dist/menu-path.d.ts",
+      "import": "./dist/menu-path.js",
+      "require": "./dist/menu-path.cjs"
+    },
+    "./date-range": {
+      "types": "./dist/date-range.d.ts",
+      "import": "./dist/date-range.js",
+      "require": "./dist/date-range.cjs"
+    },    "./styles.css": "./dist/styles.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && pnpm run build:css",
+    "build:css": "tailwindcss --input src/styles/globals.css --output dist/styles.css",
     "dev": "tsup --watch",
     "lint": "eslint src/",
+    "test": "vitest run",
+    "test:package": "pnpm run build && node ./scripts/package-smoke.mjs",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -27,15 +49,19 @@
     "cn": "^0.3.0"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "gsap": "^3.15.0",
+    "jsdom": "^30.1.0",
     "motion": "^13.4.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
     "tsup": "^8.5.1",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
   },
   "peerDependencies": {
     "gsap": ">=3.13",

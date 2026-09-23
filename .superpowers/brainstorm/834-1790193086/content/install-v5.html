@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install section, terminal and tree polished</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro, .page { max-width: 1240px; margin: 0 auto; }
+  .intro { margin-bottom: 26px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 880px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .note { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.55; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin: 12px 0 0; max-width: 900px; }
+  .label { max-width: 1240px; margin: 36px auto 12px; font-size: 13px; font-weight: 600; }
+
+  /* page tokens (dark) */
+  .C { --paper: oklch(15.5% 0.01 265); --paper2: oklch(19.5% 0.012 265); --paper3: oklch(24% 0.012 265); --ink: oklch(94.5% 0.006 265); --ink2: oklch(72% 0.01 265); --muted: oklch(50% 0.012 265); --rule: oklch(27% 0.012 265); --blue: oklch(68% 0.17 262); --green: oklch(74% 0.15 155);
+       --card: oklch(19% 0.01 265); --card-ink: oklch(94.5% 0.006 265); --card-ink2: oklch(66% 0.01 265); --card-rule: oklch(28% 0.012 265); --card-hi: oklch(68% 0.17 262 / .14);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; padding: 84px 48px 96px; }
+  /* page tokens (light) */
+  .C.L { --paper: oklch(97.6% 0.003 260); --paper2: oklch(94.8% 0.004 260); --paper3: oklch(92.6% 0.006 260); --ink: oklch(19% 0.012 260); --ink2: oklch(40% 0.012 260); --muted: oklch(55% 0.01 260); --rule: oklch(88% 0.006 260); --blue: oklch(53% 0.215 264);
+         --card: oklch(99.2% 0.002 260); --card-ink: oklch(19% 0.012 260); --card-ink2: oklch(46% 0.01 260); --card-rule: oklch(91% 0.005 260); --card-hi: oklch(53% 0.215 264 / .09); }
+  /* terminal stays dark in both themes */
+  .term { --t-bg: oklch(16% 0.008 260); --t-ink: oklch(92% 0.004 260); --t-muted: oklch(62% 0.01 260); --t-dim: oklch(44% 0.01 260); --t-rule: oklch(92% 0.004 260 / .08); --t-blue: oklch(76% 0.12 240); --t-green: oklch(76% 0.15 155); }
+
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; letter-spacing: -0.04em; font-variation-settings: "opsz" 96; line-height: 1.02; }
+  .h2 { font-size: 46px; }
+  .inline { margin-top: 26px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 34px; line-height: 1.55; letter-spacing: -0.03em; max-width: 1120px; }
+  .inline .q { color: var(--ink2); }
+  .chip { display: inline-flex; align-items: center; gap: 10px; vertical-align: middle; transform: translateY(-3px); height: 46px; padding: 0 8px 0 16px; border-radius: 99px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 16px; font-weight: 400; letter-spacing: 0; white-space: nowrap; }
+  .chip .d { color: var(--blue); }
+  .chip .cp { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--paper3); color: var(--ink2); font-size: 13px; }
+  .chip.file { padding: 0 16px; gap: 8px; }
+
+  /* the composition */
+  .stagebox { position: relative; margin-top: 60px; height: 520px; }
+  .term { position: absolute; left: 0; top: 0; width: 76%; height: 430px; border-radius: 22px; background: var(--t-bg); color: var(--t-ink); box-shadow: 0 0 0 1px oklch(92% 0.004 260 / .08), inset 0 1px 0 oklch(100% 0 0 / .05), 0 50px 90px -50px rgba(0,0,0,.9); overflow: hidden; font-family: "Geist Mono", monospace; }
+  .tbar { height: 46px; display: flex; align-items: center; padding: 0 16px; gap: 14px; border-bottom: 1px solid var(--t-rule); }
+  .dots { display: flex; gap: 7px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: oklch(92% 0.004 260 / .14); }
+  .tab { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 9px; background: oklch(92% 0.004 260 / .06); font-size: 12px; color: var(--t-ink); }
+  .tab span { color: var(--t-muted); }
+  .replay { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; font-family: "Geist", sans-serif; font-size: 12.5px; color: var(--t-muted); border-radius: 99px; padding: 6px 11px; box-shadow: inset 0 0 0 1px var(--t-rule); }
+  .tbody { padding: 22px 26px; font-size: 14px; line-height: 1.78; }
+  .ln { white-space: pre; }
+  .pr { color: var(--t-blue); } .pr b { color: var(--t-muted); font-weight: 400; }
+  .mut { color: var(--t-muted); } .ok { color: var(--t-green); } .dim { color: var(--t-dim); }
+  .hl { position: relative; }
+  .hl::before { content: ""; position: absolute; inset: -1px -8px; border-radius: 6px; background: oklch(76% 0.15 155 / .08); z-index: -1; }
+  .npm { display: inline-flex; align-items: center; gap: 12px; }
+  .npm .c { font-family: "Geist", sans-serif; font-size: 11.5px; color: var(--t-ink); border-radius: 99px; padding: 2px 9px; box-shadow: inset 0 0 0 1px oklch(92% 0.004 260 / .16); }
+  .caret { display: inline-block; width: .6em; height: 1.1em; vertical-align: -.18em; background: var(--t-ink); margin-left: 2px; }
+
+  .tree { position: absolute; right: 0; top: 176px; width: 340px; border-radius: 22px; background: var(--card); color: var(--card-ink); box-shadow: 0 0 0 1px var(--card-rule), 0 40px 70px -30px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.12); padding: 12px 10px 14px; font-family: "Geist Mono", monospace; font-size: 13px; }
+  .tree .th { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 10px; font-family: "Geist", sans-serif; font-size: 12px; color: var(--card-ink2); border-bottom: 1px solid var(--card-rule); margin-bottom: 6px; }
+  .tree .th b { font-weight: 500; color: var(--card-ink); }
+  .row { position: relative; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 9px; color: var(--card-ink2); }
+  .row svg { flex: none; }
+  .row.new { background: var(--card-hi); color: var(--card-ink); }
+  .row.new .pill { margin-left: auto; font-family: "Geist", sans-serif; font-size: 11px; font-weight: 600; border-radius: 99px; padding: 2px 8px; background: var(--blue); color: var(--paper); }
+  .row .guide { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--card-rule); }
+  .row .x { width: 7px; height: 7px; border-radius: 2px; background: oklch(68% 0.17 262); }
+  .row .j { width: 7px; height: 7px; border-radius: 2px; background: oklch(80% 0.15 85); }
+  .tree .foot { margin: 8px 8px 0; padding-top: 10px; border-top: 1px solid var(--card-rule); font-family: "Geist", sans-serif; font-size: 12px; color: var(--card-ink2); display: flex; justify-content: space-between; }
+  .tree .foot b { color: var(--card-ink); font-weight: 500; }
+
+  svg.wire { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  svg.wire path { fill: none; stroke: var(--blue); stroke-width: 1.5; stroke-dasharray: 3 5; }
+  svg.wire circle { fill: var(--blue); }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Install section: your direction, polished</h1>
+    <p>The terminal with the file tree over its corner stays, as in your screenshot, reworked in detail and shown with the Menu Dock. The approved headline and sentence sit above it. The 2x2 list of specs from the old version is gone, because the manners section now covers themes and reduced motion.</p>
+  </div>
+
+  <div class="page">
+    <div class="C">
+      <h2 class="display h2">Two commands, then it's your code</h2>
+      <p class="inline"><span class="q">Run</span> <span class="chip"><span class="d">$</span> npx devignerui init <span class="cp">&#10697;</span></span> <span class="q">once in your project. After that,</span> <span class="chip"><span class="d">$</span> npx devignerui add menu-dock <span class="cp">&#10697;</span></span> <span class="q">writes</span> <span class="chip file">menu-dock.tsx</span> <span class="q">into components/ui, and from then on it's a normal file in your repo.</span></p>
+
+      <div class="stagebox">
+        <div class="term">
+          <div class="tbar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="tab">your-app <span>zsh</span></span>
+            <span class="replay">&#8635; Run it again</span>
+          </div>
+          <div class="tbody">
+<div class="ln"><span class="pr">~/your-app <b>$</b></span> npx devignerui add menu-dock</div>
+<div class="ln mut">Adding components...</div>
+<div class="ln"> </div>
+<div class="ln">📦 menu-dock</div>
+<div class="ln">  <span class="ok hl src">✓ components/ui/menu-dock.tsx</span></div>
+<div class="ln"> </div>
+<div class="ln mut">  Install dependencies:</div>
+<div class="ln">  <span class="npm">npm i cn motion react @devigner-ui/icons @devignerui/ui <span class="c">Copy</span></span></div>
+<div class="ln"> </div>
+<div class="ln">Done!</div>
+<div class="ln"><span class="pr">~/your-app <b>$</b></span> <span class="caret"></span></div>
+          </div>
+        </div>
+
+        <div class="tree">
+          <div class="th"><b>your-app</b><span>after the add command</span></div>
+          <div class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>app</div>
+          <div class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>components</div>
+          <div class="row" style="padding-left:28px"><span class="guide" style="left:14px"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>ui</div>
+          <div class="row" style="padding-left:50px"><span class="guide" style="left:14px"></span><span class="guide" style="left:36px"></span><span class="x"></span>button.tsx</div>
+          <div class="row new dst" style="padding-left:50px"><span class="guide" style="left:14px"></span><span class="guide" style="left:36px"></span><span class="x"></span>menu-dock.tsx<span class="pill">new</span></div>
+          <div class="row"><span class="j"></span>components.json</div>
+          <div class="row"><span class="j"></span>package.json</div>
+          <div class="foot"><span><b>1 file added</b></span><span>nothing else changed</span></div>
+        </div>
+
+        <svg class="wire" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <p class="note">What happens, in order, when the section scrolls into view: the command types itself, with a short pause before Enter. The output prints line by line exactly as the real CLI does. When the "✓ components/ui/menu-dock.tsx" line lands, a dotted cobalt line draws from it to the tree, and menu-dock.tsx slides into components/ui with its "new" tag. "Run it again" replays the whole sequence, and the npm line has its own Copy button. With reduced motion on, the final state appears at once. The terminal stays dark in both themes. On phones the tree drops below the terminal and the connector hides.</p>
+
+    <p class="label">The same composition in light mode</p>
+    <div class="C L" style="padding-top:56px;padding-bottom:72px">
+      <div class="stagebox" style="margin-top:0">
+        <div class="term">
+          <div class="tbar"><span class="dots"><i></i><i></i><i></i></span><span class="tab">your-app <span>zsh</span></span><span class="replay">&#8635; Run it again</span></div>
+          <div class="tbody">
+<div class="ln"><span class="pr">~/your-app <b>$</b></span> npx devignerui add menu-dock</div>
+<div class="ln mut">Adding components...</div>
+<div class="ln"> </div>
+<div class="ln">📦 menu-dock</div>
+<div class="ln">  <span class="ok hl src">✓ components/ui/menu-dock.tsx</span></div>
+<div class="ln"> </div>
+<div class="ln mut">  Install dependencies:</div>
+<div class="ln">  <span class="npm">npm i cn motion react @devigner-ui/icons @devignerui/ui <span class="c">Copy</span></span></div>
+<div class="ln"> </div>
+<div class="ln">Done!</div>
+<div class="ln"><span class="pr">~/your-app <b>$</b></span> <span class="caret"></span></div>
+          </div>
+        </div>
+        <div class="tree">
+          <div class="th"><b>your-app</b><span>after the add command</span></div>
+          <div class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>app</div>
+          <div class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>components</div>
+          <div class="row" style="padding-left:28px"><span class="guide" style="left:14px"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>ui</div>
+          <div class="row" style="padding-left:50px"><span class="guide" style="left:14px"></span><span class="guide" style="left:36px"></span><span class="x"></span>button.tsx</div>
+          <div class="row new dst" style="padding-left:50px"><span class="guide" style="left:14px"></span><span class="guide" style="left:36px"></span><span class="x"></span>menu-dock.tsx<span class="pill">new</span></div>
+          <div class="row"><span class="j"></span>components.json</div>
+          <div class="row"><span class="j"></span>package.json</div>
+          <div class="foot"><span><b>1 file added</b></span><span>nothing else changed</span></div>
+        </div>
+        <svg class="wire" aria-hidden="true"></svg>
+      </div>
+    </div>
+  </div>
+<script>
+function wires(){document.querySelectorAll(".stagebox").forEach(b=>{const s=b.querySelector(".src"),d=b.querySelector(".dst"),w=b.querySelector("svg.wire");if(!s||!d||!w)return;const B=b.getBoundingClientRect(),S=s.getBoundingClientRect(),D=d.getBoundingClientRect();const x1=S.right-B.left+10,y1=S.top-B.top+S.height/2,x2=D.left-B.left+2,y2=D.top-B.top+D.height/2,mx=x2-70;w.innerHTML=`<path d="M ${x1} ${y1} H ${mx} C ${mx+45} ${y1} ${x2-45} ${y2} ${x2} ${y2}"/><circle cx="${x1}" cy="${y1}" r="3.5"/><circle cx="${x2}" cy="${y2}" r="3.5"/>`;});}
+addEventListener("load",wires);addEventListener("resize",wires);document.fonts&&document.fonts.ready.then(wires);
+</script>
+</body>
+</html>

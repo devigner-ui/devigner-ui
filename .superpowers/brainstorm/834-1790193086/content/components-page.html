@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/components, full draft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro, .wrap { max-width: 1240px; margin: 0 auto; }
+  .intro { margin-bottom: 26px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 880px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .note { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.55; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin: 12px 0 0; max-width: 900px; }
+  .label { margin: 36px 0 12px; font-size: 13px; font-weight: 600; }
+  .label span { font-weight: 400; color: #56555c; }
+
+  .C { --paper: oklch(15.5% 0.01 265); --paper2: oklch(19.5% 0.012 265); --paper3: oklch(24% 0.012 265); --ink: oklch(94.5% 0.006 265); --ink2: oklch(72% 0.01 265); --muted: oklch(50% 0.012 265); --rule: oklch(27% 0.012 265); --blue: oklch(68% 0.17 262);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; }
+  .C.L { --paper: oklch(97.6% 0.003 260); --paper2: oklch(94.8% 0.004 260); --paper3: oklch(92.6% 0.006 260); --ink: oklch(19% 0.012 260); --ink2: oklch(40% 0.012 260); --muted: oklch(55% 0.01 260); --rule: oklch(88% 0.006 260); --blue: oklch(53% 0.215 264); }
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; letter-spacing: -0.04em; font-variation-settings: "opsz" 96; line-height: 1.02; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 48px; }
+  .wm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 21px; letter-spacing: -0.03em; }
+  .wm i { font-style: normal; color: var(--blue); }
+  .navr { display: flex; align-items: center; gap: 26px; font-size: 14px; color: var(--ink2); }
+  .navr .on { color: var(--ink); }
+  .navr .tgl { width: 32px; height: 32px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--rule); display: grid; place-items: center; }
+  .navr .get { color: var(--paper); background: var(--ink); font-weight: 500; border-radius: 99px; padding: 8px 14px; }
+
+  .head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 28px; padding: 40px 48px 0; }
+  .head h2 { font-size: 104px; letter-spacing: -0.055em; }
+  .head h2 sup { font-family: "Geist Mono", monospace; font-size: 15px; font-weight: 400; letter-spacing: 0; color: var(--ink2); vertical-align: 70px; margin-left: 10px; }
+  .head p { margin-top: 16px; font-size: 17px; line-height: 1.6; color: var(--ink2); max-width: 540px; }
+  .init { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-bottom: 8px; }
+  .init small { font-size: 12.5px; color: var(--muted); }
+  .cmd { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 16px; border-radius: 99px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 13.5px; white-space: nowrap; }
+  .cmd .d { color: var(--blue); } .cmd .s { color: var(--ink); }
+  .cmd .go { font-family: "Geist", sans-serif; font-weight: 600; font-size: 13px; background: var(--ink); color: var(--paper); border-radius: 99px; padding: 8px 14px; }
+
+  .tools { padding: 40px 48px 0; }
+  .search { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--rule); padding-bottom: 14px; }
+  .search .q { font-family: "Bricolage Grotesque", sans-serif; font-size: 32px; font-weight: 600; letter-spacing: -0.03em; color: var(--muted); flex: 1; }
+  .kbd { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--ink2); border-radius: 7px; padding: 3px 8px; box-shadow: inset 0 0 0 1px var(--rule), inset 0 -2px 0 var(--rule); }
+  .bar2 { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 13.5px; color: var(--ink2); }
+  .bar2 .f { display: flex; gap: 6px; }
+  .bar2 .f span { padding: 6px 12px; border-radius: 99px; }
+  .bar2 .f span.on { background: var(--paper3); color: var(--ink); }
+  .bar2 sup { font-family: "Geist Mono", monospace; font-size: 10px; color: var(--muted); margin-left: 3px; }
+  .seg { display: inline-flex; padding: 3px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .seg span { padding: 5px 12px; border-radius: 99px; }
+  .seg span.on { background: var(--paper3); color: var(--ink); }
+
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 40px; padding: 26px 48px 72px; }
+  .rows > a { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; padding: 18px 12px; margin: 0 -12px; border-bottom: 1px solid var(--rule); border-radius: 0; text-decoration: none; color: inherit; position: relative; }
+  .rows > a b { font-family: "Bricolage Grotesque", sans-serif; font-size: 27px; font-weight: 700; letter-spacing: -0.035em; color: var(--ink2); }
+  .rows > a p { grid-column: 1; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+  .rows > a em { grid-row: 1; grid-column: 2; font-style: normal; font-family: "Geist Mono", monospace; font-size: 11.5px; color: var(--muted); align-self: center; }
+  .rows > a.on { background: var(--paper2); border-radius: 16px; border-bottom-color: transparent; }
+  .rows > a.on b { color: var(--ink); }
+  .rows > a.on p { color: var(--ink2); }
+  .rows > a .new { display: inline-block; margin-left: 10px; vertical-align: 8px; font-family: "Geist", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0; border-radius: 99px; padding: 2px 8px; background: oklch(68% 0.17 262 / .16); color: var(--blue); }
+  .rows .count { font-size: 13px; color: var(--muted); padding: 0 0 10px; }
+
+  .sticky { display: flex; flex-direction: column; gap: 14px; }
+  .stage { position: relative; background: var(--paper2); border-radius: 26px; box-shadow: inset 0 1px 3px rgba(0,0,0,.5), 0 0 0 1px oklch(24% 0.012 265); min-height: 470px; display: grid; place-items: end center; padding-bottom: 110px; }
+  .stage .tl { position: absolute; top: 14px; left: 14px; font-family: "Geist Mono", monospace; font-size: 11px; color: var(--ink2); border: 1px solid var(--rule); border-radius: 99px; padding: 4px 10px; }
+  .stage .tr { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+  .tg { font-size: 12px; font-weight: 500; color: var(--ink2); background: var(--paper3); border-radius: 99px; padding: 6px 11px; display: inline-flex; align-items: center; gap: 6px; }
+  .tg i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .stage .bl { position: absolute; left: 20px; right: 20px; bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
+  .stage .bl b { display: block; font-family: "Bricolage Grotesque", sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+  .stage .bl span { font-size: 13.5px; color: var(--ink2); }
+  .stage .bl span em { font-style: normal; color: var(--blue); }
+  .stage .bl a { font-size: 14px; font-weight: 500; white-space: nowrap; color: var(--ink); }
+  .dock { position: relative; display: flex; gap: 18px; background: var(--paper3); border-radius: 99px; padding: 13px 20px; box-shadow: 0 18px 40px -18px rgba(0,0,0,.8); }
+  .dock i { width: 19px; height: 19px; border-radius: 6px; border: 2px solid var(--ink2); }
+  .dock i:first-child { background: var(--ink); border-color: var(--ink); }
+  .menu { position: absolute; bottom: 60px; right: -10px; width: 190px; background: var(--paper3); border-radius: 18px; padding: 7px; box-shadow: 0 20px 40px -18px rgba(0,0,0,.8); font-size: 13.5px; }
+  .menu div { padding: 8px 10px; border-radius: 10px; color: var(--ink2); }
+  .menu div.h { background: oklch(30% 0.012 265); color: var(--ink); }
+  .under { display: flex; justify-content: space-between; align-items: center; }
+  .under small { font-size: 12.5px; color: var(--muted); }
+
+  .proline { margin: 0 48px; padding: 26px 0 64px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--ink2); }
+  .proline a { color: var(--ink); border-bottom: 1px solid var(--blue); padding-bottom: 1px; }
+  footer.f { padding: 76px 48px 26px; border-top: 1px solid var(--rule); }
+  footer.f .big { font-size: 84px; }
+  footer.f .row { margin-top: 56px; display: flex; justify-content: space-between; font-size: 13px; color: var(--ink2); border-top: 1px solid var(--rule); padding-top: 18px; }
+  footer.f .row span { display: flex; gap: 22px; }
+
+  /* phone */
+  .phones { display: grid; grid-template-columns: 390px 390px 1fr; gap: 28px; align-items: start; }
+  .phone { width: 390px; border-radius: 34px; overflow: hidden; box-shadow: 0 0 0 8px #1b1b1f, 0 30px 60px -30px rgba(0,0,0,.5); }
+  .phone .C { border-radius: 0; }
+  .p-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; }
+  .p-nav .burger { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--rule); display: grid; place-items: center; }
+  .p-head { padding: 14px 18px 0; }
+  .p-head h2 { font-size: 56px; letter-spacing: -0.05em; }
+  .p-head h2 sup { font-family: "Geist Mono", monospace; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--ink2); vertical-align: 36px; margin-left: 6px; }
+  .p-head p { margin-top: 10px; font-size: 15px; line-height: 1.55; color: var(--ink2); }
+  .p-search { margin: 20px 18px 0; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--rule); padding-bottom: 10px; font-family: "Bricolage Grotesque", sans-serif; font-size: 22px; font-weight: 600; color: var(--muted); letter-spacing: -0.02em; }
+  .p-f { display: flex; gap: 6px; overflow: hidden; padding: 12px 18px 0; font-size: 13px; color: var(--ink2); white-space: nowrap; }
+  .p-f span { padding: 6px 11px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--rule); }
+  .p-f span.on { background: var(--paper3); color: var(--ink); box-shadow: none; }
+  .p-rows { padding: 8px 18px 22px; }
+  .p-rows > div { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .p-rows b { display: flex; justify-content: space-between; align-items: baseline; font-family: "Bricolage Grotesque", sans-serif; font-size: 23px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink2); }
+  .p-rows b em { font-style: normal; font-family: "Geist Mono", monospace; font-weight: 400; font-size: 11px; letter-spacing: 0; color: var(--muted); }
+  .p-rows p { margin-top: 4px; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+  .p-rows .open b { color: var(--ink); }
+  .p-rows .open p { color: var(--ink2); }
+  .p-stage { margin-top: 12px; border-radius: 22px; background: var(--paper2); box-shadow: inset 0 1px 3px rgba(0,0,0,.35), 0 0 0 1px var(--rule); height: 250px; display: grid; place-items: end center; padding-bottom: 40px; }
+  .p-act { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; }
+  .p-act .mini { font-family: "Geist Mono", monospace; font-size: 12px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); border-radius: 99px; padding: 7px 12px; }
+  .pnote { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.6; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Section 3 · /components</h1>
+    <p>The whole catalogue on one page, and the one page that has to hold up at 600 components. Names and descriptions are plain server-rendered HTML, so search engines index all of them. The stage is the same one the home page uses, and only the component on it is running.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="label">Desktop, dark <span>· Menu Dock selected (hovered or focused in the list)</span></p>
+    <div class="C">
+      <div class="nav"><span class="wm">devigner<i>.</i></span><span class="navr"><span class="on">Components</span><span>Docs</span><span>Pro</span><span class="tgl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><span class="get">Get started</span></span></div>
+
+      <div class="head">
+        <div>
+          <h2 class="display">Components<sup>6</sup></h2>
+          <p>Free animated React components for Tailwind CSS. Pick one to try it live, then copy the command that installs it.</p>
+        </div>
+        <div class="init"><span class="cmd"><span class="d">$</span> npx devignerui <span class="s">init</span> <span class="go">Copy</span></span><small>Once per project, then add any component by name</small></div>
+      </div>
+
+      <div class="tools">
+        <div class="search"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span class="q">Search components</span><span class="kbd">/</span></div>
+        <div class="bar2">
+          <div class="f"><span class="on">All<sup>6</sup></span><span>Forms<sup>1</sup></span><span>Navigation<sup>1</sup></span><span>Data Display<sup>2</sup></span><span>Primitives<sup>1</sup></span><span>Animation<sup>1</sup></span></div>
+          <span class="seg"><span class="on">Newest</span><span>A to Z</span></span>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="rows">
+          <a><b>Date Range Picker<span class="new">new</span></b><em>forms</em><p>A calendar that shows the range before you commit to it, with presets.</p></a>
+          <a class="on"><b>Menu Dock</b><em>navigation</em><p>A dock that grows into its own menus, nested as deep as you need.</p></a>
+          <a><b>Delete Button</b><em>primitives</em><p>Asks before it deletes, waits for your API call, then shows a tick.</p></a>
+          <a><b>Chart Card</b><em>data display</em><p>A stats card whose bars show their value as you move across them.</p></a>
+          <a><b>Timeline</b><em>data display</em><p>The active step slides off the rail, and the line bends to follow it.</p></a>
+          <a><b>Magnetic Button</b><em>animation</em><p>Leans toward your cursor before you reach it, then lets go with a wobble.</p></a>
+        </div>
+        <div class="sticky">
+          <div class="stage">
+            <span class="tl">navigation</span>
+            <span class="tr"><span class="tg"><i></i>Dark</span><span class="tg"><i></i>Reduced motion</span><span class="tg">&#8634;</span></span>
+            <div class="dock"><i></i><i></i><i></i><i></i>
+              <div class="menu"><div>Profile</div><div class="h">Appearance</div><div>Sign out</div></div>
+            </div>
+            <div class="bl"><div><b>Menu Dock</b><span><em>Try it:</em> open Account, then use the arrow keys.</span></div><a>Open docs &rarr;</a></div>
+          </div>
+          <div class="under"><span class="cmd"><span class="d">$</span> npx devignerui add <span class="s">menu-dock</span> <span class="go">Copy</span></span><small>1 file, plain TypeScript</small></div>
+        </div>
+      </div>
+
+      <div class="proline"><span>Pro components are on the way, as a separate paid set. Everything here stays free.</span><a>See what Pro will cost</a></div>
+      <footer class="f">
+        <p class="display big">Mind your manners.</p>
+        <div class="row"><span><span>Components</span><span>Docs</span><span>Pro</span><span>X</span></span><span>&copy; 2026 Devigner UI &middot; MIT license</span></div>
+      </footer>
+    </div>
+    <p class="note">Hovering a row, or tabbing onto it, loads that component onto the sticky stage. Clicking the row opens its docs page. Search matches names, descriptions and categories as you type, and "/" focuses the box from anywhere on the page. Category counts and the total come from the registry. "new" marks anything added in the last 14 days. The list is plain links in the server-rendered HTML, and the only JavaScript is the filtering and the one live stage.</p>
+
+    <p class="label">Phone <span>· light mode on the left, a search with no results on the right</span></p>
+    <div class="phones">
+      <div class="phone"><div class="C L">
+        <div class="p-nav"><span class="wm">devigner<i>.</i></span><span class="burger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16M4 16h16"/></svg></span></div>
+        <div class="p-head"><h2 class="display">Components<sup>6</sup></h2><p>Free animated React components for Tailwind CSS. Tap one to try it.</p></div>
+        <div class="p-search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search components</div>
+        <div class="p-f"><span class="on">All 6</span><span>Forms 1</span><span>Navigation 1</span><span>Data Display 2</span></div>
+        <div class="p-rows">
+          <div><b>Date Range Picker <em>forms</em></b><p>A calendar that shows the range before you commit to it.</p></div>
+          <div class="open"><b>Menu Dock <em>navigation</em></b><p>A dock that grows into its own menus.</p>
+            <div class="p-stage"><div class="dock"><i></i><i></i><i></i><i></i></div></div>
+            <div class="p-act"><span class="mini">npx devignerui add menu-dock</span><span style="font-weight:500">Docs &rarr;</span></div>
+          </div>
+          <div><b>Delete Button <em>primitives</em></b><p>Asks before it deletes, then shows a tick.</p></div>
+        </div>
+      </div></div>
+
+      <div class="phone"><div class="C">
+        <div class="p-nav"><span class="wm">devigner<i>.</i></span><span class="burger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16M4 16h16"/></svg></span></div>
+        <div class="p-head"><h2 class="display">Components<sup>6</sup></h2></div>
+        <div class="p-search" style="color:var(--ink)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>carousel<span style="margin-left:auto;font-family:Geist;font-size:13px;color:var(--muted)">Clear</span></div>
+        <div style="padding:34px 18px 60px">
+          <p class="display" style="font-size:30px;line-height:1.15">Nothing called "carousel" yet.</p>
+          <p style="margin-top:12px;font-size:15px;line-height:1.55;color:var(--ink2)">Tell us you want one. Requests on X decide what gets built.</p>
+          <p style="margin-top:18px;font-size:14.5px;font-weight:500">Ask @devignerui on X &rarr;</p>
+          <p style="margin-top:26px;font-size:13.5px;color:var(--muted)">Or try: dock, date, delete, chart</p>
+        </div>
+      </div></div>
+
+      <div class="pnote">On a phone there's no hover, so tapping a row opens the stage in place under it, with its install command and a link to the docs. Tapping another row moves the stage there. The categories become a swipeable row. An empty search suggests a few real names and points to X, the only channel you have. The sentence "Requests on X decide what gets built" is a claim about your process. Keep it only if it's true, otherwise I'll soften it to "Tell us you want one on X."</div>
+    </div>
+  </div>
+</body>
+</html>

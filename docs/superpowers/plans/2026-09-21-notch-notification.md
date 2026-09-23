@@ -20,7 +20,7 @@ Copied verbatim from the repo's `AGENTS.md` and the spec. Every task's requireme
 - **No new dependencies.** Everything here is built from React, `motion`, and what the package already has.
 - **Comment density matches the surrounding package.** `menu-dock.tsx` and `menu-path.ts` explain *why* a constant has its value, not what the line does. Match that. A magic number with no rationale comment is a review rejection.
 - **No test framework.** The repo uses `node:assert/strict` self-check scripts under Node's own type stripping, run from the root `test` script. See `scripts/menu-path.check.mts`.
-- **Package is `@devignerui/ui`**, source under `packages/ui/src/`. Internal imports are relative (`../lib/easing`); the docs app imports `@devignerui/ui/lib/easing`.
+- **Package is `@devignerui/ui`**, source under `packages/ui/src/`. Internal imports are relative (`../lib/easing`); the docs app imports `@devignerui/ui/motion`.
 
 ---
 
@@ -329,7 +329,7 @@ Expected: PASS.
 Replace lines 31-32 of `AGENTS.md`:
 
 ```markdown
-- **JS/TSX (motion/react):** import from `@devignerui/ui/lib/easing`
+- **JS/TSX (motion/react):** import from `@devignerui/ui/motion`
   (source: `packages/ui/src/lib/easing.ts`) and pick by purpose:
 ```
 

@@ -84,7 +84,18 @@ export interface MenuDockItem extends MenuNode {
   id?: string;
   /** Renders the row in the destructive colour - Sign out, Delete. */
   destructive?: boolean;
+  /** Keeps `label` visible next to the icon in the closed dock too, instead
+   *  of only once the row is open in a menu. Opt-in per item: the closed
+   *  dock's footprint is pre-measured from a fixed icon-only tap size (see
+   *  `closedWidth`), and a labelled row is wider than that, so a dock mixing
+   *  labelled and plain items sizes its footprint by measuring the shell
+   *  instead of trusting the formula. */
+  showLabel?: boolean;
 }
+
+export interface MenuDockClassNames { shell?: string; }
+export interface MenuDockSlotProps { shell?: Pick<React.HTMLAttributes<HTMLDivElement>, "id" | "title">; }
+export interface MenuDockIconRenderProps { item: MenuDockItem; active: boolean; defaultIcon: React.ReactNode; }
 
 export interface MenuDockProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
@@ -117,6 +128,9 @@ export interface MenuDockProps extends Omit<
    *  place in the page. Positioning belongs here; the surface inside it is
    *  taken out of flow so it can grow upward. */
   className?: string;
+  renderIcon?: (props: MenuDockIconRenderProps) => React.ReactNode;
+  classNames?: MenuDockClassNames;
+  slotProps?: MenuDockSlotProps;
 }
 
 /** The shell clips its overflow, and focusing something the clip is hiding
@@ -199,9 +213,6 @@ function Row({
   haspopup?: "menu" | "dialog" | false;
   role?: "menuitem";
   tabIndex?: number;
-  /* Narrowed to what a row actually passes rather than all of
-     HTMLAttributes: that carries React's own onDrag, whose signature
-     contradicts the gesture one motion puts on the same prop. */
 } & React.AriaAttributes & { style?: React.CSSProperties; title?: string }) {
   const shared = {
     "data-dock-row": "",
@@ -216,15 +227,11 @@ function Row({
       "focus-visible:ring-2 focus-visible:ring-accent/60",
       className,
     ),
-    /* No aria-expanded anywhere, deliberately. Expanding replaces the trigger
-       with the level it opened, so the row never exists in an expanded state -
-       the attribute could only ever read "false", which is worse than absent. */
+
     ...(haspopup ? { "aria-haspopup": haspopup } : {}),
     ...rest,
   } as const;
 
-  // A row that opens something is never a link: it navigates the dock, not
-  // the document.
   return href && !haspopup ? (
     <motion.a href={href} {...shared}>
       {children}
@@ -245,6 +252,9 @@ export function MenuDock({
   className,
   style,
   path: controlledPath,
+  renderIcon,
+  classNames,
+  slotProps,
   ...rest
 }: MenuDockProps) {
   const reduced = useReducedMotion() ?? false;
@@ -264,12 +274,34 @@ export function MenuDock({
    *  moving inside it, not one stop per row - so every other row is -1. */
   const [focusIndex, setFocusIndex] = React.useState(0);
 
+  /** `closedWidth` assumes every closed row is a fixed TAP-wide square, which
+   *  a `showLabel` row breaks - it is as wide as its text. A dock with any
+   *  labelled item measures its own closed shell instead of trusting the
+   *  formula; a plain icon-only dock never runs this and keeps the exact
+   *  pre-computed footprint it always had. */
+  const hasLabelledItem = items.some((item) => item.showLabel);
+  const [measuredWidth, setMeasuredWidth] = React.useState<number | null>(null);
+
   const level = menuAt(items, path);
   const open = path.length > 0 && !level.truncated;
   /** What the level renders in place of rows. Cast once, here: the path module
    *  types it `unknown` so it can stay free of React. */
   const content = level.content as React.ReactNode | undefined;
   const isContent = content !== undefined;
+
+  /** Only measures while closed - `shell` is the dock row itself then, and
+   *  the footprint is meant to hold that shape regardless of what opens on
+   *  top of it later. Skipped entirely for a plain icon-only dock, which
+   *  keeps its exact pre-computed width and never mounts an observer. */
+  React.useEffect(() => {
+    if (open || !hasLabelledItem || !shell.current) return;
+    const el = shell.current;
+    const measure = () => setMeasuredWidth(el.getBoundingClientRect().width);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open, hasLabelledItem, items.length]);
 
   /** Always the current render's values, for listeners that must not
    *  resubscribe to read them. onNavigate is usually an inline arrow, so an
@@ -301,8 +333,7 @@ export function MenuDock({
    *  longer open. */
   React.useEffect(() => {
     if (!level.truncated) return;
-    // No focus move: nobody asked to go anywhere, the level just stopped
-    // existing. Controlled, this only reports - applying it is the caller's.
+
     go(latest.current.path.slice(0, -1), -1, null);
   }, [level.truncated, go]);
 
@@ -328,19 +359,13 @@ export function MenuDock({
     go(path.slice(0, -1), -1, { index: backFocusIndex(path), soft: false });
   }, [go, path]);
 
-  // Focus follows the level, but only where a navigation asked for it.
   React.useEffect(() => {
     const target = wants.current;
     wants.current = null;
-    // Every level starts its tab stop at the top, whether or not focus moves.
+
     setFocusIndex(target?.index ?? 0);
     if (!target) return;
 
-    /* A soft request has to wait a frame. It comes from a pointerdown, and
-       the browser does its own focusing for that gesture after the handler
-       runs - claiming focus now just gets overwritten, landing on <body>
-       anyway. A frame later the gesture has settled, so we can see whether
-       anything actually took focus and only step in if nothing did. */
     if (target.soft) {
       const index = target.index;
       const frame = requestAnimationFrame(() => {
@@ -352,8 +377,6 @@ export function MenuDock({
       return () => cancelAnimationFrame(frame);
     }
 
-    // On a content level the field is the point of opening it - landing on the
-    // Back row instead would mean tabbing into your own search box.
     const field = shell.current?.querySelector<HTMLElement>(
       `[data-dock-level="${levelKey}"] :is(input, textarea, select, [contenteditable="true"])`,
     );
@@ -374,11 +397,7 @@ export function MenuDock({
     if (!open) return;
     const onPointerDown = (e: PointerEvent) => {
       if (shell.current?.contains(e.target as Node)) return;
-      /* Soft: the row holding focus is about to unmount, and if the click
-         landed on nothing focusable that leaves focus on <body> and the dock
-         has to be tabbed into again from the top of the page. But clicking a
-         focusable thing outside should let it keep focus, so this only
-         reclaims focus if nothing else took it. */
+
       go([], -1, { index: latest.current.path[0] ?? 0, soft: true });
     };
     document.addEventListener("pointerdown", onPointerDown);
@@ -386,8 +405,6 @@ export function MenuDock({
   }, [open, go]);
 
   function onKeyDown(e: React.KeyboardEvent) {
-    // Escape still pops, but the arrows belong to whatever the content is -
-    // in a text field they move the caret, and stealing them breaks typing.
     if (isContent) {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -399,8 +416,7 @@ export function MenuDock({
     const all = rows(levelKey);
     if (!all.length) return;
     const at = all.indexOf(document.activeElement as HTMLElement);
-    // The dock is a row and its menus are columns, so the arrows that walk
-    // them differ; the other axis is left to the browser.
+
     const next = open ? "ArrowDown" : "ArrowRight";
     const prev = open ? "ArrowUp" : "ArrowLeft";
 
@@ -419,8 +435,6 @@ export function MenuDock({
     }
   }
 
-  // Rows carry the slide and the level only fades. Both on one element would
-  // double every row's travel.
   const levelFade = {
     initial: { opacity: 0 },
     animate: {
@@ -445,36 +459,22 @@ export function MenuDock({
           exit: { opacity: 0, x: dir * -SLIDE, transition: { duration: EXIT } },
         }
       : {
-          // The dock is a row of icons, not a list of rows, so it does not
-          // arrive the way a level does. Sliding it in from the side reads as
-          // a sixth menu level; rising a little into place reads as the panel
-          // collapsing back into the pill it came from.
           initial: { opacity: 0, y: DOCK_RISE },
           animate: { opacity: 1, y: 0, transition: SPRING_SWAP },
           exit: { opacity: 0, y: DOCK_RISE, transition: { duration: EXIT } },
         };
 
   return (
-    /* Three layers, and each one earns its place. The wrapper holds the closed
-       dock's footprint so opening a menu never moves the page. The anchor is
-       pinned to the wrapper's bottom edge, which is what makes the panel grow
-       upward only - left to itself the shell is centred by whatever contains
-       it, and it grows both ways. The anchor also owns the centring transform,
-       because a transform on the layout-animated shell gets overwritten by
-       motion's own projection partway through the morph. */
     <div
       {...rest}
       className={cn(
         "relative",
         floating && "fixed bottom-6 left-1/2 z-50 -translate-x-1/2",
-        className,
       )}
-      /* max-width, because the footprint is a hard pixel width: closedWidth
-         grows 44px an item, so nine of them is 410px and would force the page
-         to scroll sideways on a phone. Capping here keeps the dock inside its
-         parent; the row itself scrolls when it no longer fits. */
       style={{
-        width: closedWidth(items.length),
+        width: hasLabelledItem
+          ? (measuredWidth ?? closedWidth(items.length))
+          : closedWidth(items.length),
         maxWidth: "100%",
         height: CLOSED_H,
         ...style,
@@ -486,35 +486,22 @@ export function MenuDock({
           panel is meant to be wider than the pill it grew out of. */}
       <div className="absolute bottom-0 left-1/2 w-fit -translate-x-1/2">
         <motion.div
+          {...slotProps?.shell}
           ref={shell}
           layout
-          /* motion corrects borderRadius through a layout animation, which is
-             why the corner can animate on the very element being measured - a
-             plain class swap would snap partway. */
           style={{ borderRadius: open ? PANEL_RADIUS : DOCK_RADIUS }}
           transition={reduced ? { duration: 0 } : SPRING_LAYOUT}
           onKeyDown={onKeyDown}
-          /* A content level is not a menu. `menu` permits only menuitem,
-             group and separator as children, so the moment the surface holds
-             a text field the role is a lie and screen readers mis-report what
-             is inside it. Dialog is what an arbitrary panel actually is. */
           role={isContent ? "dialog" : "menu"}
           aria-label={open && level.title ? level.title : label}
           aria-orientation={
             isContent ? undefined : open ? "vertical" : "horizontal"
           }
-          /* Clamped to the viewport, not to the wrapper. The wrapper is the
-             closed pill's footprint and a panel is meant to outgrow it, while
-             `max-w-full` here would resolve against the anchor - which is
-             sized by this element, so it would constrain nothing at all. The
-             screen edge is the real limit.
-             overflow-hidden because rows enter on x: coming back up a level
-             they start SLIDE to the left of where they land, which is 23px
-             outside the panel, and without clipping they are simply drawn on
-             the page beside it. The clip belongs on this element rather than
-             on the level inside: rows sit within the p-2, so their focus ring
-             has room and survives, where clipping the level would cut it. */
-          className="w-fit max-w-[calc(100vw-2rem)] overflow-hidden border border-border bg-background p-2 shadow-elevated"
+          className={cn(
+            "w-fit max-w-[calc(100vw-2rem)] overflow-hidden border border-border bg-background p-2 shadow-elevated",
+            className,
+            classNames?.shell,
+          )}
         >
           <AnimatePresence mode="popLayout" initial={false}>
             {/* Keyed by the path, so descending and coming back are both one level
@@ -526,31 +513,12 @@ export function MenuDock({
               initial="initial"
               animate="animate"
               exit="exit"
-              /* Position-only. This is motion's scale correction: the shell is
-                 mid-projection around this, and without it the level is scaled
-                 by whatever the shell's box is doing - on close that measures a
-                 3.9x stretch, 40px rows rendering 156px tall. The catch is that
-                 it also animates the block between its old and new layout
-                 positions, ~160px vertically on a dock-to-menu change, which is
-                 what used to make the level read as rising from the bottom.
-                 ENTER_DELAY is what makes it safe: the rows are still invisible
-                 while that travel happens. */
               layout="position"
               className={cn(
                 open
                   ? "flex min-w-60 flex-col gap-0.5"
-                  : // The dock scrolls rather than overflowing once there are
-                    // more icons than the parent is wide.
-                    "flex max-w-full items-center gap-1 overflow-x-auto",
+                  : "flex max-w-full items-center gap-1 overflow-x-auto",
               )}
-              /* Room for the rise, and then taken straight back out of the
-                 layout. `overflow-x: auto` drags overflow-y to `auto` with it
-                 - CSS will not let one axis scroll while the other stays
-                 visible - so the DOCK_RISE the icons enter on counts as 10px
-                 of scrollable height and puts a vertical scrollbar across the
-                 dock for the whole entrance. Padding makes that 10px part of
-                 the scrollable box instead of overflow; the negative margin
-                 means the pill is not 20px taller for it. */
               style={
                 open
                   ? undefined
@@ -592,9 +560,6 @@ export function MenuDock({
               {isContent && <motion.div variants={row}>{content}</motion.div>}
 
               {level.items.map((item, i) => {
-                // Both kinds descend a level; content wins, matching menuAt.
-                // A content row opens a panel, so it says so - calling that a
-                // menu misdescribes what the row is about to produce.
                 const expands =
                   item.content !== undefined
                     ? ("dialog" as const)
@@ -602,14 +567,12 @@ export function MenuDock({
                       ? ("menu" as const)
                       : false;
                 const on = active !== undefined && keyOf(item) === active;
-                // Rows sit below the Back row once a level is open.
+
                 const rowIndex = open ? i + 1 : i;
 
+                const labelled = !open && item.showLabel;
+
                 return (
-                  /* Keyed by position, not by label. Two items in one level
-                     can legitimately share a label, and a duplicate React key
-                     silently drops one of them - the level is already keyed by
-                     its path, so identity across levels is not at stake. */
                   <motion.div key={rowIndex} variants={row}>
                     <Row
                       href={item.href}
@@ -623,16 +586,24 @@ export function MenuDock({
                       onFocus={() => setFocusIndex(rowIndex)}
                       tabIndex={isContent || focusIndex === rowIndex ? 0 : -1}
                       aria-current={on ? "page" : undefined}
-                      {...(open ? {} : { "aria-label": item.label })}
-                      title={open ? undefined : item.label}
-                      style={open ? undefined : { width: TAP, height: TAP }}
+                      {...(open || labelled
+                        ? {}
+                        : { "aria-label": item.label })}
+                      title={open || labelled ? undefined : item.label}
+                      style={
+                        open
+                          ? undefined
+                          : labelled
+                            ? { height: TAP }
+                            : { width: TAP, height: TAP }
+                      }
                       className={cn(
                         "transition-colors hover:bg-surface-hover",
                         open
                           ? "h-10 w-full gap-3 rounded-2xl px-3 text-left text-[15px]"
-                          : // shrink-0 or the flex row squashes the icons to
-                            // fit instead of letting the dock scroll.
-                            "shrink-0 justify-center rounded-full",
+                          : labelled
+                            ? "shrink-0 gap-2 rounded-full px-3.5 text-[13px] font-medium"
+                            : "shrink-0 justify-center rounded-full",
                         open && item.destructive && "text-destructive",
                         open && !item.destructive && "text-foreground",
                         !open &&
@@ -642,10 +613,17 @@ export function MenuDock({
                       )}
                     >
                       <span className={GLYPH}>
-                        <Glyph item={item} on={on} reduced={reduced} />
+                        {renderIcon?.({ item, active: on, defaultIcon: <Glyph item={item} on={on} reduced={reduced} /> }) ?? <Glyph item={item} on={on} reduced={reduced} />}
                       </span>
                       {open && (
-                        <span className="flex-1 truncate">{item.label}</span>
+                        <span className="relative z-10 flex-1 truncate">
+                          {item.label}
+                        </span>
+                      )}
+                      {labelled && (
+                        <span className="relative z-10 truncate">
+                          {item.label}
+                        </span>
                       )}
                       {open && expands && (
                         <IconChevronRight
@@ -664,4 +642,10 @@ export function MenuDock({
       </div>
     </div>
   );
+}
+
+export namespace MenuDock {
+  export function Item({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+    return <button type="button" {...props}>{children}</button>;
+  }
 }

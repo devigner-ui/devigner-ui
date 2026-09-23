@@ -4,12 +4,8 @@ import * as React from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "cn";
 import { EASE_OUT, SPRING_PRESS } from "../lib/easing";
-import {
-  IconChatRoundDots,
-  IconArrowRightUp,
-  IconSetting4,
-  IconBarChart,
-} from "@devigner-ui/icons";
+import { useControllableState } from "../lib/hooks/use-controllable-state";
+import { IconBarChart } from "@devigner-ui/icons";
 
 // A stat card whose bar chart is the interactive part: one bar is open at a
 // time, hatched instead of solid, with the tooltip riding on top of it. The
@@ -22,8 +18,50 @@ const BAR_FLOOR = 20;
 const BAR_CEILING = 88;
 
 export interface ChartCardPoint {
+  /** Stable selection ID. Defaults to the point index for legacy data. */
+  id?: React.Key;
   label: string;
   value: number;
+}
+
+export type ChartCardActiveId = React.Key | null;
+
+export interface ChartCardAction {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  onSelect?: () => void;
+  disabled?: boolean;
+  badge?: React.ReactNode;
+}
+
+export interface ChartCardClassNames {
+  root?: string;
+  header?: string;
+  actions?: string;
+  chart?: string;
+  point?: string;
+  tooltip?: string;
+  labels?: string;
+}
+
+export interface ChartCardSlotProps {
+  root?: React.HTMLAttributes<HTMLDivElement>;
+  header?: React.HTMLAttributes<HTMLDivElement>;
+  actions?: React.HTMLAttributes<HTMLDivElement>;
+  chart?: React.HTMLAttributes<HTMLDivElement>;
+  tooltip?: React.HTMLAttributes<HTMLDivElement>;
+  labels?: React.HTMLAttributes<HTMLDivElement>;
+}
+
+export interface ChartCardPointRenderProps {
+  point: ChartCardPoint;
+  index: number;
+  active: boolean;
+}
+
+export interface ChartCardTooltipRenderProps extends ChartCardPointRenderProps {
+  defaultTooltip: React.ReactNode;
 }
 
 export interface ChartCardProps extends Omit<
@@ -36,12 +74,24 @@ export interface ChartCardProps extends Omit<
   /** Headline figure. Defaults to the sum of the data. */
   total?: number;
   data: ChartCardPoint[];
-  /** Bar open on first render. */
+  /** Controlled ID of the open bar. `null` closes the tooltip. */
+  activeId?: ChartCardActiveId;
+  /** Initial open bar ID when uncontrolled. */
+  defaultActiveId?: ChartCardActiveId;
+  /** Fires whenever a bar requests a new active ID. */
+  onActiveChange?: (id: ChartCardActiveId) => void;
+  /** @deprecated Use `defaultActiveId`. Indexes without an `id` still work. */
   defaultActive?: number;
-  /** Replaces the three built-in header buttons. */
-  actions?: React.ReactNode;
-  /** Count on the comments button; 0 hides it. */
-  notifications?: number;
+  /** Header actions with behavior. Actions without `onSelect` are not rendered. */
+  actions?: readonly ChartCardAction[];
+  /** Custom content inside each semantic chart button. */
+  renderPoint?: (props: ChartCardPointRenderProps) => React.ReactNode;
+  /** Custom tooltip content while retaining its positioning and motion. */
+  renderTooltip?: (props: ChartCardTooltipRenderProps) => React.ReactNode;
+  /** Custom action region. The preset only renders actionable items. */
+  renderActions?: (actions: readonly ChartCardAction[]) => React.ReactNode;
+  classNames?: ChartCardClassNames;
+  slotProps?: ChartCardSlotProps;
 }
 
 const format = (n: number) => n.toLocaleString("en-US");
@@ -62,6 +112,7 @@ function SplitNumber({ value, muted }: { value: number; muted: string }) {
 function IconButton({
   label,
   children,
+  className,
   ...rest
 }: { label: string } & React.ComponentProps<typeof motion.button>) {
   return (
@@ -70,7 +121,10 @@ function IconButton({
       aria-label={label}
       whileTap={{ scale: 0.92 }}
       transition={SPRING_PRESS}
-      className="relative inline-grid size-11 cursor-pointer place-items-center rounded-full bg-surface-hover text-text-secondary transition-colors hover:text-foreground"
+      className={cn(
+        "relative inline-grid size-11 cursor-pointer place-items-center rounded-full bg-surface-hover text-text-secondary transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
       {...rest}
     >
       {children}
@@ -83,13 +137,33 @@ export function ChartCard({
   caption = "for all time",
   total,
   data,
-  defaultActive = Math.floor(data.length / 2),
+  activeId,
+  defaultActiveId,
+  defaultActive,
+  onActiveChange,
   actions,
-  notifications = 0,
+  renderPoint,
+  renderTooltip,
+  renderActions,
+  classNames,
+  slotProps,
   className,
   ...rest
 }: ChartCardProps) {
-  const [active, setActive] = React.useState(defaultActive);
+  const fallbackActiveId = data.length
+    ? (data[Math.floor(data.length / 2)]?.id ?? Math.floor(data.length / 2))
+    : null;
+  const legacyDefaultActiveId =
+    defaultActive === undefined
+      ? fallbackActiveId
+      : (data[defaultActive]?.id ?? defaultActive);
+  const initialActiveId =
+    defaultActiveId !== undefined ? defaultActiveId : legacyDefaultActiveId;
+  const [active, setActive] = useControllableState({
+    value: activeId,
+    defaultValue: initialActiveId,
+    onValueChange: onActiveChange,
+  });
   const reduced = useReducedMotion();
   // Per-instance: a shared layoutId would make two cards on one page swap
   // tooltips with each other.
@@ -101,19 +175,26 @@ export function ChartCard({
   );
   const heightOf = (value: number) =>
     BAR_FLOOR + (value / max) * (BAR_CEILING - BAR_FLOOR);
-  // The open index outlives the data it points at: clamped on read, so a
-  // shorter `data` closes the last bar instead of closing every bar.
-  const activeIndex = Math.min(active, data.length - 1);
+  // An active ID can outlive the data it points at. Missing IDs simply close
+  // the tooltip instead of selecting an unrelated bar.
+  const activeIndex = data.findIndex(
+    (point, index) => (point.id ?? index) === active,
+  );
+  const actionableActions = actions?.filter(
+    (action) => typeof action.onSelect === "function",
+  );
 
   return (
     <div
+      {...slotProps?.root}
       className={cn(
         "w-full max-w-lg rounded-4xl bg-background p-6 text-foreground",
         className,
+        classNames?.root,
       )}
       {...rest}
     >
-      <div className="flex items-center gap-3">
+      <div {...slotProps?.header} className={cn("flex items-center gap-3", classNames?.header)}>
         <span
           aria-hidden
           className="inline-grid size-13 shrink-0 place-items-center rounded-full bg-surface2 text-text-secondary"
@@ -123,26 +204,27 @@ export function ChartCard({
         <h3 className="min-w-0 flex-1 truncate text-2xl tracking-tight">
           {title}
         </h3>
-        <div className="flex items-center gap-2">
-          {actions ?? (
-            <>
-              <IconButton label="Adjust">
-                <IconSetting4 className="size-5" />
-              </IconButton>
-              <IconButton label="Comments">
-                <IconChatRoundDots className="size-5" />
-                {notifications > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground ring-3 leading-none ring-background">
-                    {notifications}
+        {actionableActions && actionableActions.length > 0 && (
+          <div {...slotProps?.actions} className={cn("flex items-center gap-2", classNames?.actions)}>
+            {renderActions
+              ? renderActions(actionableActions)
+              : actionableActions.map((action) => (
+              <IconButton
+                key={action.id}
+                label={action.label}
+                disabled={action.disabled}
+                onClick={action.onSelect}
+              >
+                {action.icon}
+                {action.badge !== undefined && action.badge !== null && (
+                  <span className="absolute -top-0.5 -right-0.5 grid min-size-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground ring-3 leading-none ring-background">
+                    {action.badge}
                   </span>
                 )}
               </IconButton>
-              <IconButton label="Open report">
-                <IconArrowRightUp className="size-5" />
-              </IconButton>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <p className="mt-7 text-sm text-text-muted">{caption}</p>
@@ -150,12 +232,16 @@ export function ChartCard({
         <SplitNumber value={total ?? sum} muted="text-text-tertiary" />
       </p>
 
-      <div className="mt-8 flex h-52 items-end gap-2">
+      <div {...slotProps?.chart} className={cn("mt-8 flex h-52 items-end gap-2", classNames?.chart)}>
         {data.map((point, i) => {
+          const pointId = point.id ?? i;
           const height = heightOf(point.value);
           const isActive = i === activeIndex;
           return (
-            <div key={i} className="relative flex h-full flex-1 justify-center">
+            <div
+              key={pointId}
+              className="relative flex h-full flex-1 justify-center"
+            >
               {isActive && (
                 // The wrapper holds the position, the tooltip inside holds the
                 // layoutId - so one tooltip travels bar to bar instead of two
@@ -176,10 +262,12 @@ export function ChartCard({
                     }}
                     className="origin-bottom rounded-xl bg-brand/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-accent-foreground tabular-nums"
                   >
-                    <SplitNumber
-                      value={point.value}
-                      muted="text-accent-foreground/60"
-                    />
+                    {renderTooltip?.({
+                      point,
+                      index: i,
+                      active: isActive,
+                      defaultTooltip: <SplitNumber value={point.value} muted="text-accent-foreground/60" />,
+                    }) ?? <SplitNumber value={point.value} muted="text-accent-foreground/60" />}
                   </motion.div>
                 </div>
               )}
@@ -187,7 +275,7 @@ export function ChartCard({
                 type="button"
                 aria-pressed={isActive}
                 aria-label={`${point.label}: ${format(point.value)}`}
-                onClick={() => setActive(i)}
+                onClick={() => setActive(pointId)}
                 initial={reduced ? false : { height: 0 }}
                 animate={{ height: `${height}%` }}
                 whileTap={{ scaleX: reduced ? 0.98 : 0.96 }}
@@ -211,11 +299,13 @@ export function ChartCard({
                 className={cn(
                   "relative w-full cursor-pointer self-end rounded-2xl bg-surface-hover text-foreground/10 transition-colors border-t-3 border-border-hover",
                   !isActive && "hover:bg-border-hover",
+                  classNames?.point,
                 )}
               >
+                {renderPoint?.({ point, index: i, active: isActive })}
                 <span
                   className={cn(
-                    "absolute -top-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-foreground ring-3 ring-background transition-colors",
+                    "absolute -top-1.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-foreground ring-3 ring-background transition-colors",
                     isActive && "bg-brand",
                   )}
                 />
@@ -225,10 +315,10 @@ export function ChartCard({
         })}
       </div>
 
-      <div className="mt-3 flex gap-2">
+      <div {...slotProps?.labels} className={cn("mt-3 flex gap-2", classNames?.labels)}>
         {data.map((point, i) => (
           <span
-            key={i}
+            key={point.id ?? i}
             aria-hidden
             className={cn(
               "flex-1 text-center text-xs transition-colors",
@@ -241,4 +331,14 @@ export function ChartCard({
       </div>
     </div>
   );
+}
+
+export namespace ChartCard {
+  export function Header({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+    return <div {...props} className={cn("flex items-center gap-3", className)} />;
+  }
+
+  export function Chart({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+    return <div {...props} className={cn("flex h-52 items-end gap-2", className)} />;
+  }
 }

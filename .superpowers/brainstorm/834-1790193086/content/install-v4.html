@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Under the install sentence, three options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro, .cards { max-width: 1240px; margin: 0 auto; }
+  .intro { margin-bottom: 26px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 860px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .cards { display: flex; flex-direction: column; gap: 36px; }
+  .dir { cursor: pointer; border-radius: 26px; padding: 22px; background: #f6f6f8; border: 2px solid transparent; transition: border-color .2s; }
+  .dir:hover { border-color: #c4c3cb; }
+  .dir.selected { border-color: #1b1b1f; }
+  .dir-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+  .dir-letter { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #1b1b1f; color: #f6f6f8; font-weight: 600; font-size: 14px; }
+  .dir-head h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+  .dir-head p { margin-top: 3px; color: #56555c; font-size: 14.5px; line-height: 1.55; max-width: 900px; }
+
+  .C { --paper: oklch(15.5% 0.01 265); --paper2: oklch(19.5% 0.012 265); --paper3: oklch(24% 0.012 265); --ink: oklch(94.5% 0.006 265); --ink2: oklch(72% 0.01 265); --muted: oklch(50% 0.012 265); --rule: oklch(27% 0.012 265); --blue: oklch(68% 0.17 262); --green: oklch(74% 0.15 155); --tint: oklch(86% 0.08 205);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; padding: 72px 48px; }
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; letter-spacing: -0.04em; font-variation-settings: "opsz" 96; line-height: 1.02; }
+  .h2 { font-size: 46px; }
+  .inline { margin-top: 28px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 34px; line-height: 1.55; letter-spacing: -0.03em; max-width: 1120px; }
+  .inline .q { color: var(--ink2); }
+  .chip { display: inline-flex; align-items: center; gap: 10px; vertical-align: middle; transform: translateY(-3px); height: 46px; padding: 0 8px 0 16px; border-radius: 99px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 16px; font-weight: 400; letter-spacing: 0; white-space: nowrap; }
+  .chip .d { color: var(--blue); }
+  .chip .cp { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--paper3); color: var(--ink2); }
+  .chip.file { padding: 0 16px; gap: 8px; }
+  .chip.sm { height: 38px; font-size: 13.5px; padding-left: 14px; transform: translateY(-2px); }
+  .chip.sm .cp { width: 26px; height: 26px; }
+  .dim { opacity: .38; }
+
+  /* A · the diff */
+  .diff { margin-top: 52px; border-radius: 22px; background: var(--paper2); box-shadow: 0 0 0 1px var(--rule), 0 40px 70px -50px rgba(0,0,0,.95); overflow: hidden; font-family: "Geist Mono", monospace; }
+  .diff .hd { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; font-family: "Geist", sans-serif; font-size: 13.5px; color: var(--ink2); border-bottom: 1px solid var(--rule); }
+  .diff .hd b { color: var(--ink); font-weight: 500; }
+  .diff .hd .n { font-family: "Geist Mono", monospace; font-size: 13px; }
+  .add { color: var(--green); } .del { color: var(--muted); margin-left: 10px; }
+  .diff .file { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--rule); font-size: 14px; }
+  .diff .file .badge { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: oklch(74% 0.15 155 / .16); color: var(--green); font-size: 14px; font-weight: 600; }
+  .diff .file .p { color: var(--muted); }
+  .diff .file .stat { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .blocks { display: inline-flex; gap: 2px; } .blocks i { width: 8px; height: 8px; border-radius: 2px; background: var(--green); }
+  .code { position: relative; font-size: 13.5px; line-height: 1.85; padding: 10px 0 0; }
+  .code .l { display: grid; grid-template-columns: 56px 22px 1fr; background: oklch(74% 0.15 155 / .055); }
+  .code .l .ln { text-align: right; padding-right: 14px; color: oklch(40% 0.012 265); user-select: none; }
+  .code .l .pl { color: var(--green); }
+  .code .l .tx { color: var(--ink2); white-space: pre; }
+  .kw { color: oklch(70% 0.1 262); } .st { color: var(--tint); }
+  .code .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(to bottom, transparent, var(--paper2)); pointer-events: none; }
+  .code .more { position: relative; padding: 4px 20px 18px 78px; font-size: 12.5px; color: var(--muted); }
+  .after { margin-top: 26px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 24px; line-height: 1.6; letter-spacing: -0.025em; color: var(--ink2); max-width: 1080px; }
+  .after b { color: var(--ink); font-weight: 600; }
+
+  /* B · three plain statements */
+  .trio { margin-top: 60px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); }
+  .trio div { padding: 30px 28px 6px 0; }
+  .trio div + div { padding-left: 28px; border-left: 1px solid var(--rule); }
+  .trio b { display: block; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 96px; line-height: .9; letter-spacing: -0.055em; font-variant-numeric: tabular-nums; }
+  .trio b small { font-size: 34px; letter-spacing: -0.035em; font-weight: 700; margin-left: 10px; color: var(--ink2); }
+  .trio p { margin-top: 16px; font-size: 15.5px; line-height: 1.6; color: var(--ink2); max-width: 300px; }
+  .trio code { font-family: "Geist Mono", monospace; font-size: 13.5px; color: var(--ink); }
+
+  /* C · the imports, annotated */
+  .imp { margin-top: 56px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; column-gap: 0; font-family: "Geist Mono", monospace; }
+  .imp .row { display: contents; }
+  .imp .c { font-size: 18px; line-height: 1.5; padding: 14px 28px 14px 0; border-top: 1px solid var(--rule); color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .imp .c .pk { color: var(--ink); background: oklch(68% 0.17 262 / .16); border-radius: 6px; padding: 1px 6px; }
+  .imp .a { font-family: "Geist", sans-serif; font-size: 14px; line-height: 1.45; color: var(--ink2); padding: 16px 0 14px 24px; border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+  .imp .a b { font-family: "Geist Mono", monospace; font-weight: 400; font-size: 12.5px; color: var(--green); display: block; }
+  .imp .last { border-bottom: 1px solid var(--rule); }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>Under the install sentence, three new options</h1>
+    <p>Each one replaces the three boxes with a single calm element, and each is built from registry data, so it's correct for any component. The approved sentence is repeated in every option so you can judge the whole section. Click the one you want.</p>
+  </div>
+
+  <div class="cards">
+
+  <!-- ═════ A · the diff ═════ -->
+  <section class="card dir" data-choice="diff" onclick="toggleSelect(this)">
+    <header class="dir-head"><span class="dir-letter">A</span><div><h2>The diff</h2><p>Shows what the add command changes the way developers already read changes: a pull-request diff. One file added, nothing deleted, and the first lines are its real imports, which double as its package list. A single sentence under it hands over the npm line.</p></div></header>
+    <div class="C">
+      <h2 class="display h2">Two commands, then it's your code</h2>
+      <p class="inline dim"><span class="q">Run</span> <span class="chip"><span class="d">$</span> npx devignerui init <span class="cp">&#10697;</span></span> <span class="q">once in your project. After that,</span> <span class="chip"><span class="d">$</span> npx devignerui add date-range-picker <span class="cp">&#10697;</span></span> <span class="q">writes</span> <span class="chip file">date-range-picker.tsx</span> <span class="q">into components/ui, and from then on it's a normal file in your repo.</span></p>
+      <div class="diff">
+        <div class="hd"><span><b>1 file changed</b> by npx devignerui add date-range-picker</span><span class="n"><span class="add">+1,095</span><span class="del">&minus;0</span></span></div>
+        <div class="file"><span class="badge">+</span><span><span class="p">components/ui/</span>date-range-picker.tsx</span><span class="stat"><span class="blocks"><i></i><i></i><i></i><i></i><i></i></span><span class="add">+1,095</span></span></div>
+        <div class="code">
+          <div class="l"><span class="ln">1</span><span class="pl">+</span><span class="tx"><span class="st">"use client"</span>;</span></div>
+          <div class="l"><span class="ln">2</span><span class="pl">+</span><span class="tx"></span></div>
+          <div class="l"><span class="ln">3</span><span class="pl">+</span><span class="tx"><span class="kw">import</span> * <span class="kw">as</span> React <span class="kw">from</span> <span class="st">"react"</span>;</span></div>
+          <div class="l"><span class="ln">4</span><span class="pl">+</span><span class="tx"><span class="kw">import</span> {</span></div>
+          <div class="l"><span class="ln">5</span><span class="pl">+</span><span class="tx">  AnimatePresence,</span></div>
+          <div class="l"><span class="ln">6</span><span class="pl">+</span><span class="tx">  LayoutGroup,</span></div>
+          <div class="l"><span class="ln">7</span><span class="pl">+</span><span class="tx">  motion,</span></div>
+          <div class="l"><span class="ln">8</span><span class="pl">+</span><span class="tx">  useReducedMotion,</span></div>
+          <div class="l"><span class="ln">9</span><span class="pl">+</span><span class="tx">  <span class="kw">type</span> Transition,</span></div>
+          <div class="l"><span class="ln">10</span><span class="pl">+</span><span class="tx">} <span class="kw">from</span> <span class="st">"motion/react"</span>;</span></div>
+          <div class="l"><span class="ln">11</span><span class="pl">+</span><span class="tx"><span class="kw">import</span> { cn } <span class="kw">from</span> <span class="st">"cn"</span>;</span></div>
+          <div class="l"><span class="ln">12</span><span class="pl">+</span><span class="tx"><span class="kw">import</span> { IconChevronLeft, IconChevronRight } <span class="kw">from</span> <span class="st">"@devigner-ui/icons"</span>;</span></div>
+          <div class="l"><span class="ln">13</span><span class="pl">+</span><span class="tx"><span class="kw">import</span> {</span></div>
+          <div class="l"><span class="ln">14</span><span class="pl">+</span><span class="tx">  SPRING_LAYOUT,</span></div>
+          <div class="fade"></div>
+          <div class="more">&middot;&middot;&middot; 1,081 more added lines</div>
+        </div>
+      </div>
+      <p class="after">Those imports are the whole dependency list. The CLI prints the matching <span class="chip sm"><span class="d">$</span> npm i cn motion react @devigner-ui/icons @devignerui/ui <span class="cp">&#10697;</span></span> and <b>nothing else in your project changes.</b></p>
+    </div>
+  </section>
+
+  <!-- ═════ B · three plain statements ═════ -->
+  <section class="card dir" data-choice="trio" onclick="toggleSelect(this)">
+    <header class="dir-head"><span class="dir-letter">B</span><div><h2>Three plain numbers</h2><p>No boxes and no code. Three large figures separated by hairlines, each with a short line of explanation: one file, the number of packages, zero edits elsewhere. It's the quietest option, and the numbers are computed per component.</p></div></header>
+    <div class="C">
+      <h2 class="display h2">Two commands, then it's your code</h2>
+      <p class="inline dim"><span class="q">Run</span> <span class="chip"><span class="d">$</span> npx devignerui init <span class="cp">&#10697;</span></span> <span class="q">once in your project. After that,</span> <span class="chip"><span class="d">$</span> npx devignerui add date-range-picker <span class="cp">&#10697;</span></span> <span class="q">writes</span> <span class="chip file">date-range-picker.tsx</span> <span class="q">into components/ui, and from then on it's a normal file in your repo.</span></p>
+      <div class="trio">
+        <div><b>1<small>file</small></b><p>Written to <code>components/ui/date-range-picker.tsx</code>. That's all the add command creates.</p></div>
+        <div><b>4<small>packages</small></b><p><code>cn</code>, <code>motion</code>, <code>@devigner-ui/icons</code> and <code>@devignerui/ui</code>. The CLI prints the npm line for you.</p></div>
+        <div><b>0<small>edits</small></b><p>Your config, your CSS and every file you already have stay exactly as they were.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════ C · the imports, annotated ═════ -->
+  <section class="card dir" data-choice="imports" onclick="toggleSelect(this)">
+    <header class="dir-head"><span class="dir-letter">C</span><div><h2>The imports, annotated</h2><p>The file's real import lines, set large like a quotation, with a margin note beside each one saying where it comes from. It makes the point that nothing is hidden: what the file imports is exactly what you install.</p></div></header>
+    <div class="C">
+      <h2 class="display h2">Two commands, then it's your code</h2>
+      <p class="inline dim"><span class="q">Run</span> <span class="chip"><span class="d">$</span> npx devignerui init <span class="cp">&#10697;</span></span> <span class="q">once in your project. After that,</span> <span class="chip"><span class="d">$</span> npx devignerui add date-range-picker <span class="cp">&#10697;</span></span> <span class="q">writes</span> <span class="chip file">date-range-picker.tsx</span> <span class="q">into components/ui, and from then on it's a normal file in your repo.</span></p>
+      <div class="imp">
+        <div class="row"><div class="c">import * as React from "<span class="pk">react</span>";</div><div class="a"><b>already in your app</b>React 19</div></div>
+        <div class="row"><div class="c">import { AnimatePresence, motion, &hellip; } from "<span class="pk">motion/react</span>";</div><div class="a"><b>npm i motion</b>springs and transitions</div></div>
+        <div class="row"><div class="c">import { cn } from "<span class="pk">cn</span>";</div><div class="a"><b>npm i cn</b>merges class names</div></div>
+        <div class="row"><div class="c">import { IconChevronLeft, &hellip; } from "<span class="pk">@devigner-ui/icons</span>";</div><div class="a"><b>npm i @devigner-ui/icons</b>the icon set</div></div>
+        <div class="row"><div class="c last">import { SPRING_LAYOUT, &hellip; } from "<span class="pk">@devignerui/ui/motion</span>";</div><div class="a last"><b>npm i @devignerui/ui</b>shared motion tokens and hooks</div></div>
+      </div>
+      <p class="after">That's the complete list, and the CLI prints it as one npm line after it writes the file. <b>Nothing else in your project changes.</b></p>
+    </div>
+  </section>
+
+  </div>
+</body>
+</html>

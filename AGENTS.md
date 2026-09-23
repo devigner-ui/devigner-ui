@@ -28,7 +28,7 @@ All animation easing/physics MUST come from the shared motion tokens - never wri
 cubic-beziers, ad-hoc spring configs, or default easings (`ease-in`, `ease-out`, `easeOut`
 string forms are too weak).
 
-- **JS/TSX (motion/react):** import from `@devignerui/ui/lib/easing`
+- **JS/TSX (motion/react):** import from `@devignerui/ui/motion`
   (source: `packages/ui/src/lib/easing.ts`) and pick by purpose:
   - `SPRING_PRESS` - press/hover feedback on buttons and tappable surfaces
   - `SPRING_SWAP` - label/icon slots trading places inside a control

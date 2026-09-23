@@ -37,7 +37,7 @@ pnpm+Turborepo, 4 packages. Truth flows one way: `apps/docs/lib/registry.ts` →
 ```
 apps/docs/               @devignerui/docs - Next 15 App Router
   app/api/registry*        GET index / GET one - read lib/registry.ts
-  app/components/           page.tsx (grid), layout.tsx (shadcn-scope, §8), [slug]/page.tsx
+  app/components/           page.tsx (server: registry -> live rack), [slug]/page.tsx
   app/globals.css           CANONICAL tokens (§8)
   components/               docs-only UI (code-block, copy-button, theme-provider) - not distributed
   content/docs/             Fumadocs MDX guides (§17.6)
@@ -174,11 +174,11 @@ interface ComponentData {
 | `code-bg` | code block bg, independent of page chrome |
 | `text-on-dark` | reads against a permanently-dark surface regardless of theme |
 | `primary`/`-foreground` | **strong emphasis** - selected/checked/active/default Button/Badge |
-| `card`/-`foreground`, `popover`/-`foreground`, `secondary`/-`foreground`, `muted`/-`foreground`, `input`, `ring` | shadcn-compatible aliases (§8); default to Devigner-equivalent values, diverge only inside `.shadcn-scope` |
+| `card`/-`foreground`, `popover`/-`foreground`, `secondary`/-`foreground`, `muted`/-`foreground`, `input`, `ring` | shadcn-compatible aliases (§8); default to Devigner-equivalent values |
 
 **Rules:** components use only semantic names, never raw `gray-*`/hex/oklch literals except a documented decorative one-off. Applies foremost to distributed source (`packages/ui`, registry `code`) - docs-only preview JSX should follow it too, lower severity if not. **`accent` ≠ emphasis** - use `primary`/`primary-foreground` for selected/checked/active/CTA (§17; matters once a route's `accent` is a low-contrast tint by design).
 
-**Typography:** Geist Sans/Mono (`--font-sans`/`-mono` via `geist` pkg); `--font-display` aliases `--font-sans` (no separate display face - headline weight comes from size+`font-semibold`+negative tracking).
+**Typography:** Geist Sans/Mono (`--font-sans`/`-mono` via `geist` pkg) for body, UI and data; `--font-display` is Cabinet Grotesk (Fontshare CDN link in `layout.tsx`, falls back to Geist) for headlines only, at weight 700-800 with tight negative tracking.
 | Role | Class | Size |
 |---|---|---|
 | Hero | `text-5xl/14 font-semibold tracking-[-2.88px]` | 48/56px |
@@ -203,7 +203,7 @@ Use these exact patterns for new components in these roles - the negative-tracki
 
 **Theme architecture:** an inline pre-paint `<script>` in `layout.tsx` reads `localStorage('devignerui-theme')`/`prefers-color-scheme`, sets `.dark` on `<html>` - never move this into a React effect (reintroduces flash-of-wrong-theme).
 
-**Route-scoped token overrides:** a second override axis alongside light/dark - a class (`.shadcn-scope`) redeclares a subset of the same custom properties, scoped to that class instead of `:root`; a wrapping layout (`components/layout.tsx`) applies it to a route subtree. Every component underneath (shared `packages/ui` included) picks it up automatically since they already reference the token by name - no per-component conditional logic. `.dark .shadcn-scope` supplies the dark override, mirroring `.dark`. **Current use:** `/components` + `/components/[slug]` are scoped to shadcn's literal neutral/grayscale defaults (`background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, plus surface aliases `background-100/200`, `surface`, `surface-hover`, `border-hover`) - deliberately different from the rest of the site's warm/vermilion palette. Tokens with no shadcn equivalent (`success`/`warning`, `terminal*`, `code-bg`, `text-*` hierarchy, shadows, radius) are **not** overridden and keep global values even inside the scope. Add another scope the same way (new class, new layout) if another route family needs its own identity; never use this mechanism for light/dark.
+**Route-scoped token overrides:** retired with the Instrument redesign (2026-09-23). `/components` used to swap in shadcn's neutral palette via `.shadcn-scope` + `components/layout.tsx`; both are gone and the whole site runs one graphite/cobalt palette. The mechanism itself (a class redeclaring a subset of custom properties over a subtree) is still the approved way to give a route family its own identity if one is ever needed; never use it for light/dark.
 
 ## 9. Code Standards
 
@@ -298,7 +298,7 @@ Every item above is additive to `ComponentData` and the 4-package boundary - a f
 
 Standing punch list. Close an item only once fixed **and re-verified** - a false "RESOLVED" (item 1's original claim) is worse than an open item.
 
-1. **Two token files, values still divergent.** `packages/ui`'s and `apps/docs`'s `globals.css` were claimed converged "token-for-token" - false. Names now match (incl. the shadcn aliases in §8); OKLCH _values_ are still two independently-defined palettes (warm/vermilion vs. neutral gray/blue). Predates this doc's current pass; unscoped future work (§16) to converge or formally document as separate.
+1. **Two token files, values still divergent.** `packages/ui`'s and `apps/docs`'s `globals.css` were claimed converged "token-for-token" - false. Names now match (incl. the shadcn aliases in §8); OKLCH _values_ are still two independently-defined palettes (docs graphite/cobalt vs. packages/ui neutral gray/blue). Predates this doc's current pass; unscoped future work (§16) to converge or formally document as separate.
 2. **Hardcoded colors - resolved.** `Card`/`Input` (`bg-white`, inline shadow) fixed earlier; `Button`'s default variant (`bg-gray-1000 text-white` - literal white never adapted, so text was invisible in dark mode) and `Badge`'s 4 variants (literal `text-white`) fixed to `bg-primary text-primary-foreground` and the matching `-foreground` tokens (`success-foreground`/`warning-foreground` added to support this).
 3. **Legacy JSON registry + legacy shared types - resolved.** Removed; `shared`'s broken `exports` map (pointed at `.mjs` `tsup` never emits) fixed too.
 4. **Category label/key mismatch - resolved.** `registry.ts` now stores the key, not a label string; both display sites resolve via `COMPONENT_CATEGORIES`.

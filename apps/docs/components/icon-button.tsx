@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, type HTMLMotionProps } from "motion/react";
-import { SPRING_PRESS, SPRING_SWAP } from "@devignerui/ui/lib/easing";
+import { SPRING_PRESS, SPRING_SWAP } from "@devignerui/ui/motion";
 
 const sizes = {
   sm: { dim: "size-6", radius: "rounded-md" },
@@ -45,7 +45,7 @@ export function IconButton({
       } ${
         active
           ? "text-foreground"
-          : "text-foreground/70 bg-muted hover:text-foreground"
+          : "text-foreground/70 bg-muted/50 backdrop-blur-sm hover:text-foreground"
       } ${className}`}
       {...props}
     >

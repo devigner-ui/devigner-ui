@@ -130,7 +130,7 @@ export function RangeSlider({
 
   /*
    * The fill is the thumb's capsule, and the thumb rides just inside its
-   * leading edge — not straddling it. Anchoring both to one value is what
+   * leading edge, not straddling it. Anchoring both to one value is what
    * makes a quarter-full slider look like a full one: before this the thumb
    * sat inside the fill at the top of the range and outside it at the bottom,
    * because the offset was a percentage of the thumb rather than a fixed gap.

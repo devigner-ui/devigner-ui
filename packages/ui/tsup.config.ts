@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig((options) => ({
-  entry: ["src/index.ts"],
+  entry: ["src/index.ts", "src/motion.ts", "src/hooks.ts", "src/menu-path.ts", "src/date-range.ts"],
   format: ["esm", "cjs"],
   dts: true,
   splitting: false,

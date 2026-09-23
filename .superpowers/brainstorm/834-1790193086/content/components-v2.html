@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/components, the card grid polished</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #e9e8ec; color: #1b1b1f; font-family: "Geist", system-ui, sans-serif; padding: 40px 32px 120px; }
+  .intro, .wrap { max-width: 1240px; margin: 0 auto; }
+  .intro { margin-bottom: 26px; }
+  .intro h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  .intro p { margin-top: 8px; max-width: 900px; color: #56555c; font-size: 15px; line-height: 1.6; }
+  .note { font-family: "Geist Mono", monospace; font-size: 11.5px; line-height: 1.55; color: #3a3ad0; background: #fff; border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin: 12px 0 0; max-width: 920px; }
+  .label { margin: 34px 0 12px; font-size: 13px; font-weight: 600; }
+  .label span { font-weight: 400; color: #56555c; }
+
+  .P { --paper: oklch(15.2% 0.006 260); --paper1: oklch(17.2% 0.007 260); --paper2: oklch(19.6% 0.008 260); --paper3: oklch(23% 0.009 260); --ink: oklch(95.5% 0.003 260); --ink2: oklch(74% 0.007 260); --muted: oklch(54% 0.009 260); --rule: oklch(95.5% 0.003 260 / .09); --rule2: oklch(95.5% 0.003 260 / .18); --blue: oklch(68% 0.175 262); --blue-ink: oklch(15.2% 0.02 264);
+       --light: oklch(95.5% 0.003 260 / .055); --inlay: inset 0 2px 4px oklch(0% 0 0 / .55), inset 0 0 0 1px oklch(95.5% 0.003 260 / .05), 0 1px 0 oklch(95.5% 0.003 260 / .06);
+       --word: oklch(21% 0.008 260); --word-hi: oklch(95.5% 0.003 260 / .07); --word-lo: oklch(0% 0 0 / .55);
+       background: var(--paper); color: var(--ink); border-radius: 18px; overflow: hidden; font-family: "Geist", sans-serif; }
+  .P.L { --paper: oklch(97.6% 0.003 260); --paper1: oklch(99.2% 0.002 260); --paper2: oklch(94.8% 0.004 260); --paper3: oklch(92.6% 0.006 260); --ink: oklch(19% 0.012 260); --ink2: oklch(40% 0.012 260); --muted: oklch(55% 0.01 260); --rule: oklch(19% 0.012 260 / .1); --rule2: oklch(19% 0.012 260 / .2); --blue: oklch(53% 0.215 264); --blue-ink: oklch(98.5% 0.004 260);
+         --light: oklch(100% 0 0 / .7); --inlay: inset 0 1px 2px oklch(19% 0.03 260 / .1), inset 0 0 0 1px oklch(19% 0.012 260 / .07), 0 1px 0 oklch(100% 0 0 / .9); }
+  .display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; letter-spacing: -0.04em; font-variation-settings: "opsz" 96; line-height: 1.02; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 48px; }
+  .wm { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 21px; letter-spacing: -0.03em; }
+  .wm i { font-style: normal; color: var(--blue); }
+  .navr { display: flex; align-items: center; gap: 26px; font-size: 14px; color: var(--ink2); }
+  .navr .on { color: var(--ink); }
+  .navr .get { color: var(--paper); background: var(--ink); font-weight: 500; border-radius: 99px; padding: 8px 14px; }
+
+  .head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 28px; padding: 44px 48px 0; }
+  .head h2 { font-size: 128px; font-weight: 800; letter-spacing: -0.06em; line-height: .88; }
+  .head h2 sup { font-family: "Geist Mono", monospace; font-size: 15px; font-weight: 400; letter-spacing: 0; color: var(--ink2); vertical-align: 88px; margin-left: 10px; }
+  .head p { margin-top: 22px; font-size: 17px; line-height: 1.6; color: var(--ink2); max-width: 560px; }
+  .init { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-bottom: 6px; }
+  .init small { font-size: 12.5px; color: var(--muted); }
+  .cmd { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 16px; border-radius: 99px; background: var(--paper1); box-shadow: 0 0 0 1px var(--rule); font-family: "Geist Mono", monospace; font-size: 13.5px; white-space: nowrap; color: var(--ink2); }
+  .cmd .d { color: var(--blue); } .cmd .s { color: var(--ink); }
+  .cmd .go { font-family: "Geist", sans-serif; font-weight: 600; font-size: 13px; background: var(--ink); color: var(--paper); border-radius: 99px; padding: 8px 14px; }
+
+  .tools { margin: 44px 48px 0; display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 22px; background: var(--paper1); box-shadow: 0 0 0 1px var(--rule); }
+  .search { display: flex; align-items: center; gap: 10px; width: 300px; height: 42px; padding: 0 12px; border-radius: 14px; background: var(--paper2); color: var(--muted); font-size: 14.5px; }
+  .search .k { margin-left: auto; font-family: "Geist Mono", monospace; font-size: 11.5px; border-radius: 6px; padding: 1px 7px; box-shadow: inset 0 0 0 1px var(--rule2); }
+  .cats { display: flex; gap: 4px; font-size: 13.5px; color: var(--ink2); }
+  .cats span { padding: 9px 12px; border-radius: 12px; white-space: nowrap; }
+  .cats span.on { background: var(--paper3); color: var(--ink); }
+  .cats sup { font-family: "Geist Mono", monospace; font-size: 10px; color: var(--muted); margin-left: 3px; }
+  .seg { margin-left: auto; display: inline-flex; padding: 3px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--rule); font-size: 13px; color: var(--ink2); }
+  .seg span { padding: 7px 11px; border-radius: 9px; }
+  .seg span.on { background: var(--paper3); color: var(--ink); }
+
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 22px 48px 64px; }
+  .card { border-radius: 30px; background: var(--paper1); box-shadow: 0 0 0 1px var(--rule); padding: 8px; display: flex; flex-direction: column; transition: box-shadow .3s; }
+  .card.hv { box-shadow: 0 0 0 1px var(--rule2), 0 30px 60px -36px oklch(0% 0 0 / .7); }
+  .stage { position: relative; height: 380px; border-radius: 23px; background: radial-gradient(ellipse 70% 60% at 50% 0%, var(--light), transparent 70%), var(--paper2); box-shadow: var(--inlay); display: grid; place-items: center; overflow: hidden; }
+  .stage .cat { position: absolute; top: 16px; left: 18px; font-family: "Geist Mono", monospace; font-size: 11px; color: var(--muted); }
+  .stage .new { position: absolute; top: 13px; right: 14px; font-size: 11px; font-weight: 600; border-radius: 99px; padding: 3px 9px; background: oklch(68% 0.175 262 / .16); color: var(--blue); }
+  .stage .spot { position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(closest-side, oklch(95.5% 0.003 260 / .06), transparent); left: 55%; top: 20%; transform: translate(-50%, -50%); pointer-events: none; }
+  .plate { padding: 18px 16px 10px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: start; }
+  .plate h3 { font-family: "Bricolage Grotesque", sans-serif; font-size: 27px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.15; }
+  .plate p { grid-column: 1; font-size: 15px; line-height: 1.55; color: var(--ink2); max-width: 470px; }
+  .plate .go { grid-row: 1 / 3; grid-column: 2; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 1px var(--rule2); color: var(--ink); }
+  .card.hv .plate .go { background: var(--blue); color: var(--blue-ink); box-shadow: none; }
+  .install { margin: 8px 8px 8px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px 0 14px; border-radius: 14px; background: var(--paper2); font-family: "Geist Mono", monospace; font-size: 13px; color: var(--ink2); }
+  .install .d { color: var(--blue); } .install .s { color: var(--ink); }
+  .install .cp { margin-left: auto; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--ink2); }
+
+  /* component sketches */
+  .ui { color: var(--ink); }
+  .surf { background: var(--paper3); box-shadow: 0 18px 40px -20px oklch(0% 0 0 / .7); }
+  .cal { width: 280px; border-radius: 20px; padding: 12px; transform: scale(.92); }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
+  .g7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; font-size: 11px; color: var(--ink2); }
+  .g7 span { padding: 5px 0; border-radius: 7px; }
+  .g7 .in { background: oklch(68% 0.175 262 / .22); color: var(--ink); border-radius: 0; }
+  .g7 .e { background: var(--blue); color: var(--blue-ink); }
+  .dock { display: flex; gap: 18px; border-radius: 99px; padding: 13px 20px; }
+  .dock i { width: 19px; height: 19px; border-radius: 6px; border: 2px solid var(--ink2); }
+  .dock i:first-child { background: var(--ink); border-color: var(--ink); }
+  .tile { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; }
+  .chart { width: 300px; border-radius: 20px; padding: 16px; }
+  .chart .t { font-size: 13px; color: var(--ink2); } .chart .v { font-family: "Bricolage Grotesque", sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; }
+  .bars { display: flex; align-items: flex-end; gap: 7px; height: 110px; margin-top: 12px; }
+  .bars i { flex: 1; border-radius: 8px 8px 4px 4px; background: oklch(95.5% 0.003 260 / .12); }
+  .bars i.a { background: var(--blue); }
+  .steps { display: flex; flex-direction: column; gap: 16px; width: 250px; }
+  .steps div { display: flex; gap: 12px; align-items: flex-start; }
+  .steps b { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; box-shadow: inset 0 0 0 2px var(--muted); flex: none; }
+  .steps .on b { box-shadow: inset 0 0 0 5px var(--blue); }
+  .steps strong { display: block; font-size: 14px; font-weight: 600; }
+  .steps span { font-size: 12.5px; color: var(--ink2); }
+  .steps .on { transform: translateX(12px); }
+  .mag { background: var(--blue); color: var(--blue-ink); font-weight: 600; font-size: 15px; border-radius: 99px; padding: 14px 24px; }
+
+  .proline { margin: 0 48px; padding: 24px 0 56px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--ink2); }
+  .proline a { color: var(--ink); border-bottom: 1px solid var(--blue); padding-bottom: 1px; }
+
+  /* footer */
+  .ftop { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; padding: 64px 56px 0; border-top: 1px solid var(--rule); }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.035em; }
+  .brand i { font-style: normal; color: var(--blue); }
+  .btile { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--ink); color: var(--paper); font-size: 18px; padding-bottom: 2px; }
+  .ftag { margin-top: 16px; font-size: 15px; line-height: 1.6; color: var(--ink2); max-width: 360px; }
+  .fcols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; justify-self: end; width: 100%; max-width: 360px; }
+  .fcols h4 { font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+  .fcols a { display: block; font-size: 15px; color: var(--ink2); padding: 5px 0; }
+  .mark { position: relative; margin-top: 30px; height: 250px; overflow: hidden; }
+  .mark .w { position: absolute; left: 44px; bottom: -82px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 330px; line-height: 1; letter-spacing: -0.065em; white-space: nowrap; color: var(--word); text-shadow: 0 -1px 0 var(--word-lo), 0 1px 0 var(--word-hi); }
+  .mark .w span { display: inline-block; transform-origin: 50% 90%; }
+  .mark .w .b1 { transform: translateY(10px) rotate(-5deg); } .mark .w .b2 { transform: translateY(4px) rotate(-2deg); }
+  .mark .w .dot { color: var(--blue); text-shadow: none; }
+  .fbot { display: flex; justify-content: space-between; border-top: 1px solid var(--rule); padding: 18px 56px; font-size: 13px; color: var(--muted); position: relative; background: var(--paper); }
+  .fbot span { display: flex; gap: 18px; }
+
+  /* phone */
+  .phones { display: grid; grid-template-columns: 390px 1fr; gap: 28px; align-items: start; }
+  .phone { width: 390px; border-radius: 34px; overflow: hidden; box-shadow: 0 0 0 8px #1b1b1f, 0 30px 60px -30px rgba(0,0,0,.5); }
+  .phone .P { border-radius: 0; }
+  .ph-head { padding: 18px 18px 0; }
+  .ph-head h2 { font-size: 60px; font-weight: 800; letter-spacing: -0.055em; line-height: .9; }
+  .ph-head p { margin-top: 12px; font-size: 15px; line-height: 1.55; color: var(--ink2); }
+  .ph-tools { margin: 18px 18px 0; display: flex; gap: 8px; overflow: hidden; }
+  .ph-tools .search { width: 150px; flex: none; height: 38px; font-size: 13.5px; }
+  .ph-tools .cats span { padding: 8px 10px; }
+  .ph-grid { padding: 14px 12px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .ph-grid .stage { height: 280px; }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>/components: your card grid, polished and built to scale</h1>
+    <p>Same idea as the page you have now, a grid of cards each running its component live, taken further. The grid backgrounds are replaced by a softly lit, recessed stage. The Free badges and feature chips go, because they repeat on every card and have to be written by hand for each component. Every card follows one rule, so component number 600 looks as considered as number 1. The new footer is at the bottom.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="label">Desktop, dark <span>· the Menu Dock card is shown hovered</span></p>
+    <div class="P">
+      <div class="nav"><span class="wm">devigner<i>.</i></span><span class="navr"><span class="on">Components</span><span>Docs</span><span>Pro</span><span class="get">Get started</span></span></div>
+      <div class="head">
+        <div>
+          <h2 class="display">Components<sup>6</sup></h2>
+          <p>Free animated React components for Tailwind CSS. Every card below is running, so try it right here, then copy the command that installs it.</p>
+        </div>
+        <div class="init"><span class="cmd"><span class="d">$</span> npx devignerui <span class="s">init</span> <span class="go">Copy</span></span><small>Once per project, then add any of these by name</small></div>
+      </div>
+
+      <div class="tools">
+        <span class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search components<span class="k">/</span></span>
+        <span class="cats"><span class="on">All<sup>6</sup></span><span>Forms<sup>1</sup></span><span>Navigation<sup>1</sup></span><span>Data Display<sup>2</sup></span><span>Primitives<sup>1</sup></span><span>Animation<sup>1</sup></span></span>
+        <span class="seg"><span class="on">Newest</span><span>A to Z</span></span>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="stage"><span class="cat">forms</span><span class="new">new</span>
+            <div class="ui cal surf"><div class="cal-h"><span>September 2026</span><span style="color:var(--ink2)">&lsaquo; &rsaquo;</span></div><div class="g7"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="e">12</span><span class="in">13</span><span class="in">14</span><span class="in">15</span><span class="e">16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span></div></div>
+          </div>
+          <div class="plate"><h3>Date Range Picker</h3><span class="go">&rarr;</span><p>A calendar that shows the range before you commit to it, with presets.</p></div>
+          <div class="install"><span class="d">$</span> npx devignerui add <span class="s">date-range-picker</span><span class="cp">&#10697;</span></div>
+        </div>
+
+        <div class="card hv">
+          <div class="stage" style="place-items:end center;padding-bottom:60px"><span class="cat">navigation</span><span class="spot"></span>
+            <div class="ui dock surf"><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="plate"><h3>Menu Dock</h3><span class="go">&rarr;</span><p>A dock that grows into its own menus, nested as deep as you need.</p></div>
+          <div class="install"><span class="d">$</span> npx devignerui add <span class="s">menu-dock</span><span class="cp">&#10697;</span></div>
+        </div>
+
+        <div class="card">
+          <div class="stage"><span class="cat">primitives</span>
+            <div class="ui tile surf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></div>
+          </div>
+          <div class="plate"><h3>Delete Button</h3><span class="go">&rarr;</span><p>Asks before it deletes, waits for your API call, then shows a tick.</p></div>
+          <div class="install"><span class="d">$</span> npx devignerui add <span class="s">delete-button</span><span class="cp">&#10697;</span></div>
+        </div>
+
+        <div class="card">
+          <div class="stage"><span class="cat">data display</span>
+            <div class="ui chart surf"><div class="t">Total sales</div><div class="v">90,744</div><div class="bars"><i style="height:38%"></i><i style="height:55%"></i><i style="height:74%"></i><i style="height:52%"></i><i class="a" style="height:100%"></i><i style="height:79%"></i><i style="height:96%"></i></div></div>
+          </div>
+          <div class="plate"><h3>Chart Card</h3><span class="go">&rarr;</span><p>A stats card whose bars show their value as you move across them.</p></div>
+          <div class="install"><span class="d">$</span> npx devignerui add <span class="s">chart-card</span><span class="cp">&#10697;</span></div>
+        </div>
+
+        <div class="card">
+          <div class="stage"><span class="cat">data display</span>
+            <div class="ui steps"><div><b></b><div><strong>Kickoff</strong><span>Agree on scope and the first milestone.</span></div></div><div class="on"><b></b><div><strong>Prototype</strong><span>Wire the flow with real data.</span></div></div><div><b></b><div><strong>Polish</strong><span>Tune motion, states and edge cases.</span></div></div><div><b></b><div><strong>Ship</strong><span>Release, measure, iterate.</span></div></div></div>
+          </div>
+          <div class="plate"><h3>Timeline</h3><span class="go">&rarr;</span><p>The active step slides off the rail, and the line bends to follow it.</p></div>
+          <div class="install"><span class="d">$</span> npx devignerui add <span class="s">timeline</span><span class="cp">&#10697;</span></div>
+        </div>
+
+        <div class="card">
+          <div class="stage"><span class="cat">animation</span>
+            <div class="ui mag">Pull me around</div>
+          </div>
+          <div class="plate"><h3>Magnetic Button</h3><span class="go">&rarr;</span><p>Leans toward your cursor before you reach it, then lets go with a wobble.</p></div>
+          <div class="install"><span class="d">$</span> npx devignerui add <span class="s">magnetic-button</span><span class="cp">&#10697;</span></div>
+        </div>
+      </div>
+
+      <div class="proline"><span>Pro components are on the way, as a separate paid set. Everything here stays free.</span><a>See what Pro will cost</a></div>
+
+      <div class="ftop">
+        <div><span class="brand"><span class="btile">d<i>.</i></span>devigner<i>.</i></span><p class="ftag">Animated React components for Tailwind CSS. Free, MIT licensed, and yours to edit once they're in your repo.</p></div>
+        <div class="fcols"><div><h4>Library</h4><a>Components</a><a>Docs</a><a>Pro</a></div><div><h4>Elsewhere</h4><a>X (@devignerui)</a><a>Installation guide</a><a>Theming guide</a></div></div>
+      </div>
+      <div class="mark"><div class="w" aria-hidden="true"><span>d</span><span>e</span><span>v</span><span>i</span><span class="b2">g</span><span class="b1">n</span><span class="b2">e</span><span>r</span><span class="dot">.</span></div></div>
+      <div class="fbot"><span>&copy; 2026 Devigner UI &middot; MIT license</span><span>Built with React, Tailwind CSS and Motion<span>&uarr; Top</span></span></div>
+    </div>
+    <p class="note">Cards: one rule for every component. Each has the same 380px stage, and any component that is bigger is scaled to fit, still fully usable, so nothing needs a hand-made layout. The stage replaces the grid with a recessed surface and a soft light from above, and on hover a faint spotlight follows the pointer across it. Below the stage: name, one-line description, an arrow to the docs, and the install command. Scale: the page renders every card's text as HTML for search engines, but a component only starts running when its card scrolls near the viewport, and stops again far off screen. The toolbar filters and sorts without reloading. Footer: your current direction polished. The giant wordmark is pressed into the page, and its letters dip in a small bow under the pointer, which echoes the hero.</p>
+
+    <p class="label">Phone, light</p>
+    <div class="phones">
+      <div class="phone"><div class="P L">
+        <div class="nav" style="padding:16px 18px"><span class="wm">devigner<i>.</i></span><span style="width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--rule2);display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16M4 16h16"/></svg></span></div>
+        <div class="ph-head"><h2 class="display">Components</h2><p>Free animated React components for Tailwind CSS. Every card is running, so try it right here.</p></div>
+        <div class="ph-tools"><span class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search</span><span class="cats"><span class="on">All<sup>6</sup></span><span>Forms<sup>1</sup></span><span>Data<sup>2</sup></span></span></div>
+        <div class="ph-grid">
+          <div class="card"><div class="stage" style="place-items:end center;padding-bottom:50px"><span class="cat">navigation</span><div class="ui dock surf"><i></i><i></i><i></i><i></i></div></div><div class="plate"><h3 style="font-size:23px">Menu Dock</h3><span class="go" style="width:38px;height:38px">&rarr;</span><p style="font-size:14px">A dock that grows into its own menus.</p></div><div class="install" style="font-size:12px"><span class="d">$</span> npx devignerui add <span class="s">menu-dock</span><span class="cp">&#10697;</span></div></div>
+        </div>
+      </div></div>
+      <div class="note" style="margin-top:0">On a phone the grid becomes one column and the stage is a little shorter. The category filters scroll sideways. The toolbar sticks under the nav while you scroll, so search is always one tap away.</div>
+    </div>
+  </div>
+</body>
+</html>

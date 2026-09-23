@@ -31,7 +31,7 @@ function addDaysForTest(date: Date, days: number) {
 describe("DateRangePicker", () => {
   it("renders the visible month and its in-month days", () => {
     render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
-    expect(screen.getByText("September 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "September 2026" })).toBeTruthy();
     expect(
       screen.getByRole("gridcell", { name: "30" }),
     ).toBeTruthy();
@@ -40,10 +40,10 @@ describe("DateRangePicker", () => {
   it("navigates to the next and previous month", () => {
     render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
     fireEvent.click(screen.getByRole("button", { name: "Next month" }));
-    expect(screen.getByText("October 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "October 2026" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Previous month" }));
     fireEvent.click(screen.getByRole("button", { name: "Previous month" }));
-    expect(screen.getByText("August 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "August 2026" })).toBeTruthy();
   });
 
   it("disables Previous month at minDate's month", () => {
@@ -326,12 +326,12 @@ describe("DateRangePicker", () => {
     const day30 = screen.getByRole("gridcell", { name: "30" }).querySelector("button")!;
     day30.focus();
     fireEvent.keyDown(day30, { key: "ArrowRight" });
-    expect(screen.getByText("October 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "October 2026" })).toBeTruthy();
     const oct1 = screen.getByRole("gridcell", { name: "1" }).querySelector("button")!;
     expect(document.activeElement).toBe(oct1);
 
     fireEvent.keyDown(oct1, { key: "ArrowLeft" });
-    expect(screen.getByText("September 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "September 2026" })).toBeTruthy();
     const sept30 = screen.getByRole("gridcell", { name: "30" }).querySelector("button")!;
     expect(document.activeElement).toBe(sept30);
   });
@@ -341,7 +341,7 @@ describe("DateRangePicker", () => {
     const day15 = screen.getByRole("gridcell", { name: "15" }).querySelector("button")!;
     day15.focus();
     fireEvent.keyDown(day15, { key: "PageDown" });
-    expect(screen.getByText("October 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "October 2026" })).toBeTruthy();
     const newDay15 = screen.getByRole("gridcell", { name: "15" }).querySelector("button")!;
     expect(document.activeElement).toBe(newDay15);
   });
@@ -351,7 +351,7 @@ describe("DateRangePicker", () => {
     const day31 = screen.getByRole("gridcell", { name: "31" }).querySelector("button")!;
     day31.focus();
     fireEvent.keyDown(day31, { key: "PageDown" });
-    expect(screen.getByText("February 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "February 2026" })).toBeTruthy();
     const day28 = screen.getByRole("gridcell", { name: "28" }).querySelector("button")!;
     expect(document.activeElement).toBe(day28);
   });
@@ -366,7 +366,7 @@ describe("DateRangePicker", () => {
     const day15 = screen.getByRole("gridcell", { name: "15" }).querySelector("button")!;
     day15.focus();
     fireEvent.keyDown(day15, { key: "PageDown" });
-    expect(screen.getByText("February 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "February 2026" })).toBeTruthy();
     const feb1 = screen.getByRole("gridcell", { name: "1" }).querySelector("button")!;
     expect(document.activeElement).toBe(feb1);
   });
@@ -457,7 +457,7 @@ describe("DateRangePicker", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "October" }));
-    expect(screen.getByText("October 2026")).toBeTruthy();
+    expect(screen.getByRole("grid", { name: "October 2026" })).toBeTruthy();
     const [range] = onValueChange.mock.calls.at(-1)!;
     expect(range.start).toEqual(new Date(2026, 9, 5));
     expect(range.end).toEqual(new Date(2026, 9, 8));
@@ -523,6 +523,59 @@ describe("DateRangePicker", () => {
     expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
       "false",
     );
+  });
+
+  it("renders the default title and presets", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    expect(screen.getByText("Trip Dates")).toBeTruthy();
+    for (const label of ["Weekend", "3 nights", "1 week", "2 weeks", "Clear"]) {
+      expect(screen.getByRole("button", { name: label })).toBeTruthy();
+    }
+  });
+
+  it("highlights the preset a manually picked range matches", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    // September 4, 2026 is a Friday, so 4 to 6 is exactly the Weekend preset.
+    fireEvent.click(screen.getByRole("gridcell", { name: "4" }).querySelector("button")!);
+    fireEvent.click(screen.getByRole("gridcell", { name: "6" }).querySelector("button")!);
+    expect(screen.getByRole("button", { name: "Weekend" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "3 nights" }).getAttribute("aria-pressed")).toBe(
+      "false",
+    );
+  });
+
+  it("walks the badge through empty, picking and nights", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    expect(screen.getByText("Add dates")).toBeTruthy();
+    fireEvent.click(screen.getByRole("gridcell", { name: "4" }).querySelector("button")!);
+    expect(screen.getByText("Pick check-out")).toBeTruthy();
+    fireEvent.pointerEnter(screen.getByRole("gridcell", { name: "9" }));
+    expect(screen.getByText("5 nights")).toBeTruthy();
+    fireEvent.click(screen.getByRole("gridcell", { name: "11" }).querySelector("button")!);
+    expect(screen.getByText("7 nights")).toBeTruthy();
+  });
+
+  it("re-picks the check-out from its header field and resets from check-in", () => {
+    const onValueChange = vi.fn();
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 10) }}
+        onValueChange={onValueChange}
+      />,
+    );
+    fireEvent.click(screen.getByText("Check-out").closest("button")!);
+    expect(screen.getByText("Pick check-out")).toBeTruthy();
+    fireEvent.click(screen.getByRole("gridcell", { name: "12" }).querySelector("button")!);
+    const [range] = onValueChange.mock.calls.at(-1)!;
+    expect(range.start.getDate()).toBe(4);
+    expect(range.end.getDate()).toBe(12);
+
+    fireEvent.click(screen.getByText("Check-in").closest("button")!);
+    expect(onValueChange).toHaveBeenLastCalledWith(null);
+    expect(screen.getAllByText("Add date").length).toBe(2);
   });
 
   it("clears the active preset highlight after a manual day pick", () => {

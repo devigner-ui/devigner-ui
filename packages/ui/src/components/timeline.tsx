@@ -10,6 +10,7 @@ import {
   type MotionValue,
 } from "motion/react";
 import { cn } from "cn";
+import { useControllableState } from "../lib/hooks/use-controllable-state";
 
 /** Dot diameter, px - a hair under the badge it sits against, which is what
  *  makes the two read as one row rather than a marker beside a label. */
@@ -104,11 +105,15 @@ function Connector({
 }
 
 export interface TimelineStep {
+  /** Stable selection ID. Defaults to the step index for legacy data. */
+  id?: React.Key;
   /** Defaults to `Step n`. */
   label?: string;
   title: string;
   description?: string;
 }
+
+export type TimelineActiveId = React.Key | null;
 
 /** React's drag and animation handlers collide with Motion's own. */
 type ListProps = Omit<
@@ -121,51 +126,88 @@ type ListProps = Omit<
   | "onAnimationIteration"
 >;
 
+export interface TimelineClassNames {
+  root?: string;
+  item?: string;
+  content?: string;
+}
+
+export interface TimelineSlotProps {
+  root?: React.HTMLAttributes<HTMLOListElement>;
+}
+
+export interface TimelineStepRenderProps {
+  step: TimelineStep;
+  index: number;
+  active: boolean;
+}
+
 export interface TimelineProps extends ListProps {
   steps: TimelineStep[];
-  /** Step highlighted while the pointer is away. -1 leaves the rail straight. */
+  /** Controlled ID of the highlighted step. `null` leaves the rail straight. */
+  activeId?: TimelineActiveId;
+  /** Initial highlighted step ID when uncontrolled. */
+  defaultActiveId?: TimelineActiveId;
+  /** Fires on every highlighted step change, including `null` or `-1`. */
+  onActiveChange?: (id: TimelineActiveId) => void;
+  /** @deprecated Use `defaultActiveId`. Indexes without an `id` still work. */
   defaultActive?: number;
-  /** Fires on every change of the highlighted step, -1 included. */
-  onActiveChange?: (index: number) => void;
+  /** Custom content inside the preset timeline item. */
+  renderStep?: (props: TimelineStepRenderProps) => React.ReactNode;
+  classNames?: TimelineClassNames;
+  slotProps?: TimelineSlotProps;
 }
 
 export function Timeline({
   steps,
-  defaultActive = -1,
+  activeId,
+  defaultActiveId,
+  defaultActive,
   onActiveChange,
+  renderStep,
+  classNames,
+  slotProps,
   className,
   ...rest
 }: TimelineProps) {
-  const [active, setActive] = React.useState(defaultActive);
+  const legacyDefaultActiveId =
+    defaultActive === undefined
+      ? -1
+      : (steps[defaultActive]?.id ?? defaultActive);
+  const restingActiveId =
+    defaultActiveId !== undefined ? defaultActiveId : legacyDefaultActiveId;
+  const [active, setActive] = useControllableState({
+    value: activeId,
+    defaultValue: restingActiveId,
+    onValueChange: onActiveChange,
+  });
   // Under reduced motion nothing slides, so the rail never bends and only the
   // dot's colour carries the highlight. That is the whole accommodation.
   const shift = useReducedMotion() ? 0 : SHIFT;
 
-  const highlight = (index: number) => {
-    setActive((prev) => {
-      if (prev !== index) onActiveChange?.(index);
-      return index;
-    });
-  };
+  const highlight = (id: TimelineActiveId) => setActive(id);
 
   return (
-    <ol className={cn("relative", className)} {...rest}>
+    <ol {...slotProps?.root} className={cn("relative", className, classNames?.root)} {...rest}>
       {steps.map((step, i) => {
+        const stepId = step.id ?? i;
+        const nextStepId = steps[i + 1]?.id ?? i + 1;
         const last = i === steps.length - 1;
-        const on = active === i;
+        const on = active === stepId;
         return (
           <li
-            key={i}
-            className="relative"
-            onPointerEnter={() => highlight(i)}
-            onPointerLeave={() => highlight(defaultActive)}
+            key={stepId}
+            aria-current={on ? "step" : undefined}
+            className={cn("relative", classNames?.item)}
+            onPointerEnter={() => highlight(stepId)}
+            onPointerLeave={() => highlight(restingActiveId)}
             // Focus bubbles in React, so anything focusable a caller puts
             // inside a step lights that step up too.
-            onFocus={() => highlight(i)}
-            onBlur={() => highlight(defaultActive)}
+            onFocus={() => highlight(stepId)}
+            onBlur={() => highlight(restingActiveId)}
           >
             {!last && (
-              <Connector from={on} to={active === i + 1} shift={shift} />
+              <Connector from={on} to={active === nextStepId} shift={shift} />
             )}
             <motion.div
               animate={{ x: on ? shift : 0 }}
@@ -185,7 +227,8 @@ export function Timeline({
                   marginRight: RAIL - DOT,
                 }}
               />
-              <div className="min-w-0">
+              <div className={cn("min-w-0", classNames?.content)}>
+                {renderStep?.({ step, index: i, active: on })}
                 <span
                   className="inline-flex items-center rounded-full border border-border px-2 font-mono text-[11px] leading-none text-text-muted"
                   style={{ height: BADGE }}
@@ -207,4 +250,10 @@ export function Timeline({
       })}
     </ol>
   );
+}
+
+export namespace Timeline {
+  export function Item({ className, ...props }: React.LiHTMLAttributes<HTMLLIElement>) {
+    return <li {...props} className={cn("relative", className)} />;
+  }
 }

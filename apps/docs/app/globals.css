@@ -19,109 +19,119 @@
      3 · @theme  - the Tailwind mapping. `inline`, so a utility reads the live
                    variable rather than a build-time snapshot of it.
 
-   `.shadcn-scope` at the bottom is the exception, and deliberately so: a
-   self-contained palette that /components swaps in over its own subtree.
+   One palette site-wide. /components used to swap in a neutral shadcn set
+   (.shadcn-scope); that scope was retired with the Instrument redesign.
    ═════════════════════════════════════════════════════════════════════════ */
 
-/* ── 1 · Palette · light (warm paper + navy ink) ─────────────────────────── */
+/* ── 1 · Palette · light (lab white + graphite ink) ─────────────────────────
+   One hue family for every neutral (260, barely chromatic), so greys never
+   drift warm against cool. Cobalt is the only colour with real chroma. */
 :root {
-  --background: oklch(96% 0.006 90);
-  --background-100: oklch(97.5% 0.006 90);
-  --background-200: oklch(93.5% 0.008 90);
-  --foreground: oklch(20% 0.02 265);
+  --background: oklch(97.6% 0.003 260);
+  --background-100: oklch(99.2% 0.002 260);
+  --background-200: oklch(94.8% 0.004 260);
+  --foreground: oklch(19% 0.012 260);
 
-  --surface: oklch(94% 0.008 90);
-  --surface2: oklch(0.97 0 0);
-  --surface-hover: oklch(91% 0.01 90);
+  --surface: oklch(95.8% 0.004 260);
+  --surface2: oklch(93.4% 0.005 260);
+  --surface-hover: oklch(92.6% 0.006 260);
 
   /* --foreground carried as alpha - keep the three in step when retuning ink. */
-  --border: oklch(20% 0.02 265 / 0.12);
-  --border-hover: oklch(20% 0.02 265 / 0.22);
+  --border: oklch(19% 0.012 260 / 0.1);
+  --border-hover: oklch(19% 0.012 260 / 0.2);
 
-  --gray-100: oklch(94% 0.008 90);
-  --gray-200: oklch(90% 0.01 90);
-  --gray-600: oklch(62% 0.014 265);
-  --gray-800: oklch(44% 0.018 265);
-  --gray-900: oklch(32% 0.02 265);
-  --gray-1000: oklch(20% 0.02 265);
+  --gray-100: oklch(95.8% 0.004 260);
+  --gray-200: oklch(91% 0.006 260);
+  --gray-600: oklch(60% 0.01 260);
+  --gray-800: oklch(42% 0.012 260);
+  --gray-900: oklch(30% 0.012 260);
+  --gray-1000: oklch(19% 0.012 260);
 
-  --text-secondary: oklch(42% 0.018 265);
-  --text-tertiary: oklch(54% 0.016 265);
-  --text-muted: oklch(64% 0.014 265);
+  --text-secondary: oklch(40% 0.012 260);
+  --text-tertiary: oklch(49% 0.011 260);
+  --text-muted: oklch(55% 0.01 260);
 
-  /* Vermilion. Called --brand rather than --accent because .shadcn-scope
-     re-points --accent at a neutral tint: --brand is the brand everywhere,
-     that subtree included. Reach for it (or brand-* utilities) when you mean
-     the colour, and for --accent when you mean "the accent of this scope". */
-  --brand: oklch(54% 0.216 27);
-  --brand-hover: oklch(60% 0.212 26.03);
-  --brand-secondary: oklch(67% 0.19 45);
-  --brand-tertiary: oklch(80% 0.15 78);
+  /* Cobalt. Called --brand rather than --accent so "the brand" and "this
+     scope's accent" stay separable names, even though today they agree. */
+  --brand: oklch(53% 0.215 264);
+  --brand-hover: oklch(48% 0.215 265);
+  --brand-secondary: oklch(70% 0.14 232);
+  --brand-tertiary: oklch(84% 0.09 205);
+  --brand-foreground: oklch(98.5% 0.004 260);
 
-  --success: oklch(58% 0.15 149.482);
-  --warning: oklch(66.597% 0.15768 58.06);
-  --destructive: oklch(57.677% 0.21482 27.53);
+  --success: oklch(56% 0.14 155);
+  --warning: oklch(66% 0.15 65);
+  --destructive: oklch(56% 0.2 25);
 
   --code-bg: var(--background-100);
 
-  --shadow-card-val: 0 0 0 1px oklch(20% 0.02 265 / 0.06);
-  --shadow-subtle-val: 0 1px 2px oklch(20% 0.02 265 / 0.05);
+  --shadow-card-val: 0 0 0 1px oklch(19% 0.012 260 / 0.06);
+  --shadow-subtle-val: 0 1px 2px oklch(19% 0.03 260 / 0.06);
   --shadow-elevated-val:
-    0 12px 40px -12px oklch(20% 0.02 265 / 0.18),
-    0 0 0 1px oklch(20% 0.02 265 / 0.05);
+    0 16px 48px -16px oklch(25% 0.06 264 / 0.22),
+    0 0 0 1px oklch(19% 0.012 260 / 0.05);
+  /* A setting pressed into the page: dark lip on top, light catch below. */
+  --shadow-inlay-val:
+    inset 0 1px 2px oklch(19% 0.03 260 / 0.1),
+    inset 0 0 0 1px oklch(19% 0.012 260 / 0.07),
+    0 1px 0 oklch(100% 0 0 / 0.9);
 }
 
-/* ── 1 · Palette · dark (cool navy ground + warm off-white ink) ──────────── */
+/* ── 1 · Palette · dark (graphite ground + cool bone ink) ────────────────── */
 .dark {
-  --background: oklch(13% 0.016 265);
-  --background-100: oklch(15% 0.017 265);
-  --background-200: oklch(17.5% 0.018 265);
-  --foreground: oklch(92% 0.008 90);
+  --background: oklch(15.2% 0.006 260);
+  --background-100: oklch(17.2% 0.007 260);
+  --background-200: oklch(19.6% 0.008 260);
+  --foreground: oklch(95.5% 0.003 260);
 
-  --surface: oklch(16.5% 0.018 265);
-  --surface2: oklch(0.1957 0 0);
-  --surface-hover: oklch(20.5% 0.02 265);
+  --surface: oklch(18.2% 0.007 260);
+  --surface2: oklch(22% 0.008 260);
+  --surface-hover: oklch(22.6% 0.009 260);
 
-  --border: oklch(92% 0.008 90 / 0.12);
-  --border-hover: oklch(92% 0.008 90 / 0.22);
+  --border: oklch(95.5% 0.003 260 / 0.09);
+  --border-hover: oklch(95.5% 0.003 260 / 0.18);
 
-  --gray-100: oklch(20.5% 0.02 265);
-  --gray-200: oklch(26% 0.02 265);
-  --gray-600: oklch(52% 0.014 265);
-  --gray-800: oklch(70% 0.012 265);
-  --gray-900: oklch(85% 0.01 90);
-  --gray-1000: oklch(96% 0.006 90);
+  --gray-100: oklch(22.6% 0.009 260);
+  --gray-200: oklch(28% 0.01 260);
+  --gray-600: oklch(55% 0.01 260);
+  --gray-800: oklch(72% 0.008 260);
+  --gray-900: oklch(86% 0.005 260);
+  --gray-1000: oklch(95.5% 0.003 260);
 
-  --text-secondary: oklch(70% 0.012 265);
-  --text-tertiary: oklch(56% 0.013 265);
-  --text-muted: oklch(46% 0.014 265);
+  --text-secondary: oklch(77% 0.006 260);
+  --text-tertiary: oklch(66% 0.008 260);
+  --text-muted: oklch(58% 0.009 260);
 
-  --brand: oklch(64% 0.201 26.03);
-  --brand-hover: oklch(70% 0.19 27);
-  --brand-secondary: oklch(70% 0.185 45);
-  --brand-tertiary: oklch(82% 0.15 80);
+  /* Lighter cobalt, so it holds contrast on graphite; ink flips dark on it. */
+  --brand: oklch(68% 0.175 262);
+  --brand-hover: oklch(73% 0.155 262);
+  --brand-secondary: oklch(76% 0.12 232);
+  --brand-tertiary: oklch(86% 0.08 205);
+  --brand-foreground: oklch(15.2% 0.02 264);
 
-  --success: oklch(76% 0.16 151.736);
-  --warning: oklch(83.685% 0.16435 84.431);
-  --destructive: oklch(64% 0.201 26.03);
+  --success: oklch(74% 0.15 155);
+  --warning: oklch(80% 0.15 75);
+  --destructive: oklch(66% 0.19 25);
 
   --code-bg: var(--background-200);
 
-  --shadow-card-val: 0 0 0 1px oklch(92% 0.008 90 / 0.06);
+  --shadow-card-val: 0 0 0 1px oklch(95.5% 0.003 260 / 0.06);
   --shadow-subtle-val: 0 1px 2px oklch(0% 0 0 / 0.4);
   --shadow-elevated-val:
-    0 12px 44px -12px oklch(0% 0 0 / 0.6), 0 0 0 1px oklch(92% 0.008 90 / 0.05);
+    0 16px 48px -16px oklch(0% 0 0 / 0.65),
+    0 0 0 1px oklch(95.5% 0.003 260 / 0.05);
+  --shadow-inlay-val:
+    inset 0 2px 4px oklch(0% 0 0 / 0.55),
+    inset 0 0 0 1px oklch(95.5% 0.003 260 / 0.05),
+    0 1px 0 oklch(95.5% 0.003 260 / 0.06);
 }
 
 /* ── 1 · Palette · the same in both themes ──────────────────────────────── */
 :root {
-  /* Ink for anything sitting on the brand colour, in either theme. */
-  --brand-foreground: oklch(96% 0.006 90);
-
   /* The terminal panel stays dark in light mode, the way code blocks do. */
-  --terminal: oklch(15% 0.016 265);
-  --terminal-foreground: oklch(90% 0.008 90);
-  --terminal-muted: oklch(60% 0.013 265);
+  --terminal: oklch(16% 0.008 260);
+  --terminal-foreground: oklch(92% 0.004 260);
+  --terminal-muted: oklch(62% 0.01 260);
 }
 
 /* ── 2 · Roles ──────────────────────────────────────────────────────────────
@@ -142,8 +152,7 @@
   --warning-foreground: var(--brand-foreground);
   --destructive-foreground: var(--brand-foreground);
 
-  /* shadcn-compatible names, aliased onto Devigner tokens so the site looks
-     the same site-wide; .shadcn-scope below replaces them wholesale. */
+  /* shadcn-compatible names, aliased onto Devigner tokens. */
   --card: var(--surface);
   --card-foreground: var(--foreground);
   --popover: var(--background-100);
@@ -160,8 +169,8 @@
 
 /* ── 3 · Tailwind mapping ────────────────────────────────────────────────────
    `inline` keeps the var() reference in the generated utility, so a utility
-   follows whichever palette its element sits under - including .shadcn-scope
-   - with no rebuild. Add a token here only after it exists above. */
+   follows whichever palette its element sits under with no rebuild. Add a
+   token here only after it exists above. */
 @theme inline {
   /* Ground and ink */
   --color-background: var(--background);
@@ -191,14 +200,14 @@
   --color-text-muted: var(--text-muted);
   --color-text-on-dark: var(--text-on-dark);
 
-  /* Brand - always vermilion, in every scope */
+  /* Brand - cobalt */
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-tertiary: var(--brand-tertiary);
   --color-brand-foreground: var(--brand-foreground);
 
-  /* Accent - the brand at :root, shadcn's neutral tint inside .shadcn-scope */
+  /* Accent - the brand, under its role name */
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-hover: var(--accent-hover);
@@ -233,8 +242,9 @@
   --color-ring: var(--ring);
   --radius: 0.625rem;
 
-  /* Typography - Clash Display (headlines) + Geist (body/mono) */
-  --font-display: var(--font-sans);
+  /* Typography - Cabinet Grotesk (headlines) + Geist (body/mono) */
+  --font-display:
+    "Cabinet Grotesk", var(--font-geist-sans), system-ui, sans-serif;
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
@@ -255,76 +265,12 @@
   --shadow-card: var(--shadow-card-val);
   --shadow-subtle: var(--shadow-subtle-val);
   --shadow-elevated: var(--shadow-elevated-val);
+  --shadow-inlay: var(--shadow-inlay-val);
 
   /* Easing - keep in sync with the motion tokens in packages/ui/src/lib/easing.ts */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-/* ── shadcn palette · the /components subtree ────────────────────────────────
-   Applied by apps/docs/app/components/layout.tsx. Values are shadcn's own
-   defaults; several of its neutrals share one colour, so each is written once
-   and the rest alias it. Mind the one trap: --accent here is shadcn's neutral
-   hover tint, not the brand - use brand-* utilities for vermilion inside this
-   subtree. */
-.shadcn-scope {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-
-  --card: var(--background);
-  --card-foreground: var(--foreground);
-  --popover: var(--background);
-  --popover-foreground: var(--foreground);
-  --secondary-foreground: var(--primary);
-  --muted: var(--secondary);
-  --accent: var(--secondary);
-  --accent-foreground: var(--primary);
-  --destructive-foreground: var(--primary-foreground);
-  --input: var(--border);
-
-  /* Devigner names this palette also has to answer to */
-  --background-100: var(--background);
-  --background-200: var(--secondary);
-  --surface: var(--secondary);
-  --surface-hover: var(--secondary);
-  --border-hover: var(--border);
-}
-
-.dark .shadcn-scope {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --primary: oklch(0.922 0 0);
-  --secondary: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-
-  --card-foreground: var(--foreground);
-  --popover: var(--card);
-  --popover-foreground: var(--foreground);
-  --primary-foreground: var(--card);
-  --secondary-foreground: var(--foreground);
-  --muted: var(--secondary);
-  --accent: var(--secondary);
-  --accent-foreground: var(--foreground);
-  --destructive-foreground: var(--background);
-
-  --background-100: var(--card);
-  --background-200: var(--secondary);
-  --surface: var(--secondary);
-  --surface-hover: var(--secondary);
-  --border-hover: var(--border);
 }
 
 body {
@@ -379,57 +325,10 @@ html.lenis body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ─── Glass card ─── */
-.glass-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-card);
-}
-
-.dark .glass-card {
-  background: oklch(100% 0 0 / 0.03);
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.04);
-}
-
-/* ─── Double-bezel architecture ─── */
-.double-bezel {
-  padding: 5px;
-  border-radius: 20px;
-  background: var(--background-200);
-  border: 1px solid var(--border);
-}
-
-.dark .double-bezel {
-  background: oklch(100% 0 0 / 0.03);
-}
-
-.double-bezel-inner {
-  border-radius: 15px;
-  background: var(--background);
-  border: 1px solid var(--border);
-}
-
-.dark .double-bezel-inner {
-  border-color: oklch(100% 0 0 / 0.04);
-}
-
 /* ─── Floating pill navbar ─── */
 .nav-pill {
   backdrop-filter: blur(24px) saturate(1.8);
   -webkit-backdrop-filter: blur(24px) saturate(1.8);
-}
-
-/* ─── Text gradient ─── */
-.text-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--accent) 0%,
-    var(--accent-secondary) 50%,
-    var(--accent-tertiary) 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 /* ─── Mesh gradient background ─── */
@@ -471,41 +370,6 @@ html.lenis body {
     );
 }
 
-/* ─── Horizontal scroll strip ─── */
-.scroll-strip {
-  display: flex;
-  gap: 1rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding: 1.5rem 0;
-}
-
-.scroll-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.scroll-strip > * {
-  scroll-snap-align: start;
-  flex-shrink: 0;
-}
-
-/* ─── Editorial section divider ─── */
-.section-editorial {
-  position: relative;
-}
-
-.section-editorial::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-}
-
 /* ─── Terminal caret ─── */
 @keyframes caret-blink {
   0%,
@@ -520,12 +384,6 @@ html.lenis body {
 
 .caret-blink {
   animation: caret-blink 1.1s steps(1) infinite;
-}
-
-/* ─── Perspective depth ─── */
-.perspective-depth {
-  perspective: 1200px;
-  transform-style: preserve-3d;
 }
 
 /* ─── Code blocks (shiki) - dual theme via --shiki-light/--shiki-dark vars ─── */
@@ -626,4 +484,39 @@ html.lenis body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ─── Instrument grid ─── the measuring-paper ground behind live stages and
+   the spring scope. Lines are the border token, so both themes carry it;
+   the mask fades it out toward the edges so it reads as depth, not a table. */
+.instrument-grid {
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Faint cobalt pool, the one decorative light source on the page. */
+.brand-glow {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--brand) 16%, transparent),
+    transparent
+  );
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Soft light from above the page, in the ink colour, so it reads as a lamp in
+   both themes instead of a coloured glow. */
+.top-light {
+  background: radial-gradient(
+    ellipse 60% 55% at 50% -8%,
+    color-mix(in oklab, var(--foreground) 7%, transparent),
+    transparent 70%
+  );
 }
