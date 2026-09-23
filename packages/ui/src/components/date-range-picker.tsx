@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "cn";
 import { IconChevronLeft, IconChevronRight } from "@devigner-ui/icons";
-import { SPRING_LAYOUT, SPRING_PRESS } from "../lib/easing";
+import { SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "../lib/easing";
 import { useControllableState } from "../lib/hooks/use-controllable-state";
 import { useHoverCapable } from "../lib/hooks/use-hover-capable";
 import {
@@ -257,11 +257,30 @@ export function DateRangePicker({
     ? `${startLabel} ${formatFullDate(value.start)}, ${endLabel.toLowerCase()} ${formatFullDate(value.end)}, ${nightsBetween(value.start, value.end)} nights`
     : "";
 
+  const [activePresetId, setActivePresetId] = React.useState<string | null>(null);
+
+  const applyPreset = (preset: DateRangePreset) => {
+    const anchor = value?.start ?? pendingStart ?? today;
+    setValue(preset.getRange(anchor));
+    setPendingStart(null);
+    setHoverDate(null);
+    setActivePresetId(preset.id);
+  };
+
+  const handleClear = () => {
+    setValue(null);
+    setPendingStart(null);
+    setHoverDate(null);
+    setActivePresetId(null);
+    onClear?.();
+  };
+
   const handleDayClick = (date: Date) => {
     if (isDisabled(date)) return;
     if (pendingStart === null) {
       if (value !== null) setValue(null);
       setPendingStart(date);
+      setActivePresetId(null);
       return;
     }
     const chronological =
@@ -272,6 +291,7 @@ export function DateRangePicker({
     setValue({ start: chronological.start, end });
     setPendingStart(null);
     setHoverDate(null);
+    setActivePresetId(null);
   };
 
   const previewEnd =
@@ -323,24 +343,40 @@ export function DateRangePicker({
       )}
       {...rest}
     >
-      <div className={cn("flex items-center justify-between gap-6 border-b border-border pb-4", classNames?.header)}>
-        <div>
-          <div className={cn("text-xs font-medium tracking-wide text-text-tertiary uppercase", classNames?.label)}>
-            {startLabel}
+      <div className={cn("flex items-center justify-between gap-3", classNames?.header)}>
+        <div className="flex items-center gap-6 border-b border-border pb-4">
+          <div>
+            <div className={cn("text-xs font-medium tracking-wide text-text-tertiary uppercase", classNames?.label)}>
+              {startLabel}
+            </div>
+            <div className="text-lg font-semibold text-foreground">
+              {value ? formatShortDate(value.start) : "Add date"}
+            </div>
           </div>
-          <div className="text-lg font-semibold text-foreground">
-            {value ? formatShortDate(value.start) : "Add date"}
+          <div className="h-8 w-px bg-border" />
+          <div>
+            <div className={cn("text-xs font-medium tracking-wide text-text-tertiary uppercase", classNames?.label)}>
+              {endLabel}
+            </div>
+            <div className="text-lg font-semibold text-foreground">
+              {value ? formatShortDate(value.end) : "Add date"}
+            </div>
           </div>
         </div>
-        <div className="h-8 w-px bg-border" />
-        <div>
-          <div className={cn("text-xs font-medium tracking-wide text-text-tertiary uppercase", classNames?.label)}>
-            {endLabel}
-          </div>
-          <div className="text-lg font-semibold text-foreground">
-            {value ? formatShortDate(value.end) : "Add date"}
-          </div>
-        </div>
+        {renderBadge && (
+          <motion.div
+            key={value ? `${value.start.getTime()}-${value.end.getTime()}` : "empty"}
+            initial={reduced ? false : { opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduced ? { duration: 0 } : SPRING_SWAP}
+            className={cn(
+              "rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent-foreground",
+              classNames?.badge,
+            )}
+          >
+            {renderBadge(value)}
+          </motion.div>
+        )}
       </div>
 
       <div className="flex items-center justify-between pt-4 pb-2">
@@ -402,6 +438,47 @@ export function DateRangePicker({
           </div>
         ))}
       </div>
+
+      {(presets?.length || onClear) && (
+        <div className={cn("flex items-center justify-between gap-2 pt-4", classNames?.presets)}>
+          <div className="flex flex-wrap gap-2">
+            {presets?.map((preset) => {
+              const active = activePresetId === preset.id;
+              return (
+                <motion.button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={active}
+                  whileTap={{ scale: 0.96 }}
+                  transition={SPRING_PRESS}
+                  onClick={() => applyPreset(preset)}
+                  className={cn(
+                    "relative rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors",
+                    active
+                      ? "border-transparent bg-accent text-accent-foreground"
+                      : "text-text-secondary hover:bg-surface-hover",
+                    classNames?.presetButton,
+                  )}
+                >
+                  {preset.label}
+                </motion.button>
+              );
+            })}
+          </div>
+          {onClear && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className={cn(
+                "cursor-pointer text-xs font-medium text-text-tertiary transition-colors hover:text-foreground",
+                classNames?.clearButton,
+              )}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
 
       <div aria-live="polite" className="sr-only">
         {liveMessage}

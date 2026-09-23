@@ -22,6 +22,12 @@ beforeAll(() => {
 
 afterEach(cleanup);
 
+function addDaysForTest(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
 describe("DateRangePicker", () => {
   it("renders the visible month and its in-month days", () => {
     render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
@@ -265,5 +271,56 @@ describe("DateRangePicker", () => {
     expect(screen.getByText("February 2026")).toBeTruthy();
     const feb1 = screen.getByRole("gridcell", { name: "1" }).querySelector("button")!;
     expect(document.activeElement).toBe(feb1);
+  });
+
+  it("applies a preset's range and highlights the active preset", () => {
+    const onValueChange = vi.fn();
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 6) }}
+        onValueChange={onValueChange}
+        presets={[
+          {
+            id: "week",
+            label: "1 week",
+            getRange: (anchor) => ({ start: anchor, end: addDaysForTest(anchor, 7) }),
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "1 week" }));
+    const [range] = onValueChange.mock.calls.at(-1)!;
+    expect(range.end.getDate()).toBe(11);
+    expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+  });
+
+  it("renders a badge via renderBadge and updates it with the range", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 25) }}
+        renderBadge={(range) => (range ? `${range.start.getDate()}-${range.end.getDate()}` : "Add dates")}
+      />,
+    );
+    expect(screen.getByText("4-25")).toBeTruthy();
+  });
+
+  it("clears the range via onClear", () => {
+    const onValueChange = vi.fn();
+    const onClear = vi.fn();
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 25) }}
+        onValueChange={onValueChange}
+        onClear={onClear}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(onValueChange).toHaveBeenCalledWith(null);
   });
 });
