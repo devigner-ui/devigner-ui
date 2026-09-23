@@ -323,4 +323,50 @@ describe("DateRangePicker", () => {
     expect(onClear).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(null);
   });
+
+  it("does not highlight a preset when a controlled parent ignores the change", () => {
+    const fixedValue = { start: new Date(2026, 8, 4), end: new Date(2026, 8, 6) };
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        value={fixedValue}
+        onValueChange={() => {}}
+        presets={[
+          {
+            id: "week",
+            label: "1 week",
+            getRange: (anchor) => ({ start: anchor, end: addDaysForTest(anchor, 7) }),
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "1 week" }));
+    expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
+      "false",
+    );
+  });
+
+  it("clears the active preset highlight after a manual day pick", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 6) }}
+        presets={[
+          {
+            id: "week",
+            label: "1 week",
+            getRange: (anchor) => ({ start: anchor, end: addDaysForTest(anchor, 7) }),
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "1 week" }));
+    expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    fireEvent.click(screen.getByRole("gridcell", { name: "20" }).querySelector("button")!);
+    expect(screen.getByRole("button", { name: "1 week" }).getAttribute("aria-pressed")).toBe(
+      "false",
+    );
+  });
 });

@@ -257,21 +257,28 @@ export function DateRangePicker({
     ? `${startLabel} ${formatFullDate(value.start)}, ${endLabel.toLowerCase()} ${formatFullDate(value.end)}, ${nightsBetween(value.start, value.end)} nights`
     : "";
 
-  const [activePresetId, setActivePresetId] = React.useState<string | null>(null);
+  // Tracks which preset was last applied and the exact range it produced, so
+  // the highlight only shows while `value` still matches that range. A
+  // controlled parent that ignores onValueChange, or later sets `value` to
+  // something else, must not leave a stale preset highlighted.
+  const [activePreset, setActivePreset] = React.useState<{ id: string; range: DateRange } | null>(
+    null,
+  );
 
   const applyPreset = (preset: DateRangePreset) => {
     const anchor = value?.start ?? pendingStart ?? today;
-    setValue(preset.getRange(anchor));
+    const range = preset.getRange(anchor);
+    setValue(range);
     setPendingStart(null);
     setHoverDate(null);
-    setActivePresetId(preset.id);
+    setActivePreset({ id: preset.id, range });
   };
 
   const handleClear = () => {
     setValue(null);
     setPendingStart(null);
     setHoverDate(null);
-    setActivePresetId(null);
+    setActivePreset(null);
     onClear?.();
   };
 
@@ -280,7 +287,7 @@ export function DateRangePicker({
     if (pendingStart === null) {
       if (value !== null) setValue(null);
       setPendingStart(date);
-      setActivePresetId(null);
+      setActivePreset(null);
       return;
     }
     const chronological =
@@ -291,7 +298,7 @@ export function DateRangePicker({
     setValue({ start: chronological.start, end });
     setPendingStart(null);
     setHoverDate(null);
-    setActivePresetId(null);
+    setActivePreset(null);
   };
 
   const previewEnd =
@@ -343,8 +350,13 @@ export function DateRangePicker({
       )}
       {...rest}
     >
-      <div className={cn("flex items-center justify-between gap-3", classNames?.header)}>
-        <div className="flex items-center gap-6 border-b border-border pb-4">
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 border-b border-border pb-4",
+          classNames?.header,
+        )}
+      >
+        <div className="flex items-center gap-6">
           <div>
             <div className={cn("text-xs font-medium tracking-wide text-text-tertiary uppercase", classNames?.label)}>
               {startLabel}
@@ -370,7 +382,7 @@ export function DateRangePicker({
             animate={{ opacity: 1, y: 0 }}
             transition={reduced ? { duration: 0 } : SPRING_SWAP}
             className={cn(
-              "rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent-foreground",
+              "rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent",
               classNames?.badge,
             )}
           >
@@ -443,7 +455,12 @@ export function DateRangePicker({
         <div className={cn("flex items-center justify-between gap-2 pt-4", classNames?.presets)}>
           <div className="flex flex-wrap gap-2">
             {presets?.map((preset) => {
-              const active = activePresetId === preset.id;
+              const active =
+                !!value &&
+                !!activePreset &&
+                activePreset.id === preset.id &&
+                isSameDay(value.start, activePreset.range.start) &&
+                isSameDay(value.end, activePreset.range.end);
               return (
                 <motion.button
                   key={preset.id}
