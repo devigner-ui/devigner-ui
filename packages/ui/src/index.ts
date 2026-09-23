@@ -24,3 +24,11 @@ export {
 export { Toaster, type ToasterProps } from "./components/notch";
 export { toast, type NotchOptions } from "./lib/notch-store";
 export type { NotchStatus, NotchRecord } from "./lib/notch-queue";
+export {
+  DateRangePicker,
+  type DateRangePickerProps,
+  type DateRange,
+  type DateRangePreset,
+  type DateRangePickerClassNames,
+  type DateRangePickerSlotProps,
+} from "./components/date-range-picker";
