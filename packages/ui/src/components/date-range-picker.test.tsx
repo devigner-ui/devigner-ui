@@ -189,4 +189,81 @@ describe("DateRangePicker", () => {
     const day6 = screen.getByRole("gridcell", { name: "6" }).querySelector("button")!;
     expect(document.activeElement).toBe(day6);
   });
+
+  it("moves focus by one week with ArrowDown and ArrowUp", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    const day4 = screen.getByRole("gridcell", { name: "4" }).querySelector("button")!;
+    day4.focus();
+    fireEvent.keyDown(day4, { key: "ArrowDown" });
+    const day11 = screen.getByRole("gridcell", { name: "11" }).querySelector("button")!;
+    expect(document.activeElement).toBe(day11);
+
+    fireEvent.keyDown(day11, { key: "ArrowUp" });
+    expect(document.activeElement).toBe(day4);
+  });
+
+  it("moves focus to the week's Monday with Home and Sunday with End", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    // September 10, 2026 is a Thursday; its week runs Monday the 7th to Sunday the 13th.
+    const day10 = screen.getByRole("gridcell", { name: "10" }).querySelector("button")!;
+    day10.focus();
+    fireEvent.keyDown(day10, { key: "Home" });
+    const day7 = screen.getByRole("gridcell", { name: "7" }).querySelector("button")!;
+    expect(document.activeElement).toBe(day7);
+
+    day10.focus();
+    fireEvent.keyDown(day10, { key: "End" });
+    const day13 = screen.getByRole("gridcell", { name: "13" }).querySelector("button")!;
+    expect(document.activeElement).toBe(day13);
+  });
+
+  it("crosses the month boundary with ArrowRight and ArrowLeft", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    const day30 = screen.getByRole("gridcell", { name: "30" }).querySelector("button")!;
+    day30.focus();
+    fireEvent.keyDown(day30, { key: "ArrowRight" });
+    expect(screen.getByText("October 2026")).toBeTruthy();
+    const oct1 = screen.getByRole("gridcell", { name: "1" }).querySelector("button")!;
+    expect(document.activeElement).toBe(oct1);
+
+    fireEvent.keyDown(oct1, { key: "ArrowLeft" });
+    expect(screen.getByText("September 2026")).toBeTruthy();
+    const sept30 = screen.getByRole("gridcell", { name: "30" }).querySelector("button")!;
+    expect(document.activeElement).toBe(sept30);
+  });
+
+  it("moves to the next month with PageDown, keeping the day of month", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    const day15 = screen.getByRole("gridcell", { name: "15" }).querySelector("button")!;
+    day15.focus();
+    fireEvent.keyDown(day15, { key: "PageDown" });
+    expect(screen.getByText("October 2026")).toBeTruthy();
+    const newDay15 = screen.getByRole("gridcell", { name: "15" }).querySelector("button")!;
+    expect(document.activeElement).toBe(newDay15);
+  });
+
+  it("clamps PageDown to the last day of a shorter month", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 0, 1)} />);
+    const day31 = screen.getByRole("gridcell", { name: "31" }).querySelector("button")!;
+    day31.focus();
+    fireEvent.keyDown(day31, { key: "PageDown" });
+    expect(screen.getByText("February 2026")).toBeTruthy();
+    const day28 = screen.getByRole("gridcell", { name: "28" }).querySelector("button")!;
+    expect(document.activeElement).toBe(day28);
+  });
+
+  it("falls back to the first enabled day when PageDown lands on a disabled day", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 0, 1)}
+        isDateDisabled={(d) => d.getMonth() === 1 && d.getDate() === 15}
+      />,
+    );
+    const day15 = screen.getByRole("gridcell", { name: "15" }).querySelector("button")!;
+    day15.focus();
+    fireEvent.keyDown(day15, { key: "PageDown" });
+    expect(screen.getByText("February 2026")).toBeTruthy();
+    const feb1 = screen.getByRole("gridcell", { name: "1" }).querySelector("button")!;
+    expect(document.activeElement).toBe(feb1);
+  });
 });
