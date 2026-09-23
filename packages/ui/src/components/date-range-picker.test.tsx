@@ -134,4 +134,59 @@ describe("DateRangePicker", () => {
     fireEvent.click(screen.getByRole("gridcell", { name: "4" }).querySelector("button")!);
     expect(onValueChange).not.toHaveBeenCalled();
   });
+
+  it("moves focus with arrow keys and selects with Enter", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    const day4 = screen.getByRole("gridcell", { name: "4" }).querySelector("button")!;
+    day4.focus();
+    fireEvent.keyDown(day4, { key: "ArrowRight" });
+    const day5 = screen.getByRole("gridcell", { name: "5" }).querySelector("button")!;
+    expect(document.activeElement).toBe(day5);
+    fireEvent.keyDown(day5, { key: "Enter" });
+    expect(screen.getByRole("gridcell", { name: "5" }).getAttribute("aria-selected")).toBe(
+      "true",
+    );
+  });
+
+  it("announces the committed range in a live region", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        defaultValue={{ start: new Date(2026, 8, 4), end: new Date(2026, 8, 25) }}
+      />,
+    );
+    expect(
+      screen.getByText(/Check-in September 4, check-out September 25, 21 nights/),
+    ).toBeTruthy();
+  });
+
+  it("does not move focus off the page when the picker first renders", () => {
+    render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("makes exactly one day button tabbable when today is outside the visible month", () => {
+    render(<DateRangePicker defaultMonth={new Date(2020, 0, 1)} />);
+    const buttons = screen.getAllByRole("gridcell").flatMap((cell) => {
+      const button = cell.querySelector("button");
+      return button ? [button] : [];
+    });
+    const tabbable = buttons.filter((button) => button.tabIndex === 0);
+    expect(tabbable.length).toBe(1);
+    expect(tabbable[0]?.textContent).toBe("1");
+  });
+
+  it("skips a disabled day when arrowing to it", () => {
+    render(
+      <DateRangePicker
+        defaultMonth={new Date(2026, 8, 1)}
+        isDateDisabled={(d) => d.getDate() === 5}
+      />,
+    );
+    const day4 = screen.getByRole("gridcell", { name: "4" }).querySelector("button")!;
+    day4.focus();
+    fireEvent.keyDown(day4, { key: "ArrowRight" });
+    const day6 = screen.getByRole("gridcell", { name: "6" }).querySelector("button")!;
+    expect(document.activeElement).toBe(day6);
+  });
 });

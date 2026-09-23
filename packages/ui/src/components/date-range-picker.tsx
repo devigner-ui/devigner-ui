@@ -8,12 +8,14 @@ import { SPRING_LAYOUT, SPRING_PRESS } from "../lib/easing";
 import { useControllableState } from "../lib/hooks/use-controllable-state";
 import { useHoverCapable } from "../lib/hooks/use-hover-capable";
 import {
+  addDays,
   addMonths,
   clampRangeEnd,
   compareDays,
   getMonthGrid,
   isSameDay,
   isWithinRange,
+  nightsBetween,
   startOfDay,
   startOfMonth,
   type MonthGridDay,
@@ -26,6 +28,25 @@ const formatMonthLabel = (date: Date) =>
 
 const formatShortDate = (date: Date) =>
   date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+const formatFullDate = (date: Date) =>
+  date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+
+/** First non-disabled day of the month containing `monthAnchor`, or null if
+ *  every day in that month is disabled. Used both for the roving-tabindex
+ *  fallback and for PageUp/PageDown landing on a disabled same-day-of-month. */
+function firstEnabledDayInMonth(
+  monthAnchor: Date,
+  isDisabled: (date: Date) => boolean,
+): Date | null {
+  const first = startOfMonth(monthAnchor);
+  const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+  for (let i = 0; i < daysInMonth; i++) {
+    const candidate = addDays(first, i);
+    if (!isDisabled(candidate)) return candidate;
+  }
+  return null;
+}
 
 export interface DateRange {
   start: Date;
@@ -148,6 +169,93 @@ export function DateRangePicker({
   // Per-instance: a shared layoutId would make two pickers on one page swap
   // range highlights.
   const rangeId = React.useId();
+  const today = React.useMemo(() => startOfDay(new Date()), []);
+
+  const [focusedDate, setFocusedDate] = React.useState<Date>(() => value?.start ?? today);
+  const dayRefs = React.useRef(new Map<number, HTMLButtonElement>());
+  // ponytail: only keyboard navigation should steal DOM focus; mount and
+  // mouse/programmatic focus just update state so roving tabindex stays in
+  // sync without yanking focus around.
+  const focusFromKeyboard = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!focusFromKeyboard.current) return;
+    focusFromKeyboard.current = false;
+    dayRefs.current.get(startOfDay(focusedDate).getTime())?.focus();
+  }, [focusedDate]);
+
+  const moveFocus = (from: Date, days: number) => {
+    const direction = days < 0 ? -1 : 1;
+    let next = addDays(from, days);
+    let attempts = 0;
+    while (isDisabled(next) && attempts < 42) {
+      next = addDays(next, direction);
+      attempts++;
+    }
+    if (isDisabled(next)) return;
+    if (next.getMonth() !== month.getMonth() || next.getFullYear() !== month.getFullYear()) {
+      setMonth(startOfMonth(next));
+    }
+    focusFromKeyboard.current = true;
+    setFocusedDate(next);
+  };
+
+  const moveFocusMonths = (from: Date, months: number) => {
+    const next = addMonths(from, months);
+    const daysInMonth = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+    next.setDate(Math.min(from.getDate(), daysInMonth));
+    const target = isDisabled(next) ? firstEnabledDayInMonth(next, isDisabled) : next;
+    if (!target) return;
+    setMonth(startOfMonth(target));
+    focusFromKeyboard.current = true;
+    setFocusedDate(target);
+  };
+
+  const handleDayKeyDown = (date: Date, event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case "ArrowRight":
+        event.preventDefault();
+        moveFocus(date, 1);
+        break;
+      case "ArrowLeft":
+        event.preventDefault();
+        moveFocus(date, -1);
+        break;
+      case "ArrowDown":
+        event.preventDefault();
+        moveFocus(date, 7);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        moveFocus(date, -7);
+        break;
+      case "Home":
+        event.preventDefault();
+        moveFocus(date, -((date.getDay() + 6) % 7));
+        break;
+      case "End":
+        event.preventDefault();
+        moveFocus(date, 6 - ((date.getDay() + 6) % 7));
+        break;
+      case "PageUp":
+        event.preventDefault();
+        moveFocusMonths(date, -1);
+        break;
+      case "PageDown":
+        event.preventDefault();
+        moveFocusMonths(date, 1);
+        break;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        handleDayClick(date);
+        break;
+    }
+  };
+
+  const liveMessage = value
+    ? `${startLabel} ${formatFullDate(value.start)}, ${endLabel.toLowerCase()} ${formatFullDate(value.end)}, ${nightsBetween(value.start, value.end)} nights`
+    : "";
 
   const handleDayClick = (date: Date) => {
     if (isDisabled(date)) return;
@@ -187,7 +295,14 @@ export function DateRangePicker({
       : null;
 
   const weeks = React.useMemo(() => getMonthGrid(month), [month]);
-  const today = React.useMemo(() => startOfDay(new Date()), []);
+
+  const tabbableDate = React.useMemo(() => {
+    const focusedInVisibleMonth =
+      focusedDate.getMonth() === month.getMonth() &&
+      focusedDate.getFullYear() === month.getFullYear();
+    if (focusedInVisibleMonth && !isDisabled(focusedDate)) return focusedDate;
+    return firstEnabledDayInMonth(month, isDisabled);
+  }, [focusedDate, month, isDisabled]);
 
   const atMinMonth =
     minDate !== undefined &&
@@ -269,16 +384,27 @@ export function DateRangePicker({
                   cell.inMonth &&
                   isWithinRange(cell.date, displayRange.start, displayRange.end)
                 }
+                isFocused={!!tabbableDate && isSameDay(cell.date, tabbableDate)}
                 rangeId={rangeId}
                 reduced={!!reduced}
                 onSelect={() => handleDayClick(cell.date)}
                 onHoverStart={() => canHover && setHoverDate(cell.date)}
                 onHoverEnd={() => canHover && setHoverDate(null)}
+                onFocusDate={() => setFocusedDate(cell.date)}
+                onFocusable={(el) => {
+                  if (el) dayRefs.current.set(cell.date.getTime(), el);
+                  else dayRefs.current.delete(cell.date.getTime());
+                }}
+                onKeyDown={(event) => handleDayKeyDown(cell.date, event)}
                 className={classNames?.day}
               />
             ))}
           </div>
         ))}
+      </div>
+
+      <div aria-live="polite" className="sr-only">
+        {liveMessage}
       </div>
     </div>
   );
@@ -291,11 +417,15 @@ function DayCell({
   isStart,
   isEnd,
   inRange,
+  isFocused,
   rangeId,
   reduced,
   onSelect,
   onHoverStart,
   onHoverEnd,
+  onFocusDate,
+  onFocusable,
+  onKeyDown,
   className,
 }: {
   cell: MonthGridDay;
@@ -304,11 +434,15 @@ function DayCell({
   isStart: boolean;
   isEnd: boolean;
   inRange: boolean;
+  isFocused: boolean;
   rangeId: string;
   reduced: boolean;
   onSelect: () => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
+  onFocusDate: () => void;
+  onFocusable: (el: HTMLButtonElement | null) => void;
+  onKeyDown: (event: React.KeyboardEvent) => void;
   className?: string;
 }) {
   if (!cell.inMonth) return <div aria-hidden="true" />;
@@ -340,10 +474,13 @@ function DayCell({
         />
       )}
       <button
+        ref={onFocusable}
         type="button"
-        tabIndex={-1}
+        tabIndex={isFocused ? 0 : -1}
         disabled={disabled}
         onClick={onSelect}
+        onFocus={onFocusDate}
+        onKeyDown={onKeyDown}
         className={cn(
           "relative z-10 grid size-8 cursor-pointer place-items-center rounded-full text-sm transition-colors",
           disabled
