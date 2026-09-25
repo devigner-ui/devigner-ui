@@ -7,11 +7,12 @@ import {
   createContext,
   useContext,
   useCallback,
+  useId,
 } from "react";
 
 type Theme = "light" | "dark";
 
-/** Screen-space point the circle-blur reveal expands from. Omit it and the
+/** Screen-space point the circle reveal expands from. Omit it and the
  *  reveal starts from the viewport centre instead of a specific control. */
 type Origin = { x: number; y: number };
 
@@ -29,7 +30,7 @@ type DocumentWithViewTransition = Document & {
 };
 
 const THEME_VT_STYLE_ID = "devignerui-theme-vt-style";
-const THEME_VT_ATTR = "circle-blur";
+const THEME_VT_ATTR = "circle";
 
 /** Injected once, globally: the actual reveal animation. Runs as a native
  *  View Transition rather than a Motion spring - Motion animates React's
@@ -49,11 +50,9 @@ html[data-theme-vt="${THEME_VT_ATTR}"]::view-transition-new(root) {
 @keyframes devignerui-theme-vt-reveal {
   from {
     clip-path: circle(0% at var(--theme-vt-x, 50%) var(--theme-vt-y, 50%));
-    filter: blur(8px);
   }
   to {
     clip-path: circle(150% at var(--theme-vt-x, 50%) var(--theme-vt-y, 50%));
-    filter: blur(0px);
   }
 }
 `;
@@ -67,7 +66,8 @@ function injectThemeTransitionStyle() {
 }
 
 /** Runs `apply` (the actual theme flip) inside a View Transition that reveals
- *  the new theme through a blurred circle expanding from `origin`. Falls
+ *  the new theme through a circle expanding from `origin`. No blur: it
+ *  smeared the toggle's own sun-to-moon animation. Falls
  *  back to an instant, unanimated swap when the browser has no View
  *  Transitions support or the user has asked for reduced motion - there is
  *  no fallback animation to design for either case, just no animation. */
@@ -192,38 +192,62 @@ export function ThemeToggle() {
           rect && { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
         );
       }}
-      className="relative inline-flex size-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-surface-hover"
+      data-dark={theme === "dark"}
+      className="group relative cursor-pointer inline-flex size-9 items-center justify-center rounded-full border border-border text-foreground transition-colors duration-200 ease-out hover:bg-surface-hover"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
-      {theme === "dark" ? (
-        <svg
-          className="size-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="2"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
-          />
-        </svg>
-      ) : (
-        <svg
-          className="size-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="2"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
-          />
-        </svg>
-      )}
+      <ThemeIcon />
     </button>
+  );
+}
+
+// Sun to moon (the toggles.dev "Spin" toggle), keyed off the button's
+// data-dark instead of a dark: variant. The core's clip path swaps shape
+// (CSS d:path, with a translate fallback where d isn't animatable) while the
+// rays spin and scale out around the centre. Timing uses the shared ease-out token.
+const RAYS = [
+  "M12 1.4v2.4",
+  "m20.3 3.7-2.5 2.5",
+  "M22.6 12h-2.4",
+  "M12 22.6v-2.4",
+  "M1.4 12h2.4",
+  "m20.3 20.3-2.5-2.5",
+  "m3.7 20.3 2.5-2.5",
+  "m3.7 3.7 2.5 2.5",
+];
+
+export function ThemeIcon() {
+  const clip = `theme-icon-${useId()}`;
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="size-4.5 [--dur:400ms]">
+      <defs>
+        <clipPath id={clip}>
+          <path
+            d="M0 0h25a1 1 0 0010 10v14H0Z"
+            className="motion-safe:transition-[d,translate] motion-safe:duration-(--dur) motion-safe:ease-out motion-safe:group-data-[dark=true]:delay-[calc(var(--dur)*0.15)] group-data-[dark=true]:[d:path('M0_2h13a1_1_0_0010_10v14H0Z')] group-data-[dark=true]:not-supports-[d:path('M0_0')]:-translate-x-3.25 group-data-[dark=true]:not-supports-[d:path('M0_0')]:translate-y-0.5"
+          />
+        </clipPath>
+      </defs>
+      <g stroke="currentColor" strokeLinecap="round">
+        <circle
+          cx={12}
+          cy={12}
+          r={5}
+          fill="currentColor"
+          clipPath={`url(#${clip})`}
+          className="origin-center motion-safe:transition-transform motion-safe:duration-(--dur) motion-safe:ease-out group-data-[dark=true]:scale-170"
+        />
+        {RAYS.map((d) => (
+          <path
+            key={d}
+            d={d}
+            fill="none"
+            strokeWidth={2}
+            strokeLinejoin="round"
+            className="origin-center transform-view motion-safe:transition-transform motion-safe:delay-[calc(var(--dur)*0.15)] motion-safe:duration-(--dur) motion-safe:ease-out motion-safe:group-data-[dark=true]:delay-0 group-data-[dark=true]:rotate-45 group-data-[dark=true]:scale-0"
+          />
+        ))}
+      </g>
+    </svg>
   );
 }

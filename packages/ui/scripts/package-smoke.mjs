@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import {
+  existsSync,
   mkdtempSync,
   mkdirSync,
   readdirSync,
@@ -47,7 +48,7 @@ try {
         type: "module",
         dependencies: {
           "@devigner-ui/icons": "3.3.0",
-          "@devignerui/ui": `file:${join(tarballDirectory, tarball)}`,
+          "devignerui": `file:${join(tarballDirectory, tarball)}`,
           gsap: "3.15.0",
           motion: "13.4.0",
           react: "19.3.0",
@@ -65,22 +66,27 @@ try {
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 
-await import("@devignerui/ui");
-await import("@devignerui/ui/motion");
-await import("@devignerui/ui/hooks");await import("@devignerui/ui/menu-path");
+await import("devignerui");
+await import("devignerui/motion");
+await import("devignerui/hooks");await import("devignerui/menu-path");
 
 const require = createRequire(import.meta.url);
-require("@devignerui/ui");
-require("@devignerui/ui/motion");
-require("@devignerui/ui/hooks");require("@devignerui/ui/menu-path");
+require("devignerui");
+require("devignerui/motion");
+require("devignerui/hooks");require("devignerui/menu-path");
 assert.ok(
-  existsSync(require.resolve("@devignerui/ui/styles.css")),
+  existsSync(require.resolve("devignerui/styles.css")),
   "stylesheet export did not resolve",
 );
 `,
   );
 
   runPnpm(["install", "--ignore-scripts"], appDirectory);
+  runPnpm(["exec", "devignerui", "--version"], appDirectory);
+  runPnpm(["exec", "devignerui", "init"], appDirectory);
+  runPnpm(["exec", "devignerui", "list"], appDirectory);
+  runPnpm(["exec", "devignerui", "add", "magnetic-button"], appDirectory);
+  assert.ok(existsSync(join(appDirectory, "components/ui/magnetic-button.tsx")));
   execFileSync(process.execPath, ["imports.mjs"], {
     cwd: appDirectory,
     stdio: "inherit",

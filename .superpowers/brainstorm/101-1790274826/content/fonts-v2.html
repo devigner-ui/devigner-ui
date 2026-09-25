@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · sans plus serif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,400..600&family=Inter+Tight:wght@500;600&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@500,600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=boska@500,501&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=gambetta@500,501&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.09); --line2: oklch(95.5% 0.003 260 / 0.16);
+    --brand: oklch(68% 0.175 262); --brand-ink: oklch(15.2% 0.02 264);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 48px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1180px; margin: 0 auto 30px; }
+  .intro h1 { font: 600 30px/1.1 "Geist"; letter-spacing: -0.035em; }
+  .intro h1 i { font: italic 500 34px "Newsreader"; letter-spacing: -0.01em; }
+  .intro p { margin-top: 10px; max-width: 840px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .list { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  .opt { cursor: pointer; border: 2px solid var(--line); border-radius: 26px; background: var(--bg); padding: 26px 34px 32px; transition: border-color .2s; }
+  .opt:hover { border-color: var(--line2); }
+  .opt.selected { border-color: var(--brand); }
+  .meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; font-size: 13px; color: var(--mut); gap: 20px; }
+  .meta b { color: var(--fg); font-weight: 500; font-size: 15px; margin-right: 10px; }
+  .rec { color: var(--brand); border: 1px solid color-mix(in oklch, var(--brand) 45%, transparent); border-radius: 99px; padding: 2px 9px; font-size: 12px; margin-left: 8px; }
+  .wm { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .wm .w { font: 800 20px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .wm .w i { font-style: normal; color: var(--brand); }
+  .wm span:last-child { font: 400 11px "Geist Mono"; color: var(--mut); }
+  .pill { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px 0 4px; border-radius: 99px; border: 1px solid var(--line2); font-size: 13px; color: var(--t2); margin-bottom: 20px; }
+  .pill em { font-style: normal; background: var(--brand); color: var(--brand-ink); border-radius: 99px; padding: 2px 8px; font-size: 11.5px; font-weight: 500; }
+  .t { font-size: 62px; line-height: 1.02; }
+  .h2 { font-size: 38px; line-height: 1.05; margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--line); }
+  .ser { font-style: italic; }
+  .t .ser.c { color: var(--brand); }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; margin-top: 18px; }
+  .s { font-size: 16px; line-height: 1.55; color: var(--t2); max-width: 520px; }
+  .btns { display: flex; gap: 8px; }
+  .btn { display: inline-flex; align-items: center; height: 40px; padding: 0 17px; border-radius: 99px; font-size: 14px; font-weight: 500; white-space: nowrap; font-family: "Geist"; }
+  .b1 { background: var(--brand); color: var(--brand-ink); }
+  .b2 { border: 1px solid var(--line2); color: var(--fg); }
+
+  .p1 .t, .p1 .h2 { font-family: "Geist"; font-weight: 600; letter-spacing: -0.05em; }
+  .p1 .ser { font-family: "Newsreader"; font-weight: 500; font-size: 1.1em; letter-spacing: -0.02em; font-variation-settings: "opsz" 72; }
+
+  .p2 .t, .p2 .h2 { font-family: "Switzer"; font-weight: 600; letter-spacing: -0.045em; }
+  .p2 .ser { font-family: "Boska"; font-weight: 500; font-size: 1.08em; letter-spacing: -0.02em; }
+
+  .p3 .t, .p3 .h2 { font-family: "General Sans"; font-weight: 600; letter-spacing: -0.04em; }
+  .p3 .ser { font-family: "Gambetta"; font-weight: 500; font-size: 1.06em; letter-spacing: -0.02em; }
+
+  .p4 .t, .p4 .h2 { font-family: "Inter Tight"; font-weight: 600; letter-spacing: -0.045em; }
+  .p4 .ser { font-family: "Cormorant Garamond"; font-weight: 600; font-size: 1.16em; letter-spacing: -0.01em; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Sans for the titles, a <i>serif</i> for the one word that matters</h1>
+  <p>The serif italic is used sparingly: "Crafted" in the hero, and at most one word in a few section titles. It's never a whole line. The logo stays Bricolage, body text stays Geist, and code stays Geist Mono. Each pairing below is free to self-host.</p>
+</div>
+
+<div class="list">
+
+  <section class="card opt p1" data-choice="geist-newsreader" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>Geist + Newsreader Italic</b>Vercel's sans with a bookish display italic<span class="rec">Recommended</span></span><span>both OFL</span></div>
+    <div class="wm"><span class="w">devigner<i>.</i></span><span>logo stays Bricolage</span></div>
+    <div class="pill"><em>New</em>Date Range Picker &rarr;</div>
+    <div class="t">Beautifully <span class="ser c">Crafted</span> React Components,<br>Built for Developers.</div>
+    <div class="foot"><p class="s">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p><div class="btns"><span class="btn b1">Browse components &rarr;</span><span class="btn b2">Get started</span></div></div>
+    <div class="h2">Two commands, then it's <span class="ser">your</span> code.</div>
+  </section>
+
+  <section class="card opt p2" data-choice="switzer-boska" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>Switzer + Boska Italic</b>Swiss sans with a sharp, high-contrast italic</span><span>both Fontshare, free commercial license</span></div>
+    <div class="wm"><span class="w">devigner<i>.</i></span><span>logo stays Bricolage</span></div>
+    <div class="pill"><em>New</em>Date Range Picker &rarr;</div>
+    <div class="t">Beautifully <span class="ser c">Crafted</span> React Components,<br>Built for Developers.</div>
+    <div class="foot"><p class="s">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p><div class="btns"><span class="btn b1">Browse components &rarr;</span><span class="btn b2">Get started</span></div></div>
+    <div class="h2">Two commands, then it's <span class="ser">your</span> code.</div>
+  </section>
+
+  <section class="card opt p3" data-choice="general-gambetta" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>General Sans + Gambetta Italic</b>Friendly grotesk with a warm, sturdy italic</span><span>both Fontshare, free commercial license</span></div>
+    <div class="wm"><span class="w">devigner<i>.</i></span><span>logo stays Bricolage</span></div>
+    <div class="pill"><em>New</em>Date Range Picker &rarr;</div>
+    <div class="t">Beautifully <span class="ser c">Crafted</span> React Components,<br>Built for Developers.</div>
+    <div class="foot"><p class="s">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p><div class="btns"><span class="btn b1">Browse components &rarr;</span><span class="btn b2">Get started</span></div></div>
+    <div class="h2">Two commands, then it's <span class="ser">your</span> code.</div>
+  </section>
+
+  <section class="card opt p4" data-choice="intertight-cormorant" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>Inter Tight + Cormorant Garamond Italic</b>Neutral tight sans with a delicate, calligraphic italic</span><span>both OFL</span></div>
+    <div class="wm"><span class="w">devigner<i>.</i></span><span>logo stays Bricolage</span></div>
+    <div class="pill"><em>New</em>Date Range Picker &rarr;</div>
+    <div class="t">Beautifully <span class="ser c">Crafted</span> React Components,<br>Built for Developers.</div>
+    <div class="foot"><p class="s">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p><div class="btns"><span class="btn b1">Browse components &rarr;</span><span class="btn b2">Get started</span></div></div>
+    <div class="h2">Two commands, then it's <span class="ser">your</span> code.</div>
+  </section>
+
+</div>
+</body>
+</html>

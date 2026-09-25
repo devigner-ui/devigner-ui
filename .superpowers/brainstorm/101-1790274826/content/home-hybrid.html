@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · A plus B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --bg1: oklch(17.2% 0.007 260); --bg2: oklch(19.6% 0.008 260); --bg3: oklch(22.6% 0.009 260);
+    --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --t3: oklch(66% 0.008 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.09); --line2: oklch(95.5% 0.003 260 / 0.16);
+    --brand: oklch(68% 0.175 262); --brand-ink: oklch(15.2% 0.02 264); --bad: oklch(66% 0.19 25);
+    --light: oklch(95.5% 0.003 260 / 0.06);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 48px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1244px; margin: 0 auto 36px; }
+  .intro h1 { font: 700 30px/1.1 "Bricolage Grotesque"; letter-spacing: -0.03em; }
+  .intro p { margin-top: 10px; max-width: 800px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .dirs { max-width: 1244px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+  .dir { cursor: pointer; border-radius: 30px; padding: 30px 30px 26px; background: var(--bg1); border: 2px solid var(--line); transition: border-color .2s; }
+  .dir:hover { border-color: var(--line2); }
+  .dir.selected { border-color: var(--brand); }
+  .dir-head { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+  .dir-letter { flex: none; display: grid; place-items: center; min-width: 38px; height: 38px; padding: 0 8px; border-radius: 99px; background: var(--fg); color: var(--bg); font-weight: 600; font-size: 14px; }
+  .dir-head h2 { font: 700 24px/1.15 "Bricolage Grotesque"; letter-spacing: -0.03em; display: flex; align-items: center; gap: 10px; }
+  .rec { font: 500 12px "Geist"; letter-spacing: 0; color: var(--brand); border: 1px solid color-mix(in oklch, var(--brand) 45%, transparent); border-radius: 99px; padding: 3px 10px; }
+  .dir-head p { margin-top: 6px; color: var(--t2); font-size: 15px; line-height: 1.55; max-width: 900px; }
+  .scroll { overflow-x: auto; border-radius: 20px; }
+  .frame { position: relative; width: 1180px; height: 760px; overflow: hidden; border-radius: 20px; background: var(--bg); border: 1px solid var(--line); }
+  .specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .specs div { font-size: 13.5px; line-height: 1.55; color: var(--t2); }
+  .specs b { display: block; font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 4px; }
+
+  .wm { font: 800 21px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .wm i { font-style: normal; color: var(--brand); }
+  .navlinks { display: flex; gap: 26px; font-size: 13.5px; color: var(--t2); align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 99px; font-size: 14px; font-weight: 500; white-space: nowrap; }
+  .btn-ink { background: var(--fg); color: var(--bg); }
+  .btn-brand { background: var(--brand); color: var(--brand-ink); }
+  .btn-sm { height: 32px; padding: 0 13px; font-size: 12.5px; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); font: 400 13px "Geist Mono"; color: var(--t2); white-space: nowrap; }
+  .chip b { color: var(--fg); font-weight: 500; }
+  .cp { width: 12px; height: 13px; border: 1.5px solid var(--mut); border-radius: 3px; box-shadow: 3px -3px 0 -1.5px var(--bg), 3px -3px 0 0 var(--mut); }
+  .h1 { font: 800 58px/0.96 "Bricolage Grotesque"; letter-spacing: -0.055em; }
+  .h1 em { font-style: normal; color: var(--brand); }
+  .sub { font-size: 16px; line-height: 1.55; color: var(--t2); }
+  .stage { background: radial-gradient(120% 70% at 50% 0%, var(--light), transparent 70%), var(--bg2); box-shadow: inset 0 2px 4px oklch(0% 0 0 / .5), inset 0 0 0 1px var(--line); }
+
+  .dock { display: flex; gap: 6px; padding: 7px; border-radius: 99px; background: var(--bg3); border: 1px solid var(--line2); box-shadow: 0 14px 30px -10px oklch(0% 0 0 / .7); }
+  .dock span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; }
+  .dock span::before { content: ""; width: 13px; height: 13px; border-radius: 4px; border: 1.8px solid var(--t2); }
+  .dock span.on { background: var(--fg); }
+  .dock span.on::before { border-color: var(--bg); border-radius: 50%; }
+  .menu { width: 190px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 6px; box-shadow: 0 20px 40px -12px oklch(0% 0 0 / .7); }
+  .menu div { height: 32px; border-radius: 11px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 12.5px; color: var(--t2); }
+  .menu div::before { content: ""; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--mut); }
+  .menu div.hi { background: oklch(95.5% 0.003 260 / .07); color: var(--fg); }
+  .cal { width: 240px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 13px; }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 9px; }
+  .cal-h span { color: var(--mut); font-weight: 400; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 0; font-size: 10px; text-align: center; color: var(--t3); }
+  .cal-g i { font-style: normal; height: 22px; display: grid; place-items: center; }
+  .cal-g i.r { background: color-mix(in oklch, var(--brand) 20%, transparent); color: var(--fg); }
+  .cal-g i.s { background: var(--brand); color: var(--brand-ink); border-radius: 8px 0 0 8px; font-weight: 600; }
+  .cal-g i.e { background: var(--brand); color: var(--brand-ink); border-radius: 0 8px 8px 0; font-weight: 600; }
+  .chart { width: 200px; border-radius: 16px; background: var(--bg3); border: 1px solid var(--line2); padding: 12px; }
+  .chart .k { font-size: 10.5px; color: var(--mut); }
+  .chart .v { font: 600 22px "Geist"; letter-spacing: -0.03em; margin: 2px 0 8px; }
+  .bars { display: flex; gap: 5px; align-items: flex-end; height: 54px; }
+  .bars i { flex: 1; border-radius: 5px; background: oklch(95.5% 0.003 260 / .1); }
+  .bars i.hi { background: repeating-linear-gradient(135deg, var(--brand) 0 3px, color-mix(in oklch, var(--brand) 60%, transparent) 3px 6px); }
+  .tl { display: flex; flex-direction: column; gap: 12px; padding-left: 16px; border-left: 1.5px solid var(--line2); font-size: 11.5px; }
+  .tl div { position: relative; color: var(--mut); }
+  .tl div::before { content: ""; position: absolute; left: -21px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--line2); }
+  .tl div.on { color: var(--fg); transform: translateX(8px); }
+  .tl div.on::before { background: var(--brand); border-color: var(--brand); left: -29px; }
+  .mag { display: inline-flex; align-items: center; height: 38px; padding: 0 18px; border-radius: 99px; background: var(--brand); color: var(--brand-ink); font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px -8px color-mix(in oklch, var(--brand) 60%, transparent); }
+  .keys { display: flex; gap: 5px; }
+  .keys span { min-width: 26px; height: 24px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--line2); border-bottom-width: 2px; font: 500 10.5px "Geist Mono"; color: var(--t2); display: grid; place-items: center; }
+  .keys span.lit { border-color: var(--brand); color: var(--brand); }
+
+  /* frames on a canvas */
+  .fr { position: absolute; }
+  .fl { font-size: 11.5px; color: var(--t3); margin-bottom: 6px; display: flex; gap: 8px; white-space: nowrap; }
+  .fl span { color: var(--mut); font-family: "Geist Mono"; font-size: 10.5px; }
+  .fb { border-radius: 14px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .sel .fb { outline: 1.5px solid var(--brand); }
+  .sel .fl { color: var(--brand); }
+  .h { position: absolute; width: 9px; height: 9px; background: var(--fg); border: 1.5px solid var(--brand); border-radius: 2px; }
+  .dim { position: absolute; left: 50%; bottom: -28px; transform: translateX(-50%); font: 500 10.5px "Geist Mono"; background: var(--brand); color: var(--brand-ink); padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+
+  /* inspector */
+  .lbl { font: 400 10.5px "Geist Mono"; color: var(--mut); margin-bottom: 7px; }
+  .seg { display: flex; padding: 3px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .seg span { flex: 1; text-align: center; font-size: 12px; height: 26px; line-height: 26px; border-radius: 7px; color: var(--mut); }
+  .seg span.on { background: var(--bg3); color: var(--fg); box-shadow: 0 0 0 1px var(--line2); }
+  .kv { font-size: 12.5px; color: var(--t2); display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .kv b { font-weight: 500; color: var(--fg); font-family: "Geist Mono"; font-size: 12px; }
+  .ititle { font: 700 17px "Bricolage Grotesque"; letter-spacing: -0.03em; }
+  .isub { font-size: 12px; color: var(--mut); margin-top: 3px; line-height: 1.45; }
+
+  /* ───── H1 · Canvas inside the window ───── */
+  .H1 .nav { position: absolute; inset: 0 0 auto; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 44px; }
+  .H1 .hero-t { position: absolute; top: 108px; left: 56px; right: 56px; }
+  .H1 .row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 26px; }
+  .H1 .row .sub { max-width: 440px; }
+  .H1 .ctas { display: flex; gap: 10px; }
+  .H1 .persp { position: absolute; left: 40px; right: 40px; top: 336px; height: 404px; perspective: 1700px; }
+  .H1 .win { position: absolute; inset: 0; border-radius: 22px; background: var(--bg1); border: 1px solid var(--line2); transform: rotateX(8deg); transform-origin: 50% 0; display: grid; grid-template-columns: 196px 1fr 236px; overflow: hidden; box-shadow: 0 -30px 80px -30px color-mix(in oklch, var(--brand) 22%, transparent), 0 40px 80px -20px oklch(0% 0 0 / .8); }
+  .H1 .layers { border-right: 1px solid var(--line); padding: 14px 10px; }
+  .H1 .ph { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; padding: 0 6px 10px; color: var(--fg); }
+  .H1 .ph span { font-family: "Geist Mono"; color: var(--mut); font-weight: 400; font-size: 11px; }
+  .H1 .ly { height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 8px; border-radius: 8px; font-size: 12.5px; color: var(--t2); white-space: nowrap; }
+  .H1 .ly::before { content: "#"; font: 500 11px "Geist Mono"; color: var(--mut); }
+  .H1 .ly.on { background: color-mix(in oklch, var(--brand) 16%, transparent); color: var(--fg); }
+  .H1 .ly.on::before { color: var(--brand); }
+  .H1 .ly em { margin-left: auto; font-style: normal; font-size: 10px; color: var(--brand); }
+  .H1 .canvas { position: relative; overflow: hidden; background: radial-gradient(80% 60% at 50% 30%, oklch(18.5% 0.012 262), var(--bg) 80%); cursor: grab; }
+  .H1 .ctool { position: absolute; left: 14px; bottom: 64px; display: flex; gap: 3px; padding: 4px; border-radius: 12px; background: var(--bg2); border: 1px solid var(--line2); }
+  .H1 .ctool span { height: 28px; min-width: 28px; padding: 0 7px; border-radius: 8px; display: grid; place-items: center; font-size: 12px; color: var(--t2); }
+  .H1 .ctool span.on { background: var(--brand); color: var(--brand-ink); }
+  .H1 .cmd { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 44px; border-radius: 12px; background: oklch(15.2% 0.006 260 / .9); border: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 7px 0 14px; font: 400 13px "Geist Mono"; color: var(--t2); backdrop-filter: blur(8px); }
+  .H1 .cmd b { color: var(--fg); font-weight: 500; }
+  .H1 .insp { border-left: 1px solid var(--line); padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ───── H2 · Full canvas, inspector on select ───── */
+  .H2 .frame { background: radial-gradient(90% 70% at 60% 40%, oklch(19% 0.012 262), var(--bg) 70%); cursor: grab; }
+  .H2 .nav { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); height: 50px; display: flex; align-items: center; gap: 30px; padding: 0 8px 0 20px; border-radius: 99px; background: oklch(17.2% 0.007 260 / .8); border: 1px solid var(--line); backdrop-filter: blur(12px); z-index: 5; }
+  .H2 .hero-t { position: absolute; top: 118px; left: 56px; width: 500px; z-index: 3; }
+  .H2 .hero-t .sub { margin-top: 22px; max-width: 420px; }
+  .H2 .ctas { display: flex; gap: 10px; margin-top: 28px; }
+  .H2 .panel { position: absolute; right: 22px; top: 96px; width: 262px; border-radius: 20px; background: oklch(19.6% 0.008 260 / .9); border: 1px solid var(--line2); padding: 16px; display: flex; flex-direction: column; gap: 15px; z-index: 6; backdrop-filter: blur(14px); box-shadow: 0 30px 60px -20px oklch(0% 0 0 / .8); }
+  .H2 .pcmd { border-radius: 12px; background: var(--bg); border: 1px solid var(--line); padding: 10px 10px 10px 12px; font: 400 12px "Geist Mono"; color: var(--t2); display: flex; align-items: center; justify-content: space-between; }
+  .H2 .pcmd b { color: var(--fg); font-weight: 500; }
+  .H2 .tool { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 16px; background: oklch(20% 0.008 260 / .92); border: 1px solid var(--line2); z-index: 6; }
+  .H2 .tb { white-space: nowrap; height: 36px; min-width: 36px; border-radius: 11px; display: grid; place-items: center; font-size: 12.5px; color: var(--t2); padding: 0 10px; }
+  .H2 .tb.on { background: var(--brand); color: var(--brand-ink); }
+  .H2 .vr { width: 1px; height: 20px; background: var(--line2); margin: 0 4px; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>A plus B: two ways to merge them</h1>
+  <p>Both keep the design-canvas idea from B and A's inspector, and both lead into the handoff section and the same SaaS order below: works-with strip, live bento, install, pricing, FAQ, then the footer with the giant wordmark. The difference is how the first screen is framed.</p>
+</div>
+
+<div class="dirs">
+
+  <!-- ═════════════ H1 ═════════════ -->
+  <section class="card dir H1" data-choice="h1" onclick="toggleSelect(this)">
+    <div class="dir-head">
+      <div class="dir-letter">A+B 1</div>
+      <div>
+        <h2>The canvas lives inside the window <span class="rec">Recommended</span></h2>
+        <p>A's layout: headline on top, product window below, tilted back until you scroll. Inside the window is a small design tool: layers on the left, a draggable canvas of live frames in the middle, and the inspector on the right. Click a layer or a frame and everything follows it, including the install command docked under the canvas.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frame">
+      <div class="nav">
+        <div class="wm">devigner<i>.</i></div>
+        <div class="navlinks">Components<span>Docs</span><span>Pricing</span><span class="btn btn-ink btn-sm">Get started</span></div>
+      </div>
+      <div class="hero-t">
+        <div class="h1">Beautifully <em>Crafted</em> React Components,<br>Built for Developers.</div>
+        <div class="row">
+          <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+          <div class="ctas"><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span><span class="btn btn-brand">Browse components &rarr;</span></div>
+        </div>
+      </div>
+      <div class="persp"><div class="win">
+        <div class="layers">
+          <div class="ph">Components <span>6</span></div>
+          <div class="ly on">Menu Dock <em>new</em></div>
+          <div class="ly">Date Range Picker <em>new</em></div>
+          <div class="ly">Chart Card</div>
+          <div class="ly">Timeline</div>
+          <div class="ly">Delete Button</div>
+          <div class="ly">Magnetic Button</div>
+        </div>
+        <div class="canvas">
+          <div class="fr sel" style="left:150px;top:34px">
+            <div class="fl">Menu Dock <span>navigation</span></div>
+            <div class="fb stage" style="width:330px;height:236px;flex-direction:column;justify-content:flex-end;padding-bottom:18px;gap:9px">
+              <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+              <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+              <i class="h" style="left:-5px;top:-5px"></i><i class="h" style="right:-5px;top:-5px"></i><i class="h" style="left:-5px;bottom:-5px"></i><i class="h" style="right:-5px;bottom:-5px"></i>
+              <span class="dim">330 &times; 236</span>
+            </div>
+          </div>
+          <div class="fr" style="left:520px;top:34px">
+            <div class="fl">Date Range Picker <span>forms</span></div>
+            <div class="fb stage" style="width:290px;height:280px"><div class="cal"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i><i></i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="r">12</i><i class="e">13</i><i>14</i><i>15</i><i>16</i><i>17</i><i>18</i><i>19</i><i>20</i></div></div></div>
+          </div>
+          <div class="fr" style="left:-60px;top:318px">
+            <div class="fl" style="padding-left:66px">Chart Card <span>data display</span></div>
+            <div class="fb stage" style="width:260px;height:200px"><div class="chart"><div class="k">Total sales</div><div class="v">90,744</div><div class="bars"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i class="hi" style="height:88%"></i><i style="height:62%"></i><i style="height:70%"></i></div></div></div>
+          </div>
+          <div class="fr" style="left:236px;top:318px">
+            <div class="fl">Timeline <span>data display</span></div>
+            <div class="fb stage" style="width:250px;height:200px"><div class="tl"><div>Kickoff</div><div class="on">Prototype</div><div>Polish</div><div>Ship</div></div></div>
+          </div>
+          <div class="ctool"><span>&#9995;</span><span class="on">&#8598;</span><span style="font-family:'Geist Mono';font-size:11px">100%</span></div>
+          <div class="cmd"><span>$ npx devignerui add <b>menu-dock</b></span><span class="btn btn-ink btn-sm">Copy</span></div>
+        </div>
+        <div class="insp">
+          <div><div class="ititle">Menu Dock</div><div class="isub">A dock that grows into its own menus, nested as deep as you need.</div></div>
+          <div><div class="lbl">theme</div><div class="seg"><span>Light</span><span class="on">Dark</span></div></div>
+          <div><div class="lbl">motion</div><div class="seg"><span class="on">Full</span><span>Reduced</span></div></div>
+          <div><div class="lbl">keyboard</div><div class="keys"><span>Tab</span><span class="lit">&larr;</span><span>&rarr;</span><span>&crarr;</span><span>Esc</span></div></div>
+          <div><div class="kv">File<b>menu-dock.tsx</b></div><div class="kv">Needs<b>motion</b></div></div>
+        </div>
+      </div></div>
+    </div></div>
+    <div class="specs">
+      <div><b>Why it works</b>It reads as a SaaS product shot at first glance, then turns out to be a working design tool. The headline gets the full width, so your title sits on two lines.</div>
+      <div><b>Scales with the library</b>The layers panel is the registry, with search once the list gets long. The canvas packs frames automatically and you pan to find more.</div>
+      <div><b>On a phone</b>The window becomes a stack: a layer switcher, the selected frame at full width, a row of toggles and the install command. No dragging on small screens.</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ H2 ═════════════ -->
+  <section class="card dir H2" data-choice="h2" onclick="toggleSelect(this)">
+    <div class="dir-head">
+      <div class="dir-letter">A+B 2</div>
+      <div>
+        <h2>The whole screen is the canvas</h2>
+        <p>B's layout: the hero is a full-bleed canvas with the headline written on it. A's inspector appears as a floating panel when you select a frame, holding the name, description, theme and motion toggles, keyboard map and install command. The bottom toolbar keeps only the tools.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frame">
+      <div class="nav"><div class="wm">devigner<i>.</i></div><div class="navlinks">Components<span>Docs</span><span>Pricing</span></div><span class="btn btn-ink btn-sm">Get started</span></div>
+      <div class="hero-t">
+        <div class="h1">Beautifully <em>Crafted</em><br>React Components,<br>Built for Developers.</div>
+        <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+        <div class="ctas"><span class="btn btn-brand">Browse components &rarr;</span><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span></div>
+      </div>
+
+      <div class="fr sel" style="left:560px;top:110px">
+        <div class="fl">Menu Dock <span>navigation</span></div>
+        <div class="fb stage" style="width:320px;height:250px;flex-direction:column;justify-content:flex-end;padding-bottom:20px;gap:9px">
+          <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+          <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+          <i class="h" style="left:-5px;top:-5px"></i><i class="h" style="right:-5px;top:-5px"></i><i class="h" style="left:-5px;bottom:-5px"></i><i class="h" style="right:-5px;bottom:-5px"></i>
+          <span class="dim">320 &times; 250</span>
+        </div>
+      </div>
+      <div class="fr" style="left:460px;top:450px">
+        <div class="fl">Chart Card <span>data display</span></div>
+        <div class="fb stage" style="width:260px;height:210px"><div class="chart"><div class="k">Total sales</div><div class="v">90,744</div><div class="bars"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i class="hi" style="height:88%"></i><i style="height:62%"></i><i style="height:70%"></i></div></div></div>
+      </div>
+      <div class="fr" style="left:760px;top:470px">
+        <div class="fl">Magnetic Button <span>animation</span></div>
+        <div class="fb stage" style="width:220px;height:160px"><span class="mag">Pull me</span></div>
+      </div>
+      <div class="fr" style="left:56px;top:540px">
+        <div class="fl">Timeline <span>data display</span></div>
+        <div class="fb stage" style="width:330px;height:190px"><div class="tl"><div>Kickoff</div><div class="on">Prototype</div><div>Polish</div><div>Ship</div></div></div>
+      </div>
+
+      <div class="panel">
+        <div><div class="ititle">Menu Dock</div><div class="isub">A dock that grows into its own menus, nested as deep as you need.</div></div>
+        <div><div class="lbl">theme</div><div class="seg"><span>Light</span><span class="on">Dark</span></div></div>
+        <div><div class="lbl">motion</div><div class="seg"><span class="on">Full</span><span>Reduced</span></div></div>
+        <div><div class="lbl">keyboard</div><div class="keys"><span>Tab</span><span class="lit">&larr;</span><span>&rarr;</span><span>&crarr;</span><span>Esc</span></div></div>
+        <div class="pcmd"><span>npx devignerui add <b>menu-dock</b></span><span class="cp"></span></div>
+      </div>
+
+      <div class="tool"><span class="tb">&#9995;</span><span class="tb on">&#8598;</span><span class="vr"></span><span class="tb" style="font-family:'Geist Mono';font-size:11.5px">100%</span></div>
+    </div></div>
+    <div class="specs">
+      <div><b>Why it works</b>The most immersive first screen. You're inside the tool from the first second, and the inspector only shows up once you've chosen something.</div>
+      <div><b>Scales with the library</b>Same automatic frame layout as B. More components make a bigger canvas.</div>
+      <div><b>Trade-off</b>The headline, frames and panel compete for the same space, so the first screen is busier. Your title has to sit on three lines to leave room for the canvas.</div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

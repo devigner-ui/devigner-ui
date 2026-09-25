@@ -294,7 +294,7 @@ export function RangeSlider({
             return (
               <span
                 key={t}
-                className="absolute left-1/2 size-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/25"
+                className="absolute left-1/2 size-1 -translate-1/2 rounded-full bg-foreground/25"
                 style={{ bottom: `${tp}%` }}
               />
             );
@@ -348,7 +348,7 @@ export function RangeSlider({
           return (
             <span
               key={t}
-              className="absolute top-1/2 h-2/5 w-px -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/12"
+              className="absolute top-1/2 h-2/5 w-px -translate-1/2 rounded-full bg-foreground/12"
               style={{ left: `${tp}%` }}
             />
           );

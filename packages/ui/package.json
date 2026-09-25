@@ -1,6 +1,6 @@
 {
-  "name": "@devignerui/ui",
-  "version": "0.1.0",
+  "name": "devignerui",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,23 +30,29 @@
       "types": "./dist/date-range.d.ts",
       "import": "./dist/date-range.js",
       "require": "./dist/date-range.cjs"
-    },    "./styles.css": "./dist/styles.css"
+    },
+    "./styles.css": "./dist/styles.css"
   },
   "files": [
     "dist"
   ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
-    "build": "tsup && pnpm run build:css",
+    "build": "tsup && pnpm run build:css && pnpm --dir ../cli build && node ./scripts/copy-cli.mjs",
     "build:css": "tailwindcss --input src/styles/globals.css --output dist/styles.css",
     "dev": "tsup --watch",
     "lint": "eslint src/",
     "test": "vitest run",
     "test:package": "pnpm run build && node ./scripts/package-smoke.mjs",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@devigner-ui/icons": "3.3.0",
-    "cn": "^0.3.0"
+    "cn": "^0.3.0",
+    "commander": "^15.0.0"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
@@ -58,6 +64,7 @@
     "motion": "^13.4.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "shadow-plugin": "^2.1.1",
     "tailwindcss": "^4.3.3",
     "tsup": "^8.5.1",
     "typescript": "~6.0.3",
@@ -69,5 +76,36 @@
     "react": ">=18",
     "react-dom": ">=18",
     "tailwindcss": ">=4"
+  },
+  "description": "Devigner UI React components, motion utilities, and CLI",
+  "keywords": [
+    "react",
+    "tailwindcss",
+    "components",
+    "ui",
+    "animation",
+    "motion",
+    "gsap",
+    "nextjs",
+    "shadcn",
+    "cli"
+  ],
+  "homepage": "https://ui.devigner.cc",
+  "bugs": {
+    "url": "https://github.com/itsremiofficial/devigner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsremiofficial/devigner.git",
+    "directory": "packages/ui"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "devignerui": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

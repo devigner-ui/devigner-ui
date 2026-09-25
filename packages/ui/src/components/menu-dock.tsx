@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 import { cn } from "cn";
 import { SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "../lib/easing";
 import { backFocusIndex, menuAt, type MenuNode } from "../lib/menu-path";
@@ -257,7 +258,7 @@ export function MenuDock({
   slotProps,
   ...rest
 }: MenuDockProps) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
   /** The dock's own path, used only while `path` is not passed. */
   const [ownPath, setOwnPath] = React.useState<number[]>([]);
   const controlled = controlledPath !== undefined;

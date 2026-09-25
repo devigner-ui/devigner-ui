@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import gsap from "gsap";
+import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 import { cn } from "cn";
 import { GSAP_MAGNET, GSAP_MAGNET_RELEASE } from "../lib/easing";
 
@@ -70,12 +71,15 @@ export function MagneticButton(props: MagneticButtonProps) {
   const fieldRef = React.useRef<HTMLElement>(null);
   const pillRef = React.useRef<HTMLSpanElement>(null);
   const labelRef = React.useRef<HTMLSpanElement>(null);
+  // Honours an ancestor <MotionConfig reducedMotion> as well as the OS
+  // setting, so a "reduced motion" switch around the button is truthful.
+  const reduced = useReducedMotionPreference();
 
   React.useEffect(() => {
     const root = fieldRef.current;
     const pill = pillRef.current;
     const label = labelRef.current;
-    if (!root || !pill || !label || disabled) return;
+    if (!root || !pill || !label || disabled || reduced) return;
 
     const pull = strength / TRAVEL_SCALE;
     const labelPull = labelStrength / TRAVEL_SCALE;
@@ -154,7 +158,7 @@ export function MagneticButton(props: MagneticButtonProps) {
       mm.revert();
       gsap.killTweensOf([pill, label]);
     };
-  }, [disabled, strength, labelStrength, field, tilt]);
+  }, [disabled, reduced, strength, labelStrength, field, tilt]);
 
   const isLink = typeof href === "string";
   const Element = (isLink ? "a" : "button") as React.ElementType;

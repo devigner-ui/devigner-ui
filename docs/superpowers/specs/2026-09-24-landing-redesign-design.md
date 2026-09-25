@@ -471,7 +471,7 @@ Delete (the user approved these deletions as part of this design):
 ## SEO
 
 **Root layout:** `metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ??
-"https://devignerui.com")`, title `{ default: "Devigner UI", template: "%s · Devigner
+"https://ui.devigner.cc")`, title `{ default: "Devigner UI", template: "%s · Devigner
 UI" }`, a default description, Open Graph defaults (`siteName`, `type: "website"`,
 `locale: "en_US"`), and Twitter `summary_large_image` with `site` and `creator` set to
 `@devignerui`.
@@ -511,7 +511,7 @@ section title is an h2.
 
 ## Motion map
 
-All values come from `@devignerui/ui/motion` (TSX) or the `ease-*` utilities (CSS). No
+All values come from `devignerui/motion` (TSX) or the `ease-*` utilities (CSS). No
 new tokens are expected. If one proves necessary it goes into `easing.ts` and both
 `globals.css` files first.
 

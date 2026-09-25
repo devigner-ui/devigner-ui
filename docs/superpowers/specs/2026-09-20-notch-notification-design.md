@@ -1,7 +1,7 @@
 # Notch - Gooey Top-Center Notification System - Design
 
 **Date:** 2026-09-20
-**Target package:** `@devignerui/ui`
+**Target package:** `devignerui`
 **New files:** `packages/ui/src/components/notch.tsx`,
 `packages/ui/src/lib/notch-store.ts`, `packages/ui/src/lib/notch-queue.ts`,
 `scripts/notch-queue.check.mts`
@@ -272,7 +272,7 @@ instead of an exit plus an entrance.
 ## 6. Public API
 
 ```tsx
-import { toast, Toaster } from "@devignerui/ui";
+import { toast, Toaster } from "devignerui";
 
 toast.success("Deployed");
 toast.error("Build failed", { description: "3 type errors" });

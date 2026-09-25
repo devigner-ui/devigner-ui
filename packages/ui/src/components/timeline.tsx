@@ -4,13 +4,13 @@ import * as React from "react";
 import {
   motion,
   useMotionValue,
-  useReducedMotion,
   useSpring,
   useTransform,
   type MotionValue,
 } from "motion/react";
 import { cn } from "cn";
 import { useControllableState } from "../lib/hooks/use-controllable-state";
+import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 
 /** Dot diameter, px - a hair under the badge it sits against, which is what
  *  makes the two read as one row rather than a marker beside a label. */
@@ -27,6 +27,12 @@ const SHIFT = 44;
 const RAIL = 76;
 /** Rail x of a dot at rest, in the connector's own units. */
 const CX = DOT / 2;
+/** Clear space between the rail and each dot, px. Real space, not a stroke in
+ *  the page colour, so it holds on any background. */
+const GAP = 3;
+/** Where a run starts below one dot and stops above the next, from the dot's
+ *  centre: the dot's own radius plus the gap. */
+const END = DOT / 2 + GAP;
 
 /** The jog, as a share of one run between two dots: how much of it the line
  *  spends stepping off the rail, and the straight run it always leaves between
@@ -49,10 +55,11 @@ function useOffset(on: boolean, shift: number) {
   return useSpring(target, SPRING_RAIL);
 }
 
-/** One gap of rail, dot centre above to dot centre below. The box is stretched
+/** One gap of rail, from just below one dot to just above the next (`END`
+ *  either side of the two centres). The box is stretched
  *  to whatever height the gap turns out to be - `non-scaling-stroke` is what
  *  buys that, keeping the line 1.5px however tall the rows grow, so nothing
- *  here has to measure them. The box is `top: CY; height: 100%`, not
+ *  here has to measure them. The box is `top` plus a `calc()` height, not
  *  `top/bottom`: an <svg> is a replaced element, so with an auto height it
  *  would take the viewBox's intrinsic 100px rather than stretching.
  *
@@ -89,7 +96,12 @@ function Connector({
     <svg
       aria-hidden
       className="pointer-events-none absolute overflow-visible"
-      style={{ top: CY, left: 0, width: DOT + SHIFT, height: "100%" }}
+      style={{
+        top: CY + END,
+        left: 0,
+        width: DOT + SHIFT,
+        height: `calc(100% - ${2 * END}px)`,
+      }}
       viewBox={`0 0 ${DOT + SHIFT} 100`}
       preserveAspectRatio="none"
       fill="none"
@@ -183,7 +195,7 @@ export function Timeline({
   });
   // Under reduced motion nothing slides, so the rail never bends and only the
   // dot's colour carries the highlight. That is the whole accommodation.
-  const shift = useReducedMotion() ? 0 : SHIFT;
+  const shift = useReducedMotionPreference() ? 0 : SHIFT;
 
   const highlight = (id: TimelineActiveId) => setActive(id);
 
@@ -217,8 +229,10 @@ export function Timeline({
               <span
                 aria-hidden
                 className={cn(
-                  "block shrink-0 rounded-full transition-colors duration-300 border-3 border-surface2",
-                  on ? "bg-brand" : "bg-muted",
+                  // Filled inside a transparent 3px ring: the dot keeps its 28px
+                  // footprint while the rail stops short of it.
+                  "block shrink-0 rounded-full bg-clip-content p-0.75 transition-colors duration-300",
+                  on ? "bg-brand" : "bg-border",
                 )}
                 style={{
                   width: DOT,

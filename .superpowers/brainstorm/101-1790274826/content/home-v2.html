@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · home, full flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --bg1: oklch(17.2% 0.007 260); --bg2: oklch(19.6% 0.008 260); --bg3: oklch(22.6% 0.009 260);
+    --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --t3: oklch(66% 0.008 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.09); --line2: oklch(95.5% 0.003 260 / 0.16);
+    --brand: oklch(68% 0.175 262); --brand-ink: oklch(15.2% 0.02 264); --bad: oklch(66% 0.19 25); --ok: oklch(74% 0.15 155);
+    --light: oklch(95.5% 0.003 260 / 0.06);
+    /* light-theme values, for the split tile */
+    --lbg2: oklch(94.8% 0.004 260); --lbg3: oklch(99.2% 0.002 260); --lfg: oklch(19% 0.012 260); --lmut: oklch(55% 0.01 260); --lline: oklch(19% 0.012 260 / 0.12); --lbrand: oklch(53% 0.215 264);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 48px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1180px; margin: 0 auto 30px; }
+  .intro h1 { font: 700 30px/1.1 "Bricolage Grotesque"; letter-spacing: -0.03em; }
+  .intro p { margin-top: 10px; max-width: 820px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .intro ul { margin: 12px 0 0 18px; color: var(--t2); font-size: 14.5px; line-height: 1.7; }
+  .intro b { color: var(--fg); font-weight: 500; }
+  .note { max-width: 1180px; margin: 34px auto 10px; display: flex; gap: 14px; align-items: baseline; }
+  .note b { font: 700 18px "Bricolage Grotesque"; letter-spacing: -0.02em; white-space: nowrap; }
+  .note span { font-size: 14px; color: var(--t2); line-height: 1.55; }
+  .scroll { max-width: 1180px; margin: 0 auto; overflow-x: auto; }
+  .page { width: 1180px; background: var(--bg); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; position: relative; }
+  .sec { position: relative; padding: 88px 64px; border-top: 1px solid var(--line); }
+  .sec:first-child { border-top: 0; }
+
+  .wm { font: 800 21px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .wm i { font-style: normal; color: var(--brand); }
+  .navlinks { display: flex; gap: 26px; font-size: 13.5px; color: var(--t2); align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 19px; border-radius: 99px; font-size: 14px; font-weight: 500; white-space: nowrap; }
+  .btn-ink { background: var(--fg); color: var(--bg); }
+  .btn-brand { background: var(--brand); color: var(--brand-ink); }
+  .btn-ghost { border: 1px solid var(--line2); color: var(--fg); }
+  .btn-sm { height: 32px; padding: 0 13px; font-size: 12.5px; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; height: 42px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); font: 400 13px "Geist Mono"; color: var(--t2); white-space: nowrap; }
+  .chip b { color: var(--fg); font-weight: 500; }
+  .cp { display: inline-block; width: 12px; height: 13px; border: 1.5px solid var(--mut); border-radius: 3px; box-shadow: 3px -3px 0 -1.5px var(--bg), 3px -3px 0 0 var(--mut); }
+  .h1 { font: 800 58px/0.96 "Bricolage Grotesque"; letter-spacing: -0.055em; }
+  .h1 em, .h2 em { font-style: normal; color: var(--brand); }
+  .h2 { font: 800 44px/1 "Bricolage Grotesque"; letter-spacing: -0.045em; }
+  .sub { font-size: 16px; line-height: 1.55; color: var(--t2); }
+  .lede { font-size: 16.5px; line-height: 1.6; color: var(--t2); max-width: 560px; margin-top: 16px; }
+  /* Live component surfaces are square, like frames in a design file. Chrome stays round. */
+  .stage { border-radius: 0; background: radial-gradient(120% 70% at 50% 0%, var(--light), transparent 70%), var(--bg2); box-shadow: inset 0 0 0 1px var(--line); }
+
+  /* mini components (they keep their own radius; it's their design) */
+  .dock { display: flex; gap: 6px; padding: 7px; border-radius: 99px; background: var(--bg3); border: 1px solid var(--line2); box-shadow: 0 14px 30px -10px oklch(0% 0 0 / .7); }
+  .dock span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; }
+  .dock span::before { content: ""; width: 13px; height: 13px; border-radius: 4px; border: 1.8px solid var(--t2); }
+  .dock span.on { background: var(--fg); }
+  .dock span.on::before { border-color: var(--bg); border-radius: 50%; }
+  .menu { width: 190px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 6px; box-shadow: 0 20px 40px -12px oklch(0% 0 0 / .7); }
+  .menu div { height: 32px; border-radius: 11px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 12.5px; color: var(--t2); }
+  .menu div::before { content: ""; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--mut); }
+  .menu div.hi { background: oklch(95.5% 0.003 260 / .07); color: var(--fg); }
+  .cal { width: 240px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 13px; }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 9px; }
+  .cal-h span { color: var(--mut); font-weight: 400; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 0; font-size: 10px; text-align: center; color: var(--t3); }
+  .cal-g i { font-style: normal; height: 22px; display: grid; place-items: center; }
+  .cal-g i.r { background: color-mix(in oklch, var(--brand) 20%, transparent); color: var(--fg); }
+  .cal-g i.s { background: var(--brand); color: var(--brand-ink); border-radius: 8px 0 0 8px; font-weight: 600; }
+  .cal-g i.e { background: var(--brand); color: var(--brand-ink); border-radius: 0 8px 8px 0; font-weight: 600; }
+  .L .cal { background: var(--lbg3); border-color: var(--lline); color: var(--lfg); }
+  .L .cal-g { color: var(--lmut); }
+  .L .cal-g i.r { background: color-mix(in oklch, var(--lbrand) 14%, transparent); color: var(--lfg); }
+  .L .cal-g i.s, .L .cal-g i.e { background: var(--lbrand); color: white; }
+  .chart { width: 200px; border-radius: 16px; background: var(--bg3); border: 1px solid var(--line2); padding: 12px; }
+  .chart .k { font-size: 10.5px; color: var(--mut); }
+  .chart .v { font: 600 22px "Geist"; letter-spacing: -0.03em; margin: 2px 0 8px; }
+  .bars { display: flex; gap: 5px; align-items: flex-end; height: 54px; }
+  .bars i { flex: 1; border-radius: 5px; background: oklch(95.5% 0.003 260 / .1); }
+  .bars i.hi { background: repeating-linear-gradient(135deg, var(--brand) 0 3px, color-mix(in oklch, var(--brand) 60%, transparent) 3px 6px); }
+  .tl { display: flex; flex-direction: column; gap: 12px; padding-left: 16px; border-left: 1.5px solid var(--line2); font-size: 11.5px; }
+  .tl div { position: relative; color: var(--mut); }
+  .tl div::before { content: ""; position: absolute; left: -21px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--line2); }
+  .tl div.on { color: var(--fg); transform: translateX(8px); }
+  .tl div.on::before { background: var(--brand); border-color: var(--brand); left: -29px; }
+  .keys { display: flex; gap: 6px; }
+  .keys span { min-width: 34px; height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line2); border-bottom-width: 3px; font: 500 12px "Geist Mono"; color: var(--t2); display: grid; place-items: center; background: var(--bg1); }
+  .keys span.lit { border-color: var(--brand); color: var(--brand); background: color-mix(in oklch, var(--brand) 10%, var(--bg1)); }
+  .del { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; border-radius: 99px; font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+  .del.a { background: var(--bg3); border: 1px solid var(--line2); color: var(--t2); }
+  .del.b { background: color-mix(in oklch, var(--bad) 18%, var(--bg3)); border: 1px solid color-mix(in oklch, var(--bad) 35%, transparent); color: var(--bad); }
+  .del.c { background: var(--bg3); border: 1px solid var(--line2); color: var(--mut); }
+  .del.d { background: color-mix(in oklch, var(--ok) 16%, var(--bg3)); border: 1px solid color-mix(in oklch, var(--ok) 30%, transparent); color: var(--ok); }
+  .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--t2); }
+
+  /* frames */
+  .fr { position: absolute; }
+  .fl { font-size: 11.5px; color: var(--t3); margin-bottom: 6px; display: flex; gap: 8px; white-space: nowrap; }
+  .fl span { color: var(--mut); font-family: "Geist Mono"; font-size: 10.5px; }
+  .fb { display: flex; align-items: center; justify-content: center; position: relative; }
+  .sel .fb { outline: 1.5px solid var(--brand); }
+  .sel .fl { color: var(--brand); }
+  .h { position: absolute; width: 9px; height: 9px; background: var(--fg); border: 1.5px solid var(--brand); }
+  .dim { position: absolute; left: 50%; bottom: -28px; transform: translateX(-50%); font: 500 10.5px "Geist Mono"; background: var(--brand); color: var(--brand-ink); padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+  .seg { display: flex; padding: 3px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .seg span { flex: 1; text-align: center; font-size: 12px; height: 28px; line-height: 28px; border-radius: 7px; color: var(--mut); padding: 0 12px; white-space: nowrap; }
+  .seg span.on { background: var(--bg3); color: var(--fg); box-shadow: 0 0 0 1px var(--line2); }
+
+  /* ── Hero ── */
+  .hero { height: 800px; padding: 0; }
+  .hero .nav { position: absolute; inset: 0 0 auto; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 44px; }
+  .hero .hero-t { position: absolute; top: 108px; left: 56px; right: 56px; }
+  .hero .row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 26px; }
+  .hero .row .sub { max-width: 440px; }
+  .hero .ctas { display: flex; gap: 10px; }
+  .hero .persp { position: absolute; left: 40px; right: 40px; top: 336px; height: 440px; perspective: 1700px; }
+  .hero .win { position: absolute; inset: 0; border-radius: 22px; background: var(--bg1); border: 1px solid var(--line2); transform: rotateX(8deg); transform-origin: 50% 0; display: grid; grid-template-columns: 196px 1fr 232px; overflow: hidden; box-shadow: 0 -30px 80px -30px color-mix(in oklch, var(--brand) 22%, transparent), 0 40px 80px -20px oklch(0% 0 0 / .8); }
+  .layers { border-right: 1px solid var(--line); padding: 14px 10px; }
+  .ph { display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; padding: 0 6px 10px; }
+  .ph span { font-family: "Geist Mono"; color: var(--mut); font-weight: 400; font-size: 11px; }
+  .ly { height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 8px; border-radius: 8px; font-size: 12.5px; color: var(--t2); white-space: nowrap; }
+  .ly::before { content: "#"; font: 500 11px "Geist Mono"; color: var(--mut); }
+  .ly.on { background: color-mix(in oklch, var(--brand) 16%, transparent); color: var(--fg); }
+  .ly.on::before { color: var(--brand); }
+  .ly em { margin-left: auto; font-style: normal; font-size: 10px; color: var(--brand); }
+  .canvas { position: relative; overflow: hidden; background: radial-gradient(80% 60% at 50% 30%, oklch(18.5% 0.012 262), var(--bg) 80%); cursor: grab; }
+  .ctool { position: absolute; left: 14px; bottom: 64px; display: flex; gap: 3px; padding: 4px; border-radius: 12px; background: var(--bg2); border: 1px solid var(--line2); }
+  .ctool span { height: 28px; min-width: 28px; padding: 0 7px; border-radius: 8px; display: grid; place-items: center; font-size: 12px; color: var(--t2); }
+  .ctool span.on { background: var(--brand); color: var(--brand-ink); }
+  .cmd { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 44px; border-radius: 12px; background: oklch(15.2% 0.006 260 / .9); border: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 7px 0 14px; font: 400 13px "Geist Mono"; color: var(--t2); backdrop-filter: blur(8px); }
+  .cmd b { color: var(--fg); font-weight: 500; }
+  .insp { border-left: 1px solid var(--line); padding: 18px 16px; display: flex; flex-direction: column; gap: 18px; }
+  .ititle { font: 700 19px "Bricolage Grotesque"; letter-spacing: -0.03em; }
+  .isub { font-size: 12.5px; color: var(--t2); margin-top: 5px; line-height: 1.5; }
+  .itry { font-size: 12.5px; color: var(--mut); line-height: 1.5; }
+  .itry b { color: var(--t2); font-weight: 500; }
+  .lbl { font: 400 10.5px "Geist Mono"; color: var(--mut); margin-bottom: 7px; }
+  .ilink { margin-top: auto; font-size: 13px; color: var(--fg); display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line); }
+  .ilink span { color: var(--brand); }
+
+  /* ── Works with ── */
+  .works { padding: 44px 64px; display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+  .works p { font-size: 14px; color: var(--mut); max-width: 250px; line-height: 1.5; }
+  .logos { display: flex; gap: 38px; align-items: center; }
+  .logos span { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 500; color: var(--t3); }
+  .logos img { width: 20px; height: 20px; opacity: .7; }
+
+  /* ── Handoff ── */
+  .hand-top { display: flex; justify-content: space-between; align-items: flex-end; }
+  .hand { margin-top: 40px; display: grid; grid-template-columns: 1fr 1.15fr; border: 1px solid var(--line2); }
+  .hand .d { height: 420px; position: relative; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 60px; }
+  .redline { position: absolute; font: 500 10.5px "Geist Mono"; color: var(--brand); }
+  .redline.h-line { left: 0; right: 0; height: 1px; background: color-mix(in oklch, var(--brand) 60%, transparent); }
+  .code { background: var(--bg1); border-left: 1px solid var(--line2); display: flex; flex-direction: column; }
+  .code-h { height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 18px; border-bottom: 1px solid var(--line); font: 400 12.5px "Geist Mono"; color: var(--t2); }
+  .code-h b { color: var(--fg); font-weight: 500; }
+  .code pre { padding: 16px 18px; font: 400 12.5px/1.75 "Geist Mono"; color: var(--t3); overflow: hidden; flex: 1; }
+  .code pre .n { color: var(--mut); opacity: .6; display: inline-block; width: 26px; }
+  .code pre .k { color: var(--t2); }
+  .code pre .s { color: var(--brand); }
+
+  /* ── Bento ── */
+  .bento { margin-top: 40px; display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 250px; gap: 12px; }
+  .tile { position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .tile .vis { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+  .tile .cap { padding: 16px 18px 18px; font-size: 13.5px; line-height: 1.5; color: var(--t2); background: var(--bg1); border-top: 1px solid var(--line); }
+  .tile .cap b { display: block; color: var(--fg); font-weight: 600; font-size: 14.5px; margin-bottom: 2px; }
+  .tile.brand { background: var(--brand); color: var(--brand-ink); justify-content: space-between; padding: 22px; }
+  .tile.brand .big { font: 800 84px/0.85 "Bricolage Grotesque"; letter-spacing: -0.06em; }
+  .tile.brand p { font-size: 14px; line-height: 1.5; font-weight: 500; }
+  .switch { width: 44px; height: 26px; border-radius: 99px; background: var(--brand); position: relative; }
+  .switch::after { content: ""; position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--brand-ink); }
+
+  /* ── Install ── */
+  .inst { margin-top: 40px; position: relative; height: 420px; }
+  .term { position: absolute; left: 0; top: 0; width: 76%; height: 380px; border-radius: 18px; background: oklch(13% 0.006 260); border: 1px solid var(--line2); overflow: hidden; }
+  .term-h { height: 44px; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--t2); }
+  .term-h .dots { display: flex; gap: 6px; }
+  .term-h .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line2); }
+  .term-h .tab { padding: 5px 12px; border-radius: 8px; background: var(--bg2); }
+  .term-h .tab span { color: var(--mut); }
+  .term-h .again { margin-left: auto; color: var(--mut); }
+  .term pre { padding: 20px 22px; font: 400 14px/1.75 "Geist Mono"; color: var(--t2); }
+  .term pre b { color: var(--fg); font-weight: 500; }
+  .term pre .ok { color: var(--ok); background: color-mix(in oklch, var(--ok) 12%, transparent); padding: 0 6px; margin-left: -6px; }
+  .tree { position: absolute; right: 0; top: 130px; width: 330px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); box-shadow: 0 30px 60px -20px oklch(0% 0 0 / .8); overflow: hidden; }
+  .tree-h { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px; }
+  .tree-h span { color: var(--mut); font-size: 12px; }
+  .tree .r { font: 400 13px/2.1 "Geist Mono"; color: var(--t2); padding: 0 16px; }
+  .tree .r.new { background: color-mix(in oklch, var(--brand) 14%, transparent); color: var(--fg); display: flex; justify-content: space-between; align-items: center; }
+  .tree .r.new em { font: 500 10.5px "Geist"; font-style: normal; background: var(--brand); color: var(--brand-ink); padding: 1px 7px; border-radius: 99px; }
+  .tree-f { padding: 12px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--mut); display: flex; justify-content: space-between; }
+
+  /* ── Pricing ── */
+  .price { margin-top: 40px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; }
+  .now { background: var(--fg); color: var(--bg); border-radius: 26px; padding: 30px; display: flex; flex-direction: column; min-height: 360px; }
+  .now .tag, .later .tag { font: 400 12px "Geist Mono"; opacity: .7; }
+  .now .big { font: 800 120px/0.85 "Bricolage Grotesque"; letter-spacing: -0.06em; margin-top: auto; }
+  .now p { font-size: 15px; line-height: 1.55; margin-top: 18px; max-width: 380px; opacity: .8; }
+  .now .btn { margin-top: 22px; align-self: flex-start; background: var(--bg); color: var(--fg); }
+  .later { background: var(--bg1); border: 1px solid var(--line2); border-radius: 26px; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
+  .later .top { display: flex; justify-content: space-between; align-items: center; }
+  .pill { font-size: 12px; color: var(--t2); border: 1px solid var(--line2); border-radius: 99px; padding: 4px 10px; }
+  .later h4 { font: 800 30px "Bricolage Grotesque"; letter-spacing: -0.04em; }
+  .later .amt { font: 700 44px "Geist"; letter-spacing: -0.04em; }
+  .later .amt span { font-size: 15px; font-weight: 400; color: var(--mut); letter-spacing: 0; }
+  .later ul { list-style: none; font-size: 14px; color: var(--t2); display: flex; flex-direction: column; gap: 8px; }
+  .later li::before { content: "\2713"; color: var(--brand); margin-right: 10px; }
+
+  /* ── FAQ ── */
+  .faq { display: grid; grid-template-columns: 1fr 1.5fr; gap: 64px; }
+  .q { border-top: 1px solid var(--line); padding: 18px 0; display: flex; justify-content: space-between; font-size: 16px; font-weight: 500; }
+  .q span { color: var(--mut); font-weight: 400; }
+  .q.open { flex-direction: column; gap: 10px; }
+  .q.open p { font-size: 14.5px; font-weight: 400; color: var(--t2); line-height: 1.6; max-width: 560px; }
+
+  /* ── Last call + footer ── */
+  .cta { text-align: left; display: flex; justify-content: space-between; align-items: flex-end; }
+  .foot { padding: 60px 64px 0; }
+  .foot-top { display: flex; justify-content: space-between; }
+  .foot-top p { font-size: 14px; color: var(--t2); line-height: 1.55; max-width: 330px; margin-top: 14px; }
+  .fcols { display: flex; gap: 70px; font-size: 14px; color: var(--t2); }
+  .fcols div { display: flex; flex-direction: column; gap: 12px; }
+  .fcols b { font: 400 12px "Geist Mono"; color: var(--mut); }
+  .giant { font: 800 262px/0.8 "Bricolage Grotesque"; letter-spacing: -0.065em; color: var(--bg2); text-shadow: 0 -1px 1px oklch(0% 0 0 / .6), 0 1px 0 oklch(95.5% 0.003 260 / .07); margin: 60px 0 -34px -8px; white-space: nowrap; }
+  .giant i { font-style: normal; color: var(--brand); }
+  .fbar { display: flex; justify-content: space-between; padding: 18px 64px; border-top: 1px solid var(--line); font-size: 13px; color: var(--mut); position: relative; background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Home page, whole flow (A+B 1)</h1>
+  <p>Changes from your notes:</p>
+  <ul>
+    <li><b>Inspector:</b> only the theme switch is left. The rest of the panel is the component's name, its description, the "Try it" hint from the registry and a link to its docs.</li>
+    <li><b>Square frames:</b> every surface that holds a live component now has square corners, the way frames look in a design file. That covers the hero canvas, the handoff and the bento, and the /components cards will follow the same rule. Buttons, the window, the terminal and the pricing panels stay rounded. The components keep their own radius, since that's part of their design.</li>
+  </ul>
+  <p>Shown in dark here. Light mode uses the same layout with the light tokens. The copy is a first draft and gets a humanizer pass in the spec.</p>
+</div>
+
+<div class="note"><b>Hero</b><span>The window starts tilted back and flattens as you scroll into it. Click a component in the list or a frame on the canvas, and the inspector and install command follow. Drag the canvas to pan.</span></div>
+<div class="scroll"><div class="page"><div class="sec hero">
+  <div class="nav">
+    <div class="wm">devigner<i>.</i></div>
+    <div class="navlinks">Components<span>Docs</span><span>Pricing</span><span class="btn btn-ink btn-sm">Get started</span></div>
+  </div>
+  <div class="hero-t">
+    <div class="h1">Beautifully <em>Crafted</em> React Components,<br>Built for Developers.</div>
+    <div class="row">
+      <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+      <div class="ctas"><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span><span class="btn btn-brand">Browse components &rarr;</span></div>
+    </div>
+  </div>
+  <div class="persp"><div class="win">
+    <div class="layers">
+      <div class="ph">Components <span>6</span></div>
+      <div class="ly on">Menu Dock <em>new</em></div>
+      <div class="ly">Date Range Picker <em>new</em></div>
+      <div class="ly">Chart Card</div>
+      <div class="ly">Timeline</div>
+      <div class="ly">Delete Button</div>
+      <div class="ly">Magnetic Button</div>
+    </div>
+    <div class="canvas">
+      <div class="fr sel" style="left:150px;top:34px">
+        <div class="fl">Menu Dock <span>navigation</span></div>
+        <div class="fb stage" style="width:330px;height:236px;flex-direction:column;justify-content:flex-end;padding-bottom:18px;gap:9px">
+          <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+          <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+          <i class="h" style="left:-5px;top:-5px"></i><i class="h" style="right:-5px;top:-5px"></i><i class="h" style="left:-5px;bottom:-5px"></i><i class="h" style="right:-5px;bottom:-5px"></i>
+          <span class="dim">330 &times; 236</span>
+        </div>
+      </div>
+      <div class="fr" style="left:520px;top:34px">
+        <div class="fl">Date Range Picker <span>forms</span></div>
+        <div class="fb stage" style="width:290px;height:280px"><div class="cal"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i><i></i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="r">12</i><i class="e">13</i><i>14</i><i>15</i><i>16</i><i>17</i><i>18</i><i>19</i><i>20</i></div></div></div>
+      </div>
+      <div class="fr" style="left:-60px;top:318px">
+        <div class="fl" style="padding-left:66px">Chart Card <span>data display</span></div>
+        <div class="fb stage" style="width:260px;height:200px"></div>
+      </div>
+      <div class="fr" style="left:236px;top:318px">
+        <div class="fl">Timeline <span>data display</span></div>
+        <div class="fb stage" style="width:250px;height:200px"></div>
+      </div>
+      <div class="ctool"><span>&#9995;</span><span class="on">&#8598;</span><span style="font-family:'Geist Mono';font-size:11px">100%</span></div>
+      <div class="cmd"><span>$ npx devignerui add <b>menu-dock</b></span><span class="btn btn-ink btn-sm">Copy</span></div>
+    </div>
+    <div class="insp">
+      <div><div class="ititle">Menu Dock</div><div class="isub">A dock that grows into its own menus, nested as deep as you need.</div></div>
+      <div class="itry"><b>Try it:</b> open Account, then use the arrow keys.</div>
+      <div><div class="lbl">theme</div><div class="seg"><span>Light</span><span class="on">Dark</span></div></div>
+      <div class="ilink">Menu Dock docs <span>&rarr;</span></div>
+    </div>
+  </div></div>
+</div></div></div>
+
+<div class="note"><b>Works with</b><span>Real tech logos (Simple Icons), not customer logos. It tells a React developer in one glance whether this fits their stack.</span></div>
+<div class="scroll"><div class="page"><div class="sec works">
+  <p>Built for React 19 and Tailwind CSS v4. Drops into the stack you already have.</p>
+  <div class="logos">
+    <span><img src="https://cdn.simpleicons.org/react/ffffff" alt="">React</span>
+    <span><img src="https://cdn.simpleicons.org/nextdotjs/ffffff" alt="">Next.js</span>
+    <span><img src="https://cdn.simpleicons.org/tailwindcss/ffffff" alt="">Tailwind CSS</span>
+    <span><img src="https://cdn.simpleicons.org/typescript/ffffff" alt="">TypeScript</span>
+    <span><img src="https://cdn.simpleicons.org/vite/ffffff" alt="">Vite</span>
+    <span><img src="https://cdn.simpleicons.org/shadcnui/ffffff" alt="">shadcn/ui</span>
+  </div>
+</div></div></div>
+
+<div class="note"><b>The handoff</b><span>A Design / Code switch, like Figma's Dev Mode. Design shows the live frame with its measurements. Code slides the real file across it, fetched from the registry. It follows whatever you selected in the hero.</span></div>
+<div class="scroll"><div class="page"><div class="sec">
+  <div class="hand-top">
+    <div>
+      <div class="h2">What you try is the file you get.</div>
+      <p class="lede">Switch to Code and you're reading the exact file the CLI writes into components/ui. Change any line of it.</p>
+    </div>
+    <div class="seg" style="width:220px"><span>Design</span><span class="on">Code</span></div>
+  </div>
+  <div class="hand">
+    <div class="d stage">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+        <div class="dock" style="outline:1px dashed color-mix(in oklch, var(--brand) 70%, transparent);outline-offset:6px"><span></span><span></span><span class="on"></span><span></span></div>
+      </div>
+      <span class="redline" style="left:50%;bottom:26px;transform:translateX(-50%)">176 &times; 46</span>
+      <span class="redline" style="left:18px;top:16px;color:var(--mut)">menu-dock &middot; navigation</span>
+    </div>
+    <div class="code">
+      <div class="code-h"><span>components/ui/<b>menu-dock.tsx</b> <span style="color:var(--mut)">&nbsp;214 lines</span></span><span class="btn btn-ghost btn-sm">Copy file</span></div>
+<pre><span class="n">1</span><span class="k">"use client";</span>
+<span class="n">2</span>
+<span class="n">3</span><span class="k">import</span> { motion, AnimatePresence } <span class="k">from</span> "motion/react";
+<span class="n">4</span><span class="k">import</span> { cn } <span class="k">from</span> "@/lib/utils";
+<span class="n">5</span>
+<span class="n">6</span><span class="k">export interface</span> MenuDockProps { items: DockItem[]; className?: string }
+<span class="n">7</span>
+<span class="n">8</span><span class="k">export const</span> MenuDock = forwardRef&lt;HTMLDivElement, MenuDockProps&gt;(
+<span class="n">9</span>  ({ items, className }, ref) =&gt; {
+<span class="n">10</span>    <span class="k">return</span> (
+<span class="n">11</span>      &lt;div ref={ref} className={cn(<span class="s">"relative flex gap-1.5 rounded-full</span>
+<span class="n">12</span><span class="s">        border border-border bg-surface p-1.5"</span>, className)}&gt;</pre>
+    </div>
+  </div>
+</div></div></div>
+
+<div class="note"><b>Bento</b><span>Five live tiles for five qualities, one cell each, no empty cells. The component in each tile is set in config and is swappable. The single cobalt tile gives the grid some rhythm.</span></div>
+<div class="scroll"><div class="page"><div class="sec">
+  <div class="h2">The states you'd usually skip.</div>
+  <p class="lede">Focus, loading, confirm, reduced motion and dark mode are already done, so the part you paste in is the finished part.</p>
+  <div class="bento">
+    <div class="tile" style="grid-column:span 7;grid-row:span 2">
+      <div class="vis stage" style="flex-direction:column;gap:26px">
+        <div class="menu" style="width:210px"><div>Profile</div><div class="hi" style="box-shadow:0 0 0 2px var(--brand)">Billing</div><div>Team</div></div>
+        <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+        <div class="keys"><span>Tab</span><span>&uarr;</span><span class="lit">&darr;</span><span>&crarr;</span><span>Esc</span></div>
+      </div>
+      <div class="cap"><b>Keyboard</b>Click in and put the mouse away. Every key you press lights up here.</div>
+    </div>
+    <div class="tile" style="grid-column:span 5">
+      <div class="vis stage" style="gap:18px"><div class="switch"></div><span style="font-size:13px;color:var(--t2)">Reduced motion</span></div>
+      <div class="cap"><b>Reduced motion</b>Turn it on and the springs stop. Everything still works.</div>
+    </div>
+    <div class="tile" style="grid-column:span 5">
+      <div class="vis" style="display:grid;grid-template-columns:1fr 1fr">
+        <div class="L" style="background:var(--lbg2);display:grid;place-items:center;overflow:hidden"><div class="cal" style="width:190px;transform:scale(.8)"><div class="cal-h">Sept <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="e">12</i><i>13</i><i>14</i><i>15</i></div></div></div>
+        <div class="stage" style="display:grid;place-items:center;overflow:hidden"><div class="cal" style="width:190px;transform:scale(.8)"><div class="cal-h">Sept <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="e">12</i><i>13</i><i>14</i><i>15</i></div></div></div>
+      </div>
+      <div class="cap"><b>Light and dark</b>Colors come from CSS variables. There isn't a single dark: class in the source.</div>
+    </div>
+    <div class="tile" style="grid-column:span 7">
+      <div class="vis stage" style="gap:10px"><span class="del a">&#128465; Delete</span><span style="color:var(--mut)">&rarr;</span><span class="del b">Sure?</span><span style="color:var(--mut)">&rarr;</span><span class="del c"><i class="spin"></i>Deleting</span><span style="color:var(--mut)">&rarr;</span><span class="del d">&#10003; Deleted</span></div>
+      <div class="cap"><b>Loading and confirm</b>Delete Button asks first, waits for your API call, then shows a tick.</div>
+    </div>
+    <div class="tile brand" style="grid-column:span 5">
+      <div class="big">1 file</div>
+      <p>No runtime package from us. The file imports React, Motion and your cn() helper, and that's all.</p>
+    </div>
+  </div>
+</div></div></div>
+
+<div class="note"><b>Install</b><span>The terminal and file tree from the current page, kept and polished. It types itself when it scrolls into view and uses whatever component you picked in the hero.</span></div>
+<div class="scroll"><div class="page"><div class="sec">
+  <div class="h2">Two commands, then it's your code.</div>
+  <div class="inst">
+    <div class="term">
+      <div class="term-h"><div class="dots"><i></i><i></i><i></i></div><span class="tab">your-app <span>zsh</span></span><span class="again">&#8635; Run it again</span></div>
+<pre>~/your-app $ <b>npx devignerui add menu-dock</b>
+Adding components...
+
+&#128230; menu-dock
+  <span class="ok">&#10003; components/ui/menu-dock.tsx</span>
+
+  Install dependencies:
+  npm i motion
+
+Done!</pre>
+    </div>
+    <div class="tree">
+      <div class="tree-h">your-app <span>after the add command</span></div>
+      <div class="r">app/</div>
+      <div class="r">components/</div>
+      <div class="r">&nbsp;&nbsp;ui/</div>
+      <div class="r">&nbsp;&nbsp;&nbsp;&nbsp;button.tsx</div>
+      <div class="r new">&nbsp;&nbsp;&nbsp;&nbsp;menu-dock.tsx <em>new</em></div>
+      <div class="r">package.json</div>
+      <div class="tree-f"><span>1 file added</span><span>nothing else changed</span></div>
+    </div>
+  </div>
+</div></div></div>
+
+<div class="note"><b>Pricing, FAQ</b><span>Same facts as today. Free now as the big inverted panel, Pro later with the plan toggle and the X follow button. The FAQ sits in two columns, and its questions also feed the FAQPage structured data.</span></div>
+<div class="scroll"><div class="page">
+  <div class="sec">
+    <div class="h2">What it costs.</div>
+    <div class="price">
+      <div class="now"><span class="tag">now</span><div class="big">$0</div><p>Every component on the site, MIT licensed. No account, no seat limits.</p><span class="btn">Browse components &rarr;</span></div>
+      <div class="later">
+        <div class="top"><span class="tag">later</span><span class="pill">&#9675; Not on sale yet</span></div>
+        <h4>Pro</h4>
+        <div class="seg" style="width:220px"><span class="on">Monthly</span><span>Lifetime</span></div>
+        <div class="amt">$14.99 <span>a month</span></div>
+        <ul><li>Every Pro component while you're subscribed</li><li>New Pro components as they ship</li><li>Priority support</li></ul>
+        <span class="btn btn-ghost btn-sm" style="align-self:flex-start;margin-top:auto">Follow @devignerui on X</span>
+      </div>
+    </div>
+  </div>
+  <div class="sec faq">
+    <div><div class="h2">Before you install.</div><p class="lede" style="font-size:15px">Something missing? Ask <span style="color:var(--fg)">@devignerui</span> on X.</p></div>
+    <div>
+      <div class="q open">Is Devigner UI free?<p>Yes. Every component on the site is free and MIT licensed, including for commercial work. Pro will be a separate paid set, and nothing that's free now moves behind it.</p></div>
+      <div class="q">How do I add a component to my project? <span>+</span></div>
+      <div class="q">Does it work with shadcn/ui? <span>+</span></div>
+      <div class="q">Do I need Framer Motion? <span>+</span></div>
+      <div class="q">Will it work with the Next.js App Router? <span>+</span></div>
+      <div class="q">How do dark mode and theming work? <span>+</span></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="note"><b>Last call, footer</b><span>One closing line with the same two actions as the hero, then your footer with the giant pressed-in wordmark. The letters still bow under the pointer.</span></div>
+<div class="scroll"><div class="page">
+  <div class="sec cta">
+    <div><div class="h2">Start with one component.</div><p class="lede">Pick any of them, run one command, and edit it like the rest of your code.</p></div>
+    <div style="display:flex;gap:10px"><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span><span class="btn btn-brand">Browse components &rarr;</span></div>
+  </div>
+  <div class="foot" style="border-top:1px solid var(--line)">
+    <div class="foot-top">
+      <div><div class="wm">devigner<i>.</i></div><p>Animated React components for Tailwind CSS. Free, MIT licensed, and yours to edit once they're in your repo.</p></div>
+      <div class="fcols"><div><b>Library</b>Components<span>Docs</span><span>Pricing</span></div><div><b>Elsewhere</b>X (@devignerui)<span>Installation guide</span><span>Theming guide</span></div></div>
+    </div>
+    <div class="giant">devigner<i>.</i></div>
+  </div>
+  <div class="fbar"><span>&copy; 2026 Devigner UI &middot; MIT license</span><span>Built with React, Tailwind CSS and Motion &nbsp;&nbsp; &uarr; Top</span></div>
+</div></div>
+
+</body>
+</html>

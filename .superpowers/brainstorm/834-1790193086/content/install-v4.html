@@ -114,7 +114,7 @@
           <div class="more">&middot;&middot;&middot; 1,081 more added lines</div>
         </div>
       </div>
-      <p class="after">Those imports are the whole dependency list. The CLI prints the matching <span class="chip sm"><span class="d">$</span> npm i cn motion react @devigner-ui/icons @devignerui/ui <span class="cp">&#10697;</span></span> and <b>nothing else in your project changes.</b></p>
+      <p class="after">Those imports are the whole dependency list. The CLI prints the matching <span class="chip sm"><span class="d">$</span> npm i cn motion react @devigner-ui/icons devignerui <span class="cp">&#10697;</span></span> and <b>nothing else in your project changes.</b></p>
     </div>
   </section>
 
@@ -126,7 +126,7 @@
       <p class="inline dim"><span class="q">Run</span> <span class="chip"><span class="d">$</span> npx devignerui init <span class="cp">&#10697;</span></span> <span class="q">once in your project. After that,</span> <span class="chip"><span class="d">$</span> npx devignerui add date-range-picker <span class="cp">&#10697;</span></span> <span class="q">writes</span> <span class="chip file">date-range-picker.tsx</span> <span class="q">into components/ui, and from then on it's a normal file in your repo.</span></p>
       <div class="trio">
         <div><b>1<small>file</small></b><p>Written to <code>components/ui/date-range-picker.tsx</code>. That's all the add command creates.</p></div>
-        <div><b>4<small>packages</small></b><p><code>cn</code>, <code>motion</code>, <code>@devigner-ui/icons</code> and <code>@devignerui/ui</code>. The CLI prints the npm line for you.</p></div>
+        <div><b>4<small>packages</small></b><p><code>cn</code>, <code>motion</code>, <code>@devigner-ui/icons</code> and <code>devignerui</code>. The CLI prints the npm line for you.</p></div>
         <div><b>0<small>edits</small></b><p>Your config, your CSS and every file you already have stay exactly as they were.</p></div>
       </div>
     </div>
@@ -143,7 +143,7 @@
         <div class="row"><div class="c">import { AnimatePresence, motion, &hellip; } from "<span class="pk">motion/react</span>";</div><div class="a"><b>npm i motion</b>springs and transitions</div></div>
         <div class="row"><div class="c">import { cn } from "<span class="pk">cn</span>";</div><div class="a"><b>npm i cn</b>merges class names</div></div>
         <div class="row"><div class="c">import { IconChevronLeft, &hellip; } from "<span class="pk">@devigner-ui/icons</span>";</div><div class="a"><b>npm i @devigner-ui/icons</b>the icon set</div></div>
-        <div class="row"><div class="c last">import { SPRING_LAYOUT, &hellip; } from "<span class="pk">@devignerui/ui/motion</span>";</div><div class="a last"><b>npm i @devignerui/ui</b>shared motion tokens and hooks</div></div>
+        <div class="row"><div class="c last">import { SPRING_LAYOUT, &hellip; } from "<span class="pk">devignerui/motion</span>";</div><div class="a last"><b>npm i devignerui</b>shared motion tokens and hooks</div></div>
       </div>
       <p class="after">That's the complete list, and the CLI prints it as one npm line after it writes the file. <b>Nothing else in your project changes.</b></p>
     </div>

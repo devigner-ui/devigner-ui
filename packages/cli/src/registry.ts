@@ -1,8 +1,4 @@
-// Thin client for the Devigner registry (served by the docs app at /api/registry).
-// Override the host with DEVIGNER_REGISTRY_URL for local/staging registries.
-export const REGISTRY_URL = (
-  process.env.DEVIGNER_REGISTRY_URL || "https://devignerui.com/api/registry"
-).replace(/\/$/, "");
+import { readFileSync } from "node:fs";
 
 export interface IndexComponent {
   slug: string;
@@ -24,19 +20,21 @@ export interface FullComponent {
   files: Record<string, string>;
 }
 
+interface RegistrySnapshot {
+  index: IndexComponent[];
+  components: Record<string, FullComponent>;
+}
+
+function loadRegistry(): RegistrySnapshot {
+  return JSON.parse(readFileSync(new URL("./registry.json", import.meta.url), "utf8")) as RegistrySnapshot;
+}
+
 export async function fetchIndex(): Promise<IndexComponent[]> {
-  const res = await fetch(REGISTRY_URL);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch registry index (${res.status})`);
-  }
-  const data = (await res.json()) as { components: IndexComponent[] };
-  return data.components;
+  return loadRegistry().index;
 }
 
 export async function fetchComponent(slug: string): Promise<FullComponent> {
-  const res = await fetch(`${REGISTRY_URL}/${slug}`);
-  if (!res.ok) {
-    throw new Error(`Component "${slug}" not found in registry`);
-  }
-  return res.json() as Promise<FullComponent>;
+  const component = loadRegistry().components[slug];
+  if (!component) throw new Error(`Component "${slug}" not found in registry`);
+  return component;
 }

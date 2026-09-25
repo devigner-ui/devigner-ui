@@ -6,7 +6,7 @@ The user recorded a 39-second demo of a "Trip Dates" date-range picker card (tit
 nights-count badge, CHECK-IN/CHECK-OUT labels, single-month calendar with pill-shaped
 range highlighting and hover preview, four quick-select presets each with their own
 accent color, and a Clear action) and asked for it to become a component in the
-`@devignerui/ui` package. No calendar/date-range primitive or date library exists in
+`devignerui` package. No calendar/date-range primitive or date library exists in
 the package today.
 
 Decided during brainstorming: build a general-purpose `DateRangePicker` rather than a

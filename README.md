@@ -6,14 +6,16 @@ Copy-paste React components + blocks, built with Tailwind CSS v4. **This file is
 
 ```bash
 npx devignerui init
-npx devignerui add button
+npx devignerui add magnetic-button
 ```
 
 | Package            | Role                                    |
 | ------------------ | --------------------------------------- |
-| `@devignerui/ui`   | component library (npm, secondary path) |
-| `@devignerui/cli`  | installer                               |
+| `devignerui` | React components and CLI on npm |
+| `devignerui-cli-internal` | CLI build source (private workspace) |
 | `@devignerui/docs` | docs site - also _is_ the registry      |
+
+Direct package install: `npm i devignerui`.
 
 `pnpm install` · `pnpm dev` · `pnpm build` · MIT.
 
@@ -22,15 +24,15 @@ npx devignerui add button
 ## 1. Overview
 
 - **Model:** copy-paste-first via CLI, not `npm install` of a component package. One canonical implementation per component (multi-Style model removed 2026-07-05). Users own the installed code; Devigner owns the catalog/docs/CLI.
-- **Goals:** growing catalog of production-quality animated components; zero→styled in <60s via CLI; monetize via Pro tiers + docs site without gating browsing; installed code stays dependency-light (no runtime coupling to `@devignerui/ui`).
+- **Goals:** growing catalog of production-quality animated components; zero→styled in <60s via CLI; monetize via Pro tiers + docs site without gating browsing; installed code stays dependency-light (no runtime coupling to `devignerui`).
 - **Audience:** Tailwind v4 + React 19 devs wanting more than raw shadcn/ui, especially motion-heavy marketing blocks; secondarily shadcn/ui users.
-- **Scope:** registry/catalog, CLI, docs site, Creem monetization, `@devignerui/ui` npm mirror. Out of scope (§16): non-React frameworks, hosted token editor, no-code builder, theme marketplace.
+- **Scope:** registry/catalog, CLI, docs site, Creem monetization, `devignerui` npm mirror. Out of scope (§16): non-React frameworks, hosted token editor, no-code builder, theme marketplace.
 - **Principles:** one data model many consumers (`registry.ts` is truth, never hand-authored twice) · semantic tokens never literals · copy-paste self-contained (React + `cn()` + listed deps only) · `strict: true` everywhere, no exceptions · docs site _is_ the registry · boring over clever (`forwardRef`+CVA+Tailwind; new patterns need a precedent recorded here, §3).
-- **Non-goals:** not a design-token platform/theming SaaS; no Vue/Svelte codegen; no visual editor; `@devignerui/ui` is a secondary, thin mirror - never a divergent implementation.
+- **Non-goals:** not a design-token platform/theming SaaS; no Vue/Svelte codegen; no visual editor; `devignerui` is a secondary, thin mirror - never a divergent implementation.
 
 ## 2. Architecture
 
-pnpm+Turborepo, 4 packages. Truth flows one way: `apps/docs/lib/registry.ts` → docs pages + `/api/registry*` → CLI (HTTP only, `DEVIGNER_REGISTRY_URL`, never a workspace import - identical behavior in-repo or installed globally) → user's project. `@devignerui/ui` is a curated npm mirror consumed directly instead of via CLI.
+pnpm+Turborepo, 4 packages. The generated registry powers the docs pages and a bundled snapshot for the CLI. The public `devignerui` package contains the React library and the CLI, so installed commands work without a deployed registry site.
 
 **Folders:**
 
@@ -40,13 +42,12 @@ apps/docs/               @devignerui/docs - Next 15 App Router
   app/components/           page.tsx (server: registry -> live rack), [slug]/page.tsx
   app/globals.css           CANONICAL tokens (§8)
   components/               docs-only UI (code-block, copy-button, theme-provider) - not distributed
-  content/docs/             Fumadocs MDX guides (§17.6)
   lib/registry.ts           CANONICAL data source (§4, §6)
   lib/creem.ts              Payments/licensing
-packages/ui/              @devignerui/ui - npm mirror
+packages/ui/              devignerui - npm mirror
   src/components/*.tsx      one per registry slug, forwardRef
   src/styles/globals.css    own token set, not a value-mirror of docs's (§8)
-packages/cli/             @devignerui/cli - thin HTTP client + commands/{init,add,list}
+packages/cli/             devignerui-cli-internal - CLI build source for devignerui
 packages/shared/          types.ts, constants.ts - dependency floor
 ```
 
@@ -64,7 +65,7 @@ New top-level package → `packages/*` (publishable) or `apps/*` (deployable); n
 
 **Patterns:** CVA variant-prop (`Button`, `Badge`) · compound family (`Card`+sub-parts, no cross-imports) · variant-dispatcher block (`HeroSection`) · one file per component · registry-as-code (typed TS, JSON is a build output, never hand-authored) · thin HTTP client (CLI has no catalog logic) · route-scoped token override (`components/layout.tsx`, §8 - a value-set swap via a wrapping class, no second Tailwind root).
 
-**Rendering:** RSC by default; `"use client"` on the smallest leaf (today `ComponentPage`/`ComponentsPage` are whole-page client components - split further as the catalog grows). Registry API routes are `force-static` + `generateStaticParams()`. `@devignerui/ui` is server-renderable unless a component needs state/motion.
+**Rendering:** RSC by default; `"use client"` on the smallest leaf (today `ComponentPage`/`ComponentsPage` are whole-page client components - split further as the catalog grows). Registry API routes are `force-static` + `generateStaticParams()`. `devignerui` is server-renderable unless a component needs state/motion.
 
 **State:** no global state lib (component-local `useState` suffices); page UI state lives in the page; theme persists in `localStorage` + a pre-paint inline script + `.dark` class, read/written by `ThemeProvider`/`ThemeToggle`; registry content isn't "state" (static, no React Query/SWR). Reach for Context before a state library; a state library only once ≥2 unrelated features need cross-cutting client state.
 
@@ -120,7 +121,11 @@ interface ComponentData {
 
 **Target v2 shape** (add fields incrementally, only when a concrete feature needs them - never speculatively): `tags?: string[]` (search/filter) · `frameworks?: Array<"react"|"vue"|"svelte">` (2nd framework) · `version?: string` + `changelog?: {...}[]` (CLI `update` command) · `documentation?: { accessibility?, doAndDont?, commonMistakes? }` (§7 fields go structured) · `events?: PropDef[]`. All additive/optional - zero migration on introduction (§6).
 
-**Live previews:** hand-authored in `[slug]/page.tsx` (`BtnDefault`, etc.), keyed by `previews[slug]` - not generated from `code`/`usage`. `Button` (+ `Input` on the grid) are exceptions that render the real `packages/ui` component. Intentional duplication with `code`/`usage`; keep manually in sync and **on the same tokens** (§17), never `eval(code)`.
+**Descriptor fields for the catalog:** every entry in `scripts/registry/descriptors.mts` carries `addedAt` (`YYYY-MM-DD`, required; drives the Newest sort, the 14-day "new" tag and the sitemap's `lastModified`, and `pnpm registry:validate` rejects an invalid date), plus optional `tryIt` (the stage caption hint) and `stageAlign` (`"end"` for components whose panels open upward, `"center"` otherwise). The generator also emits `export type ComponentSlug` from the slugs. `apps/docs/lib/catalog.ts` (server only) reduces the registry to metadata for the pages, so component source never reaches the browser; sorting, search and the "new" window live in `lib/catalog-query.ts`, checked by `scripts/catalog.check.mts`.
+
+**Demos (home page and `/components`):** one file per component, `apps/docs/demos/{slug}.tsx`, default-exporting a self-contained demo at its natural size, with no `dark:` classes. `demos/index.ts` maps every `ComponentSlug` to a `next/dynamic` import with `ssr: false`, so a component without a demo fails the build. Import `demos/` only from client components. The home page, `/components`, the sitemap and the OG images read the registry, so adding a component needs no page edits.
+
+**Live previews (detail page):** hand-authored in `[slug]/page.tsx` (`BtnDefault`, etc.), keyed by `previews[slug]` - not generated from `code`/`usage`. `Button` (+ `Input` on the grid) are exceptions that render the real `packages/ui` component. Intentional duplication with `code`/`usage`; keep manually in sync and **on the same tokens** (§17), never `eval(code)`.
 
 **Code snippets:** `code` = what the CLI writes to disk (library-only). `usage` = what's shown in the Code tab / pasted by a consumer (a runnable `Example()`). **Binding:** `code`'s token classes must exactly match the `packages/ui` source they describe - not just look similar (§17); candidate for `pnpm validate:registry`, §13.
 
@@ -136,9 +141,9 @@ interface ComponentData {
 
 ## 6. Data Layer
 
-`apps/docs/lib/registry.ts` is the SSOT; `/api/registry*`, the CLI's fetched JSON, and the npm mirror are derived projections, never hand-edited to diverge.
+`apps/docs/lib/registry.ts` is generated from component descriptors; the docs API and the CLI snapshot are derived from it, never hand-edited to diverge.
 
-- **Loading:** docs site imports in-process (no network hop); API routes are `force-static`, cached `s-maxage=3600`; CLI `fetch()`s with `DEVIGNER_REGISTRY_URL` override, errors printed with `✗`/`process.exit(1)`.
+- **Loading:** docs site imports the generated registry; the published CLI reads its bundled snapshot, with no network request.
 - **Validation:** none at runtime today (TS compile-time is sufficient since producer+schema are co-located) - add Zod at the CLI's HTTP boundary once CLI and docs version independently.
 - **Serialization:** plain `NextResponse.json()`, no custom serializers/class instances.
 - **Versioning:** registry `version` (schema/content) and `CLI_VERSION` (installer) are independent, never collapsed. Additive fields need no migration; a breaking change needs a new schema version + the old shape served for ≥1 CLI minor cycle + a changelog note - via `?v=`/`Accept` header, not a new URL path.
@@ -178,7 +183,12 @@ interface ComponentData {
 
 **Rules:** components use only semantic names, never raw `gray-*`/hex/oklch literals except a documented decorative one-off. Applies foremost to distributed source (`packages/ui`, registry `code`) - docs-only preview JSX should follow it too, lower severity if not. **`accent` ≠ emphasis** - use `primary`/`primary-foreground` for selected/checked/active/CTA (§17; matters once a route's `accent` is a low-contrast tint by design).
 
-**Typography:** Geist Sans/Mono (`--font-sans`/`-mono` via `geist` pkg) for body, UI and data; `--font-display` is Cabinet Grotesk (Fontshare CDN link in `layout.tsx`, falls back to Geist) for headlines only, at weight 700-800 with tight negative tracking.
+**Typography:** Geist Sans/Mono (`--font-sans`/`-mono` via `geist` pkg) for titles, body, UI and data. Page titles are Geist 600, tracked tight (`tracking-tighter` / `-0.055em`). `--font-accent` is Mazius Display Extra Italic Bold (self-hosted through `next/font/local` from `apps/docs/assets/fonts/`, OFL, github.com/collletttivo/mazius-display): it sets one emphasized word per title, and only on some titles, through the `.accent-word` class (brand color, `line-height: 0` so the swash doesn't open the line box). `--font-display` is Bricolage Grotesque (`next/font/google`, `--font-bricolage`) is the logo face: the wordmark, the giant footer word and OG titles. The logo mark (the "d." tile) is an SVG, `components/logo-mark.tsx`, with its fills in `--logo-tile`, `--logo-ink` and `--logo-dot` so it swaps between its light and dark versions with the theme; `app/icon.svg` does the same with `prefers-color-scheme`, and the OG images and apple icon use the dark-theme version (white tile). The tile always contrasts with the page: ink on light, white on dark. Its one other use is the price figures on the pricing cards (bold, with a smaller dollar sign and cents). OG images can't use `next/font`, so `apps/docs/assets/fonts/` also holds static Bricolage 700 and Geist Mono 400 `.woff` files (Fontsource, OFL) for `next/og`.
+
+**Corners:** every surface that holds a live component is square (`.frame-surface`), like a frame in a design file; the component inside keeps its own radius. Chrome (windows, buttons, the terminal, pricing and FAQ panels) stays rounded. The design-tool selection (`SelectionMarks` in `components/landing/canvas-frame.tsx`: cobalt outline, four handles, measured size) is the shared hover and selected state for frames.
+
+**Icons:** every icon is a `@devigner-ui/icons` component. Never a text glyph or emoji (arrows, ticks, plus signs, sun/moon). Two exceptions: the on-page terminal reproduces the CLI's real output, glyphs included, and brand logos (X, React, Next.js...) come from Simple Icons as inline SVGs in `apps/docs/components/brand-logos.tsx`.
+
 | Role | Class | Size |
 |---|---|---|
 | Hero | `text-5xl/14 font-semibold tracking-[-2.88px]` | 48/56px |
@@ -246,7 +256,7 @@ Use these exact patterns for new components in these roles - the negative-tracki
 - **Multiple themes:** `.dark` and route-scoping (§8) are two independent, already-sufficient override axes - a third _theme_ follows the `:root`/`.dark` pattern; a third _route identity_ follows §8's pattern. No architectural change either way.
 - **Multiple design languages:** removed as a direction 2026-07-05; §8's two-route exception is a bounded, per-_route_ token swap, not a re-introduction of per-_component_ parallel treatments.
 - **Plugin architecture:** not needed until a real external registry consumer exists; extension point would be `ComponentData` itself, versioned (§6).
-- **External packages:** `@devignerui/ui` is already a standalone npm package with correct peer deps - just keep it a thin mirror (§17).
+- **External packages:** `devignerui` is already a standalone npm package with correct peer deps - just keep it a thin mirror (§17).
 - **API integration:** the public `/api/registry` contract is already a clean third-party integration point - never let the CLI or any integration depend on more than that contract.
 - **AI-assisted development:** this document is the mechanism - read it, find the closest precedent, follow the token/naming conventions, add data only to `registry.ts`.
 - **Future frameworks:** Vue/Svelte would add a `frameworks` field + per-framework `code`/`usage` inside `ComponentDataV2` - additive, no breaking change to React-only consumers.
@@ -265,7 +275,7 @@ Use these exact patterns for new components in these roles - the negative-tracki
 
 ## 14. Development Workflow
 
-**New component checklist (binding):** write the `.tsx` source first against the token contract (no hardcoded colors, `forwardRef`, `displayName`, exported `<X>Props`) → add the `registry.ts` entry (slug/name/description/category/variants/props/code/usage) → write a standalone `usage` example → add the live preview + register in `previews[slug]` → verify both themes manually → `turbo build && turbo lint` → PR states slug/category/one-line design rationale.
+**New component checklist (binding):** write the `.tsx` source first against the token contract (no hardcoded colors, `forwardRef`, `displayName`, exported `<X>Props`) → add the `registry.ts` entry (slug/name/description/category/variants/props/code/usage) → write a standalone `usage` example → add `addedAt` (and `tryIt`/`stageAlign` if useful) to its descriptor → add `apps/docs/demos/{slug}.tsx` and its line in `demos/index.ts` → add the live preview + register in `previews[slug]` → check the manners: it keeps still under `<MotionConfig reducedMotion="always">` as well as the OS setting (read reduced motion through `useReducedMotionPreference` from `lib/hooks/use-reduced-motion`, never Motion's `useReducedMotion` or `useReducedMotionConfig` alone), looks right in both themes with no `dark:` class, works from the keyboard → verify both themes manually → `turbo build && turbo lint` → PR states slug/category/one-line design rationale.
 
 - Versioning: see §6/§13 - never a third scheme.
 - Release: merge to `main` → Vercel deploy → registry API reflects immediately → CLI users get it on next `add`/`list` (no CLI publish needed for catalog-only changes) - preserve this.
@@ -303,7 +313,13 @@ Standing punch list. Close an item only once fixed **and re-verified** - a false
 3. **Legacy JSON registry + legacy shared types - resolved.** Removed; `shared`'s broken `exports` map (pointed at `.mjs` `tsup` never emits) fixed too.
 4. **Category label/key mismatch - resolved.** `registry.ts` now stores the key, not a label string; both display sites resolve via `COMPONENT_CATEGORIES`.
 5. **`Button`'s unused `asChild` - resolved.** Removed (zero callers); re-add only via the `Slot` pattern alongside a real consumer.
-6. **`content/blocks`/`content/components` - resolved, scope changed.** Empty dirs deleted; real MDX guides now live at `content/docs/` → `/docs`. Catalog routes untouched. Fumadocs uses its own `@import "tailwindcss"` compilation root (`docs.css`, imported only by its layout) and `theme/search: false` to avoid fighting Devigner's theme system; `fumadocs-mdx@^14.1.0` pinned for `fumadocs-core@15.8.5` compat - re-verify all three peer ranges together before bumping.
+6. **`/docs` removed (2026-09-25).** The Fumadocs guides (`content/docs/`, `app/docs/`, `/api/search`, `mdx-components.tsx`, `source.config.ts`) and the `fumadocs-*` and `@types/mdx` dependencies are gone. The site is the home page, `/components` and `/components/[slug]`; the navbar's Get started goes to the home page's install section (`/#install`).
 7. **Non-theme-aware colors inside `globals.css` itself - resolved.** `.code-shiki`/`.code-scroll` used literal `rgba(255,255,255,...)` with no light-mode counterpart (likely invisible/wrong in light mode) - now reference `var(--text-muted)`/`var(--border-hover)`. §8's token rule covers _any_ color in `globals.css`, not just component classes.
 8. **Ambiguous scope of the literals rule for docs-only preview code.** §8 now states it applies foremost to distributed source, docs-only code should follow but at lower severity. The one found instance (`bg-gray-200`) is fixed.
 9. **`accent` used as a strong-emphasis color - resolved, rule now documented.** Several hand-rolled previews used `bg/text/border-accent` to signal selected/checked/active, which only worked because `accent` aliased Devigner's saturated brand color; broke once a route's `accent` became a shadcn low-contrast tint by design. Repointed to `primary`/`primary-foreground`; the underlying rule (`accent` = tint, `primary` = emphasis) is now stated in §3 and §8 so it isn't rediscovered per-component. Registry/`packages/ui` token parity is now binding (§4), not implicit.
+10. **Timeline has no keyboard-focusable parts by default.** Its step highlight follows `onFocus`, but nothing inside a default step can take focus, so from the keyboard the highlight never moves. Open; the home page's "answers to the keyboard" proof shows it honestly.
+11. **`npx devignerui init` doesn't write the theme tokens, and nothing on the site hands them out any more.** The installation guide's token block went with `/docs`. Until `init` writes the `tokens:start`/`tokens:end` slice of `apps/docs/app/globals.css` into the user's stylesheet, a fresh project has components without their CSS variables.
+12. **The detail page keeps its own preview switch.** `/components/[slug]` still hand-authors previews in `page.tsx` instead of using `apps/docs/demos/`; two demo sets to keep in step until it adopts `demos/`.
+13. **OG images bake the dark palette in as hex.** `next/og` can't read CSS variables or `oklch()`, so `apps/docs/lib/og.tsx` holds hex conversions of the dark tokens; retune them with the palette.
+14. **Registry dependencies list `devignerui`.** Every component imports the motion tokens (and some hooks) from `devignerui`, so the CLI tells users to install it, against section 1's "no runtime coupling to `devignerui`". Either inline the tokens during registry generation or document the package as a required peer. The home page copy avoids claiming "no runtime package from us" until this is settled.
+15. **OG images and the detail page still use the old title type.** OG images set titles in Bricolage, and `/components/[slug]` hasn't adopted Geist titles with the Mazius accent word.

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · Geist plus a serif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:ital,wght@1,600&family=Playfair+Display:ital,wght@1,500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=boska@500,501&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=gambetta@500,501&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.09); --line2: oklch(95.5% 0.003 260 / 0.16);
+    --brand: oklch(68% 0.175 262);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 48px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1180px; margin: 0 auto 28px; }
+  .intro h1 { font: 600 30px/1.1 "Geist"; letter-spacing: -0.035em; }
+  .intro p { margin-top: 10px; max-width: 840px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .list { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .opt { cursor: pointer; border: 2px solid var(--line); border-radius: 24px; background: var(--bg); padding: 22px 32px 28px; transition: border-color .2s; }
+  .opt:hover { border-color: var(--line2); }
+  .opt.selected { border-color: var(--brand); }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 13px; color: var(--mut); }
+  .meta b { color: var(--fg); font-weight: 500; font-size: 15px; margin-right: 10px; }
+  .body { display: flex; flex-direction: column; gap: 18px; }
+  .t { font: 600 60px/1.02 "Geist"; letter-spacing: -0.05em; }
+  .t .ser { color: var(--brand); }
+  .h2 { font: 600 30px/1.1 "Geist"; letter-spacing: -0.04em; white-space: nowrap; color: var(--t2); }
+  .h2 .ser { color: var(--fg); }
+
+  .o1 .ser { font-family: "Instrument Serif"; font-style: italic; font-weight: 400; font-size: 1.14em; letter-spacing: -0.02em; }
+  .o2 .ser { font-family: "Instrument Serif"; font-style: normal; font-weight: 400; font-size: 1.12em; letter-spacing: -0.025em; }
+  .o3 .ser { font-family: "Boska"; font-style: italic; font-weight: 500; font-size: 1.08em; letter-spacing: -0.02em; }
+  .o4 .ser { font-family: "Playfair Display"; font-style: italic; font-weight: 500; font-size: 1.02em; letter-spacing: -0.02em; }
+  .o5 .ser { font-family: "DM Serif Display"; font-style: italic; font-weight: 400; font-size: 1.04em; letter-spacing: -0.02em; }
+  .o6 .ser { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 600; font-size: 1.16em; letter-spacing: -0.01em; }
+  .o7 .ser { font-family: "Gambetta"; font-style: italic; font-weight: 500; font-size: 1.06em; letter-spacing: -0.02em; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Geist for the titles. Which serif for "Crafted"?</h1>
+  <p>Geist 600 stays fixed. Only the serif changes. Each row also shows how the same serif would look on the single emphasized word in a section title. Options 1 and 2 are the same font, italic and upright, so you can compare the two styles.</p>
+</div>
+
+<div class="list">
+  <section class="card opt o1" data-choice="instrument-italic" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>1 · Instrument Serif Italic</b>condensed, modern, a lot of premium SaaS sites use it</span><span>OFL</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+  <section class="card opt o2" data-choice="instrument-roman" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>2 · Instrument Serif, upright</b>same font, not italic</span><span>OFL</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+  <section class="card opt o3" data-choice="boska" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>3 · Boska Italic</b>sharp, high contrast</span><span>Fontshare, free commercial</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+  <section class="card opt o4" data-choice="playfair" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>4 · Playfair Display Italic</b>classic, high contrast, rounder</span><span>OFL</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+  <section class="card opt o5" data-choice="dm-serif" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>5 · DM Serif Display Italic</b>heavy and punchy, holds its own next to bold sans</span><span>OFL</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+  <section class="card opt o6" data-choice="cormorant" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>6 · Cormorant Garamond Italic</b>delicate, calligraphic</span><span>OFL</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+  <section class="card opt o7" data-choice="gambetta" onclick="toggleSelect(this)">
+    <div class="meta"><span><b>7 · Gambetta Italic</b>warm, sturdy</span><span>Fontshare, free commercial</span></div>
+    <div class="body"><div class="t">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</div><div class="h2">Then it's <span class="ser">your</span> code.</div></div>
+  </section>
+</div>
+</body>
+</html>

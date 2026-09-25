@@ -5,7 +5,6 @@ import {
   AnimatePresence,
   LayoutGroup,
   motion,
-  useReducedMotion,
   type Transition,
 } from "motion/react";
 import { cn } from "cn";
@@ -18,6 +17,7 @@ import {
   defaultTransition,
 } from "../lib/easing";
 import { useControllableState } from "../lib/hooks/use-controllable-state";
+import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 import { useHoverCapable } from "../lib/hooks/use-hover-capable";
 import {
   addDays,
@@ -65,7 +65,7 @@ function useLazyValue<T>(
   key: React.Key,
   delay: number,
 ): { key: React.Key; value: T } {
-  const [shown, setShown] = React.useState({ key, value });
+  const [shown, setShown] = React.useState<{ key: React.Key; value: T }>({ key, value });
   const latest = React.useRef(value);
   latest.current = value;
 
@@ -365,7 +365,7 @@ export function DateRangePicker({
   const [pendingStart, setPendingStart] = React.useState<Date | null>(null);
   const [hoverDate, setHoverDate] = React.useState<Date | null>(null);
   const canHover = useHoverCapable();
-  const reduced = !!useReducedMotion();
+  const reduced = !!useReducedMotionPreference();
   // Per-instance: shared layoutIds would make two pickers on one page trade
   // circles and underlines.
   const instanceId = React.useId();
@@ -613,7 +613,7 @@ export function DateRangePicker({
     <div
       {...slotProps?.root}
       className={cn(
-        "flex w-105 max-w-full flex-col rounded-[26px] bg-surface-hover p-2.5 shadow-elevated",
+        "flex w-105 max-w-full flex-col rounded-[26px] bg-surface-hover p-2.5 smooth-shadow-ring-lg",
         slotProps?.root?.className,
         className,
         classNames?.root,

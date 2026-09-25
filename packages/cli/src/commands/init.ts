@@ -21,7 +21,6 @@ export const initCommand = new Command()
 
     // Create components.json config
     const config = {
-      $schema: "https://devignerui.com/schema.json",
       tailwind: {
         config: options.tailwind === "4" ? "" : "tailwind.config.js",
         css: options.css,

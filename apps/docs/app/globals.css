@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@import "shadow-plugin";
 
-/* Tailwind's auto-detection skips node_modules, and @devignerui/ui resolves
+/* Tailwind's auto-detection skips node_modules, and devignerui resolves
    through a pnpm symlink into it - so without this, a class used only inside
    packages/ui never gets generated and the component renders unstyled. */
 @source "../../../packages/ui/src";
@@ -19,14 +20,18 @@
      3 · @theme  - the Tailwind mapping. `inline`, so a utility reads the live
                    variable rather than a build-time snapshot of it.
 
-   One palette site-wide. /components used to swap in a neutral shadcn set
-   (.shadcn-scope); that scope was retired with the Instrument redesign.
+   One palette site-wide. `.light` and `.dark` also work below <html> as
+   theme scopes (a stage showing the other theme), which is why the light
+   palette and the roles carry those selectors too.
    ═════════════════════════════════════════════════════════════════════════ */
+
+/* tokens:start */
 
 /* ── 1 · Palette · light (lab white + graphite ink) ─────────────────────────
    One hue family for every neutral (260, barely chromatic), so greys never
    drift warm against cool. Cobalt is the only colour with real chroma. */
-:root {
+:root,
+.light {
   --background: oklch(97.6% 0.003 260);
   --background-100: oklch(99.2% 0.002 260);
   --background-200: oklch(94.8% 0.004 260);
@@ -75,6 +80,18 @@
     inset 0 1px 2px oklch(19% 0.03 260 / 0.1),
     inset 0 0 0 1px oklch(19% 0.012 260 / 0.07),
     0 1px 0 oklch(100% 0 0 / 0.9);
+  /* The soft light at the top of every stage. */
+  --stage-light: oklch(100% 0 0 / 0.7);
+  /* Cobalt light behind the hero and page headers. */
+  --glow: oklch(53% 0.215 264 / 0.1);
+  /* The logo mark's fills, exact brand hex. It contrasts with the page:
+     an ink tile on light, a white tile on dark. */
+  --logo-tile: #151922;
+  --logo-ink: #fff;
+  --logo-dot: #365ee9;
+  /* Type pressed into the page (the footer wordmark): lip above, catch below. */
+  --emboss-lip: oklch(19% 0.03 260 / 0.14);
+  --emboss-catch: oklch(100% 0 0 / 0.95);
 }
 
 /* ── 1 · Palette · dark (graphite ground + cool bone ink) ────────────────── */
@@ -124,6 +141,13 @@
     inset 0 2px 4px oklch(0% 0 0 / 0.55),
     inset 0 0 0 1px oklch(95.5% 0.003 260 / 0.05),
     0 1px 0 oklch(95.5% 0.003 260 / 0.06);
+  --stage-light: oklch(95.5% 0.003 260 / 0.055);
+  --glow: oklch(68% 0.175 262 / 0.16);
+  --logo-tile: #fff;
+  --logo-ink: #151922;
+  --logo-dot: #365ee9;
+  --emboss-lip: oklch(0% 0 0 / 0.6);
+  --emboss-catch: oklch(95.5% 0.003 260 / 0.07);
 }
 
 /* ── 1 · Palette · the same in both themes ──────────────────────────────── */
@@ -137,7 +161,9 @@
 /* ── 2 · Roles ──────────────────────────────────────────────────────────────
    Declared once, on the element that also carries the palette, so `.dark`
    needs no copy of any of this. */
-:root {
+:root,
+.dark,
+.light {
   --accent: var(--brand);
   --accent-hover: var(--brand-hover);
   --accent-secondary: var(--brand-secondary);
@@ -227,6 +253,9 @@
   --color-terminal-foreground: var(--terminal-foreground);
   --color-terminal-muted: var(--terminal-muted);
 
+  /* Page light */
+  --color-glow: var(--glow);
+
   /* shadcn-compatible names */
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -242,9 +271,11 @@
   --color-ring: var(--ring);
   --radius: 0.625rem;
 
-  /* Typography - Cabinet Grotesk (headlines) + Geist (body/mono) */
+  /* Typography - Geist for titles and body, Mazius Display for one accent
+     word per title, Bricolage Grotesque for the logo only. */
+  --font-accent: var(--font-mazius), Georgia, serif;
   --font-display:
-    "Cabinet Grotesk", var(--font-geist-sans), system-ui, sans-serif;
+    var(--font-bricolage), var(--font-geist-sans), system-ui, sans-serif;
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
@@ -273,6 +304,19 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* tokens:end */
+
+/* A .light or .dark element below <html> is a theme scope: the palette
+   above re-resolves inside it, and it paints its own ground. In the base
+   layer, so a utility on the same element (a stage surface) still wins. */
+@layer base {
+  .light,
+  .dark {
+    background: var(--background);
+    color: var(--foreground);
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -285,24 +329,6 @@ body {
 
 html {
   scroll-behavior: smooth;
-}
-
-/* ─── Lenis smooth scroll ─── */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
 }
 
 ::selection {
@@ -384,6 +410,24 @@ html.lenis body {
 
 .caret-blink {
   animation: caret-blink 1.1s steps(1) infinite;
+}
+
+/* A short bright dash that runs the install connector, then rests. Its path
+   sets pathLength="1", so the dash and offsets are fractions of the path. */
+@keyframes trace-pulse {
+  0% {
+    stroke-dashoffset: 0.1;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+
+.trace-pulse {
+  /* backwards fill: without it the dash sits at the start during the delay. */
+  animation: trace-pulse 3s var(--ease-in-out) 0.9s infinite backwards;
+  filter: drop-shadow(0 0 3px var(--brand)) drop-shadow(0 0 8px var(--brand));
 }
 
 /* ─── Code blocks (shiki) - dual theme via --shiki-light/--shiki-dark vars ─── */
@@ -486,37 +530,78 @@ html.lenis body {
   }
 }
 
-/* ─── Instrument grid ─── the measuring-paper ground behind live stages and
-   the spring scope. Lines are the border token, so both themes carry it;
-   the mask fades it out toward the edges so it reads as depth, not a table. */
-.instrument-grid {
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 28px 28px;
-  background-position: -1px -1px;
-  mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, black 40%, transparent 100%);
-}
+/* In the components layer: above a theme scope's base-layer ground, below
+   utilities, so a text-* or bg-* class on the same element still wins. */
+@layer components {
+  /* Stage surface - the ground every live demo sits on: a pressed-in panel
+     with soft light falling from the top edge. */
+  .stage-surface {
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 0%, var(--stage-light), transparent 72%),
+      var(--background-200);
+    box-shadow: var(--shadow-inlay-val);
+  }
 
-/* Faint cobalt pool, the one decorative light source on the page. */
-.brand-glow {
-  background: radial-gradient(
-    closest-side,
-    color-mix(in oklab, var(--brand) 16%, transparent),
-    transparent
-  );
+  /* A frame: the square ground a live component sits on, like a frame in
+     a design file. Square on purpose; the component keeps its own radius. */
+  .frame-surface {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, var(--stage-light), transparent 72%),
+      var(--frame-ground, var(--background-200));
+  }
+
+  /* A dot field over the frame, fading out toward its edges. The dotted
+     frame sits on a deeper ground in dark mode, so the dots drop a step too. */
+  .dark .frame-dots {
+    --frame-ground: var(--background-100);
+  }
+  .frame-dots::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 16px 16px;
+    mask: radial-gradient(70% 70% at 50% 50%, #000, transparent);
+  }
+
+  /* The one emphasized word in a title. line-height 0 keeps the swash
+     from opening up the line box. */
+  .accent-word {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.1em;
+    line-height: 0;
+    letter-spacing: -0.01em;
+    padding-right: 0.04em;
+    color: var(--brand);
+  }
+
+  /* The footer wordmark, pressed into the page. */
+  .wordmark-pressed {
+    color: var(--background-200);
+    text-shadow:
+      0 -1px 0 var(--emboss-lip),
+      0 1px 0 var(--emboss-catch);
+  }
 }
 
 .text-balance {
   text-wrap: balance;
 }
 
-/* Soft light from above the page, in the ink colour, so it reads as a lamp in
-   both themes instead of a coloured glow. */
-.top-light {
-  background: radial-gradient(
-    ellipse 60% 55% at 50% -8%,
-    color-mix(in oklab, var(--foreground) 7%, transparent),
-    transparent 70%
-  );
+/* First-load rise, in CSS so the server-rendered hero animates before
+   hydration. Delay comes from --i (the line index). The reduced-motion
+   block above collapses it to the final state. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+}
+
+.rise {
+  animation: rise 0.9s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
 }

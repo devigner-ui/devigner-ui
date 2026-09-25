@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 import { cn } from "cn";
 import { EASE_OUT, SPRING_PRESS } from "../lib/easing";
 import { useControllableState } from "../lib/hooks/use-controllable-state";
@@ -164,7 +165,7 @@ export function ChartCard({
     defaultValue: initialActiveId,
     onValueChange: onActiveChange,
   });
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionPreference();
   // Per-instance: a shared layoutId would make two cards on one page swap
   // tooltips with each other.
   const tooltipId = React.useId();

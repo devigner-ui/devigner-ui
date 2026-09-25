@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship a top-center notification system for `@devignerui/ui` whose surface descends from the viewport edge as a liquid droplet, with a Sonner-compatible API.
+**Goal:** Ship a top-center notification system for `devignerui` whose surface descends from the viewport edge as a liquid droplet, with a Sonner-compatible API.
 
 **Architecture:** Two stacked layers inside one fixed wrapper. A filtered SVG-goo layer holds only solid blobs (an off-screen anchor plus the droplet), so an `feGaussianBlur` + `feColorMatrix` alpha crush fuses them into a stretching neck that snaps on its own. An unfiltered content layer carries the text and buttons. Pure queue logic lives React-free in `lib/notch-queue.ts` so it can be tested under plain Node; the React binding, timers and `toast()` API live in `lib/notch-store.ts`.
 
@@ -20,7 +20,7 @@ Copied verbatim from the repo's `AGENTS.md` and the spec. Every task's requireme
 - **No new dependencies.** Everything here is built from React, `motion`, and what the package already has.
 - **Comment density matches the surrounding package.** `menu-dock.tsx` and `menu-path.ts` explain *why* a constant has its value, not what the line does. Match that. A magic number with no rationale comment is a review rejection.
 - **No test framework.** The repo uses `node:assert/strict` self-check scripts under Node's own type stripping, run from the root `test` script. See `scripts/menu-path.check.mts`.
-- **Package is `@devignerui/ui`**, source under `packages/ui/src/`. Internal imports are relative (`../lib/easing`); the docs app imports `@devignerui/ui/motion`.
+- **Package is `devignerui`**, source under `packages/ui/src/`. Internal imports are relative (`../lib/easing`); the docs app imports `devignerui/motion`.
 
 ---
 
@@ -319,7 +319,7 @@ export const SPRING_RETRACT = {
 - [ ] **Step 2: Verify the package still type-checks**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS.
@@ -329,7 +329,7 @@ Expected: PASS.
 Replace lines 31-32 of `AGENTS.md`:
 
 ```markdown
-- **JS/TSX (motion/react):** import from `@devignerui/ui/motion`
+- **JS/TSX (motion/react):** import from `devignerui/motion`
   (source: `packages/ui/src/lib/easing.ts`) and pick by purpose:
 ```
 
@@ -642,7 +642,7 @@ export const toast = Object.assign(base, {
 - [ ] **Step 2: Type-check**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS.
@@ -828,7 +828,7 @@ function GooFilter({ id, sigma }: { id: string; sigma: number }) {
 - [ ] **Step 2: Type-check**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS. Unused-export warnings for `NotchGoo` and `GooFilter` are expected at this stage; Task 5 consumes them.
@@ -1067,7 +1067,7 @@ function NotchBody({
 - [ ] **Step 5: Type-check**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS.
@@ -1239,7 +1239,7 @@ Expected: all four print `function`. If any prints `undefined`, list the real ex
 - [ ] **Step 6: Type-check**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS.
@@ -1341,7 +1341,7 @@ And wrap the body so the compact row is the trigger:
 - [ ] **Step 3: Type-check**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS.
@@ -1452,7 +1452,7 @@ Expected: the `NotchGoo` wrapper and the `GooFilter` svg both carry it. Both mus
 - [ ] **Step 5: Type-check**
 
 ```bash
-pnpm --filter @devignerui/ui lint
+pnpm --filter devignerui lint
 ```
 
 Expected: PASS.
@@ -1492,7 +1492,7 @@ export type { NotchStatus, NotchRecord } from "./lib/notch-queue";
 - [ ] **Step 2: Build the package**
 
 ```bash
-pnpm --filter @devignerui/ui build
+pnpm --filter devignerui build
 ```
 
 Expected: PASS, `dist/index.js`, `dist/index.cjs` and `dist/index.d.ts` written.

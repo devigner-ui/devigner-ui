@@ -55,8 +55,8 @@ Every decision below was made with the user in the visual companion
   pushing the line box.
 - Section title scale: h1 `clamp(2.5rem, 5vw, 4rem)`, h2 `clamp(2rem, 3.6vw, 2.875rem)`,
   both Geist 600, `leading-[1.04]`, `tracking-[-0.05em]`.
-- New role `--glow`: `oklch(from var(--brand) l c h / 0.16)` in dark and
-  `/ 0.10` in light, used by the hero and header light.
+- New palette token `--glow`: cobalt at 10% alpha in light, 16% in dark, used by the
+  hero, header and bento light.
 
 **Icons used.** `IconArrowRight`, `IconArrowUp`, `IconArrowDown`, `IconArrowLeft`,
 `IconCopy`, `IconCheck`, `IconSun`, `IconMoon`, `IconCursor`, `IconMaximize`,
@@ -125,8 +125,8 @@ transparent through white and cobalt), a brand glow above and a deep shadow belo
 - **Component list (220px):** a search field ("Search components", `/` hint, filters as
   you type), then components grouped by category with counts, newest first inside each
   group. Each row: a small mono `#`, the name, and a "New" tag within 14 days. The
-  selected row has a brand tint and ring. Rows are buttons; arrow keys move between
-  them.
+  selected row has a brand tint and ring. Rows are buttons with `aria-pressed`; the
+  up and down arrow keys move focus between them.
 - **Canvas:** a native scroll container with hidden scrollbars, so trackpads and wheels
   pan it; mouse drag on empty canvas also pans. Background is a soft radial of
   `--background-200` into `--background`. Frames are laid out from the registry in
@@ -146,8 +146,8 @@ transparent through white and cobalt), a brand glow above and a deep shadow belo
 - **Mobile (below `md`):** no dragging. The list becomes a horizontal row of chips above
   the canvas, the canvas shows only the selected frame at full width, and the toolbar
   holds only the command.
-- **Accessibility:** the window is a labelled region ("Component preview"). The list is
-  a listbox with `aria-activedescendant`; a polite live region says "Showing {name}".
+- **Accessibility:** the window is a labelled region ("Component preview"). A polite
+  live region says "Showing {name}".
   Frames are focusable buttons named "{name}, select". Decorative handles and the size
   label are `aria-hidden`.
 
@@ -167,8 +167,9 @@ names (React, Next.js, Tailwind CSS, TypeScript, Vite, shadcn/ui) in
   the live visual below, bleeding to the cell edges where noted. Below `lg` the cells
   stack.
 - Which component each cell shows is set in `lib/catalog.ts` as
-  `BENTO = { keyboard: "menu-dock", themes: "date-range-picker", motion: "magnetic-button", states: "delete-button" }`.
-  The code cell follows the hero selection.
+  `BENTO = { themes: "date-range-picker", motion: "magnetic-button" }`. The keyboard cell always runs the details page's Menu Dock example (`MenuDockPreview` in `demos/menu-dock.tsx`), with its search panel and nested menus.
+  The states cell is always Delete Button (its copy names it), and the code cell
+  follows the hero selection.
 - **Keyboard:** the live component and a row of keycaps under it: Tab, the four arrows
   (`IconArrowUp/Down/Left/Right`), Enter, Esc. A keycap lights (brand fill, pressed
   down 2px, soft brand glow) while its key is held with focus inside the cell. A faint
@@ -276,11 +277,13 @@ selection-driven slug, reduced-motion final state, transcript in the DOM). Chang
 Additions to what the first spec built:
 
 - `lib/catalog.ts`: `BENTO` constant (above). `FEATURED` stays. `BENCH` is removed.
+- Picking a component in the list recenters the canvas on it. Pressing a frame selects
+  it without moving the canvas, so the demo doesn't slide out from under the pointer.
 - `components/landing/canvas-frame.tsx`: `Frame` (label, square stage, selection
   handles and size label), plus `FitToStage` and `LazyMount` moved here from
   `catalog/catalog-grid.tsx` so the hero, the bento and the catalog share them.
-- `components/stage.tsx`: reduced to `StageDemo` (the cross-fading demo mount), used by
-  frames. The toggles, caption and surface move out.
+- `components/stage.tsx` is deleted: frames mount demos directly through `FitToStage`
+  and `LazyMount`.
 
 ## Files
 
@@ -296,7 +299,7 @@ Modify:
 - `apps/docs/app/globals.css` (`--font-accent`, `--glow`, `.accent-word`)
 - `apps/docs/app/page.tsx` (new section order), `apps/docs/app/components/page.tsx`
 - `apps/docs/components/landing/{hero,navbar,install,pricing,faq,closing,copy-command}.tsx`
-- `apps/docs/components/catalog/catalog-grid.tsx`, `apps/docs/components/stage.tsx`
+- `apps/docs/components/catalog/catalog-grid.tsx`
 - `apps/docs/lib/catalog.ts`
 - `README.md` (typography, the corner rule, the icon rule, the CLI transcript exception)
 
@@ -305,10 +308,11 @@ Delete (all are this branch's uncommitted files, replaced by the above):
 - `apps/docs/components/landing/library-wall.tsx`
 - `apps/docs/components/landing/manners.tsx`
 - `apps/docs/components/landing/component-picker.tsx`
+- `apps/docs/components/stage.tsx`
 
 ## Motion map
 
-All values come from `@devignerui/ui/motion` or the `ease-*` utilities.
+All values come from `devignerui/motion` or the `ease-*` utilities.
 
 | Moment | Token |
 |---|---|
@@ -360,8 +364,8 @@ Built for React 19 and Tailwind CSS v4. It drops into the stack you already have
 - h2: Every state, already <accent>handled</accent>.
 - Lede: Focus, loading, confirmation, reduced motion and both themes are part of each
   component, so the part you paste in is the finished part.
-- Works from the keyboard: Click into it and put the mouse away. Every key you press
-  lights up here.
+- Works from the keyboard: Click into the dock and put the mouse away. Every key you
+  press lights up below.
 - Right in both themes: Drag across it. Colors come from CSS variables, with no dark:
   classes in the file.
 - Still when you ask: Turn on reduced motion and the springs stop. Everything still
@@ -433,5 +437,5 @@ As in the first spec, with "Top" in place of "↑ Top".
 
 - OG images still set their titles in Bricolage; move them to Geist plus Mazius later.
 - The `[slug]` detail page and the docs have not adopted the new title type.
-- Registry dependencies list `@devignerui/ui` for the motion tokens, which the README
+- Registry dependencies list `devignerui` for the motion tokens, which the README
   says installed code should not need. Record it in README §17 as known drift.

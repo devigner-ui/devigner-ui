@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 import { cn } from "cn";
 import { IconSpinner } from "@devigner-ui/icons";
 import { SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "../lib/easing";
@@ -56,7 +57,7 @@ function DrawnPath({
   d: string;
   reverse?: boolean;
 }) {
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionPreference();
   const drawing = {
     duration: DRAW,
     ease: DRAW_EASE,
@@ -224,7 +225,9 @@ export interface DeleteButtonProps extends DivProps {
   right?: boolean;
   disabled?: boolean;
   /** Custom content rendered beside the preset confirmation actions. */
-  renderConfirmation?: (props: DeleteConfirmationRenderProps) => React.ReactNode;
+  renderConfirmation?: (
+    props: DeleteConfirmationRenderProps,
+  ) => React.ReactNode;
   classNames?: DeleteButtonClassNames;
   slotProps?: DeleteButtonSlotProps;
 }
@@ -238,7 +241,7 @@ function ActionButton({
 }: { label: string; delay: number } & React.ComponentProps<
   typeof motion.button
 >) {
-  const scale = useReducedMotion() ? 1 : 0.9;
+  const scale = useReducedMotionPreference() ? 1 : 0.9;
   return (
     <motion.button
       type="button"
@@ -288,7 +291,7 @@ export function DeleteButton({
     onValueChange: onStatusChange,
   });
   const onLeft = left && !right;
-  const reduced = useReducedMotion();
+  const reduced = useReducedMotionPreference();
   const tile = React.useRef<HTMLButtonElement>(null);
   const pillId = React.useId();
   // `pointer-events-none` leaves the pill's buttons tabbable, so a disabled
@@ -359,7 +362,7 @@ export function DeleteButton({
         style={{ borderRadius: INNER_RADIUS }}
         className={cn(
           "relative grid size-12 shrink-0 cursor-pointer place-items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-          phase === "done" ? "text-brand" : "text-foreground",
+          phase === "done" ? "text-emerald-500" : "text-foreground",
           classNames?.tile,
         )}
       >
@@ -433,7 +436,7 @@ export function DeleteButton({
                   },
                 );
               }}
-              className="text-brand"
+              className="text-red-500"
             >
               <CheckGlyph />
             </ActionButton>

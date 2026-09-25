@@ -1,4 +1,4 @@
-// Docs-site chrome. Local on purpose: @devignerui/ui ships one component now.
+// Docs-site chrome. Local on purpose: devignerui ships one component now.
 import * as React from "react";
 import { cn } from "cn";
 

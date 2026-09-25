@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · component page, hybrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/files/detail.css">
+<style>
+  /* ───── top bar variants ───── */
+  .tbar { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: relative; z-index: 4; }
+  .tbar .lft { display: flex; align-items: center; gap: 14px; }
+  .dv { width: 1px; height: 18px; background: var(--line2); flex: none; }
+  .crumb2 { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--mut); white-space: nowrap; }
+  .crumb2 svg { width: 14px; height: 14px; color: var(--line3); }
+  .crumb2 b { color: var(--fg); font-weight: 500; }
+  .crumb2 .newtag { margin-left: 4px; }
+  .spill { height: 36px; border-radius: 99px; border: 1px solid var(--line2); padding: 0 6px 0 12px; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--mut); background: oklch(95.5% 0.003 260 / .03); white-space: nowrap; }
+  .spill kbd { font: 400 10.5px "Geist Mono"; border: 1px solid var(--line2); border-radius: 6px; padding: 2px 6px; color: var(--t2); margin-left: 10px; }
+  .t2 .mid { position: absolute; left: 50%; transform: translateX(-50%); }
+  .t3 { justify-content: center; padding-top: 10px; height: 74px; }
+  .fpill { height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 18px 0 18px; border-radius: 99px; border: 1px solid var(--line2); background: oklch(15.2% 0.006 260 / .75); backdrop-filter: blur(16px); box-shadow: 0 10px 30px -12px oklch(0% 0 0 / .7), inset 0 1px 0 oklch(100% 0 0 / .05); }
+
+  .strip { width: 1180px; height: 190px; background: var(--bg); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; position: relative; }
+  .strip .stg { position: absolute; left: 14px; right: 14px; top: 64px; bottom: -40px; }
+  .strip.t3s { height: 236px; }
+  .strip.t3s .stg { top: 0; left: 0; right: 0; }
+  .strip .stg .stage { position: absolute; inset: 0; align-items: flex-start; padding-top: 60px; }
+  .strip .corner { position: absolute; left: 18px; top: 16px; display: flex; gap: 10px; align-items: baseline; z-index: 2; }
+  .strip .corner b { font-size: 13px; font-weight: 500; }
+  .mobile { display: flex; gap: 12px; align-items: flex-start; margin-top: 12px; max-width: 1180px; margin-left: auto; margin-right: auto; }
+  .phone { width: 390px; height: 64px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; flex: none; }
+  .mobile p { font-size: 13px; line-height: 1.55; color: var(--t2); padding-top: 8px; }
+  .mobile p b { color: var(--fg); font-weight: 500; }
+
+  /* ───── hybrid page ───── */
+  .H { height: 760px; display: flex; flex-direction: column; }
+  .H .body { flex: 1; display: grid; grid-template-columns: 1fr 392px; min-height: 0; padding: 0 0 14px 14px; }
+  .H .stagewrap { position: relative; }
+  .H .stagewrap .stage { position: absolute; inset: 0; overflow: hidden; }
+  .H .stagewrap .stage.glow::after { content: ""; position: absolute; left: 10%; right: 10%; bottom: -120px; height: 260px; background: radial-gradient(closest-side, var(--glow), transparent); }
+  .H .corner { position: absolute; left: 18px; top: 16px; display: flex; gap: 10px; align-items: baseline; z-index: 2; }
+  .H .corner b { font-size: 13px; font-weight: 500; }
+  .H .corner2 { position: absolute; right: 18px; top: 16px; z-index: 2; }
+  .H .dockpos { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5; }
+  .H .canvas2 { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(60% 55% at 50% 42%, oklch(19.5% 0.013 262), oklch(15.4% 0.007 260) 80%); box-shadow: inset 0 0 0 1px var(--line); }
+  .H .fr { position: absolute; left: 90px; right: 90px; top: 110px; }
+  .H .fl { font-size: 12px; color: var(--brand); font-weight: 500; margin-bottom: 8px; display: flex; gap: 8px; }
+  .H .fl span { color: var(--mut); font: 400 11px "Geist Mono"; }
+  .H .fr .stage { height: 340px; position: relative; }
+  .H .tip { position: absolute; left: 20px; top: 18px; }
+  .H .insp { position: relative; overflow: hidden; padding: 22px 28px 0; }
+  .H .insp .d-h1 { font-size: 38px; margin-top: 10px; }
+  .H .insp .d-lede { font-size: 14.5px; }
+  .H .insp .d-h2 { font-size: 20px; margin: 30px 0 12px; }
+  .H .tabs { display: flex; gap: 4px; margin-top: 20px; padding: 3px; border-radius: 99px; border: 1px solid var(--line); width: fit-content; }
+  .H .tabs span { height: 28px; padding: 0 12px; border-radius: 99px; font-size: 12.5px; color: var(--mut); display: flex; align-items: center; }
+  .H .tabs span.on { background: var(--bg4); color: var(--fg); box-shadow: 0 0 0 1px var(--line2); }
+  .H .props { margin-top: 0; }
+  .H .pr { grid-template-columns: 110px 1fr 44px; padding: 10px 12px; font-size: 12.5px; }
+
+  /* ───── dock idea cards ───── */
+  .ideas1 { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .ideas1 .idea .row { display: flex; justify-content: space-between; gap: 24px; }
+  .ideas1 .idea p { max-width: 820px; }
+  .dstrip { margin-top: 18px; height: 200px; border-radius: 14px; overflow: hidden; position: relative; }
+  .dstrip .stage { position: absolute; inset: 0; align-items: flex-start; padding-top: 34px; }
+  .dstrip .dockpos { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 5; }
+  .tipl { position: absolute; z-index: 6; height: 30px; padding: 0 10px; border-radius: 9px; background: var(--fg); color: var(--bg); font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 10px 24px -8px oklch(0% 0 0 / .7); }
+  .tipl span { color: oklch(45% 0.01 260); font-weight: 400; }
+  .tipl::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: var(--fg); transform: translateX(-50%) rotate(45deg); border-radius: 1px; }
+  .spyH { margin-top: 18px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); height: 560px; }
+  .spyH.H .body { padding-top: 14px; }
+  .kb { font: 400 10.5px "Geist Mono"; border: 1px solid var(--line2); border-radius: 5px; padding: 1px 6px; color: var(--t2); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-chl" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chr" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-arr" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="currentColor" stroke="none"/><path d="M12 1.4v2.4M20.3 3.7l-2.5 2.5M22.6 12h-2.4M12 22.6v-2.4M1.4 12h2.4M20.3 20.3l-2.5-2.5M3.7 20.3l2.5-2.5M3.7 3.7l2.5 2.5"/></symbol>
+</svg>
+
+<div class="intro">
+  <h1>Hybrid: B's navigation, A's docs inspector</h1>
+  <p>Settled from your answers: <b>B's top bar</b> (polished, no Get started), <b>components live in the dock's Components panel</b> (no rail, no ruler-tick sidebar), and <b>Docs open as A's right-hand inspector</b>. Three things left to pick below, each on its own.</p>
+  <ul>
+    <li><b>1. Top bar polish:</b> three takes on B's bar.</li>
+    <li><b>2. Stage:</b> B's full square stage, or A's selected frame with handles. Both mocks use top bar T1 and show Docs open.</li>
+    <li><b>3. Dock ideas:</b> each shown on its own in the hybrid. Tick any, or none.</li>
+  </ul>
+</div>
+
+<!-- ═══════════════ 1 · TOP BAR ═══════════════ -->
+<div class="opt-h" id="s1" style="margin-top:56px">
+  <div class="l">
+    <div class="letter">1</div>
+    <div>
+      <h2>Top bar polish</h2>
+      <p>Same bar across the page width, borderless like the home navbar at the top of the page. Theme stays in the dock, so the bar carries no controls it doesn't need.</p>
+    </div>
+  </div>
+</div>
+
+<div class="opt-h" style="margin-top:28px">
+  <div class="l"><div class="letter" style="width:auto;padding:0 12px;font-size:15px">T1</div><div><h2 style="font-size:19px">Breadcrumb + search hint</h2><p>Chevron crumbs with the category (<b>Components › Animation › Magnetic Button</b>) and a New tag. On the right, a quiet <b>Search components /</b> pill that opens the dock's Components panel, so the search is findable without a sidebar.</p></div></div>
+  <button class="pick" data-choice="top-t1">Pick T1 <svg class="i s"><use href="#i-arr"/></svg></button>
+</div>
+<div class="scroll"><div class="strip">
+  <div class="tbar">
+    <div class="lft">
+      <span class="wm">devigner<i>.</i></span>
+      <span class="dv"></span>
+      <span class="crumb2">Components<svg class="i"><use href="#i-chr"/></svg>Animation<svg class="i"><use href="#i-chr"/></svg><b>Magnetic Button</b><span class="newtag">New</span></span>
+    </div>
+    <span class="spill"><svg class="i s"><use href="#i-search"/></svg>Search components<kbd>/</kbd></span>
+  </div>
+  <div class="stg"><div class="stage glow"><span class="field"><span class="mag">Get started</span></span></div></div>
+</div></div>
+<div class="mobile"><div class="phone"><span class="wm" style="font-size:19px">devigner<i>.</i></span><span class="crumb2"><b>Magnetic Button</b></span><span class="iconb" style="width:34px;height:34px"><svg class="i s"><use href="#i-search"/></svg></span></div><p><b>Phone:</b> crumbs collapse to the name, the search pill to an icon.</p></div>
+
+<div class="opt-h" style="margin-top:44px">
+  <div class="l"><div class="letter" style="width:auto;padding:0 12px;font-size:15px">T2</div><div><h2 style="font-size:19px">Crumb in the middle, install on the right</h2><p>Wordmark left, a centred crumb, and the <b>install command chip</b> (from A's bar) taking the spot Get started left. The page's main action stays visible even with Docs closed. Pairs badly with dock idea 2 (the command would show twice).</p></div></div>
+  <button class="pick" data-choice="top-t2">Pick T2 <svg class="i s"><use href="#i-arr"/></svg></button>
+</div>
+<div class="scroll"><div class="strip">
+  <div class="tbar t2">
+    <span class="wm">devigner<i>.</i></span>
+    <span class="crumb mid"><span>Components</span><span class="sl">/</span><b>Magnetic Button</b><span class="mono-tag" style="margin-left:4px">Animation</span></span>
+    <span class="chip sm"><span><span class="dol">$</span> npx devignerui add <b>magnetic-button</b></span><span class="cb"><svg class="i s"><use href="#i-copy"/></svg></span></span>
+  </div>
+  <div class="stg"><div class="stage glow"><span class="field"><span class="mag">Get started</span></span></div></div>
+</div></div>
+<div class="mobile"><div class="phone"><span class="wm" style="font-size:19px">devigner<i>.</i></span><span class="crumb2"><b>Magnetic Button</b></span><span class="iconb" style="width:34px;height:34px"><svg class="i s"><use href="#i-copy"/></svg></span></div><p><b>Phone:</b> the chip shrinks to a copy icon button.</p></div>
+
+<div class="opt-h" style="margin-top:44px">
+  <div class="l"><div class="letter" style="width:auto;padding:0 12px;font-size:15px">T3</div><div><h2 style="font-size:19px">Floating pill, mirrors the dock</h2><p>The home navbar's scrolled state: a centred glass pill with the wordmark and crumb, floating over a <b>full-bleed stage</b>. Top pill and bottom dock bracket the component; nothing else on screen. Most minimal.</p></div></div>
+  <button class="pick" data-choice="top-t3">Pick T3 <svg class="i s"><use href="#i-arr"/></svg></button>
+</div>
+<div class="scroll"><div class="strip t3s">
+  <div class="stg"><div class="stage glow" style="padding-top:136px"><span class="field"><span class="mag">Get started</span></span></div></div>
+  <div class="tbar t3">
+    <div class="fpill">
+      <span class="wm" style="font-size:19px">devigner<i>.</i></span>
+      <span class="dv"></span>
+      <span class="crumb2">Components<svg class="i"><use href="#i-chr"/></svg><b>Magnetic Button</b></span>
+    </div>
+  </div>
+</div></div>
+<div class="mobile"><div class="phone" style="justify-content:center"><div class="fpill" style="height:42px;gap:10px;padding:0 14px"><span class="wm" style="font-size:17px">devigner<i>.</i></span><span class="dv"></span><span class="crumb2" style="font-size:12.5px"><b>Magnetic Button</b></span></div></div><p><b>Phone:</b> same pill, crumb shortened to the name.</p></div>
+
+<!-- ═══════════════ 2 · STAGE ═══════════════ -->
+<div class="opt-h" id="s2" style="margin-top:96px">
+  <div class="l">
+    <div class="letter">2</div>
+    <div>
+      <h2>Stage</h2>
+      <p>Both with Docs open in the inspector on the right. The dock is the settled base: <b>Components</b>, then Docs, Reset, Theme (spin toggle), Settings, Code.</p>
+    </div>
+  </div>
+</div>
+
+<div class="opt-h" style="margin-top:28px">
+  <div class="l"><div class="letter" style="width:auto;padding:0 12px;font-size:15px">S1</div><div><h2 style="font-size:19px">B's square stage</h2><p>The stage fills everything left of the inspector: square corners, hairline, stage light, cobalt glow from below. Name and category in the corner, the try-it hint opposite.</p></div></div>
+  <button class="pick" data-choice="stage-s1">Pick S1 <svg class="i s"><use href="#i-arr"/></svg></button>
+</div>
+<div class="scroll"><div class="page H">
+  <div class="tbar">
+    <div class="lft">
+      <span class="wm">devigner<i>.</i></span>
+      <span class="dv"></span>
+      <span class="crumb2">Components<svg class="i"><use href="#i-chr"/></svg>Animation<svg class="i"><use href="#i-chr"/></svg><b>Magnetic Button</b><span class="newtag">New</span></span>
+    </div>
+    <span class="spill"><svg class="i s"><use href="#i-search"/></svg>Search components<kbd>/</kbd></span>
+  </div>
+  <div class="body">
+    <div class="stagewrap">
+      <div class="stage glow"><span class="field"><span class="mag">Get started</span></span></div>
+      <div class="corner"><b>Magnetic Button</b><span class="mono-tag">Animation</span></div>
+      <div class="corner2 tryit">circle it slowly, then pull away</div>
+      <div class="dockpos"><div class="dk">
+        <span class="it lab"><svg class="i"><use href="#i-grid"/></svg>Components</span>
+        <span class="vr"></span>
+        <span class="it lab on"><svg class="i"><use href="#i-book"/></svg>Docs</span>
+        <span class="it"><svg class="i"><use href="#i-restart"/></svg></span>
+        <span class="it"><svg class="i sun"><use href="#i-sun"/></svg></span>
+        <span class="it"><svg class="i"><use href="#i-gear"/></svg></span>
+        <span class="it lab"><svg class="i"><use href="#i-code"/></svg>Code</span>
+      </div></div>
+    </div>
+    <div class="insp">
+      <div class="mono-tag">Animation · added Sep 14</div>
+      <div class="d-h1">Magnetic <span class="acc">Button</span></div>
+      <p class="d-lede">Leans toward your cursor before you reach it, then lets go with a wobble.</p>
+      <div class="tabs"><span class="on">Install</span><span>Usage</span><span>Props</span><span>Notes</span></div>
+      <div class="d-h2">Install it in <span class="acc">one</span> line</div>
+      <div class="chip" style="width:100%;justify-content:space-between"><span><span class="dol">$</span> npx devignerui add <b>magnetic-button</b></span><span class="cb"><svg class="i s"><use href="#i-copy"/></svg></span></div>
+      <p class="d-lede" style="font-size:13.5px;margin-top:10px">Writes <span style="font-family:Geist Mono;color:var(--fg)">components/ui/magnetic-button.tsx</span> and lists what it needs: gsap, motion, cn.</p>
+      <div class="d-lab">First time here</div>
+      <div class="chip" style="width:100%;justify-content:space-between"><span><span class="dol">$</span> npx devignerui <b>init</b></span><span class="cb"><svg class="i s"><use href="#i-copy"/></svg></span></div>
+      <div class="d-lab">Or by hand</div>
+      <div class="code"><div class="code-h">terminal<span class="cp"><svg class="i s"><use href="#i-copy"/></svg>Copy</span></div><pre><span class="s">$</span> <span class="t">npm i gsap motion cn</span></pre></div>
+      <div class="fadeb"></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="opt-h" style="margin-top:56px">
+  <div class="l"><div class="letter" style="width:auto;padding:0 12px;font-size:15px">S2</div><div><h2 style="font-size:19px">A's selected frame</h2><p>A soft canvas with the component in a frame like a design file: brand outline, four square handles, the measured size under it, the name above in brand. Reads more "tool", less "showcase".</p></div></div>
+  <button class="pick" data-choice="stage-s2">Pick S2 <svg class="i s"><use href="#i-arr"/></svg></button>
+</div>
+<div class="scroll"><div class="page H">
+  <div class="tbar">
+    <div class="lft">
+      <span class="wm">devigner<i>.</i></span>
+      <span class="dv"></span>
+      <span class="crumb2">Components<svg class="i"><use href="#i-chr"/></svg>Animation<svg class="i"><use href="#i-chr"/></svg><b>Magnetic Button</b><span class="newtag">New</span></span>
+    </div>
+    <span class="spill"><svg class="i s"><use href="#i-search"/></svg>Search components<kbd>/</kbd></span>
+  </div>
+  <div class="body">
+    <div class="stagewrap">
+      <div class="canvas2">
+        <div class="tip tryit">circle it slowly, then pull away</div>
+        <div class="fr">
+          <div class="fl">Magnetic Button <span>Animation</span></div>
+          <div class="stage sel">
+            <i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i>
+            <span class="field"><span class="mag">Get started</span></span>
+            <span class="dim">594 × 340</span>
+          </div>
+        </div>
+      </div>
+      <div class="dockpos"><div class="dk">
+        <span class="it lab"><svg class="i"><use href="#i-grid"/></svg>Components</span>
+        <span class="vr"></span>
+        <span class="it lab on"><svg class="i"><use href="#i-book"/></svg>Docs</span>
+        <span class="it"><svg class="i"><use href="#i-restart"/></svg></span>
+        <span class="it"><svg class="i sun"><use href="#i-sun"/></svg></span>
+        <span class="it"><svg class="i"><use href="#i-gear"/></svg></span>
+        <span class="it lab"><svg class="i"><use href="#i-code"/></svg>Code</span>
+      </div></div>
+    </div>
+    <div class="insp">
+      <div class="mono-tag">Animation · added Sep 14</div>
+      <div class="d-h1">Magnetic <span class="acc">Button</span></div>
+      <p class="d-lede">Leans toward your cursor before you reach it, then lets go with a wobble.</p>
+      <div class="tabs"><span class="on">Install</span><span>Usage</span><span>Props</span><span>Notes</span></div>
+      <div class="d-h2">Install it in <span class="acc">one</span> line</div>
+      <div class="chip" style="width:100%;justify-content:space-between"><span><span class="dol">$</span> npx devignerui add <b>magnetic-button</b></span><span class="cb"><svg class="i s"><use href="#i-copy"/></svg></span></div>
+      <p class="d-lede" style="font-size:13.5px;margin-top:10px">Writes <span style="font-family:Geist Mono;color:var(--fg)">components/ui/magnetic-button.tsx</span> and lists what it needs: gsap, motion, cn.</p>
+      <div class="d-lab">First time here</div>
+      <div class="chip" style="width:100%;justify-content:space-between"><span><span class="dol">$</span> npx devignerui <b>init</b></span><span class="cb"><svg class="i s"><use href="#i-copy"/></svg></span></div>
+      <div class="d-lab">Or by hand</div>
+      <div class="code"><div class="code-h">terminal<span class="cp"><svg class="i s"><use href="#i-copy"/></svg>Copy</span></div><pre><span class="s">$</span> <span class="t">npm i gsap motion cn</span></pre></div>
+      <div class="fadeb"></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ═══════════════ 3 · DOCK IDEAS ═══════════════ -->
+<div class="opt-h" id="s3" style="margin-top:96px">
+  <div class="l">
+    <div class="letter">3</div>
+    <div>
+      <h2>Dock ideas, one at a time</h2>
+      <p>Each added to the settled dock on its own. Tick any you want (they combine), or none.</p>
+    </div>
+  </div>
+</div>
+<div class="ideas1 cards" data-multiselect>
+
+  <div class="idea card" data-choice="dock-prevnext" onclick="toggleSelect(this)">
+    <span class="chk"><svg class="i s"><use href="#i-check"/></svg></span>
+    <div class="n">idea 1</div>
+    <h3>Prev / next at the dock's ends</h3>
+    <p>Step through the library in category order without opening the Components panel. Hovering an arrow names where it goes; <span class="kb">[</span> and <span class="kb">]</span> do the same from the keyboard. The dock grows by two icon buttons.</p>
+    <div class="dstrip">
+      <div class="stage glow"><span class="field"><span class="mag">Get started</span></span></div>
+      <div class="tipl" style="left:calc(50% + 214px);bottom:84px;transform:translateX(-50%)"><span>Next</span>Chart Card</div>
+      <div class="dockpos"><div class="dk">
+        <span class="it"><svg class="i"><use href="#i-chl"/></svg></span>
+        <span class="vr"></span>
+        <span class="it lab"><svg class="i"><use href="#i-grid"/></svg>Components</span>
+        <span class="vr"></span>
+        <span class="it lab"><svg class="i"><use href="#i-book"/></svg>Docs</span>
+        <span class="it"><svg class="i"><use href="#i-restart"/></svg></span>
+        <span class="it"><svg class="i sun"><use href="#i-sun"/></svg></span>
+        <span class="it"><svg class="i"><use href="#i-gear"/></svg></span>
+        <span class="it lab"><svg class="i"><use href="#i-code"/></svg>Code</span>
+        <span class="vr"></span>
+        <span class="it on"><svg class="i"><use href="#i-chr"/></svg></span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="idea card" data-choice="dock-command" onclick="toggleSelect(this)">
+    <span class="chk"><svg class="i s"><use href="#i-check"/></svg></span>
+    <div class="n">idea 2</div>
+    <h3>Install command as the dock's last segment</h3>
+    <p>The hero window's toolbar trick: the command and a copy button ride along in the dock, so installing is one click from anywhere on the page. Copy swaps to a check on the swap spring. Skip this if you pick top bar T2.</p>
+    <div class="dstrip">
+      <div class="stage glow"><span class="field"><span class="mag">Get started</span></span></div>
+      <div class="dockpos"><div class="dk">
+        <span class="it lab"><svg class="i"><use href="#i-grid"/></svg>Components</span>
+        <span class="vr"></span>
+        <span class="it lab"><svg class="i"><use href="#i-book"/></svg>Docs</span>
+        <span class="it"><svg class="i"><use href="#i-restart"/></svg></span>
+        <span class="it"><svg class="i sun"><use href="#i-sun"/></svg></span>
+        <span class="it"><svg class="i"><use href="#i-gear"/></svg></span>
+        <span class="it lab"><svg class="i"><use href="#i-code"/></svg>Code</span>
+        <span class="vr"></span>
+        <span class="cmd"><span><span class="dol">$</span> npx devignerui add <b>magnetic-button</b></span><span class="cb"><svg class="i s"><use href="#i-copy"/></svg></span></span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="idea card" data-choice="dock-spy" onclick="toggleSelect(this)">
+    <span class="chk"><svg class="i s"><use href="#i-check"/></svg></span>
+    <div class="n">idea 3</div>
+    <h3>Section scroll-spy replaces the inspector's tabs</h3>
+    <p>When Docs opens, the Docs item widens into <b style="color:var(--fg);font-weight:500">Install, Usage, Props, Notes</b> and the active pill glides to the section you're reading on the layout spring. The inspector drops its tab row and scrolls as one document. Closing Docs folds them back into one item.</p>
+    <div class="spyH H">
+      <div class="body">
+        <div class="stagewrap">
+          <div class="stage glow"><span class="field"><span class="mag">Get started</span></span></div>
+          <div class="corner"><b>Magnetic Button</b><span class="mono-tag">Animation</span></div>
+          <div class="dockpos"><div class="dk">
+            <span class="it"><svg class="i"><use href="#i-grid"/></svg></span>
+            <span class="vr"></span>
+            <span class="it lab">Install</span>
+            <span class="it lab on">Usage</span>
+            <span class="it lab">Props</span>
+            <span class="it lab">Notes</span>
+            <span class="vr"></span>
+            <span class="it"><svg class="i"><use href="#i-restart"/></svg></span>
+            <span class="it"><svg class="i sun"><use href="#i-sun"/></svg></span>
+            <span class="it"><svg class="i"><use href="#i-gear"/></svg></span>
+            <span class="it"><svg class="i"><use href="#i-code"/></svg></span>
+          </div></div>
+        </div>
+        <div class="insp">
+          <div class="d-h2" style="margin-top:6px">Usage</div>
+          <div class="code"><div class="code-h">example.tsx<span class="cp"><svg class="i s"><use href="#i-copy"/></svg>Copy</span></div>
+<pre><span class="k">import</span> { MagneticButton } <span class="k">from</span>
+  <span class="s">"@/components/ui/magnetic-button"</span>;
+
+&lt;<span class="t">MagneticButton</span> strength={<span class="n">3</span>} field={<span class="n">40</span>}&gt;
+  Get started
+&lt;/<span class="t">MagneticButton</span>&gt;</pre></div>
+          <div class="d-h2">Every <span class="acc">prop</span></div>
+          <div class="props">
+            <div class="pr"><code>strength</code><span>Cursor pull.</span><span class="df">3</span></div>
+            <div class="pr"><code>labelStrength</code><span>Label parallax.</span><span class="df">6</span></div>
+            <div class="pr"><code>field</code><span>Field radius.</span><span class="df">40</span></div>
+            <div class="pr"><code>tilt</code><span>Label tilt.</span><span class="df">15</span></div>
+          </div>
+          <div class="fadeb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="jump">Jump to <a href="#s1">Top bar</a><a href="#s2">Stage</a><a href="#s3">Dock</a></div>
+
+</body>
+</html>

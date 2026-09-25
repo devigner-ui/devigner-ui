@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · home directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --bg1: oklch(17.2% 0.007 260); --bg2: oklch(19.6% 0.008 260); --bg3: oklch(22.6% 0.009 260);
+    --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --t3: oklch(66% 0.008 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.09); --line2: oklch(95.5% 0.003 260 / 0.16);
+    --brand: oklch(68% 0.175 262); --brand-ink: oklch(15.2% 0.02 264); --ok: oklch(74% 0.15 155); --bad: oklch(66% 0.19 25);
+    --light: oklch(95.5% 0.003 260 / 0.06);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 48px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1244px; margin: 0 auto 36px; }
+  .intro h1 { font: 700 30px/1.1 "Bricolage Grotesque"; letter-spacing: -0.03em; }
+  .intro p { margin-top: 10px; max-width: 760px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .dirs { max-width: 1244px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+  .dir { cursor: pointer; border-radius: 30px; padding: 30px 30px 26px; background: var(--bg1); border: 2px solid var(--line); transition: border-color .2s; }
+  .dir:hover { border-color: var(--line2); }
+  .dir.selected { border-color: var(--brand); }
+  .dir-head { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+  .dir-letter { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--fg); color: var(--bg); font-weight: 600; }
+  .dir-head h2 { font: 700 24px/1.15 "Bricolage Grotesque"; letter-spacing: -0.03em; display: flex; align-items: center; gap: 10px; }
+  .rec { font: 500 12px "Geist"; letter-spacing: 0; color: var(--brand); border: 1px solid color-mix(in oklch, var(--brand) 45%, transparent); border-radius: 99px; padding: 3px 10px; }
+  .dir-head p { margin-top: 6px; color: var(--t2); font-size: 15px; line-height: 1.55; max-width: 900px; }
+  .scroll { overflow-x: auto; border-radius: 20px; }
+  .frame { position: relative; width: 1180px; height: 720px; overflow: hidden; border-radius: 20px; background: var(--bg); border: 1px solid var(--line); }
+  .flow-label { font-size: 13px; color: var(--mut); margin: 24px 0 10px; }
+  .flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+  .th { border-radius: 14px; background: var(--bg); border: 1px solid var(--line); height: 112px; position: relative; overflow: hidden; }
+  .th-cap { font-size: 12.5px; color: var(--t2); margin-top: 8px; line-height: 1.4; }
+  .th-cap b { color: var(--fg); font-weight: 500; }
+  .specs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .specs div { font-size: 13.5px; line-height: 1.55; color: var(--t2); }
+  .specs b { display: block; font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 4px; }
+
+  /* shared bits */
+  .wm { font: 800 21px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .wm i { font-style: normal; color: var(--brand); }
+  .navlinks { display: flex; gap: 26px; font-size: 13.5px; color: var(--t2); align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 99px; font-size: 14px; font-weight: 500; white-space: nowrap; }
+  .btn-ink { background: var(--fg); color: var(--bg); }
+  .btn-brand { background: var(--brand); color: var(--brand-ink); }
+  .btn-sm { height: 34px; padding: 0 14px; font-size: 13px; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line2); font: 400 13px "Geist Mono"; color: var(--t2); white-space: nowrap; }
+  .chip b { color: var(--fg); font-weight: 500; }
+  .chip s { text-decoration: none; color: var(--brand); }
+  .cp { width: 12px; height: 13px; border: 1.5px solid var(--mut); border-radius: 3px; box-shadow: 3px -3px 0 -1.5px var(--bg), 3px -3px 0 0 var(--mut); }
+  .h1 { font: 800 58px/0.96 "Bricolage Grotesque"; letter-spacing: -0.055em; }
+  .h1 em { font-style: normal; color: var(--brand); }
+  .sub { font-size: 16px; line-height: 1.55; color: var(--t2); }
+  .stage { background: radial-gradient(120% 70% at 50% 0%, var(--light), transparent 70%), var(--bg2); box-shadow: inset 0 2px 4px oklch(0% 0 0 / .5), inset 0 0 0 1px var(--line); }
+  .mono { font-family: "Geist Mono"; }
+
+  /* mini components */
+  .dock { display: flex; gap: 6px; padding: 7px; border-radius: 99px; background: var(--bg3); border: 1px solid var(--line2); box-shadow: 0 14px 30px -10px oklch(0% 0 0 / .7); }
+  .dock span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; }
+  .dock span::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.8px solid var(--t2); }
+  .dock span.on { background: var(--fg); }
+  .dock span.on::before { border-color: var(--bg); border-radius: 50%; }
+  .menu { width: 210px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 6px; box-shadow: 0 20px 40px -12px oklch(0% 0 0 / .7); }
+  .menu div { height: 34px; border-radius: 11px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 13px; color: var(--t2); }
+  .menu div::before { content: ""; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--mut); }
+  .menu div.hi { background: oklch(95.5% 0.003 260 / .07); color: var(--fg); }
+  .menu .sep { height: 1px; padding: 0; margin: 4px 6px; background: var(--line); }
+  .menu .sep::before { display: none; }
+  .cal { width: 250px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 14px; box-shadow: 0 20px 40px -14px oklch(0% 0 0 / .7); }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 10px; }
+  .cal-h span { color: var(--mut); font-weight: 400; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 0; font-size: 10.5px; text-align: center; color: var(--t3); }
+  .cal-g i { font-style: normal; height: 24px; display: grid; place-items: center; }
+  .cal-g i.r { background: color-mix(in oklch, var(--brand) 20%, transparent); color: var(--fg); }
+  .cal-g i.s { background: var(--brand); color: var(--brand-ink); border-radius: 8px 0 0 8px; font-weight: 600; }
+  .cal-g i.e { background: var(--brand); color: var(--brand-ink); border-radius: 0 8px 8px 0; font-weight: 600; }
+  .cal-p { display: flex; gap: 5px; margin-top: 10px; }
+  .cal-p span { font-size: 10px; padding: 4px 8px; border-radius: 99px; border: 1px solid var(--line2); color: var(--t2); }
+  .chart { width: 230px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 14px; }
+  .chart .k { font-size: 11px; color: var(--mut); }
+  .chart .v { font: 600 26px "Geist"; letter-spacing: -0.03em; margin: 2px 0 10px; }
+  .bars { display: flex; gap: 6px; align-items: flex-end; height: 76px; }
+  .bars i { flex: 1; border-radius: 6px; background: oklch(95.5% 0.003 260 / .1); }
+  .bars i.hi { background: repeating-linear-gradient(135deg, var(--brand) 0 3px, color-mix(in oklch, var(--brand) 60%, transparent) 3px 6px); }
+  .tl { display: flex; flex-direction: column; gap: 14px; padding-left: 16px; border-left: 1.5px solid var(--line2); font-size: 12px; }
+  .tl div { position: relative; color: var(--mut); }
+  .tl div::before { content: ""; position: absolute; left: -21px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--line2); }
+  .tl div.on { color: var(--fg); transform: translateX(8px); }
+  .tl div.on::before { background: var(--brand); border-color: var(--brand); left: -29px; }
+  .del { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 99px; background: color-mix(in oklch, var(--bad) 16%, var(--bg3)); color: var(--bad); font-size: 13px; font-weight: 500; border: 1px solid color-mix(in oklch, var(--bad) 30%, transparent); }
+  .mag { display: inline-flex; align-items: center; height: 42px; padding: 0 20px; border-radius: 99px; background: var(--brand); color: var(--brand-ink); font-size: 14px; font-weight: 500; box-shadow: 0 10px 30px -8px color-mix(in oklch, var(--brand) 60%, transparent); }
+  .keys { display: flex; gap: 5px; }
+  .keys span { min-width: 26px; height: 24px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--line2); border-bottom-width: 2px; font: 500 10.5px "Geist Mono"; color: var(--t2); display: grid; place-items: center; }
+  .keys span.lit { border-color: var(--brand); color: var(--brand); }
+
+  /* ───── A · Workbench ───── */
+  .A .nav { position: absolute; inset: 0 0 auto; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 44px; }
+  .A .hero-t { position: absolute; top: 108px; left: 56px; right: 56px; }
+  .A .row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 26px; }
+  .A .row .sub { max-width: 440px; }
+  .A .row .ctas { display: flex; gap: 10px; }
+  .A .persp { position: absolute; left: 56px; right: 56px; top: 348px; height: 470px; perspective: 1600px; }
+  .A .win { position: absolute; inset: 0; border-radius: 22px; background: var(--bg1); border: 1px solid var(--line2); transform: rotateX(9deg); transform-origin: 50% 0; display: grid; grid-template-columns: 212px 1fr 244px; overflow: hidden; box-shadow: 0 -30px 80px -30px color-mix(in oklch, var(--brand) 22%, transparent), 0 40px 80px -20px oklch(0% 0 0 / .8); }
+  .A .side { border-right: 1px solid var(--line); padding: 14px 12px; }
+  .A .search { height: 34px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 12px; color: var(--mut); }
+  .A .search::before { content: ""; width: 10px; height: 10px; border: 1.5px solid var(--mut); border-radius: 50%; }
+  .A .grp { font: 400 10.5px "Geist Mono"; color: var(--mut); margin: 16px 8px 6px; }
+  .A .it { height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-radius: 8px; font-size: 13px; color: var(--t2); }
+  .A .it.on { background: oklch(95.5% 0.003 260 / .07); color: var(--fg); }
+  .A .it em { font-style: normal; font-size: 10px; color: var(--brand); }
+  .A .mid { position: relative; display: flex; flex-direction: column; }
+  .A .mid .st { position: relative; flex: 1; margin: 12px 12px 0; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 26px; gap: 10px; }
+  .A .cmd { margin: 10px 12px 12px; height: 44px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 14px; font: 400 13px "Geist Mono"; color: var(--t2); }
+  .A .cmd b { color: var(--fg); font-weight: 500; }
+  .A .cmd s { text-decoration: none; color: var(--brand); }
+  .A .insp { border-left: 1px solid var(--line); padding: 16px 16px; display: flex; flex-direction: column; gap: 18px; }
+  .A .lbl { font: 400 10.5px "Geist Mono"; color: var(--mut); margin-bottom: 7px; }
+  .A .seg { display: flex; padding: 3px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .A .seg span { flex: 1; text-align: center; font-size: 12px; height: 26px; line-height: 26px; border-radius: 7px; color: var(--mut); }
+  .A .seg span.on { background: var(--bg3); color: var(--fg); box-shadow: 0 0 0 1px var(--line2); }
+  .A .kv { font-size: 12.5px; color: var(--t2); display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .A .kv b { font-weight: 500; color: var(--fg); font-family: "Geist Mono"; font-size: 12px; }
+
+  /* ───── B · Canvas ───── */
+  .B .frame { background: radial-gradient(90% 70% at 70% 40%, oklch(19% 0.012 262), var(--bg) 70%); cursor: grab; }
+  .B .nav { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); height: 50px; display: flex; align-items: center; gap: 30px; padding: 0 8px 0 20px; border-radius: 99px; background: oklch(17.2% 0.007 260 / .8); border: 1px solid var(--line); backdrop-filter: blur(12px); z-index: 5; }
+  .B .hero-t { position: absolute; top: 118px; left: 56px; width: 520px; z-index: 3; }
+  .B .hero-t .sub { margin-top: 22px; max-width: 420px; }
+  .B .ctas { display: flex; gap: 10px; margin-top: 28px; }
+  .B .fr { position: absolute; }
+  .B .fr .fl { font-size: 12px; color: var(--t3); margin-bottom: 7px; display: flex; gap: 8px; }
+  .B .fr .fl span { color: var(--mut); font-family: "Geist Mono"; font-size: 11px; }
+  .B .fr .fb { border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .B .sel .fb { outline: 1.5px solid var(--brand); outline-offset: 0; position: relative; }
+  .B .sel .fl { color: var(--brand); }
+  .B .h { position: absolute; width: 9px; height: 9px; background: var(--fg); border: 1.5px solid var(--brand); border-radius: 2px; }
+  .B .dim { position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%); font: 500 11px "Geist Mono"; background: var(--brand); color: var(--brand-ink); padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+  .B .tool { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 18px; background: oklch(20% 0.008 260 / .92); border: 1px solid var(--line2); box-shadow: 0 20px 50px -14px oklch(0% 0 0 / .8); z-index: 6; backdrop-filter: blur(12px); }
+  .B .tb { white-space: nowrap; height: 38px; min-width: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 12.5px; color: var(--t2); padding: 0 10px; }
+  .B .tb.on { background: var(--brand); color: var(--brand-ink); }
+  .B .vr { width: 1px; height: 22px; background: var(--line2); margin: 0 6px; }
+  .B .tcmd { white-space: nowrap; font: 400 12.5px "Geist Mono"; color: var(--t2); padding: 0 6px 0 10px; display: flex; align-items: center; gap: 12px; }
+  .B .tcmd b { color: var(--fg); font-weight: 500; }
+  .B .tcmd s { text-decoration: none; color: var(--brand); }
+
+  /* ───── C · Exploded ───── */
+  .C .nav { position: absolute; inset: 0 0 auto; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 44px; }
+  .C .hero-t { position: absolute; top: 170px; left: 56px; width: 520px; }
+  .C .hero-t .sub { margin-top: 24px; max-width: 430px; }
+  .C .ctas { display: flex; gap: 10px; margin-top: 30px; }
+  .C .iso { position: absolute; left: 560px; top: 60px; width: 600px; height: 640px; }
+  .C .plate { position: absolute; left: 110px; width: 320px; height: 220px; border-radius: 22px; transform: rotateX(58deg) rotateZ(-42deg); transform-style: preserve-3d; border: 1px solid var(--line2); display: flex; align-items: center; justify-content: center; }
+  .C .p1 { top: 20px; background: oklch(24% 0.012 262 / .95); box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent), 0 30px 60px -10px color-mix(in oklch, var(--brand) 25%, transparent); }
+  .C .p2 { top: 120px; background: oklch(20% 0.01 262 / .8); }
+  .C .p3 { top: 220px; background: oklch(19% 0.009 262 / .75); }
+  .C .p4 { top: 320px; background: oklch(18% 0.008 262 / .7); }
+  .C .p5 { top: 420px; background: oklch(17% 0.007 262 / .65); }
+  .C .tag { position: absolute; left: 470px; font-size: 13px; color: var(--t2); display: flex; align-items: center; gap: 10px; }
+  .C .tag::before { content: ""; width: 60px; height: 1px; background: var(--line2); margin-left: -70px; }
+  .C .tag b { font-weight: 500; color: var(--fg); }
+  .C .tag span { font-size: 12px; color: var(--mut); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Home page: three directions</h1>
+  <p>Same title and the same giant footer wordmark in all three. Each mockup shows the first screen, then the section flow below it. Every component in these heroes would be the real, running component, not a picture of one. Click the one you want, then tell me in the terminal what you like or don't.</p>
+</div>
+
+<div class="dirs">
+
+  <!-- ═════════════ A ═════════════ -->
+  <section class="card dir A" data-choice="a" onclick="toggleSelect(this)">
+    <div class="dir-head">
+      <div class="dir-letter">A</div>
+      <div>
+        <h2>The Workbench</h2>
+        <p>The Linear and Vercel move: headline on top, product window underneath. The window is a real mini app. It has a component list on the left, the live component in the middle, and an inspector on the right where you flip theme and reduced motion. The install command sits along the bottom. The window starts tilted back and flattens as you scroll.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frame">
+      <div class="nav">
+        <div class="wm">devigner<i>.</i></div>
+        <div class="navlinks">Components<span>Docs</span><span>Pricing</span><span class="btn btn-ink btn-sm">Get started</span></div>
+      </div>
+      <div class="hero-t">
+        <div class="h1">Beautifully <em>Crafted</em> React Components,<br>Built for Developers.</div>
+        <div class="row">
+          <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+          <div class="ctas"><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span><span class="btn btn-brand">Browse components &rarr;</span></div>
+        </div>
+      </div>
+      <div class="persp"><div class="win">
+        <div class="side">
+          <div class="search">Search 6 components</div>
+          <div class="grp">navigation</div>
+          <div class="it on">Menu Dock <em>new</em></div>
+          <div class="grp">forms</div>
+          <div class="it">Date Range Picker <em>new</em></div>
+          <div class="grp">data display</div>
+          <div class="it">Chart Card</div>
+          <div class="it">Timeline</div>
+          <div class="grp">primitives</div>
+          <div class="it">Delete Button</div>
+        </div>
+        <div class="mid">
+          <div class="st stage">
+            <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div><div class="sep"></div><div>Sign out</div></div>
+            <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+          </div>
+          <div class="cmd"><span>$ npx devignerui add <b>menu-dock</b></span><span class="btn btn-ink btn-sm">Copy</span></div>
+        </div>
+        <div class="insp">
+          <div><div class="lbl">theme</div><div class="seg"><span>Light</span><span class="on">Dark</span></div></div>
+          <div><div class="lbl">motion</div><div class="seg"><span class="on">Full</span><span>Reduced</span></div></div>
+          <div><div class="lbl">keyboard</div><div class="keys"><span>Tab</span><span class="lit">&larr;</span><span>&rarr;</span><span>&crarr;</span><span>Esc</span></div></div>
+          <div>
+            <div class="kv">File<b>menu-dock.tsx</b></div>
+            <div class="kv">Lines<b>214</b></div>
+            <div class="kv">Needs<b>motion</b></div>
+          </div>
+        </div>
+      </div></div>
+    </div></div>
+    <div class="flow-label">Below the hero</div>
+    <div class="flow">
+      <div><div class="th" style="display:flex;align-items:center;justify-content:space-around;padding:0 14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:5px;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:50%;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:5px;background:var(--line2)"></span></div><div class="th-cap"><b>Works with</b> React 19, Next.js, Tailwind v4, Motion, shadcn/ui (tech logos, not customers)</div></div>
+      <div><div class="th" style="display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:5px;padding:8px"><span class="stage" style="grid-row:span 2;border-radius:8px"></span><span class="stage" style="border-radius:8px"></span><span style="border-radius:8px;background:color-mix(in oklch,var(--brand) 30%,var(--bg2))"></span></div><div class="th-cap"><b>Every state, designed.</b> Bento of live tiles: loading, keyboard, reduced motion, both themes</div></div>
+      <div><div class="th" style="padding:12px"><div style="height:62px;border-radius:8px;background:var(--bg2);width:76%"></div><div style="position:absolute;right:12px;bottom:12px;width:40%;height:58px;border-radius:8px;background:var(--bg3);border:1px solid var(--line2)"></div></div><div class="th-cap"><b>Two commands.</b> Terminal types itself, file tree gains one file</div></div>
+      <div><div class="th" style="display:grid;grid-template-columns:1.4fr 1fr;gap:6px;padding:10px"><span style="border-radius:8px;background:var(--fg)"></span><span style="border-radius:8px;background:var(--bg2);border:1px solid var(--line)"></span></div><div class="th-cap"><b>Pricing.</b> Free now, Pro later</div></div>
+      <div><div class="th" style="padding:14px;display:flex;flex-direction:column;gap:9px"><span style="height:8px;border-radius:4px;background:var(--line2);width:70%"></span><span style="height:8px;border-radius:4px;background:var(--line);width:85%"></span><span style="height:8px;border-radius:4px;background:var(--line);width:60%"></span><span style="height:8px;border-radius:4px;background:var(--line);width:78%"></span></div><div class="th-cap"><b>FAQ</b></div></div>
+      <div><div class="th"><div style="position:absolute;left:10px;bottom:-14px;font:800 52px 'Bricolage Grotesque';letter-spacing:-.06em;color:var(--bg2)">devigner<span style="color:var(--brand)">.</span></div></div><div class="th-cap"><b>Last call + footer</b> with the giant wordmark</div></div>
+    </div>
+    <div class="specs">
+      <div><b>Signature moment</b>The hero is the whole product in one window. You can try it, change theme, check reduced motion and copy the install without scrolling.</div>
+      <div><b>Scales with the library</b>The list is the registry. Component 40 is one more row in the sidebar, with search on top.</div>
+      <div><b>On a phone</b>The sidebar turns into a component switcher above the stage, and the inspector folds into a row of toggles.</div>
+      <div><b>Trade-off</b>The safest of the three. Closest to what top SaaS sites do, so it's the least surprising.</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ B ═════════════ -->
+  <section class="card dir B" data-choice="b" onclick="toggleSelect(this)">
+    <div class="dir-head">
+      <div class="dir-letter">B</div>
+      <div>
+        <h2>The Canvas <span class="rec">Recommended</span></h2>
+        <p>devigner is designer plus developer, so the hero is both. The first screen is a design canvas you can drag around like Figma. Every component sits on it as a labelled frame, running live. Selecting a frame gives it handles and its size, and the floating toolbar switches to that component's install command. The next section is the handoff, where the selected frame turns into the file the CLI writes.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frame">
+      <div class="nav"><div class="wm">devigner<i>.</i></div><div class="navlinks">Components<span>Docs</span><span>Pricing</span></div><span class="btn btn-ink btn-sm">Get started</span></div>
+      <div class="hero-t">
+        <div class="h1">Beautifully <em>Crafted</em><br>React Components,<br>Built for Developers.</div>
+        <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+        <div class="ctas"><span class="btn btn-brand">Browse components &rarr;</span><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span></div>
+      </div>
+
+      <div class="fr sel" style="left:640px;top:96px">
+        <div class="fl">Menu Dock <span>navigation</span></div>
+        <div class="fb stage" style="width:400px;height:270px;flex-direction:column;justify-content:flex-end;padding-bottom:22px;gap:10px">
+          <div class="menu" style="width:190px"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+          <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+          <i class="h" style="left:-5px;top:-5px"></i><i class="h" style="right:-5px;top:-5px"></i><i class="h" style="left:-5px;bottom:-5px"></i><i class="h" style="right:-5px;bottom:-5px"></i>
+          <span class="dim">400 &times; 270</span>
+        </div>
+      </div>
+      <div class="fr" style="left:1080px;top:130px">
+        <div class="fl">Magnetic Button <span>animation</span></div>
+        <div class="fb stage" style="width:250px;height:170px"><span class="mag">Pull me</span></div>
+      </div>
+      <div class="fr" style="left:470px;top:440px">
+        <div class="fl">Chart Card <span>data display</span></div>
+        <div class="fb stage" style="width:290px;height:250px"><div class="chart" style="width:220px;padding:12px"><div class="k">Total sales</div><div class="v">90,744</div><div class="bars" style="height:60px"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i class="hi" style="height:88%"></i><i style="height:62%"></i><i style="height:70%"></i></div></div></div>
+      </div>
+      <div class="fr" style="left:820px;top:420px">
+        <div class="fl">Date Range Picker <span>forms</span></div>
+        <div class="fb stage" style="width:330px;height:330px"><div class="cal" style="width:260px"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i><i></i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="r">12</i><i class="e">13</i><i>14</i><i>15</i><i>16</i><i>17</i><i>18</i><i>19</i><i>20</i></div></div></div>
+      </div>
+      <div class="fr" style="left:56px;top:520px">
+        <div class="fl">Timeline <span>data display</span></div>
+        <div class="fb stage" style="width:330px;height:200px"><div class="tl"><div>Kickoff</div><div class="on">Prototype</div><div>Polish</div><div>Ship</div></div></div>
+      </div>
+
+      <div class="tool">
+        <span class="tb">&#9995;</span><span class="tb on">&#8598;</span>
+        <span class="vr"></span>
+        <span class="tb">&#9681; Dark</span><span class="tb">Reduced motion</span>
+        <span class="vr"></span>
+        <span class="tcmd">$ npx devignerui add <b>menu-dock</b><span class="btn btn-ink btn-sm">Copy</span></span>
+      </div>
+    </div></div>
+    <div class="flow-label">Below the hero</div>
+    <div class="flow">
+      <div><div class="th" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px"><span class="stage" style="border-radius:8px;outline:1.5px solid var(--brand)"></span><span style="border-radius:8px;background:var(--bg1);border:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:5px"><i style="height:4px;background:var(--brand);width:60%;border-radius:2px"></i><i style="height:4px;background:var(--line2);width:80%;border-radius:2px"></i><i style="height:4px;background:var(--line2);width:50%;border-radius:2px"></i><i style="height:4px;background:var(--brand);width:70%;border-radius:2px"></i></span></div><div class="th-cap"><b>The handoff.</b> The selected frame turns into its .tsx file, line by line</div></div>
+      <div><div class="th" style="display:flex;align-items:center;justify-content:space-around;padding:0 14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:5px;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:50%;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:5px;background:var(--line2)"></span></div><div class="th-cap"><b>Works with</b> your stack (tech logos, not customers)</div></div>
+      <div><div class="th" style="display:grid;grid-template-columns:1fr 2fr;grid-template-rows:1fr 1fr;gap:5px;padding:8px"><span style="border-radius:8px;background:color-mix(in oklch,var(--brand) 30%,var(--bg2))"></span><span class="stage" style="grid-row:span 2;border-radius:8px"></span><span class="stage" style="border-radius:8px"></span></div><div class="th-cap"><b>Every state, designed.</b> Live bento: loading, keyboard, reduced motion, themes</div></div>
+      <div><div class="th" style="padding:12px"><div style="height:62px;border-radius:8px;background:var(--bg2);width:76%"></div><div style="position:absolute;right:12px;bottom:12px;width:40%;height:58px;border-radius:8px;background:var(--bg3);border:1px solid var(--line2)"></div></div><div class="th-cap"><b>Two commands.</b> Terminal plus file tree</div></div>
+      <div><div class="th" style="display:grid;grid-template-columns:1.4fr 1fr;gap:6px;padding:10px"><span style="border-radius:8px;background:var(--fg)"></span><span style="border-radius:8px;background:var(--bg2);border:1px solid var(--line)"></span></div><div class="th-cap"><b>Pricing</b>, then <b>FAQ</b></div></div>
+      <div><div class="th"><div style="position:absolute;left:10px;bottom:-14px;font:800 52px 'Bricolage Grotesque';letter-spacing:-.06em;color:var(--bg2)">devigner<span style="color:var(--brand)">.</span></div></div><div class="th-cap"><b>Last call + footer</b> with the giant wordmark</div></div>
+    </div>
+    <div class="specs">
+      <div><b>Signature moment</b>You land on a working design file. Drag it, click a frame, and the toolbar hands you that component's install command. The brand name finally means something on the page.</div>
+      <div><b>Scales with the library</b>Frames lay themselves out from the registry by size. More components means a bigger canvas to explore, with no hand-placed layout.</div>
+      <div><b>On a phone</b>The canvas becomes a horizontal swipe of frames under the headline, and the toolbar docks to the bottom of the screen.</div>
+      <div><b>Trade-off</b>The most distinctive of the three and the most work. Dragging has to feel right, and keyboard users tab from frame to frame.</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ C ═════════════ -->
+  <section class="card dir C" data-choice="c" onclick="toggleSelect(this)">
+    <div class="dir-head">
+      <div class="dir-letter">C</div>
+      <div>
+        <h2>The Exploded View</h2>
+        <p>The Apple and Stripe move, applied to "crafted". The hero shows one component pulled apart into the layers it's made of: the component, its motion, its keyboard map, its theme tokens and its code. As you scroll, the section pins and the layers snap together one at a time, each with a short caption. The page closes on the finished component and its install command.</p>
+      </div>
+    </div>
+    <div class="scroll"><div class="frame">
+      <div class="nav"><div class="wm">devigner<i>.</i></div><div class="navlinks">Components<span>Docs</span><span>Pricing</span><span class="btn btn-ink btn-sm">Get started</span></div></div>
+      <div class="hero-t">
+        <div class="h1">Beautifully <em>Crafted</em><br>React Components,<br>Built for Developers.</div>
+        <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+        <div class="ctas"><span class="btn btn-brand">Browse components &rarr;</span><span class="chip">$ npx devignerui <b>init</b><span class="cp"></span></span></div>
+      </div>
+      <div class="iso">
+        <div class="plate p5"><div style="display:flex;flex-direction:column;gap:9px;width:70%"><i style="height:6px;border-radius:3px;background:var(--brand);width:50%"></i><i style="height:6px;border-radius:3px;background:var(--line2);width:90%"></i><i style="height:6px;border-radius:3px;background:var(--line2);width:70%"></i><i style="height:6px;border-radius:3px;background:var(--brand);width:60%"></i></div></div>
+        <div class="plate p4"><div style="display:flex;gap:10px"><i style="width:40px;height:40px;border-radius:10px;background:var(--fg)"></i><i style="width:40px;height:40px;border-radius:10px;background:var(--bg3);border:1px solid var(--line2)"></i><i style="width:40px;height:40px;border-radius:10px;background:var(--brand)"></i><i style="width:40px;height:40px;border-radius:10px;background:var(--bad)"></i></div></div>
+        <div class="plate p3"><div class="keys"><span>Tab</span><span class="lit">&larr;</span><span class="lit">&rarr;</span><span>&crarr;</span><span>Esc</span></div></div>
+        <div class="plate p2"><svg width="220" height="90" viewBox="0 0 220 90"><path d="M5 85 C 50 85, 60 5, 110 12 S 170 30, 215 20" fill="none" stroke="oklch(68% 0.175 262)" stroke-width="2.5"/></svg></div>
+        <div class="plate p1"><div class="dock"><span></span><span></span><span class="on"></span><span></span></div></div>
+        <div class="tag" style="top:100px"><b>Component</b><span>menu-dock</span></div>
+        <div class="tag" style="top:200px"><b>Motion</b><span>springs</span></div>
+        <div class="tag" style="top:300px"><b>Keyboard</b><span>arrows, Enter, Esc</span></div>
+        <div class="tag" style="top:400px"><b>Theme</b><span>CSS variables</span></div>
+        <div class="tag" style="top:500px"><b>Code</b><span>one .tsx file</span></div>
+      </div>
+    </div></div>
+    <div class="flow-label">Below the hero</div>
+    <div class="flow">
+      <div><div class="th" style="display:flex;align-items:center;gap:14px;padding:0 14px"><span style="flex:1;display:flex;flex-direction:column;gap:6px"><i style="height:6px;border-radius:3px;background:var(--fg);width:80%"></i><i style="height:5px;border-radius:3px;background:var(--line2);width:95%"></i></span><span style="width:70px;height:46px;border-radius:8px;background:var(--bg2);transform:rotateX(50deg) rotateZ(-40deg);border:1px solid var(--brand)"></span></div><div class="th-cap"><b>The assembly.</b> Pinned scroll, layers snap together with captions</div></div>
+      <div><div class="th" style="display:flex;gap:6px;padding:14px 0 14px 12px"><span class="stage" style="flex:none;width:70px;border-radius:8px"></span><span class="stage" style="flex:none;width:70px;border-radius:8px"></span><span class="stage" style="flex:none;width:70px;border-radius:8px"></span></div><div class="th-cap"><b>The shelf.</b> Horizontal row of live components, newest first</div></div>
+      <div><div class="th" style="display:flex;align-items:center;justify-content:space-around;padding:0 14px"><span style="width:22px;height:22px;border-radius:50%;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:5px;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:50%;background:var(--line2)"></span><span style="width:22px;height:22px;border-radius:5px;background:var(--line2)"></span></div><div class="th-cap"><b>Works with</b> your stack</div></div>
+      <div><div class="th" style="padding:12px"><div style="height:62px;border-radius:8px;background:var(--bg2);width:76%"></div><div style="position:absolute;right:12px;bottom:12px;width:40%;height:58px;border-radius:8px;background:var(--bg3);border:1px solid var(--line2)"></div></div><div class="th-cap"><b>Two commands.</b> Terminal plus file tree</div></div>
+      <div><div class="th" style="display:grid;grid-template-columns:1.4fr 1fr;gap:6px;padding:10px"><span style="border-radius:8px;background:var(--fg)"></span><span style="border-radius:8px;background:var(--bg2);border:1px solid var(--line)"></span></div><div class="th-cap"><b>Pricing</b>, then <b>FAQ</b></div></div>
+      <div><div class="th"><div style="position:absolute;left:10px;bottom:-14px;font:800 52px 'Bricolage Grotesque';letter-spacing:-.06em;color:var(--bg2)">devigner<span style="color:var(--brand)">.</span></div></div><div class="th-cap"><b>Last call + footer</b> with the giant wordmark</div></div>
+    </div>
+    <div class="specs">
+      <div><b>Signature moment</b>"Crafted" stops being a claim. You watch a component get built from its parts, and each part is something you'd otherwise write yourself.</div>
+      <div><b>Scales with the library</b>The layers are generic (motion, keys, tokens, code), so any featured component can take the hero. The shelf reads from the registry.</div>
+      <div><b>On a phone</b>No pinning. The layers stack flat as a short vertical list with captions, then the finished component.</div>
+      <div><b>Trade-off</b>The most cinematic, but it's a scroll story, so some visitors will feel it slows them down on the way to the install command.</div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

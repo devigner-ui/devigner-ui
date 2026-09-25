@@ -18,6 +18,10 @@ const failures: string[] = [];
 for (const descriptor of descriptors) {
   const source = readFileSync(resolve(root, descriptor.sourceFile), "utf8");
   const exported = exportedProps(source);
+  const added = new Date(`${descriptor.addedAt}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(descriptor.addedAt) || Number.isNaN(added.getTime()) || added.toISOString().slice(0, 10) !== descriptor.addedAt) {
+    failures.push(`${descriptor.slug}: addedAt "${descriptor.addedAt}" is not a valid YYYY-MM-DD date`);
+  }
   for (const [name] of descriptor.props) {
     if (!exported.has(name)) failures.push(`${descriptor.slug}: documented prop ${name} is not exported by its Props type`);
   }

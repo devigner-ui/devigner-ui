@@ -26,10 +26,10 @@
       "@/*": [
         "./*"
       ],
-      "@devignerui/ui": [
+      "devignerui": [
         "../../packages/ui/src"
       ],
-      "@devignerui/ui/*": [
+      "devignerui/*": [
         "../../packages/ui/src/*"
       ]
     }

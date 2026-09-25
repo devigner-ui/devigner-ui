@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · home, full page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --bg1: oklch(17.2% 0.007 260); --bg2: oklch(19.6% 0.008 260); --bg3: oklch(22.6% 0.009 260); --bg4: oklch(25% 0.01 260);
+    --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --t3: oklch(66% 0.008 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.08); --line2: oklch(95.5% 0.003 260 / 0.14); --line3: oklch(95.5% 0.003 260 / 0.22);
+    --brand: oklch(68% 0.175 262); --brand-ink: oklch(15.2% 0.02 264); --bad: oklch(66% 0.19 25); --ok: oklch(74% 0.15 155); --warn: oklch(80% 0.15 75);
+    --light: oklch(95.5% 0.003 260 / 0.06);
+    --lbg: oklch(97.6% 0.003 260); --lbg2: oklch(94.8% 0.004 260); --lbg3: oklch(99.2% 0.002 260); --lfg: oklch(19% 0.012 260); --lmut: oklch(55% 0.01 260); --lline: oklch(19% 0.012 260 / 0.12); --lbrand: oklch(53% 0.215 264);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 44px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1180px; margin: 0 auto 28px; }
+  .intro h1 { font: 600 30px/1.1 "Geist"; letter-spacing: -0.035em; }
+  .intro h1 .ser { font-size: 1.14em; }
+  .intro p { margin-top: 10px; max-width: 880px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .intro ul { margin: 12px 0 0 18px; color: var(--t2); font-size: 14.5px; line-height: 1.75; max-width: 980px; }
+  .intro b { color: var(--fg); font-weight: 500; }
+  .spec { display: flex; gap: 28px; align-items: baseline; margin-top: 18px; padding: 18px 22px; border: 1px solid var(--line2); border-radius: 18px; background: var(--bg); }
+  .spec span { font: 400 44px/1 "Mazius"; color: var(--fg); }
+  .spec small { display: block; font: 400 11px "Geist Mono"; color: var(--mut); margin-top: 8px; letter-spacing: 0; }
+  .spec .pick { color: var(--brand); }
+
+  .scroll { max-width: 1180px; margin: 0 auto; overflow-x: auto; }
+  .page { width: 1180px; background: var(--bg); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; position: relative; }
+
+  /* type */
+  .ser { font-family: "Mazius"; font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.12em; line-height: 0; }
+  .h1 { font: 600 64px/1.03 "Geist"; letter-spacing: -0.055em; }
+  .h1 .ser { color: var(--brand); padding-right: .04em; }
+  .h2 { font: 600 46px/1.04 "Geist"; letter-spacing: -0.05em; }
+  .lede { font-size: 17px; line-height: 1.6; color: var(--t2); max-width: 580px; margin-top: 16px; }
+  .center { text-align: center; }
+  .center .lede { margin-left: auto; margin-right: auto; }
+
+  /* chrome */
+  .wm { font: 800 21px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .wm i { font-style: normal; color: var(--brand); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 14.5px; font-weight: 500; white-space: nowrap; }
+  .btn-brand { background: linear-gradient(180deg, oklch(72% 0.17 262), var(--brand)); color: var(--brand-ink); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .35), 0 0 0 1px oklch(55% 0.19 263), 0 8px 24px -8px color-mix(in oklch, var(--brand) 70%, transparent); }
+  .btn-ink { background: var(--fg); color: var(--bg); box-shadow: inset 0 -1px 0 oklch(0% 0 0 / .15); }
+  .btn-ghost { border: 1px solid var(--line3); color: var(--fg); background: oklch(95.5% 0.003 260 / .03); }
+  .btn-sm { height: 32px; padding: 0 13px; font-size: 12.5px; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--line3); background: oklch(95.5% 0.003 260 / .03); font: 400 13.5px "Geist Mono"; color: var(--t2); white-space: nowrap; }
+  .chip b { color: var(--fg); font-weight: 500; }
+  .chip .dol { color: var(--brand); }
+  .cp { display: inline-block; width: 12px; height: 13px; border: 1.5px solid var(--mut); border-radius: 3px; box-shadow: 3px -3px 0 -1.5px var(--bg), 3px -3px 0 0 var(--mut); }
+  .stage { background: radial-gradient(120% 70% at 50% 0%, var(--light), transparent 70%), var(--bg2); }
+
+  /* mini components */
+  .dock { display: flex; gap: 6px; padding: 7px; border-radius: 99px; background: var(--bg3); border: 1px solid var(--line2); box-shadow: 0 14px 30px -10px oklch(0% 0 0 / .7), inset 0 1px 0 oklch(100% 0 0 / .05); }
+  .dock span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; }
+  .dock span::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.8px solid var(--t2); }
+  .dock span.on { background: var(--fg); }
+  .dock span.on::before { border-color: var(--bg); border-radius: 50%; }
+  .menu { width: 196px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 6px; box-shadow: 0 20px 40px -12px oklch(0% 0 0 / .7), inset 0 1px 0 oklch(100% 0 0 / .05); }
+  .menu div { height: 33px; border-radius: 11px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 13px; color: var(--t2); }
+  .menu div::before { content: ""; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--mut); }
+  .menu div.hi { background: oklch(95.5% 0.003 260 / .07); color: var(--fg); }
+  .menu div.focus { box-shadow: 0 0 0 2px var(--brand); background: oklch(95.5% 0.003 260 / .05); color: var(--fg); }
+  .cal { width: 250px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 14px; box-shadow: 0 20px 40px -14px oklch(0% 0 0 / .6); }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 10px; }
+  .cal-h span { color: var(--mut); font-weight: 400; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 0; font-size: 10.5px; text-align: center; color: var(--t3); }
+  .cal-g i { font-style: normal; height: 24px; display: grid; place-items: center; }
+  .cal-g i.r { background: color-mix(in oklch, var(--brand) 20%, transparent); color: var(--fg); }
+  .cal-g i.s { background: var(--brand); color: var(--brand-ink); border-radius: 8px 0 0 8px; font-weight: 600; }
+  .cal-g i.e { background: var(--brand); color: var(--brand-ink); border-radius: 0 8px 8px 0; font-weight: 600; }
+  .L .cal { background: var(--lbg3); border-color: var(--lline); color: var(--lfg); box-shadow: 0 20px 40px -18px oklch(25% 0.06 264 / .35); }
+  .L .cal-h span, .L .cal-g { color: var(--lmut); }
+  .L .cal-g i.r { background: color-mix(in oklch, var(--lbrand) 13%, transparent); color: var(--lfg); }
+  .L .cal-g i.s, .L .cal-g i.e { background: var(--lbrand); color: white; }
+  .chart { width: 210px; border-radius: 16px; background: var(--bg3); border: 1px solid var(--line2); padding: 12px; }
+  .chart .k { font-size: 10.5px; color: var(--mut); }
+  .chart .v { font: 600 22px "Geist"; letter-spacing: -0.03em; margin: 2px 0 8px; }
+  .bars { display: flex; gap: 5px; align-items: flex-end; height: 54px; }
+  .bars i { flex: 1; border-radius: 5px; background: oklch(95.5% 0.003 260 / .1); }
+  .bars i.hi { background: repeating-linear-gradient(135deg, var(--brand) 0 3px, color-mix(in oklch, var(--brand) 60%, transparent) 3px 6px); }
+  .tl { display: flex; flex-direction: column; gap: 12px; padding-left: 16px; border-left: 1.5px solid var(--line2); font-size: 12px; }
+  .tl div { position: relative; color: var(--mut); }
+  .tl div::before { content: ""; position: absolute; left: -21px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--line2); }
+  .tl div.on { color: var(--fg); transform: translateX(8px); }
+  .tl div.on::before { background: var(--brand); border-color: var(--brand); left: -29px; }
+  .keys { display: flex; gap: 7px; }
+  .keys span { min-width: 40px; height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line2); border-bottom-width: 3px; font: 500 12.5px "Geist Mono"; color: var(--t3); display: grid; place-items: center; background: var(--bg2); }
+  .keys span.lit { border-color: var(--brand); color: var(--fg); background: color-mix(in oklch, var(--brand) 22%, var(--bg2)); transform: translateY(2px); border-bottom-width: 1px; box-shadow: 0 0 24px -4px color-mix(in oklch, var(--brand) 60%, transparent); }
+
+  /* sections */
+  .sec { position: relative; padding: 120px 72px; }
+  .sec + .sec { border-top: 1px solid var(--line); }
+
+  /* works with (kept) */
+  .works { padding: 46px 72px; display: flex; align-items: center; justify-content: space-between; gap: 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .works p { font-size: 14px; color: var(--mut); max-width: 260px; line-height: 1.5; }
+  .logos { display: flex; gap: 38px; align-items: center; }
+  .logos span { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 500; color: var(--t3); }
+  .logos img { width: 20px; height: 20px; opacity: .7; }
+
+  /* bento */
+  .bento { margin-top: 56px; display: grid; grid-template-columns: repeat(12, 1fr); border: 1px solid var(--line2); background: var(--line2); gap: 1px; }
+  .cell { background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 380px; }
+  .cell .ct { padding: 28px 30px 0; position: relative; z-index: 2; }
+  .cell .ct h3 { font: 600 18px "Geist"; letter-spacing: -0.03em; }
+  .cell .ct p { font-size: 14.5px; line-height: 1.55; color: var(--t2); margin-top: 6px; max-width: 360px; }
+  .cell .vis { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .glow-b { background: radial-gradient(70% 60% at 50% 100%, oklch(68% 0.175 262 / .13), transparent 70%), var(--bg); }
+  .split { position: absolute; inset: 110px 0 0; display: grid; grid-template-columns: 1fr 1fr; }
+  .split .L { background: var(--lbg); display: flex; align-items: center; justify-content: flex-end; overflow: hidden; }
+  .split .D { background: var(--bg2); display: flex; align-items: center; justify-content: flex-start; overflow: hidden; }
+  .split .L .cal { margin-right: -125px; }
+  .split .D .cal { margin-left: -125px; }
+  .handle { position: absolute; left: 50%; top: 110px; bottom: 0; width: 2px; background: var(--fg); transform: translateX(-1px); z-index: 3; }
+  .handle::after { content: "\2194"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: var(--fg); color: var(--bg); display: grid; place-items: center; font-size: 15px; box-shadow: 0 6px 18px oklch(0% 0 0 / .5); }
+  .toggle { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 16px; background: var(--bg2); border: 1px solid var(--line2); font-size: 14px; }
+  .sw { width: 46px; height: 28px; border-radius: 99px; background: var(--brand); position: relative; box-shadow: inset 0 1px 2px oklch(0% 0 0 / .3); }
+  .sw::after { content: ""; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--fg); box-shadow: 0 2px 6px oklch(0% 0 0 / .4); }
+  .ghosts { position: relative; height: 60px; width: 220px; margin-top: 26px; }
+  .ghosts i { position: absolute; top: 12px; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line3); }
+  .ghosts i.x { border-color: var(--fg); background: var(--fg); }
+  .ghosts::after { content: ""; position: absolute; left: 0; right: 0; top: 30px; height: 1px; background: repeating-linear-gradient(90deg, var(--line3) 0 4px, transparent 4px 8px); }
+  .steps { display: flex; flex-direction: column; gap: 10px; width: 250px; }
+  .step { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 8px 0 14px; border-radius: 14px; border: 1px solid var(--line); font-size: 12.5px; color: var(--mut); }
+  .step.on { border-color: var(--line3); background: var(--bg2); color: var(--fg); }
+  .pillb { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border-radius: 99px; font-size: 12.5px; font-weight: 500; }
+  .pillb.a { background: var(--bg3); color: var(--t2); border: 1px solid var(--line2); }
+  .pillb.b { background: color-mix(in oklch, var(--bad) 18%, var(--bg3)); color: var(--bad); border: 1px solid color-mix(in oklch, var(--bad) 35%, transparent); }
+  .pillb.c { background: var(--bg3); color: var(--mut); border: 1px solid var(--line2); }
+  .pillb.d { background: color-mix(in oklch, var(--ok) 16%, var(--bg3)); color: var(--ok); border: 1px solid color-mix(in oklch, var(--ok) 30%, transparent); }
+  .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line3); border-top-color: var(--t2); }
+  .codebox { position: absolute; left: 30px; right: -40px; top: 128px; bottom: -20px; border: 1px solid var(--line2); background: var(--bg1); }
+  .codebox .ch { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--line); font: 400 12px "Geist Mono"; color: var(--t2); }
+  .codebox .ch b { color: var(--fg); font-weight: 500; }
+  .codebox .ch span { color: var(--mut); }
+  .codebox pre { padding: 14px 16px; font: 400 12px/1.8 "Geist Mono"; color: var(--t3); }
+  .codebox .k { color: var(--t2); }
+  .codebox .s { color: var(--brand); }
+  .codebox .n { display: inline-block; width: 22px; color: var(--mut); opacity: .55; }
+
+  /* pricing */
+  .bill { display: inline-flex; padding: 4px; border-radius: 99px; border: 1px solid var(--line2); background: var(--bg1); margin-top: 30px; }
+  .bill span { height: 34px; line-height: 34px; padding: 0 18px; border-radius: 99px; font-size: 13.5px; color: var(--mut); }
+  .bill span.on { background: var(--fg); color: var(--bg); font-weight: 500; }
+  .bill em { font-style: normal; font-size: 11px; color: var(--brand); margin-left: 6px; }
+  .plans { margin: 44px auto 0; max-width: 920px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
+  .plan { border-radius: 26px; border: 1px solid var(--line2); background: linear-gradient(180deg, var(--bg1), var(--bg)); padding: 30px; display: flex; flex-direction: column; }
+  .plan.pro { position: relative; background: radial-gradient(90% 60% at 100% 0%, oklch(68% 0.175 262 / .14), transparent 60%), linear-gradient(180deg, var(--bg1), var(--bg)); border-color: color-mix(in oklch, var(--brand) 40%, var(--line2)); box-shadow: 0 30px 80px -40px oklch(68% 0.175 262 / .5), inset 0 1px 0 oklch(100% 0 0 / .05); }
+  .plan .pn { display: flex; justify-content: space-between; align-items: center; font: 600 17px "Geist"; letter-spacing: -0.02em; }
+  .plan .badge { font: 500 11.5px "Geist"; color: var(--t2); border: 1px solid var(--line2); border-radius: 99px; padding: 4px 10px; display: inline-flex; gap: 6px; align-items: center; }
+  .plan .badge i { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--t2); }
+  .plan .badge.live i { background: var(--ok); border-color: var(--ok); }
+  .plan .amt { font: 600 56px/1 "Geist"; letter-spacing: -0.05em; margin-top: 26px; }
+  .plan .amt span { font-size: 15px; font-weight: 400; color: var(--mut); letter-spacing: 0; margin-left: 4px; }
+  .plan .pd { font-size: 14px; line-height: 1.55; color: var(--t2); margin-top: 12px; min-height: 44px; }
+  .plan .btn { margin-top: 24px; width: 100%; }
+  .plan ul { list-style: none; margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: var(--t2); }
+  .plan li { display: flex; gap: 12px; align-items: flex-start; }
+  .plan li::before { content: "\2713"; flex: none; width: 18px; height: 18px; border-radius: 50%; background: oklch(95.5% 0.003 260 / .07); color: var(--fg); font-size: 10.5px; display: grid; place-items: center; margin-top: 1px; }
+  .plan.pro li::before { background: color-mix(in oklch, var(--brand) 22%, transparent); color: var(--brand); }
+  .xlogo { font-weight: 700; font-size: 14px; }
+
+  /* faq */
+  .faqw { max-width: 780px; margin: 50px auto 0; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+  .qa { border-radius: 18px; border: 1px solid var(--line); background: var(--bg1); padding: 0 22px; }
+  .qa .q { height: 66px; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; }
+  .qa .q i { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line2); display: grid; place-items: center; font-style: normal; color: var(--t2); font-size: 16px; }
+  .qa.open { border-color: var(--line3); background: var(--bg2); }
+  .qa.open .q i { background: var(--fg); color: var(--bg); border-color: var(--fg); transform: rotate(45deg); }
+  .qa .a { font-size: 15px; line-height: 1.65; color: var(--t2); padding: 0 50px 22px 0; }
+  .ask { margin-top: 26px; font-size: 14.5px; color: var(--mut); }
+  .ask b { color: var(--fg); font-weight: 500; }
+
+  /* cta + footer (kept) */
+  .cta { display: flex; justify-content: space-between; align-items: flex-end; }
+  .foot { padding: 64px 72px 0; border-top: 1px solid var(--line); }
+  .foot-top { display: flex; justify-content: space-between; }
+  .foot-top p { font-size: 14px; color: var(--t2); line-height: 1.55; max-width: 330px; margin-top: 14px; }
+  .fcols { display: flex; gap: 70px; font-size: 14px; color: var(--t2); }
+  .fcols div { display: flex; flex-direction: column; gap: 12px; }
+  .fcols b { font: 400 12px "Geist Mono"; color: var(--mut); }
+  .giant { font: 800 262px/0.8 "Bricolage Grotesque"; letter-spacing: -0.065em; color: var(--bg2); text-shadow: 0 -1px 1px oklch(0% 0 0 / .6), 0 1px 0 oklch(95.5% 0.003 260 / .07); margin: 60px 0 -34px -8px; white-space: nowrap; }
+  .giant i { font-style: normal; color: var(--brand); }
+  .fbar { display: flex; justify-content: space-between; padding: 18px 72px; border-top: 1px solid var(--line); font-size: 13px; color: var(--mut); position: relative; background: var(--bg); }
+
+/* ===== v4 ===== */
+
+  @font-face { font-family: "Mazius"; src: url("/files/MaziusDisplay-ExtraItalicBold.woff2") format("woff2"); font-weight: 700; font-style: italic; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: oklch(15.2% 0.006 260); --bg1: oklch(17.2% 0.007 260); --bg2: oklch(19.6% 0.008 260); --bg3: oklch(22.6% 0.009 260); --bg4: oklch(25% 0.01 260);
+    --fg: oklch(95.5% 0.003 260); --t2: oklch(77% 0.006 260); --t3: oklch(66% 0.008 260); --mut: oklch(58% 0.009 260);
+    --line: oklch(95.5% 0.003 260 / 0.08); --line2: oklch(95.5% 0.003 260 / 0.14); --line3: oklch(95.5% 0.003 260 / 0.22);
+    --brand: oklch(68% 0.175 262); --brand-ink: oklch(15.2% 0.02 264); --brand-t: oklch(86% 0.08 205); --bad: oklch(66% 0.19 25); --ok: oklch(74% 0.15 155); --warn: oklch(80% 0.15 75);
+    --light: oklch(95.5% 0.003 260 / 0.06);
+  }
+  body { background: oklch(11.5% 0.005 260); color: var(--fg); font-family: "Geist", system-ui, sans-serif; padding: 44px 32px 140px; -webkit-font-smoothing: antialiased; }
+  .intro { max-width: 1180px; margin: 0 auto 26px; }
+  .intro h1 { font: 600 30px/1.1 "Geist"; letter-spacing: -0.035em; }
+  .intro p { margin-top: 10px; max-width: 900px; color: var(--t2); font-size: 15px; line-height: 1.6; }
+  .note { max-width: 1180px; margin: 46px auto 12px; }
+  .note b { font: 600 20px "Geist"; letter-spacing: -0.03em; display: flex; align-items: center; gap: 10px; }
+  .note span { display: block; font-size: 14.5px; color: var(--t2); line-height: 1.6; margin-top: 6px; max-width: 900px; }
+  .rec { font: 500 12px "Geist"; color: var(--brand); border: 1px solid color-mix(in oklch, var(--brand) 45%, transparent); border-radius: 99px; padding: 3px 10px; letter-spacing: 0; }
+  .pick { cursor: pointer; border-radius: 24px; border: 2px solid transparent; transition: border-color .2s; }
+  .pick:hover { border-color: var(--line2); }
+  .pick.selected { border-color: var(--brand); }
+  .scroll { max-width: 1180px; margin: 0 auto; overflow-x: auto; }
+  .page { width: 1180px; background: var(--bg); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; position: relative; }
+
+  .ser { font-family: "Mazius"; font-style: italic; font-weight: 700; letter-spacing: -0.01em; font-size: 1.1em; line-height: 0; color: var(--brand); padding-right: .04em; }
+  .h1 { font: 600 64px/1.03 "Geist"; letter-spacing: -0.055em; }
+  .h1 .ser, .h2 .ser.b { color: var(--brand); padding-right: .04em; }
+  .h2 { font: 600 46px/1.04 "Geist"; letter-spacing: -0.05em; }
+  .lede { font-size: 17px; line-height: 1.6; color: var(--t2); max-width: 580px; margin-top: 16px; }
+
+  .wm { font: 800 21px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .wm i { font-style: normal; color: var(--brand); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 99px; font-size: 14.5px; font-weight: 500; white-space: nowrap; }
+  .btn-brand { background: linear-gradient(180deg, oklch(72% 0.17 262), var(--brand)); color: var(--brand-ink); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .35), 0 0 0 1px oklch(55% 0.19 263), 0 8px 24px -8px color-mix(in oklch, var(--brand) 70%, transparent); }
+  .btn-ink { background: var(--fg); color: var(--bg); }
+  .btn-sm { height: 32px; padding: 0 13px; font-size: 12.5px; }
+  .chip { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--line3); background: oklch(95.5% 0.003 260 / .03); font: 400 13.5px "Geist Mono"; color: var(--t2); white-space: nowrap; }
+  .chip b { color: var(--fg); font-weight: 500; }
+  .dol { color: var(--brand); }
+  .cp { display: inline-block; width: 12px; height: 13px; border: 1.5px solid var(--mut); border-radius: 3px; box-shadow: 3px -3px 0 -1.5px var(--bg), 3px -3px 0 0 var(--mut); flex: none; }
+  .stage { background: radial-gradient(120% 70% at 50% 0%, var(--light), transparent 70%), var(--bg2); }
+
+  /* mini components */
+  .dock { display: flex; gap: 6px; padding: 7px; border-radius: 99px; background: var(--bg3); border: 1px solid var(--line2); box-shadow: 0 14px 30px -10px oklch(0% 0 0 / .7), inset 0 1px 0 oklch(100% 0 0 / .05); }
+  .dock span { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+  .dock span::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.8px solid var(--t2); }
+  .dock span.on { background: var(--fg); }
+  .dock span.on::before { border-color: var(--bg); border-radius: 50%; }
+  .menu { width: 210px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 6px; box-shadow: 0 20px 40px -12px oklch(0% 0 0 / .7), inset 0 1px 0 oklch(100% 0 0 / .05); }
+  .menu div { height: 34px; border-radius: 11px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 13px; color: var(--t2); }
+  .menu div::before { content: ""; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--mut); }
+  .menu div.hi { background: oklch(95.5% 0.003 260 / .07); color: var(--fg); }
+  .cal { width: 250px; border-radius: 18px; background: var(--bg3); border: 1px solid var(--line2); padding: 14px; box-shadow: 0 20px 40px -14px oklch(0% 0 0 / .6); }
+  .cal-h { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 10px; }
+  .cal-h span { color: var(--mut); font-weight: 400; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px 0; font-size: 10.5px; text-align: center; color: var(--t3); }
+  .cal-g i { font-style: normal; height: 24px; display: grid; place-items: center; }
+  .cal-g i.r { background: color-mix(in oklch, var(--brand) 20%, transparent); color: var(--fg); }
+  .cal-g i.s { background: var(--brand); color: var(--brand-ink); border-radius: 8px 0 0 8px; font-weight: 600; }
+  .cal-g i.e { background: var(--brand); color: var(--brand-ink); border-radius: 0 8px 8px 0; font-weight: 600; }
+  .chart { width: 220px; border-radius: 16px; background: var(--bg3); border: 1px solid var(--line2); padding: 13px; }
+  .chart .k { font-size: 10.5px; color: var(--mut); }
+  .chart .v { font: 600 22px "Geist"; letter-spacing: -0.03em; margin: 2px 0 8px; }
+  .bars { display: flex; gap: 5px; align-items: flex-end; height: 58px; }
+  .bars i { flex: 1; border-radius: 5px; background: oklch(95.5% 0.003 260 / .1); }
+  .bars i.hi { background: repeating-linear-gradient(135deg, var(--brand) 0 3px, color-mix(in oklch, var(--brand) 60%, transparent) 3px 6px); }
+  .tl { display: flex; flex-direction: column; gap: 12px; padding-left: 16px; border-left: 1.5px solid var(--line2); font-size: 12px; }
+  .tl div { position: relative; color: var(--mut); }
+  .tl div::before { content: ""; position: absolute; left: -21px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg3); border: 1.5px solid var(--line2); }
+  .tl div.on { color: var(--fg); transform: translateX(8px); }
+  .tl div.on::before { background: var(--brand); border-color: var(--brand); left: -29px; }
+  .mag { display: inline-flex; align-items: center; height: 42px; padding: 0 20px; border-radius: 99px; background: var(--brand); color: var(--brand-ink); font-size: 14px; font-weight: 500; box-shadow: 0 10px 30px -8px color-mix(in oklch, var(--brand) 60%, transparent); }
+  .delb { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 99px; background: var(--bg3); border: 1px solid var(--line2); color: var(--t2); font-size: 13.5px; font-weight: 500; }
+
+  /* hero top (approved, unchanged) */
+  .hero { position: relative; height: 1010px; overflow: hidden;
+    background: radial-gradient(42% 32% at 50% 0%, oklch(68% 0.175 262 / .16), transparent 70%), radial-gradient(50% 30% at 50% 62%, oklch(68% 0.175 262 / .10), transparent 70%), var(--bg); }
+  .nav { position: absolute; inset: 0 0 auto; height: 68px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 36px; z-index: 5; }
+  .nav .links { display: flex; gap: 4px; font-size: 14px; color: var(--t2); }
+  .nav .links span { padding: 7px 14px; border-radius: 99px; }
+  .nav .links span.on { color: var(--fg); background: oklch(95.5% 0.003 260 / .06); }
+  .nav .right { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+  .nav .theme { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line2); display: grid; place-items: center; color: var(--t2); font-size: 14px; }
+  .hero-t { position: absolute; top: 132px; left: 0; right: 0; text-align: center; }
+  .announce { display: inline-flex; align-items: center; gap: 10px; height: 32px; padding: 0 14px 0 4px; border-radius: 99px; border: 1px solid var(--line2); background: oklch(95.5% 0.003 260 / .03); font-size: 13px; color: var(--t2); margin-bottom: 26px; }
+  .announce em { font-style: normal; font-weight: 500; font-size: 12px; background: color-mix(in oklch, var(--brand) 18%, transparent); color: var(--brand); border-radius: 99px; padding: 3px 9px; }
+  .announce span { color: var(--mut); }
+  .hero .sub { font-size: 18px; line-height: 1.55; color: var(--t2); max-width: 540px; margin: 22px auto 0; }
+  .hero .ctas { display: flex; gap: 12px; justify-content: center; margin-top: 34px; }
+  .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, transparent, var(--bg) 92%); z-index: 6; }
+
+  /* shared window shell */
+  .persp { position: absolute; left: 70px; right: 70px; top: 512px; height: 480px; perspective: 2200px; }
+  .win { position: absolute; inset: 0; border-radius: 18px; transform: rotateX(9deg); transform-origin: 50% 0; overflow: hidden;
+    background: oklch(15.8% 0.007 260);
+    box-shadow: 0 0 0 1px var(--line2), 0 0 0 6px oklch(95.5% 0.003 260 / .025), 0 0 0 7px oklch(95.5% 0.003 260 / .05), 0 -40px 120px -40px oklch(68% 0.175 262 / .5), 0 60px 120px -30px oklch(0% 0 0 / .9);
+    display: flex; flex-direction: column; }
+  .win::before { content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, oklch(100% 0 0 / .5), oklch(80% 0.1 262 / .7), oklch(100% 0 0 / .5), transparent); z-index: 5; }
+
+  .bar { height: 48px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); background: oklch(17% 0.007 260); }
+  .crumb { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--mut); }
+  .crumb .tile { width: 22px; height: 22px; border-radius: 6px; background: var(--fg); color: var(--bg); display: grid; place-items: center; font: 800 12px "Bricolage Grotesque"; letter-spacing: -0.05em; }
+  .crumb .tile i { font-style: normal; color: var(--brand); }
+  .crumb b { color: var(--fg); font-weight: 500; }
+  .crumb .sl { color: var(--line3); }
+  .bar-r { display: flex; align-items: center; gap: 8px; }
+  .tseg { display: flex; padding: 3px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); }
+  .tseg span { height: 26px; padding: 0 11px; border-radius: 99px; font-size: 12px; color: var(--mut); display: flex; align-items: center; gap: 6px; }
+  .tseg span.on { background: var(--bg4); color: var(--fg); box-shadow: 0 0 0 1px var(--line2); }
+  .ghostb { height: 32px; padding: 0 12px; border-radius: 99px; font-size: 12.5px; color: var(--t2); display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); }
+
+  /* ───── Window A · design tool, no right panel ───── */
+  .A .body { flex: 1; display: grid; grid-template-columns: 220px 1fr; min-height: 0; }
+  .layers { border-right: 1px solid var(--line); padding: 12px 10px; background: oklch(16.4% 0.007 260); }
+  .srch { height: 34px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; font-size: 12.5px; color: var(--mut); margin-bottom: 6px; }
+  .srch::before { content: ""; width: 10px; height: 10px; border: 1.5px solid var(--mut); border-radius: 50%; }
+  .srch kbd { margin-left: auto; font: 400 10.5px "Geist Mono"; border: 1px solid var(--line2); border-radius: 5px; padding: 0 5px; }
+  .grp { display: flex; justify-content: space-between; font: 400 10.5px "Geist Mono"; color: var(--mut); margin: 14px 8px 5px; }
+  .ly { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: 9px; font-size: 13px; color: var(--t2); white-space: nowrap; }
+  .ly::before { content: "#"; font: 500 11px "Geist Mono"; color: var(--mut); width: 10px; }
+  .ly.on { background: color-mix(in oklch, var(--brand) 15%, transparent); color: var(--fg); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--brand) 30%, transparent); }
+  .ly.on::before { color: var(--brand); }
+  .ly em { margin-left: auto; font-style: normal; font-size: 10px; font-weight: 500; color: var(--brand); }
+  .canvas { position: relative; overflow: hidden; background: radial-gradient(60% 60% at 42% 40%, oklch(19.5% 0.013 262), oklch(15.4% 0.007 260) 80%); }
+  .fr { position: absolute; }
+  .fl { font-size: 11.5px; color: var(--t3); margin-bottom: 7px; display: flex; gap: 8px; white-space: nowrap; }
+  .fl span { color: var(--mut); font-family: "Geist Mono"; font-size: 10.5px; }
+  .fb { display: flex; align-items: center; justify-content: center; position: relative; box-shadow: inset 0 0 0 1px var(--line); }
+  .sel .fb { box-shadow: 0 0 0 1.5px var(--brand), 0 40px 80px -30px oklch(0% 0 0 / .7); }
+  .sel .fl { color: var(--brand); font-weight: 500; }
+  .h { position: absolute; width: 8px; height: 8px; background: var(--fg); border: 1.5px solid var(--brand); z-index: 2; }
+  .dim { position: absolute; left: 50%; bottom: -27px; transform: translateX(-50%); font: 500 10.5px "Geist Mono"; background: var(--brand); color: var(--brand-ink); padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+  .dock-tb { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 5px; border-radius: 16px; background: oklch(20% 0.008 260 / .9); border: 1px solid var(--line2); box-shadow: 0 20px 40px -12px oklch(0% 0 0 / .8), inset 0 1px 0 oklch(100% 0 0 / .05); backdrop-filter: blur(12px); z-index: 4; white-space: nowrap; }
+  .tb { height: 34px; min-width: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 13px; color: var(--t2); padding: 0 9px; }
+  .tb.on { background: var(--brand); color: var(--brand-ink); }
+  .vr { width: 1px; height: 20px; background: var(--line2); margin: 0 4px; }
+  .tcmd { font: 400 12.5px "Geist Mono"; color: var(--t2); display: flex; align-items: center; gap: 12px; padding: 0 2px 0 8px; }
+  .tcmd b { color: var(--fg); font-weight: 500; }
+
+  /* ───── Window B · stage first ───── */
+  .B .tabs { height: 52px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--line); background: oklch(16.4% 0.007 260); overflow: hidden; }
+  .B .tab { height: 34px; padding: 0 14px; border-radius: 99px; font-size: 13px; color: var(--t2); display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .B .tab em { font-style: normal; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+  .B .tab.on { background: var(--fg); color: var(--bg); font-weight: 500; }
+  .B .tabs .sp { flex: 1; }
+  .B .stagebig { flex: 1; position: relative; overflow: hidden; background: radial-gradient(50% 70% at 50% 30%, oklch(20% 0.014 262), oklch(15.4% 0.007 260) 80%); display: flex; align-items: center; justify-content: center; gap: 36px; }
+  .B .peek { width: 250px; height: 290px; opacity: .45; display: flex; align-items: center; justify-content: center; }
+  .B .peek.l { margin-left: -150px; }
+  .B .peek.r { margin-right: -150px; }
+  .B .main { width: 440px; height: 320px; position: relative; }
+  .B .main .fb { width: 100%; height: 100%; flex-direction: column; justify-content: flex-end; padding-bottom: 26px; gap: 11px; }
+  .B .arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line2); background: var(--bg2); display: grid; place-items: center; color: var(--t2); z-index: 3; }
+  .B .foot { height: 64px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 20px; border-top: 1px solid var(--line); background: oklch(17% 0.007 260); }
+  .B .foot .nm { font-size: 13.5px; color: var(--t2); }
+  .B .foot .nm b { color: var(--fg); font-weight: 600; margin-right: 8px; }
+  .B .cmdbox { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 6px 0 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line2); font: 400 13px "Geist Mono"; color: var(--t2); }
+  .B .cmdbox b { color: var(--fg); font-weight: 500; }
+
+  /* ───── Install, polished ───── */
+  .sec { position: relative; padding: 120px 72px; }
+  .inst-s { font: 600 30px/1.8 "Geist"; letter-spacing: -0.035em; color: var(--t3); max-width: 1010px; margin-top: 28px; }
+  .tk { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 8px 0 12px; border-radius: 12px; border: 1px solid var(--line2); background: linear-gradient(180deg, oklch(19% 0.008 260), oklch(16.5% 0.007 260)); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .05), 0 6px 16px -8px oklch(0% 0 0 / .6); font: 400 13.5px "Geist Mono"; letter-spacing: 0; color: var(--t2); vertical-align: middle; transform: translateY(-4px); }
+  .tk b { color: var(--fg); font-weight: 500; }
+  .tk .ic { width: 24px; height: 24px; border-radius: 7px; background: color-mix(in oklch, var(--brand) 16%, transparent); color: var(--brand); display: grid; place-items: center; font: 600 11px "Geist Mono"; }
+  .tk .cpb { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); display: grid; place-items: center; }
+  .tk.file { padding-right: 12px; }
+  .tk.file .ic { background: oklch(95.5% 0.003 260 / .06); color: var(--t2); }
+  .tk.file .plus { color: var(--ok); font-size: 12px; }
+
+  .inst { margin-top: 60px; position: relative; height: 520px; }
+  .term { position: absolute; left: 0; top: 0; width: 72%; height: 440px; border-radius: 20px; overflow: hidden;
+    background: radial-gradient(80% 50% at 30% 0%, oklch(68% 0.175 262 / .07), transparent 70%), oklch(12.2% 0.006 260);
+    box-shadow: 0 0 0 1px var(--line2), inset 0 1px 0 oklch(100% 0 0 / .05), 0 40px 80px -30px oklch(0% 0 0 / .8); }
+  .term-h { height: 50px; display: flex; align-items: center; gap: 6px; padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); }
+  .term-h .dots { display: flex; gap: 7px; margin-right: 12px; }
+  .term-h .dots i { width: 11px; height: 11px; border-radius: 50%; background: oklch(95.5% 0.003 260 / .12); }
+  .ttab { height: 32px; padding: 0 12px; border-radius: 9px; display: flex; align-items: center; gap: 8px; font: 400 12.5px "Geist Mono"; color: var(--mut); }
+  .ttab .n { width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--line2); display: grid; place-items: center; font-size: 10.5px; }
+  .ttab.on { background: oklch(95.5% 0.003 260 / .06); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); }
+  .ttab.on .n { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  .ttab.done .n { background: color-mix(in oklch, var(--ok) 20%, transparent); color: var(--ok); border-color: transparent; }
+  .again { margin-left: auto; height: 32px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line); font-size: 12.5px; color: var(--t2); display: flex; align-items: center; gap: 7px; }
+  .term pre { padding: 24px 22px; font: 400 14px/1.9 "Geist Mono"; color: var(--mut); }
+  .term .p { color: var(--brand-t); }
+  .term .c { color: var(--fg); font-weight: 500; }
+  .term .c em { font-style: normal; color: var(--brand); }
+  .term .ok { display: inline-flex; gap: 8px; color: var(--ok); background: color-mix(in oklch, var(--ok) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--ok) 22%, transparent); padding: 0 10px; margin-left: -10px; border-radius: 7px; }
+  .term .pk { color: var(--t2); }
+  .term .dep { color: var(--fg); }
+  .term .cpy { font: 500 11px "Geist"; border: 1px solid var(--line2); border-radius: 6px; padding: 2px 8px; color: var(--t2); margin-left: 10px; }
+  .term .dn { color: var(--ok); font-weight: 500; }
+  .caret { display: inline-block; width: 8px; height: 17px; background: var(--fg); vertical-align: -3px; margin-left: 2px; }
+
+  .tree { position: absolute; right: 0; top: 118px; width: 348px; border-radius: 20px; overflow: hidden;
+    background: linear-gradient(180deg, oklch(20% 0.008 260 / .92), oklch(17.5% 0.007 260 / .92)); backdrop-filter: blur(16px);
+    box-shadow: 0 0 0 1px var(--line2), inset 0 1px 0 oklch(100% 0 0 / .07), 0 40px 80px -24px oklch(0% 0 0 / .85); }
+  .tree-h { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .tree-h b { font: 500 13px "Geist Mono"; }
+  .tree-h span { font-size: 12px; color: var(--mut); }
+  .rs { padding: 10px 8px; }
+  .r { position: relative; height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font: 400 13px "Geist Mono"; color: var(--t2); border-radius: 9px; }
+  .r .ico { width: 14px; height: 12px; border-radius: 2px; flex: none; }
+  .r .ico.d { border: 1.5px solid var(--mut); border-top-width: 3px; }
+  .r .ico.f { width: 11px; height: 14px; border: 1.5px solid var(--mut); border-radius: 2px; }
+  .r .ico.f.b { border-color: var(--brand); }
+  .r .ico.f.y { border-color: var(--warn); }
+  .r .guide { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line2); }
+  .r.new { color: var(--fg); background: color-mix(in oklch, var(--brand) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--brand) 30%, transparent), 0 0 30px -10px color-mix(in oklch, var(--brand) 60%, transparent); }
+  .r.new .add { margin-left: auto; font: 500 11.5px "Geist Mono"; color: var(--ok); }
+  .r.new em { font: 500 10.5px "Geist"; font-style: normal; background: var(--brand); color: var(--brand-ink); padding: 1px 7px; border-radius: 99px; }
+  .tree-f { padding: 14px 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--mut); display: flex; justify-content: space-between; }
+  .tree-f b { color: var(--t2); font-weight: 500; }
+  .conn { position: absolute; left: 298px; top: 191px; width: 400px; height: 145px; z-index: 2; }
+
+  /* CTA */
+  .cta { display: flex; justify-content: space-between; align-items: flex-end; }
+
+
+  .page[data-win="a"] .pb, .page[data-win="b"] .pa { display: none; }
+  .switch-win { position: fixed; right: 24px; bottom: 24px; z-index: 100; display: flex; align-items: center; gap: 4px; padding: 5px 5px 5px 14px; border-radius: 99px; background: oklch(22% 0.009 260 / .92); border: 1px solid var(--line3); backdrop-filter: blur(12px); box-shadow: 0 20px 40px -10px oklch(0% 0 0 / .7); font-size: 13px; color: var(--t2); }
+  .switch-win button { all: unset; cursor: pointer; height: 32px; padding: 0 14px; border-radius: 99px; font-size: 13px; font-weight: 500; color: var(--t2); }
+  .switch-win button.on { background: var(--fg); color: var(--bg); }
+
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>Home page, full scroll</h1>
+  <p>Everything together, in dark. Every word in Mazius is Extra Italic Bold in brand cobalt (#6595FF on dark), on "Crafted", "commands" and "component". Use the switch at the bottom right to swap the hero window between A (design tool) and B (stage with tabs).</p>
+</div>
+<div class="scroll"><div class="page" data-win="a">
+
+  <section class="hero">
+    <div class="nav"><div class="wm">devigner<i>.</i></div><div class="links"><span class="on">Components</span><span>Docs</span><span>Pricing</span></div><div class="right"><span class="theme">&#9681;</span><span class="btn btn-ink btn-sm" style="height:36px;padding:0 16px;font-size:13.5px">Get started</span></div></div>
+    <div class="hero-t">
+      <div class="announce"><em>New</em>Date Range Picker <span>&rarr;</span></div>
+      <h1 class="h1">Beautifully <span class="ser">Crafted</span> React Components,<br>Built for Developers.</h1>
+      <p class="sub">Animated, accessible components you install as plain .tsx files. Free for React and Tailwind CSS.</p>
+      <div class="ctas"><span class="btn btn-brand">Browse components &rarr;</span><span class="chip"><span class="dol">$</span> npx devignerui <b>init</b><span class="cp"></span></span></div>
+    </div>
+    <div class="persp pa"><div class="win A">
+      <div class="bar">
+        <div class="crumb"><span class="tile">d<i>.</i></span><span>Components</span><span class="sl">/</span><b>Menu Dock</b></div>
+        <div class="bar-r"><div class="tseg"><span>&#9788; Light</span><span class="on">&#9790; Dark</span></div><span class="ghostb">Docs &rarr;</span></div>
+      </div>
+      <div class="body">
+        <div class="layers">
+          <div class="srch">Search components <kbd>/</kbd></div>
+          <div class="grp"><span>navigation</span><span>1</span></div>
+          <div class="ly on">Menu Dock <em>New</em></div>
+          <div class="grp"><span>forms</span><span>1</span></div>
+          <div class="ly">Date Range Picker <em>New</em></div>
+          <div class="grp"><span>data display</span><span>2</span></div>
+          <div class="ly">Chart Card</div>
+          <div class="ly">Timeline</div>
+          <div class="grp"><span>primitives</span><span>1</span></div>
+          <div class="ly">Delete Button</div>
+          <div class="grp"><span>animation</span><span>1</span></div>
+          <div class="ly">Magnetic Button</div>
+        </div>
+        <div class="canvas">
+          <div class="fr sel" style="left:80px;top:34px">
+            <div class="fl">Menu Dock <span>navigation</span></div>
+            <div class="fb stage" style="width:400px;height:270px;flex-direction:column;justify-content:flex-end;padding-bottom:22px;gap:11px">
+              <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+              <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+              <i class="h" style="left:-4px;top:-4px"></i><i class="h" style="right:-4px;top:-4px"></i><i class="h" style="left:-4px;bottom:-4px"></i><i class="h" style="right:-4px;bottom:-4px"></i>
+              <span class="dim">400 &times; 270</span>
+            </div>
+          </div>
+          <div class="fr" style="left:540px;top:34px">
+            <div class="fl">Date Range Picker <span>forms</span></div>
+            <div class="fb stage" style="width:300px;height:290px"><div class="cal"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i><i></i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="r">12</i><i class="e">13</i><i>14</i><i>15</i><i>16</i><i>17</i><i>18</i><i>19</i><i>20</i></div></div></div>
+          </div>
+          <div class="dock-tb">
+            <span class="tb">&#9995;</span><span class="tb on">&#8598;</span><span class="tb" style="font:400 11.5px 'Geist Mono'">100%</span>
+            <span class="vr"></span>
+            <span class="tcmd"><span><span class="dol">$</span> npx devignerui add <b>menu-dock</b></span><span class="btn btn-ink btn-sm">Copy</span></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="persp pb"><div class="win B">
+      <div class="tabs">
+        <span class="tab on">Menu Dock</span><span class="tab">Date Range Picker <em></em></span><span class="tab">Chart Card</span><span class="tab">Timeline</span><span class="tab">Delete Button</span><span class="tab">Magnetic Button</span>
+        <span class="sp"></span>
+        <div class="tseg"><span>&#9788; Light</span><span class="on">&#9790; Dark</span></div>
+      </div>
+      <div class="stagebig">
+        <div class="peek l stage"><div class="delb">&#128465; Delete</div></div>
+        <div class="main sel">
+          <div class="fb stage">
+            <div class="menu"><div>Profile</div><div class="hi">Billing</div><div>Team</div></div>
+            <div class="dock"><span></span><span></span><span class="on"></span><span></span></div>
+            <i class="h" style="left:-4px;top:-4px"></i><i class="h" style="right:-4px;top:-4px"></i><i class="h" style="left:-4px;bottom:-4px"></i><i class="h" style="right:-4px;bottom:-4px"></i>
+          </div>
+        </div>
+        <div class="peek r stage"><div class="cal" style="transform:scale(.85)"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i class="s">9</i><i class="r">10</i><i class="r">11</i><i class="e">12</i><i>13</i><i>14</i><i>15</i></div></div></div>
+        <span class="arrow" style="left:18px">&larr;</span><span class="arrow" style="right:18px">&rarr;</span>
+      </div>
+      <div class="foot">
+        <div class="nm"><b>Menu Dock</b>A dock that grows into its own menus, nested as deep as you need.</div>
+        <div class="cmdbox"><span><span class="dol">$</span> npx devignerui add <b>menu-dock</b></span><span class="btn btn-ink btn-sm">Copy</span></div>
+      </div>
+    </div></div>
+    <div class="fade"></div>
+  </section>
+
+<!-- WORKS -->
+  <section class="works">
+    <p>Built for React 19 and Tailwind CSS v4. Drops into the stack you already have.</p>
+    <div class="logos">
+      <span><img src="https://cdn.simpleicons.org/react/ffffff" alt="">React</span>
+      <span><img src="https://cdn.simpleicons.org/nextdotjs/ffffff" alt="">Next.js</span>
+      <span><img src="https://cdn.simpleicons.org/tailwindcss/ffffff" alt="">Tailwind CSS</span>
+      <span><img src="https://cdn.simpleicons.org/typescript/ffffff" alt="">TypeScript</span>
+      <span><img src="https://cdn.simpleicons.org/vite/ffffff" alt="">Vite</span>
+      <span><img src="https://cdn.simpleicons.org/shadcnui/ffffff" alt="">shadcn/ui</span>
+    </div>
+  </section>
+
+  
+<!-- BENTO -->
+  <section class="sec">
+    <h2 class="h2">Every state, already <span class="ser">handled</span>.</h2>
+    <p class="lede">Focus, loading, confirmation, reduced motion and both themes are part of each component, so the part you paste in is the finished part.</p>
+    <div class="bento">
+      <div class="cell glow-b" style="grid-column:span 7">
+        <div class="ct"><h3>Works from the keyboard</h3><p>Click into it and put the mouse away. Every key you press lights up here.</p></div>
+        <div class="vis" style="flex-direction:column;gap:30px;padding-top:34px">
+          <div class="menu" style="width:210px"><div>Profile</div><div class="focus">Billing</div><div>Team</div></div>
+          <div class="keys"><span>Tab</span><span>&uarr;</span><span class="lit">&darr;</span><span>&crarr;</span><span>Esc</span></div>
+        </div>
+      </div>
+      <div class="cell" style="grid-column:span 5">
+        <div class="ct"><h3>Right in both themes</h3><p>Drag across it. Colors come from CSS variables, with no dark: classes in the file.</p></div>
+        <div class="split">
+          <div class="L"><div class="cal"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i class="s">8</i><i class="r">9</i><i class="r">10</i><i class="r">11</i><i class="e">12</i><i>13</i><i>14</i></div></div></div>
+          <div class="D"><div class="cal"><div class="cal-h">September 2026 <span>&lsaquo; &rsaquo;</span></div><div class="cal-g"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i class="s">8</i><i class="r">9</i><i class="r">10</i><i class="r">11</i><i class="e">12</i><i>13</i><i>14</i></div></div></div>
+        </div>
+        <div class="handle"></div>
+      </div>
+      <div class="cell" style="grid-column:span 4">
+        <div class="ct"><h3>Still when you ask</h3><p>Turn on reduced motion and the springs stop. Everything still works.</p></div>
+        <div class="vis" style="flex-direction:column">
+          <div class="toggle"><span>Reduce motion</span><span class="sw"></span></div>
+          <div class="ghosts"><i style="left:0;opacity:.25"></i><i style="left:46px;opacity:.4"></i><i style="left:92px;opacity:.6"></i><i class="x" style="left:184px"></i></div>
+        </div>
+      </div>
+      <div class="cell" style="grid-column:span 4">
+        <div class="ct"><h3>Loading and confirm</h3><p>Delete Button asks first, waits for your request, then shows a tick.</p></div>
+        <div class="vis">
+          <div class="steps">
+            <div class="step"><span>idle</span><span class="pillb a">Delete</span></div>
+            <div class="step"><span>confirm</span><span class="pillb b">Sure?</span></div>
+            <div class="step on"><span>waiting</span><span class="pillb c"><i class="spin"></i>Deleting</span></div>
+            <div class="step"><span>done</span><span class="pillb d">&#10003; Deleted</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cell" style="grid-column:span 4;background:var(--bg1)">
+        <div class="ct"><h3>One file you own</h3><p>No runtime package from us. The file imports React, Motion and your cn().</p></div>
+        <div class="codebox">
+          <div class="ch"><b>menu-dock.tsx</b><span>214 lines</span></div>
+<pre><span class="n">1</span><span class="k">"use client";</span>
+<span class="n">2</span><span class="k">import</span> { motion } <span class="k">from</span> "motion/react";
+<span class="n">3</span><span class="k">import</span> { cn } <span class="k">from</span> "@/lib/utils";
+<span class="n">4</span>
+<span class="n">5</span><span class="k">export const</span> MenuDock = forwardRef(
+<span class="n">6</span>  ({ items, className }, ref) =&gt; (
+<span class="n">7</span>    &lt;nav className={cn(<span class="s">"flex gap-1.5</span>
+<span class="n">8</span><span class="s">      rounded-full bg-surface p-1.5"</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+<!-- INSTALL --><section class="sec">
+    <h2 class="h2">Two <span class="ser">commands</span>, then it's your code</h2>
+    <p class="inst-s">Run <span class="tk"><span class="ic">&gt;_</span><span><span class="dol">$</span> npx devignerui <b>init</b></span><span class="cpb"><span class="cp"></span></span></span> once in your project. After that, <span class="tk"><span class="ic">&gt;_</span><span><span class="dol">$</span> npx devignerui add <b>menu-dock</b></span><span class="cpb"><span class="cp"></span></span></span> writes <span class="tk file"><span class="ic">tsx</span><b>menu-dock.tsx</b><span class="plus">+214</span></span> into components/ui, and from then on it's a normal file in your repo.</p>
+    <div class="inst">
+      <div class="term">
+        <div class="term-h">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <span class="ttab done"><span class="n">&#10003;</span>init</span>
+          <span class="ttab on"><span class="n">2</span>add menu-dock</span>
+          <span class="again">&#8635; Run it again</span>
+        </div>
+<pre><span class="p">~/your-app</span> $ <span class="c">npx devignerui add <em>menu-dock</em></span>
+Adding components...
+
+&#128230; <span class="pk">menu-dock</span>
+  <span class="ok">&#10003; components/ui/menu-dock.tsx</span>
+
+  Install dependencies:
+  <span class="dep">npm i cn motion react @devigner-ui/icons</span><span class="cpy">Copy</span>
+
+<span class="dn">Done!</span>
+<span class="p">~/your-app</span> $ <span class="caret"></span></pre>
+      </div>
+      <svg class="conn" viewBox="0 0 400 145" fill="none"><circle cx="4" cy="4" r="4" fill="oklch(68% 0.175 262)"/><path d="M4 4 C 180 4, 220 141, 396 141" stroke="oklch(68% 0.175 262)" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round"/><circle cx="396" cy="141" r="4" fill="oklch(68% 0.175 262)"/><circle cx="200" cy="72" r="3" fill="oklch(86% 0.08 205)"/></svg>
+      <div class="tree">
+        <div class="tree-h"><b>your-app</b><span>after the add command</span></div>
+        <div class="rs">
+          <div class="r"><span class="ico d"></span>app</div>
+          <div class="r"><span class="ico d"></span>components</div>
+          <div class="r" style="padding-left:30px"><i class="guide" style="left:16px"></i><span class="ico d"></span>ui</div>
+          <div class="r" style="padding-left:50px"><i class="guide" style="left:16px"></i><i class="guide" style="left:36px"></i><span class="ico f b"></span>button.tsx</div>
+          <div class="r new" style="padding-left:50px"><i class="guide" style="left:16px"></i><i class="guide" style="left:36px"></i><span class="ico f b"></span>menu-dock.tsx <em>new</em><span class="add">+214</span></div>
+          <div class="r"><span class="ico f y"></span>components.json</div>
+          <div class="r"><span class="ico f y"></span>package.json</div>
+        </div>
+        <div class="tree-f"><span><b>1 file</b> added</span><span>nothing else changed</span></div>
+      </div>
+    </div>
+  </section>
+
+<!-- PRICING -->
+  <section class="sec center">
+    <h2 class="h2">Free today, and it stays <span class="ser">free</span>.</h2>
+    <p class="lede">Every component on the site is MIT licensed. Pro will be a separate paid set, and nothing free moves behind it.</p>
+    <div class="bill"><span class="on">Monthly</span><span>Lifetime<em>pay once</em></span></div>
+    <div class="plans">
+      <div class="plan">
+        <div class="pn">Free <span class="badge live"><i></i>Available now</span></div>
+        <div class="amt">$0<span>forever</span></div>
+        <p class="pd">Everything on the site. No account and no seat limits.</p>
+        <span class="btn btn-ink">Browse components</span>
+        <ul>
+          <li>Every component in the library</li>
+          <li>MIT license, commercial use included</li>
+          <li>Install with the CLI or copy the file</li>
+          <li>Light and dark themes out of the box</li>
+        </ul>
+      </div>
+      <div class="plan pro">
+        <div class="pn">Pro <span class="badge"><i></i>Not on sale yet</span></div>
+        <div class="amt">$14.99<span>a month</span></div>
+        <p class="pd">Cancel whenever. Lifetime is one payment of $149.99.</p>
+        <span class="btn btn-ghost"><span class="xlogo">&#120143;</span> Get notified on X</span>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Every Pro component while you're subscribed</li>
+          <li>New Pro components as they ship</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  
+<!-- FAQ -->
+  <section class="sec center">
+    <h2 class="h2">Before you install</h2>
+    <div class="faqw">
+      <div class="qa open"><div class="q">Is Devigner UI free? <i>+</i></div><div class="a">Yes. Every component on the site is free and MIT licensed, including for commercial work. Pro will be a separate paid set, and nothing that's free now moves behind it.</div></div>
+      <div class="qa"><div class="q">How do I add a component to my project? <i>+</i></div></div>
+      <div class="qa"><div class="q">Does it work with shadcn/ui? <i>+</i></div></div>
+      <div class="qa"><div class="q">Do I need Framer Motion? <i>+</i></div></div>
+      <div class="qa"><div class="q">Will it work with the Next.js App Router? <i>+</i></div></div>
+      <div class="qa"><div class="q">How do dark mode and theming work? <i>+</i></div></div>
+    </div>
+    <p class="ask">Still wondering about something? <b>Ask @devignerui on X &rarr;</b></p>
+  </section>
+
+  
+<!-- CTA --><section class="sec cta">
+    <div><h2 class="h2">Start with one <span class="ser b">component</span>.</h2><p class="lede">Pick any of them, run one command, and edit it like the rest of your code.</p></div>
+    <div style="display:flex;gap:12px"><span class="chip"><span class="dol">$</span> npx devignerui <b>init</b><span class="cp"></span></span><span class="btn btn-brand">Browse components &rarr;</span></div>
+  </section>
+
+<footer class="foot">
+    <div class="foot-top">
+      <div><div class="wm">devigner<i>.</i></div><p>Animated React components for Tailwind CSS. Free, MIT licensed, and yours to edit once they're in your repo.</p></div>
+      <div class="fcols"><div><b>Library</b>Components<span>Docs</span><span>Pricing</span></div><div><b>Elsewhere</b>X (@devignerui)<span>Installation guide</span><span>Theming guide</span></div></div>
+    </div>
+    <div class="giant">devigner<i>.</i></div>
+  </footer>
+  <div class="fbar"><span>&copy; 2026 Devigner UI &middot; MIT license</span><span>Built with React, Tailwind CSS and Motion &nbsp;&nbsp; &uarr; Top</span></div>
+
+
+</div></div>
+<div class="switch-win">Hero window
+  <button class="on" data-choice="window-a" onclick="document.querySelector('.page').dataset.win='a';this.classList.add('on');this.nextElementSibling.classList.remove('on')">A</button>
+  <button data-choice="window-b" onclick="document.querySelector('.page').dataset.win='b';this.classList.add('on');this.previousElementSibling.classList.remove('on')">B</button>
+</div>
+</body>
+</html>

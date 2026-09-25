@@ -35,5 +35,3 @@ pnpm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
-# Fumadocs MDX generated source
-.source/

@@ -27,7 +27,7 @@
 - **Build orchestration:** Turborepo
 - **Node:** 20+ LTS
 
-### Package: `@devignerui/ui` (Component Library)
+### Package: `devignerui` (Component Library)
 
 - **Framework:** React 19 + TypeScript (strict)
 - **Styling:** Tailwind CSS v4 (CSS-native config, no tailwind.config.js)
@@ -37,7 +37,7 @@
 - **Utilities:** `clsx` + `tailwind-merge` + `class-variance-authority`
 - **Build:** tsup (for library output)
 
-### Package: `@devignerui/cli` (CLI Tool)
+### Package: `devignerui` (CLI Tool)
 
 - **Runtime:** Node.js 20+
 - **Framework:** Commander.js
@@ -414,10 +414,10 @@ npx devignerui update        # Update to latest
 ### Week 1: Foundation
 
 - Initialize monorepo (pnpm + Turborepo)
-- Set up @devignerui/ui (React 19 + Tailwind v4)
+- Set up devignerui (React 19 + Tailwind v4)
 - Design system tokens
 - cn() utility + animation helpers
-- Set up @devignerui/cli skeleton
+- Set up devignerui skeleton
 
 ### Week 2: First 5 Components
 

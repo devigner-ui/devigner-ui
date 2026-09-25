@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "Thanks for your purchase", robots: { index: false } };
 
 export default function CheckoutSuccess({
   searchParams,

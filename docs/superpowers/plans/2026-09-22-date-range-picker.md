@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship a general-purpose `DateRangePicker` component in `@devignerui/ui`, a calendar-based date-range input with hover-preview selection, configurable presets, and keyboard/screen-reader accessibility.
+**Goal:** Ship a general-purpose `DateRangePicker` component in `devignerui`, a calendar-based date-range input with hover-preview selection, configurable presets, and keyboard/screen-reader accessibility.
 
 **Architecture:** One pure logic module (`lib/date-range.ts`, no React, fully unit-testable) that the component consumes for all day-math (month grids, comparisons, disabled-range clamping). One component file (`components/date-range-picker.tsx`) that owns controllable `value`/`month` state, a two-click selection state machine, and rendering, following the package's existing `classNames`/`slotProps`/`renderX` conventions (see `timeline.tsx`, `chart-card.tsx`).
 
@@ -143,7 +143,7 @@ describe("date-range utilities", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range.test.ts`
+Run: `pnpm --filter devignerui test -- date-range.test.ts`
 Expected: FAIL with "Cannot find module './date-range'" (or similar), since the module doesn't exist yet.
 
 - [ ] **Step 3: Write the implementation**
@@ -253,7 +253,7 @@ export function clampRangeEnd(
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range.test.ts`
+Run: `pnpm --filter devignerui test -- date-range.test.ts`
 Expected: PASS, all 12 tests green.
 
 - [ ] **Step 5: Commit**
@@ -341,7 +341,7 @@ describe("DateRangePicker", () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: FAIL with "Cannot find module './date-range-picker'".
 
 - [ ] **Step 3: Write the implementation**
@@ -607,7 +607,7 @@ function DayCell({
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: PASS, all 5 tests green.
 
 - [ ] **Step 5: Commit**
@@ -704,7 +704,7 @@ Add the `vi` import to the top of the file: change `import { afterEach, describe
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: FAIL. Day cells are currently plain `<div>`s with no `role="gridcell"` interactivity, no `aria-selected`, and no click handling, so every new test fails.
 
 - [ ] **Step 3: Implement the selection state machine**
@@ -877,7 +877,7 @@ function DayCell({
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: PASS, all 10 tests green (5 from Task 2, 5 new).
 
 - [ ] **Step 5: Commit**
@@ -930,7 +930,7 @@ Append to `date-range-picker.test.tsx`:
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: FAIL. Every day button currently has `tabIndex={-1}` with no keydown handling, and there is no live region yet.
 
 - [ ] **Step 3: Implement keyboard navigation and the live region**
@@ -1129,7 +1129,7 @@ Add the live region just before the closing `</div>` of the component's root:
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: PASS, all 12 tests green.
 
 - [ ] **Step 5: Commit**
@@ -1220,7 +1220,7 @@ function addDaysForTest(date: Date, days: number) {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: FAIL. There is no presets row, no badge, and no Clear button yet.
 
 - [ ] **Step 3: Implement presets, badge, and clear**
@@ -1340,7 +1340,7 @@ Add the presets/clear footer just before the closing `<div aria-live="polite" ..
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pnpm --filter @devignerui/ui test -- date-range-picker.test.tsx`
+Run: `pnpm --filter devignerui test -- date-range-picker.test.tsx`
 Expected: PASS, all 15 tests green.
 
 - [ ] **Step 5: Commit**
@@ -1377,17 +1377,17 @@ export {
 
 - [ ] **Step 2: Run the full test suite**
 
-Run: `pnpm --filter @devignerui/ui test`
+Run: `pnpm --filter devignerui test`
 Expected: PASS, every test file in the package green, including the new `date-range.test.ts` and `date-range-picker.test.tsx`.
 
 - [ ] **Step 3: Run the linter**
 
-Run: `pnpm --filter @devignerui/ui lint`
+Run: `pnpm --filter devignerui lint`
 Expected: No errors. Fix any unused-import or unused-variable issues surfaced from the incremental edits in Tasks 3-5 before moving on.
 
 - [ ] **Step 4: Build the package**
 
-Run: `pnpm --filter @devignerui/ui build`
+Run: `pnpm --filter devignerui build`
 Expected: `tsup` succeeds with no type errors, and `dist/index.d.ts` includes the new `DateRangePicker` exports.
 
 - [ ] **Step 5: Commit**

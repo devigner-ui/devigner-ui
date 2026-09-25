@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · catalog cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/files/detail.css">
+<style>
+  .row { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; }
+  .mono { font-family: "Geist Mono"; }
+
+  /* ── shared mini previews ── */
+  .pv { position: absolute; inset: 0; display: grid; place-items: center; }
+  .cal { width: 230px; border-radius: 16px; background: var(--bg2); border: 1px solid var(--line); padding: 12px; box-shadow: 0 24px 50px -24px oklch(0% 0 0 / .8); }
+  .cal .h { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 600; }
+  .cal .h span { font-weight: 400; color: var(--mut); background: var(--bg4); border-radius: 99px; padding: 1px 7px; font-size: 9px; }
+  .cal .g { margin-top: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px 0; font-size: 9px; text-align: center; color: var(--mut); }
+  .cal .g b { color: var(--fg); font-weight: 600; }
+  .cal .g i { font-style: normal; background: var(--brand); color: var(--brand-ink); border-radius: 99px; font-weight: 600; }
+  .cal .g u { text-decoration: none; background: oklch(68% 0.175 262 / .18); color: var(--fg); }
+  .chart { width: 250px; border-radius: 16px; background: var(--bg2); border: 1px solid var(--line); padding: 14px; box-shadow: 0 24px 50px -24px oklch(0% 0 0 / .8); }
+  .chart .t { font-size: 11px; font-weight: 500; }
+  .chart .v { font-size: 26px; font-weight: 600; letter-spacing: -0.04em; margin-top: 4px; }
+  .chart .v span { color: var(--mut); }
+  .bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 10px; }
+  .bars div { flex: 1; border-radius: 6px; background: var(--bg4); }
+  .bars div.on { background: repeating-linear-gradient(135deg, var(--bg4) 0 3px, oklch(30% 0.01 260) 3px 6px); box-shadow: inset 0 0 0 1px var(--line2); }
+
+  .tag { font: 400 11px "Geist Mono"; color: var(--mut); }
+  .new { font-size: 11px; font-weight: 500; color: var(--brand); background: oklch(68% 0.175 262 / .15); border-radius: 99px; padding: 2px 9px; }
+  .ttl { font-size: 21px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
+  .desc { margin-top: 6px; color: var(--t2); font-size: 14px; line-height: 1.55; }
+  .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(1.55em * 2); }
+  .cmd { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 5px 0 14px; border: 1px solid var(--line); border-radius: 12px; font: 400 12.5px "Geist Mono"; color: var(--t2); background: var(--bg); }
+  .cmd .d { color: var(--brand); }
+  .cmd b { color: var(--fg); font-weight: 400; }
+  .cmd .cp { margin-left: auto; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--t2); }
+  .arrow { width: 38px; height: 38px; border-radius: 99px; border: 1px solid var(--line2); display: grid; place-items: center; flex: none; }
+  .arrow.on { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+
+  /* ── A: gallery frame ── */
+  .A { gap: 16px; }
+  .A .c { border: 1px solid var(--line); border-radius: 22px; background: var(--bg1); padding: 8px; display: flex; flex-direction: column; }
+  .A .c.hov { border-color: var(--line2); box-shadow: 0 30px 60px -30px oklch(0% 0 0 / .9); }
+  .A .st { position: relative; height: 300px; border-radius: 16px; overflow: hidden; background: radial-gradient(120% 90% at 50% 0%, var(--bg3), var(--bg) 70%); box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 oklch(100% 0 0 / .05); }
+  .A .st::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 16px 16px; mask: radial-gradient(70% 70% at 50% 45%, #000, transparent); }
+  .A .c.hov .pv > div { transform: translateY(-4px) scale(1.02); }
+  .A .top { position: absolute; inset: 12px 12px auto; display: flex; justify-content: space-between; z-index: 2; }
+  .A .top .tag { background: oklch(15.2% 0.006 260 / .7); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 99px; padding: 3px 9px; }
+  .A .ft { padding: 18px 14px 10px; display: flex; flex-direction: column; flex: 1; }
+  .A .tr { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .A .tr a { font-size: 13px; color: var(--t2); display: flex; align-items: center; gap: 6px; }
+  .A .c.hov .tr a { color: var(--fg); }
+  .A .cmd { margin-top: auto; }
+  .A .sp { height: 16px; }
+
+  /* ── B: spec sheet (keeps the gapless grid) ── */
+  .B { gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .B .c { background: var(--bg); display: flex; flex-direction: column; }
+  .B .st { position: relative; height: 300px; overflow: hidden; background: linear-gradient(var(--bg1), var(--bg)); border-bottom: 1px solid var(--line); }
+  .B .st::after { content: ""; position: absolute; left: 15%; right: 15%; bottom: -140px; height: 260px; background: radial-gradient(closest-side, var(--glow), transparent); }
+  .B .open { position: absolute; right: 14px; bottom: 14px; z-index: 2; height: 32px; padding: 0 12px; border-radius: 99px; background: var(--fg); color: var(--bg); font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 6px; opacity: 0; transform: translateY(6px); }
+  .B .c.hov .open { opacity: 1; transform: none; }
+  .B .ft { padding: 22px 24px 24px; display: flex; flex-direction: column; flex: 1; }
+  .B .meta { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .B .meta .dot { width: 3px; height: 3px; border-radius: 9px; background: var(--line3); }
+  .B .cmd { margin-top: 20px; border-radius: 99px; background: var(--bg1); }
+  .B .cmd .cp { border-radius: 99px; }
+
+  /* ── C: command strip ── */
+  .C { gap: 16px; }
+  .C .c { border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
+  .C .c.hov { border-color: oklch(68% 0.175 262 / .45); }
+  .C .st { position: relative; height: 290px; overflow: hidden; background: radial-gradient(90% 80% at 50% 110%, var(--glow), transparent 70%), var(--bg1); }
+  .C .ft { padding: 20px 22px 18px; display: flex; gap: 18px; align-items: flex-start; flex: 1; }
+  .C .ft > div { flex: 1; min-width: 0; }
+  .C .strip { height: 50px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 22px; border-top: 1px solid var(--line); background: var(--bg1); font: 400 12.5px "Geist Mono"; color: var(--t2); margin-top: auto; }
+  .C .strip .d { color: var(--brand); }
+  .C .strip b { color: var(--fg); font-weight: 400; }
+  .C .strip .cp { margin-left: auto; height: 34px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; gap: 7px; font-family: "Geist"; font-size: 12.5px; color: var(--t2); border: 1px solid var(--line); }
+  .C .c.hov .strip .cp { color: var(--fg); border-color: var(--line2); background: var(--bg3); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Catalog cards, three directions</h1>
+  <p>Every option fixes the alignment bug from your screenshot: the description is held to <b>two lines</b> and the install command is <b>pinned to the card's bottom edge</b>, so commands line up across a row no matter how long the copy is. The copy button stays hard right inside the command. Left card is shown in its hover state.</p>
+</div>
+
+<!-- ───────── A ───────── -->
+<div class="opt-h">
+  <div class="l"><div class="letter">A</div><div>
+    <h2>Gallery frame</h2>
+    <p>Each card becomes its own object: a rounded shell with the preview <b>inset on a dotted stage</b>, like a framed print. Category rides on a glass chip over the stage. The round arrow becomes a quiet <b>"View docs" link</b> on the title row. Hover lifts the demo a few pixels.</p>
+  </div></div>
+  <button class="pick" data-choice="a" onclick="toggleSelect(this)">Pick A</button>
+</div>
+<div class="row A">
+  <div class="c hov">
+    <div class="st"><div class="top"><span class="tag">forms</span><span class="new">New</span></div>
+      <div class="pv"><div class="cal" style="transition:transform .3s"><div class="h">Trip Dates <span>Add dates</span></div><div class="g"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><i>21</i><u>22</u><u>23</u><u>24</u><i>25</i><b>26</b><b>27</b><b>28</b><b>29</b><b>30</b></div></div></div>
+    </div>
+    <div class="ft">
+      <div class="tr"><div class="ttl">Date Range Picker</div><a>View docs <svg class="i s" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+      <p class="desc clamp">A calendar that shows the range before you commit to it, with presets.</p>
+      <div class="sp"></div>
+      <div class="cmd"><span class="d">$</span>npx devignerui add <b>date-range-picker</b><span class="cp"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></span></div>
+    </div>
+  </div>
+  <div class="c">
+    <div class="st"><div class="top"><span class="tag">data display</span><span class="new">New</span></div>
+      <div class="pv"><div class="chart"><div class="t">Total sales</div><div class="v">90,<span>744</span></div><div class="bars"><div style="height:45%"></div><div style="height:55%"></div><div style="height:70%"></div><div style="height:58%"></div><div class="on" style="height:92%"></div><div style="height:74%"></div><div style="height:88%"></div></div></div></div>
+    </div>
+    <div class="ft">
+      <div class="tr"><div class="ttl">Chart Card</div><a>View docs <svg class="i s" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+      <p class="desc clamp">A stats card whose bars show their value as you move across them.</p>
+      <div class="sp"></div>
+      <div class="cmd"><span class="d">$</span>npx devignerui add <b>chart-card</b><span class="cp"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></span></div>
+    </div>
+  </div>
+</div>
+<div class="notes"><div><b>Feels like</b>A curated gallery. Most "premium" of the three.</div><div><b>Grid</b>Drops the hairline grid for spaced cards (16px gap).</div><div><b>Cost</b>Only a Card restyle. Page grid wrapper changes from gap-px to gap-4.</div></div>
+
+<!-- ───────── B ───────── -->
+<div class="opt-h">
+  <div class="l"><div class="letter">B</div><div>
+    <h2>Spec sheet</h2>
+    <p>Keeps your <b>hairline grid</b> and the hero's language. The stage gets a soft bottom glow; category and New move down into a <b>meta line above the title</b> so the demo has the stage to itself. The arrow button is gone: an <b>"Open" pill slides in</b> on the stage on hover, and the whole card is the link.</p>
+  </div></div>
+  <button class="pick" data-choice="b" onclick="toggleSelect(this)">Pick B</button>
+</div>
+<div class="row B">
+  <div class="c hov">
+    <div class="st"><div class="pv"><div class="cal"><div class="h">Trip Dates <span>Add dates</span></div><div class="g"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><i>21</i><u>22</u><u>23</u><u>24</u><i>25</i><b>26</b><b>27</b><b>28</b><b>29</b><b>30</b></div></div></div>
+      <span class="open">Open <svg class="i s" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+    <div class="ft">
+      <div class="meta"><span class="tag">forms</span><span class="dot"></span><span class="new">New</span></div>
+      <div class="ttl">Date Range Picker</div>
+      <p class="desc clamp">A calendar that shows the range before you commit to it, with presets.</p>
+      <div class="cmd"><span class="d">$</span>npx devignerui add <b>date-range-picker</b><span class="cp"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></span></div>
+    </div>
+  </div>
+  <div class="c">
+    <div class="st"><div class="pv"><div class="chart"><div class="t">Total sales</div><div class="v">90,<span>744</span></div><div class="bars"><div style="height:45%"></div><div style="height:55%"></div><div style="height:70%"></div><div style="height:58%"></div><div class="on" style="height:92%"></div><div style="height:74%"></div><div style="height:88%"></div></div></div></div>
+      <span class="open">Open <svg class="i s" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span></div>
+    <div class="ft">
+      <div class="meta"><span class="tag">data display</span><span class="dot"></span><span class="new">New</span></div>
+      <div class="ttl">Chart Card</div>
+      <p class="desc clamp">A stats card whose bars show their value as you move across them.</p>
+      <div class="cmd"><span class="d">$</span>npx devignerui add <b>chart-card</b><span class="cp"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></span></div>
+    </div>
+  </div>
+</div>
+<div class="notes"><div><b>Feels like</b>A technical index. Closest to what you have now, just tighter.</div><div><b>Grid</b>Unchanged. SelectionMarks hover frame still fits.</div><div><b>Cost</b>Smallest diff of the three.</div></div>
+
+<!-- ───────── C ───────── -->
+<div class="opt-h">
+  <div class="l"><div class="letter">C</div><div>
+    <h2>Command strip</h2>
+    <p>The install command becomes the card's <b>footer bar, flush to the bottom edge</b>, so alignment is structural, not tuned. The copy action is a labelled <b>"Copy" button hard right</b>. Rounded, spaced cards with a brand-tinted border on hover and a glow rising from under the demo.</p>
+  </div></div>
+  <button class="pick" data-choice="c" onclick="toggleSelect(this)">Pick C</button>
+</div>
+<div class="row C">
+  <div class="c hov">
+    <div class="st"><div class="A" style="position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;z-index:2"><span class="tag">forms</span><span class="new">New</span></div>
+      <div class="pv"><div class="cal"><div class="h">Trip Dates <span>Add dates</span></div><div class="g"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><i>21</i><u>22</u><u>23</u><u>24</u><i>25</i><b>26</b><b>27</b><b>28</b><b>29</b><b>30</b></div></div></div></div>
+    <div class="ft"><div><div class="ttl">Date Range Picker</div><p class="desc clamp">A calendar that shows the range before you commit to it, with presets.</p></div><span class="arrow on"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+    <div class="strip"><span class="d">$</span>npx devignerui add <b>date-range-picker</b><span class="cp"><svg class="i s" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copy</span></div>
+  </div>
+  <div class="c">
+    <div class="st"><div style="position:absolute;inset:14px 14px auto;display:flex;justify-content:space-between;z-index:2"><span class="tag">data display</span><span class="new">New</span></div>
+      <div class="pv"><div class="chart"><div class="t">Total sales</div><div class="v">90,<span>744</span></div><div class="bars"><div style="height:45%"></div><div style="height:55%"></div><div style="height:70%"></div><div style="height:58%"></div><div class="on" style="height:92%"></div><div style="height:74%"></div><div style="height:88%"></div></div></div></div></div>
+    <div class="ft"><div><div class="ttl">Chart Card</div><p class="desc clamp">A stats card whose bars show their value as you move across them.</p></div><span class="arrow"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+    <div class="strip"><span class="d">$</span>npx devignerui add <b>chart-card</b><span class="cp"><svg class="i s" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copy</span></div>
+  </div>
+</div>
+<div class="notes"><div><b>Feels like</b>A package registry card. Install is the hero action.</div><div><b>Grid</b>Spaced rounded cards (16px gap).</div><div><b>Cost</b>Needs a new "strip" variant on CopyCommand.</div></div>
+
+</body>
+</html>

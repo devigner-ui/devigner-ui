@@ -24,12 +24,12 @@ try {
     writeFileSync(resolve(fixture, "components/ui", `${descriptor.slug}.tsx`), source);
     writeFileSync(resolve(fixture, "package.json"), JSON.stringify({
       private: true,
-      dependencies: Object.fromEntries(descriptor.dependencies.map((dependency) => [dependency, dependency === "@devignerui/ui" ? "file:../.." : (uiPackage.dependencies[dependency] ?? uiPackage.peerDependencies[dependency] ?? uiPackage.devDependencies[dependency] ?? "*")])),
+      dependencies: Object.fromEntries(descriptor.dependencies.map((dependency) => [dependency, dependency === "devignerui" ? "file:../.." : (uiPackage.dependencies[dependency] ?? uiPackage.peerDependencies[dependency] ?? uiPackage.devDependencies[dependency] ?? "*")])),
     }, null, 2));
     writeFileSync(resolve(fixture, "tsconfig.json"), JSON.stringify({
       compilerOptions: {
         target: "ES2022", module: "Preserve", moduleResolution: "bundler", jsx: "react-jsx", strict: true, noEmit: true, skipLibCheck: true, ignoreDeprecations: "6.0", baseUrl: "../..",
-        paths: { "@devignerui/ui/motion": ["src/motion.ts"], "@devignerui/ui/hooks": ["src/hooks.ts"], "@devignerui/ui/menu-path": ["src/menu-path.ts"], "@devignerui/ui/date-range": ["src/date-range.ts"] },
+        paths: { "devignerui/motion": ["src/motion.ts"], "devignerui/hooks": ["src/hooks.ts"], "devignerui/menu-path": ["src/menu-path.ts"], "devignerui/date-range": ["src/date-range.ts"] },
       },
       include: ["components/**/*.tsx"],
     }, null, 2));

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devigner UI · catalog cards v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/files/detail.css">
+<style>
+  /* previews (the components themselves keep their own radius) */
+  .pv { position: absolute; inset: 44px 0 0; display: grid; place-items: center; transition: transform .35s; }
+  .cal { width: 230px; border-radius: 16px; background: var(--bg2); border: 1px solid var(--line); padding: 12px; box-shadow: 0 24px 50px -24px oklch(0% 0 0 / .8); }
+  .cal .h { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 600; }
+  .cal .h span { font-weight: 400; color: var(--mut); background: var(--bg4); border-radius: 99px; padding: 1px 7px; font-size: 9px; }
+  .cal .g { margin-top: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px 0; font-size: 9px; text-align: center; color: var(--mut); }
+  .cal .g b { color: var(--fg); font-weight: 600; }
+  .cal .g i { font-style: normal; background: var(--brand); color: var(--brand-ink); border-radius: 99px; font-weight: 600; }
+  .cal .g u { text-decoration: none; background: oklch(68% 0.175 262 / .18); color: var(--fg); }
+  .chart { width: 250px; border-radius: 16px; background: var(--bg2); border: 1px solid var(--line); padding: 14px; box-shadow: 0 24px 50px -24px oklch(0% 0 0 / .8); }
+  .chart .t { font-size: 11px; font-weight: 500; }
+  .chart .v { font-size: 26px; font-weight: 600; letter-spacing: -0.04em; margin-top: 4px; }
+  .chart .v span { color: var(--mut); }
+  .bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 10px; }
+  .bars div { flex: 1; border-radius: 6px; background: var(--bg4); }
+  .bars div.on { background: repeating-linear-gradient(135deg, var(--bg4) 0 3px, oklch(30% 0.01 260) 3px 6px); box-shadow: inset 0 0 0 1px var(--line2); }
+
+  /* square hairline grid */
+  .grid { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); position: relative; }
+  .c { background: var(--bg); display: flex; flex-direction: column; position: relative; }
+  /* registration ticks at the card corners */
+  .c::before, .c::after { content: ""; position: absolute; width: 9px; height: 9px; z-index: 3; border-color: var(--line3); border-style: solid; opacity: 0; transition: opacity .2s; }
+  .c::before { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+  .c::after { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+  .c.hov::before, .c.hov::after { opacity: 1; border-color: var(--brand); }
+
+  /* A's stage */
+  .st { position: relative; height: 320px; overflow: hidden; background: radial-gradient(120% 90% at 50% 0%, var(--bg3), var(--bg) 70%); border-bottom: 1px solid var(--line); }
+  .st::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(var(--line2) 1px, transparent 1px); background-size: 16px 16px; mask: radial-gradient(70% 70% at 50% 50%, #000, transparent); }
+  .c.hov .pv { transform: translateY(-4px); }
+  .top { position: absolute; inset: 0 0 auto; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 2; border-bottom: 1px solid var(--line); background: oklch(15.2% 0.006 260 / .6); backdrop-filter: blur(8px); }
+  .tag { font: 400 11px "Geist Mono"; color: var(--mut); display: flex; align-items: center; gap: 8px; }
+  .tag::before { content: ""; width: 5px; height: 5px; background: var(--line3); }
+  .c.hov .tag::before { background: var(--brand); }
+  .new { font: 500 10.5px "Geist Mono"; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); border: 1px solid oklch(68% 0.175 262 / .35); background: oklch(68% 0.175 262 / .1); padding: 3px 7px; }
+
+  /* body */
+  .ft { padding: 22px 24px 22px; display: flex; gap: 20px; align-items: flex-start; flex: 1; }
+  .ft > div { flex: 1; min-width: 0; }
+  .ttl { font-size: 22px; font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
+  .desc { margin-top: 6px; color: var(--t2); font-size: 14px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(1.55em * 2); }
+  .arrow { width: 40px; height: 40px; border: 1px solid var(--line2); display: grid; place-items: center; flex: none; color: var(--t2); transition: all .2s; }
+  .c.hov .arrow { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+
+  /* C's strip, squared and segmented */
+  .strip { height: 52px; margin-top: auto; display: flex; align-items: stretch; border-top: 1px solid var(--line); background: var(--bg1); font: 400 12.5px "Geist Mono"; color: var(--t2); }
+  .strip .p { width: 52px; display: grid; place-items: center; color: var(--brand); border-right: 1px solid var(--line); flex: none; }
+  .strip .code { flex: 1; min-width: 0; display: flex; align-items: center; padding: 0 16px; white-space: nowrap; overflow: hidden; }
+  .strip .code b { color: var(--fg); font-weight: 400; }
+  .strip .cp { flex: none; display: flex; align-items: center; gap: 8px; padding: 0 20px; border-left: 1px solid var(--line); font: 500 12.5px "Geist"; color: var(--t2); transition: all .2s; }
+  .c.hov .strip .cp { color: var(--fg); background: var(--bg3); }
+  .strip .cp.done { color: var(--ok); }
+  .kbd { font: 400 10.5px "Geist Mono"; color: var(--mut); border: 1px solid var(--line2); padding: 1px 5px; margin-left: 4px; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>A's stage with C's command strip, no rounding</h1>
+  <p>Square hairline grid (same as your current page). <b>Stage</b> from A: the dotted field fading from a soft top light. A thin <b>glass header bar</b> carries category and New so they never sit on the demo. <b>Strip</b> from C, now split into three cells: a <b>$ prompt cell</b>, the command, and a <b>Copy cell hard right</b> with a divider, so it reads like a terminal footer. Descriptions stop at two lines, so both strips always sit on the same line.</p>
+  <ul>
+    <li><b>Hover</b> (left card): brand-colored corner ticks appear, the category square turns brand, the demo lifts 4px, the arrow fills brand, the Copy cell lights up.</li>
+    <li><b>After copying</b> (right card): the Copy cell swaps to a green "Copied" with a check.</li>
+    <li>Only the components inside the stage keep their own rounded corners; every piece of card chrome is square.</li>
+  </ul>
+</div>
+
+<div class="grid" style="margin-top:28px">
+  <div class="c hov">
+    <div class="st">
+      <div class="top"><span class="tag">forms</span><span class="new">New</span></div>
+      <div class="pv"><div class="cal"><div class="h">Trip Dates <span>Add dates</span></div><div class="g"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><i>21</i><u>22</u><u>23</u><u>24</u><i>25</i><b>26</b><b>27</b><b>28</b><b>29</b><b>30</b></div></div></div>
+    </div>
+    <div class="ft"><div><div class="ttl">Date Range Picker</div><p class="desc">A calendar that shows the range before you commit to it, with presets.</p></div><span class="arrow"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+    <div class="strip"><span class="p">$</span><span class="code">npx devignerui add&nbsp;<b>date-range-picker</b></span><span class="cp"><svg class="i s" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V4H4v12h4"/></svg>Copy</span></div>
+  </div>
+  <div class="c">
+    <div class="st">
+      <div class="top"><span class="tag">data display</span><span class="new">New</span></div>
+      <div class="pv"><div class="chart"><div class="t">Total sales</div><div class="v">90,<span>744</span></div><div class="bars"><div style="height:45%"></div><div style="height:55%"></div><div style="height:70%"></div><div style="height:58%"></div><div class="on" style="height:92%"></div><div style="height:74%"></div><div style="height:88%"></div></div></div></div>
+    </div>
+    <div class="ft"><div><div class="ttl">Chart Card</div><p class="desc">A stats card whose bars show their value as you move across them.</p></div><span class="arrow"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+    <div class="strip"><span class="p">$</span><span class="code">npx devignerui add&nbsp;<b>chart-card</b></span><span class="cp done"><svg class="i s" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>Copied</span></div>
+  </div>
+</div>
+
+<div class="notes">
+  <div><b>Code impact</b>Card restyle in catalog-grid.tsx plus a square "strip" variant on CopyCommand. Grid wrapper unchanged.</div>
+  <div><b>Motion</b>Everything uses ease-out / SPRING_SWAP tokens already in use; no new curves.</div>
+  <div><b>Replaces</b>SelectionMarks hover frame gives way to the corner ticks (lighter, fits the square grid).</div>
+</div>
+
+</body>
+</html>

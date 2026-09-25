@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 import betterTailwind from "eslint-plugin-better-tailwindcss";
 
 // better-tailwindcss resolves `entryPoint` against cwd, and turbo runs `lint`
-// from each package dir — so these must be absolute, not repo-relative.
+// from each package dir, so these must be absolute, not repo-relative.
 const entry = (p) => path.join(import.meta.dirname, p);
 
 const rules = {

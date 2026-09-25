@@ -1,9 +1,9 @@
 {
-  "name": "@devignerui/cli",
-  "version": "0.1.0",
+  "name": "devignerui-cli-internal",
+  "version": "1.0.0",
   "type": "module",
   "bin": {
-    "devignerui": "./dist/index.js"
+    "devignerui": "dist/index.js"
   },
   "files": [
     "dist"
@@ -20,5 +20,12 @@
     "@types/node": "^22.20.3",
     "tsup": "^8.5.1",
     "typescript": "~6.0.3"
-  }
+  },
+  "description": "Install Devigner UI components from the command line",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsremiofficial/devigner.git",
+    "directory": "packages/cli"
+  },
+  "private": true
 }

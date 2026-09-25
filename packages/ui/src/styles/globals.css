@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "shadow-plugin";
 
 @variant dark (&:is(.dark *));
 
