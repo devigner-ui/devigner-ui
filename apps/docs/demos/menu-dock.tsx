@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MenuDock, type MenuDockItem } from "devignerui";
 import {
   IconArchive,
@@ -20,7 +20,6 @@ import {
   IconSettings,
   IconUser,
 } from "@devigner-ui/icons";
-import { components } from "@/lib/registry";
 
 export default function MenuDockDemo() {
   const [active, setActive] = useState("home");
@@ -69,17 +68,26 @@ export default function MenuDockDemo() {
  *  ordinary markup with its own state - the dock morphs into whatever this
  *  renders and never learns that it is a search box.
  *
- *  It searches this registry, so the results are real components. Capped,
+ *  It searches the real registry, so the results are real components. The
+ *  registry holds every component's source, so it loads when this panel
+ *  first opens instead of riding in every page that shows the dock. Capped,
  *  because the surface animates to fit its content: an uncapped list would
  *  have the panel lurching a row taller on every keystroke. */
 const SEARCH_LIMIT = 4;
 
 function MenuDockSearch() {
   const [query, setQuery] = useState("");
-  const all = Object.values(components);
+  const [all, setAll] = useState<{ slug: string; name: string }[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    import("@/lib/registry").then(({ components }) => alive && setAll(Object.values(components)));
+    return () => {
+      alive = false;
+    };
+  }, []);
   const q = query.trim().toLowerCase();
   const hits = (
-    q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all
+    q ? (all ?? []).filter((c) => c.name.toLowerCase().includes(q)) : (all ?? [])
   ).slice(0, SEARCH_LIMIT);
 
   return (
@@ -95,7 +103,7 @@ function MenuDockSearch() {
         />
       </div>
 
-      {hits.length === 0 ? (
+      {all === null ? null : hits.length === 0 ? (
         <p className="px-3 py-2 text-[15px] text-text-muted">
           Nothing matches “{query.trim()}”.
         </p>

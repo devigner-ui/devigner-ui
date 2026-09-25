@@ -1,13 +1,10 @@
-"use client";
-
+// A server component: the component list below reads the full registry, and
+// only the pressed wordmark needs the client.
 import Link from "next/link";
-import { useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
 import { IconArrowRight, IconArrowUp } from "@devigner-ui/icons";
-import { useHoverCapable } from "devignerui/hooks";
-import { SPRING_PRESS } from "devignerui/motion";
 import { cn } from "cn";
 import { CopyCommand } from "./copy-command";
+import { PressedWordmark } from "./pressed-wordmark";
 import { LogoX } from "../brand-logos";
 import { LogoMark } from "../logo-mark";
 import { Wordmark } from "./navbar";
@@ -29,44 +26,6 @@ const GROUPS = [
 // Evaluated at build for the static HTML; the browser agrees except across
 // a New Year, which suppressHydrationWarning covers.
 const YEAR = new Date().getFullYear();
-
-/** The giant wordmark, pressed into the page. A fine pointer makes the letter
- *  under it bow (its neighbours at half strength), then spring back. */
-function PressedWordmark() {
-  const reduce = useReducedMotion();
-  const canHover = useHoverCapable();
-  const [hovered, setHovered] = useState<number | null>(null);
-  const live = canHover && !reduce;
-
-  return (
-    <div aria-hidden className="@container mt-20 select-none">
-      <div
-        onPointerLeave={() => setHovered(null)}
-        className="wordmark-pressed mb-[-0.07em] font-display text-[27cqi] leading-[0.8] font-extrabold tracking-[-0.06em] whitespace-nowrap"
-      >
-        {[..."devigner."].map((letter, i) => {
-          const distance = hovered === null ? Infinity : Math.abs(i - hovered);
-          const k = !live ? 0 : distance === 0 ? 1 : distance === 1 ? 0.5 : 0;
-          return (
-            <motion.span
-              key={i}
-              onPointerEnter={() => live && setHovered(i)}
-              animate={{ y: 10 * k, rotate: -5 * k }}
-              transition={SPRING_PRESS}
-              className={
-                i === 8
-                  ? "inline-block origin-bottom text-brand"
-                  : "inline-block origin-bottom"
-              }
-            >
-              {letter}
-            </motion.span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 /** The closing line before the footer: the hero's two actions again. */
 export function LastCall() {

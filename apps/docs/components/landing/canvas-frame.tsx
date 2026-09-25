@@ -41,19 +41,26 @@ export function LazyMount({
 }
 
 /** Scales the demo down (never up) until its natural size fits the frame.
- *  offsetWidth ignores transforms, so the measurement stays the natural one. */
+ *  offsetWidth ignores transforms, so the measurement stays the natural one.
+ *  `viewOnlyBelow`: past that much shrinking the demo's controls fall under a
+ *  usable touch target (24px), so it turns into a picture (inert) instead. */
 export function FitToStage({
   align,
   className,
+  viewOnlyBelow,
   children,
 }: {
   align: CatalogEntry["stageAlign"];
   className?: string;
+  viewOnlyBelow?: number;
   children: React.ReactNode;
 }) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  // Hidden until the first fit, so the demo never paints at full size and
+  // then shrinks (a layout shift on every card).
+  const [fitted, setFitted] = useState(false);
 
   useLayoutEffect(() => {
     const o = outer.current;
@@ -61,7 +68,10 @@ export function FitToStage({
     if (!o || !i) return;
     const fit = () => {
       if (!i.offsetWidth || !i.offsetHeight) return;
+      // The lazy demo's placeholder is not the real size: wait for the demo.
+      if (i.querySelector("[data-demo-loading]")) return;
       setScale(Math.min(1, o.clientWidth / i.offsetWidth, o.clientHeight / i.offsetHeight));
+      setFitted(true);
     };
     const observer = new ResizeObserver(fit);
     observer.observe(o);
@@ -81,9 +91,11 @@ export function FitToStage({
     >
       <div
         ref={inner}
+        inert={viewOnlyBelow !== undefined && scale < viewOnlyBelow}
         className="w-max shrink-0"
         style={{
           transform: scale < 1 ? `scale(${scale})` : undefined,
+          visibility: fitted ? undefined : "hidden",
           transformOrigin: align === "end" ? "50% 100%" : "50% 50%",
         }}
       >

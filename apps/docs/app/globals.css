@@ -54,7 +54,7 @@
 
   --text-secondary: oklch(40% 0.012 260);
   --text-tertiary: oklch(49% 0.011 260);
-  --text-muted: oklch(55% 0.01 260);
+  --text-muted: oklch(52% 0.01 260);
 
   /* Cobalt. Called --brand rather than --accent so "the brand" and "this
      scope's accent" stay separable names, even though today they agree. */
@@ -117,7 +117,7 @@
 
   --text-secondary: oklch(77% 0.006 260);
   --text-tertiary: oklch(66% 0.008 260);
-  --text-muted: oklch(58% 0.009 260);
+  --text-muted: oklch(62% 0.009 260);
 
   /* Lighter cobalt, so it holds contrast on graphite; ink flips dark on it. */
   --brand: oklch(68% 0.175 262);

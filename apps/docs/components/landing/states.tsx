@@ -193,6 +193,10 @@ function ThemesCell({ entry }: { entry: CatalogEntry }) {
         {(["light", "dark"] as const).map((scope) => (
           <div
             key={scope}
+            // A picture of the demo in each theme: the slider is the control.
+            // Live copies would read every control twice to screen readers
+            // and put scaled-down tap targets on phones.
+            inert
             className={cn(scope, "frame-surface absolute inset-0")}
             // Clip both halves: a full-width light layer underneath bleeds a
             // bright hairline through the dark layer's anti-aliased edges
@@ -410,7 +414,7 @@ function StatesCell() {
                       <span
                         className={cn(
                           "relative font-mono text-[10px] leading-none",
-                          on ? "text-brand" : "text-text-muted/70",
+                          on ? "text-brand" : "text-text-muted",
                         )}
                       >
                         0{i + 1}
@@ -541,7 +545,7 @@ function CodeCell({ entries }: { entries: CatalogEntry[] }) {
                     aria-hidden
                     className={cn(
                       "w-11 shrink-0 pr-4 text-right select-none",
-                      classes ? "text-brand" : "text-text-muted/60",
+                      classes ? "text-brand" : "text-text-muted",
                     )}
                   >
                     {n}

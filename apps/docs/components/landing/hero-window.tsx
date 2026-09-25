@@ -313,6 +313,9 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
         style={{ rotateX: reduce ? 0 : tilt, transformOrigin: "50% 0%" }}
         className="relative overflow-hidden rounded-[18px] bg-background border-border border"
       >
+        {/* Keeps the outline in order: the demos' own headings (Chart Card's
+            h3) sit under this, not straight under the page h1. */}
+        <h2 className="sr-only">Component preview</h2>
         {/* The light catching the top edge. */}
         <div
           aria-hidden
@@ -466,7 +469,8 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
             <div className="p-4 md:hidden">
               <div className="frame-surface relative h-85 ring-1 ring-border ring-inset">
                 <LazyMount key={entry.slug}>
-                  <FitToStage align={entry.stageAlign}>
+                  {/* Phones shrink the wide demos to ~60%, too small to tap. */}
+                  <FitToStage align={entry.stageAlign} viewOnlyBelow={0.85}>
                     <Demo />
                   </FitToStage>
                 </LazyMount>

@@ -8,7 +8,7 @@ import type { ComponentSlug } from "@/lib/registry";
 
 // Sized so the stage doesn't jump when the chunk lands.
 const loading = () =>
-  createElement("div", { "aria-hidden": true, className: "h-24 w-56 rounded-2xl bg-surface2/60" });
+  createElement("div", { "aria-hidden": true, "data-demo-loading": "", className: "h-24 w-56 rounded-2xl bg-surface2/60" });
 
 export const demos: Record<ComponentSlug, ComponentType> = {
   "magnetic-button": dynamic(() => import("./magnetic-button"), { ssr: false, loading }),

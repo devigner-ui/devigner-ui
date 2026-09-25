@@ -11,7 +11,7 @@ export const OG = {
   surface: "#131519", // --background-200
   ink: "#eff0f2", // --foreground
   secondary: "#b2b4b8", // --text-secondary
-  muted: "#777a80", // --text-muted
+  muted: "#83868c", // --text-muted
   brand: "#5a94ff", // --brand
   brandInk: "#070b14", // --brand-foreground
   line: "rgba(239,240,242,0.09)", // --border
