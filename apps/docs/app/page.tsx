@@ -24,7 +24,8 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   const entries = getCatalog();
-  const bySlug = (slug: string) => entries.find((e) => e.slug === slug) ?? entries[0];
+  const bySlug = (slug: string) =>
+    entries.find((e) => e.slug === slug) ?? entries[0];
   const bento = {
     themes: bySlug(BENTO.themes),
     motion: bySlug(BENTO.motion),
@@ -51,7 +52,11 @@ export default function HomePage() {
               name: "Devigner UI",
               url: SITE_URL,
               logo: `${SITE_URL}/apple-icon`,
-              sameAs: ["https://x.com/devignerui", "https://devigner.cc", "https://www.npmjs.com/package/devignerui"],
+              sameAs: [
+                "https://x.com/devignerui",
+                "https://devigner.cc",
+                "https://www.npmjs.com/package/devignerui",
+              ],
             },
             // The library itself: what it is, what it runs on, what it costs.
             {

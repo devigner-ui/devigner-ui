@@ -51,12 +51,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Browser chrome follows the page ground in each theme (--background).
+// Brand cobalt (--brand, dark): Discord, Slack and iMessage tint link
+// previews with it, and mobile browsers use it for their toolbar.
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0c0e" },
-  ],
+  themeColor: "#5a94ff",
 };
 
 // GA4 measurement ID (G-XXXXXXX). Unset in dev, so local visits are not counted.
