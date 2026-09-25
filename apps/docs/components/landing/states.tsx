@@ -194,11 +194,15 @@ function ThemesCell({ entry }: { entry: CatalogEntry }) {
           <div
             key={scope}
             className={cn(scope, "frame-surface absolute inset-0")}
-            style={
-              scope === "dark"
-                ? { clipPath: `inset(0 0 0 ${split}%)` }
-                : undefined
-            }
+            // Clip both halves: a full-width light layer underneath bleeds a
+            // bright hairline through the dark layer's anti-aliased edges
+            // whenever the cell lands on a fractional pixel.
+            style={{
+              clipPath:
+                scope === "dark"
+                  ? `inset(0 0 0 ${split}%)`
+                  : `inset(0 ${100 - split}% 0 0)`,
+            }}
           >
             <FitToStage align={entry.stageAlign}>
               <Demo />
@@ -400,7 +404,7 @@ function StatesCell() {
                           aria-hidden
                           layoutId="bento-step"
                           transition={SPRING_LAYOUT}
-                          className="absolute inset-0 rounded-[10px] border border-border-hover bg-background-200"
+                          className="absolute inset-0 rounded-[10px] bg-background-200"
                         />
                       )}
                       <span
@@ -583,7 +587,7 @@ export function States({
           of each component, so the part you paste in is the finished part.
         </p>
 
-        <div className="mt-14 grid grid-cols-1 gap-px border border-border bg-border lg:grid-cols-12">
+        <div className="mt-14 grid grid-cols-1 gap-px border border-border bg-border bg-clip-padding lg:grid-cols-12">
           <KeyboardCell />
           <ThemesCell entry={bento.themes} />
           <MotionCell entry={bento.motion} />

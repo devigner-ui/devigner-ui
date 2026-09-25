@@ -622,16 +622,6 @@ export function ComponentPage({
             )}
           </div>
 
-          {isLg && !docsOpen && entry?.tryIt && (
-            <p className="absolute top-8 right-6 z-10 flex items-center gap-2 font-mono text-[12px] text-text-muted">
-              <span
-                aria-hidden
-                className="size-1.5 rounded-full bg-brand shadow-[0_0_10px_var(--brand)]"
-              />
-              {entry.tryIt}
-            </p>
-          )}
-
           <div className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
             <MenuDock
               items={items}

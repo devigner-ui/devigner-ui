@@ -160,7 +160,7 @@ export function Inspector({
             role="tab"
             id={`doc-tab-${t}`}
             aria-selected={tab === t}
-            aria-controls="doc-panel"
+            aria-controls={`doc-panel-${t}`}
             tabIndex={tab === t ? 0 : -1}
             onClick={() => setTab(t)}
             onKeyDown={(e) => onTabKey(e, i)}
@@ -181,9 +181,15 @@ export function Inspector({
         ))}
       </div>
 
-      <div id="doc-panel" role="tabpanel" aria-labelledby={`doc-tab-${tab}`}>
-        {tab === "Install" && (
-          <>
+      {/* Every panel is in the page, inactive ones hidden, so search engines
+          and AI crawlers read usage, props and notes, not just Install. */}
+      <div>
+        <div
+          id="doc-panel-Install"
+          role="tabpanel"
+          aria-labelledby="doc-tab-Install"
+          hidden={tab !== "Install"}
+        >
             <H2>
               Install it in <span className="accent-word">one</span> line
             </H2>
@@ -224,11 +230,14 @@ export function Inspector({
                 into <Mono>components/ui/{file}</Mono>.
               </li>
             </ol>
-          </>
-        )}
+        </div>
 
-        {tab === "Usage" && (
-          <>
+        <div
+          id="doc-panel-Usage"
+          role="tabpanel"
+          aria-labelledby="doc-tab-Usage"
+          hidden={tab !== "Usage"}
+        >
             <H2>Usage</H2>
             <CodeFigure code={usage} />
             {meta.customUsage && (
@@ -239,11 +248,14 @@ export function Inspector({
                 <CodeFigure code={meta.customUsage} />
               </>
             )}
-          </>
-        )}
+        </div>
 
-        {tab === "Props" && (
-          <>
+        <div
+          id="doc-panel-Props"
+          role="tabpanel"
+          aria-labelledby="doc-tab-Props"
+          hidden={tab !== "Props"}
+        >
             <H2>
               Every <span className="accent-word">prop</span>
             </H2>
@@ -267,11 +279,14 @@ export function Inspector({
                 </div>
               ))}
             </div>
-          </>
-        )}
+        </div>
 
-        {tab === "Notes" && (
-          <>
+        <div
+          id="doc-panel-Notes"
+          role="tabpanel"
+          aria-labelledby="doc-tab-Notes"
+          hidden={tab !== "Notes"}
+        >
             <H2>Notes</H2>
             {meta.notes && meta.notes.length > 0 && (
               <ul className="mb-6 flex list-disc flex-col gap-3 pl-5 text-[14px]/relaxed text-text-secondary marker:text-text-muted">
@@ -291,8 +306,20 @@ export function Inspector({
               </Link>{" "}
               has the latest version.
             </p>
-          </>
-        )}
+            <p className="mt-4 text-[14px]/relaxed text-text-secondary">
+              Some of these designs take cues from interfaces we&apos;ve admired around the
+              web. If one started as your idea and you&apos;d like credit, message us on{" "}
+              <a
+                href="https://x.com/devignerui"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+              >
+                X @devignerui
+              </a>{" "}
+              and we&apos;ll add it.
+            </p>
+        </div>
       </div>
     </div>
   );

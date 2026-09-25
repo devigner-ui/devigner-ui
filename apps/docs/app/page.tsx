@@ -36,13 +36,33 @@ export default function HomePage() {
         data={{
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "WebSite", name: "Devigner UI", url: SITE_URL },
             {
-              "@type": "Organization",
+              "@type": "WebSite",
+              "@id": `${SITE_URL}/#website`,
               name: "Devigner UI",
               url: SITE_URL,
-              logo: `${SITE_URL}/icon.svg`,
-              sameAs: ["https://x.com/devignerui"],
+              description: DESCRIPTION,
+              inLanguage: "en",
+              publisher: { "@id": `${SITE_URL}/#organization` },
+            },
+            {
+              "@type": "Organization",
+              "@id": `${SITE_URL}/#organization`,
+              name: "Devigner UI",
+              url: SITE_URL,
+              logo: `${SITE_URL}/apple-icon`,
+              sameAs: ["https://x.com/devignerui", "https://devigner.cc", "https://www.npmjs.com/package/devignerui"],
+            },
+            // The library itself: what it is, what it runs on, what it costs.
+            {
+              "@type": "SoftwareApplication",
+              name: "Devigner UI",
+              url: SITE_URL,
+              description: DESCRIPTION,
+              applicationCategory: "DeveloperApplication",
+              operatingSystem: "Any (React 18+ and Tailwind CSS v4)",
+              offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+              publisher: { "@id": `${SITE_URL}/#organization` },
             },
             {
               "@type": "FAQPage",

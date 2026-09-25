@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
@@ -32,14 +32,31 @@ export const metadata: Metadata = {
   title: { default: "Devigner UI", template: "%s · Devigner UI" },
   description:
     "Free animated React components for Tailwind CSS, installed as plain files you own.",
+  applicationName: "Devigner UI",
+  authors: [{ name: "Devigner", url: "https://devigner.cc" }],
+  creator: "Devigner",
+  publisher: "Devigner",
+  category: "technology",
+  // Large image previews and full snippets in Search and Discover.
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
   openGraph: { siteName: "Devigner UI", type: "website", locale: "en_US" },
   twitter: {
     card: "summary_large_image",
     site: "@devignerui",
     creator: "@devignerui",
   },
-  // Search Console "HTML tag" method: paste only the content="..." value.
-  verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
+};
+
+// Browser chrome follows the page ground in each theme (--background).
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0c0e" },
+  ],
 };
 
 // GA4 measurement ID (G-XXXXXXX). Unset in dev, so local visits are not counted.

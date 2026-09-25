@@ -21,13 +21,6 @@ const COMPONENT_LINKS = Object.values(components)
 const GROUPS = [
   { title: "Components", links: COMPONENT_LINKS },
   {
-    title: "Library",
-    links: [
-      { label: "All components", href: "/components" },
-      { label: "Pricing", href: "/#pricing" },
-    ],
-  },
-  {
     title: "More from Devigner",
     links: [{ label: "Devigner Icons", href: "https://icons.devigner.cc" }],
   },
@@ -128,8 +121,8 @@ export function SiteFooter() {
               <Wordmark />
             </Link>
             <p className="mt-5 max-w-sm text-[15px]/6 text-pretty text-text-secondary">
-              Animated React components for Tailwind CSS. Free, MIT licensed,
-              and yours to edit once they&apos;re in your repo.
+              Animated React components for Tailwind CSS. Free, and yours to
+              edit once they&apos;re in your repo.
             </p>
             <CopyCommand
               command="npx devignerui init"
@@ -159,20 +152,21 @@ export function SiteFooter() {
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:col-span-7">
             {GROUPS.map((group) => (
-              // On phones the long components list takes the full row.
+              // The long components list takes two columns, split top to bottom.
               <nav
                 key={group.title}
                 aria-label={group.title}
-                className={
-                  group.links === COMPONENT_LINKS
-                    ? "max-sm:col-span-2"
-                    : undefined
-                }
+                className={group.links === COMPONENT_LINKS ? "col-span-2" : undefined}
               >
                 <p className="text-[13px] font-medium text-foreground">
                   {group.title}
                 </p>
-                <ul className="mt-4 space-y-0.5">
+                <ul
+                  className={cn(
+                    "mt-4 space-y-0.5",
+                    group.links === COMPONENT_LINKS && "columns-2 gap-8",
+                  )}
+                >
                   {group.links.map((l) => {
                     const external = l.href.startsWith("http");
                     return (
@@ -209,23 +203,15 @@ export function SiteFooter() {
       </div>
 
       <div className="relative border-t border-border bg-background">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-4 text-[13px] text-text-muted sm:flex-row sm:items-center sm:justify-between">
-          <span suppressHydrationWarning>
-            &copy; {YEAR} Devigner UI. Released under the MIT license.
-          </span>
-          <span className="flex items-center justify-between gap-5 sm:justify-end">
-            Built by
-            <a className="-ml-4 hover:underline" href="https://devigner.cc">
-              devigner
-            </a>
-            <a
-              href="#"
-              aria-label="Back to top"
-              className="grid size-9 shrink-0 place-items-center rounded-full border border-border text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:bg-surface-hover hover:text-foreground"
-            >
-              <IconArrowUp aria-hidden className="size-4" />
-            </a>
-          </span>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-5 py-4 text-[13px] text-text-muted">
+          <span suppressHydrationWarning>Devigner &copy; {YEAR}</span>
+          <a
+            href="#"
+            aria-label="Back to top"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-border text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:bg-surface-hover hover:text-foreground"
+          >
+            <IconArrowUp aria-hidden className="size-4" />
+          </a>
         </div>
       </div>
     </footer>

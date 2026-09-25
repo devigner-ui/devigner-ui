@@ -41,7 +41,7 @@ const PLANS = {
 
 const FREE = [
   "Every component in the library",
-  "MIT license, commercial use included",
+  "Commercial use included",
   "Install with the CLI or copy the file",
   "Light and dark themes out of the box",
 ];
@@ -135,8 +135,8 @@ export function Pricing() {
           Free today, and it stays <span className="accent-word">free</span>.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-[17px]/7 text-pretty text-text-secondary">
-          Every component on the site is MIT licensed. Pro will be a separate
-          paid set, and nothing free moves behind it.
+          Every component on the site is yours to use, commercial work included.
+          Pro will be a separate paid set, and nothing free moves behind it.
         </p>
 
         <div
@@ -194,7 +194,7 @@ export function Pricing() {
             </div>
             {/* Same height as Pro's launch line, so the two prices line up. */}
             <p className="mt-6 flex h-6 items-center text-[12.5px] font-medium text-text-muted">
-              MIT licensed
+              No sign-up needed
             </p>
             <p className="mt-2 flex h-15 items-end gap-2">
               <Price value="FREE" />

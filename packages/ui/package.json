@@ -78,6 +78,7 @@
     "tailwindcss": ">=4"
   },
   "description": "Devigner UI React components, motion utilities, and CLI",
+  "license": "MIT",
   "keywords": [
     "react",
     "tailwindcss",

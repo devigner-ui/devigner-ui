@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
+// Pricing lives on the home page; old /pricing links keep their ranking.
 export default function PricingPage() {
-  redirect("/#pricing");
+  permanentRedirect("/#pricing");
 }

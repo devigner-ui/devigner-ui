@@ -6,7 +6,7 @@ export const FAQS: { question: string; answer: string }[] = [
   {
     question: "Is Devigner UI free?",
     answer:
-      "Yes. Every component on the site is free and MIT licensed, including for commercial work. Pro will be a separate paid set, and nothing that's free now moves behind it.",
+      "Yes. Every component on the site is free, including for commercial work. Pro will be a separate paid set, and nothing that's free now moves behind it.",
   },
   {
     question: "How do I add a component to my project?",

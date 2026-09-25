@@ -45,11 +45,31 @@ export default async function ComponentLayout({
         <JsonLd
           data={{
             "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Devigner UI", item: SITE_URL },
-              { "@type": "ListItem", position: 2, name: "Components", item: `${SITE_URL}/components` },
-              { "@type": "ListItem", position: 3, name: entry.name, item: `${SITE_URL}/components/${entry.slug}` },
+            "@graph": [
+              {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Devigner UI", item: SITE_URL },
+                  { "@type": "ListItem", position: 2, name: "Components", item: `${SITE_URL}/components` },
+                  { "@type": "ListItem", position: 3, name: entry.name, item: `${SITE_URL}/components/${entry.slug}` },
+                ],
+              },
+              // What the page is about, stated plainly for search and AI answers.
+              {
+                "@type": "SoftwareSourceCode",
+                name: `${entry.name} React component`,
+                description: entry.description,
+                url: `${SITE_URL}/components/${entry.slug}`,
+                image: `${SITE_URL}/components/${entry.slug}/opengraph-image`,
+                programmingLanguage: ["TypeScript", "React"],
+                runtimePlatform: "React 18+ with Tailwind CSS v4",
+                codeSampleType: "full solution",
+                keywords: [entry.categoryLabel, "React component", "Tailwind CSS", "animation"].join(", "),
+                dateCreated: entry.addedAt,
+                isAccessibleForFree: true,
+                author: { "@id": `${SITE_URL}/#organization` },
+                isPartOf: { "@id": `${SITE_URL}/#website` },
+              },
             ],
           }}
         />

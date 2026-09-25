@@ -44,7 +44,6 @@ Then commit and push the branch, open a PR into `main`, and merge it.
    | `CREEM_PRODUCT_MONTHLY` | live product ID |
    | `CREEM_PRODUCT_LIFETIME` | live product ID |
    | `NEXT_PUBLIC_GA_ID` | `G-XXXXXXX`, from section 4 |
-   | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | from section 4 (optional) |
 
    `NEXT_PUBLIC_*` values are baked in at build time, so any change to them
    needs a redeploy. Never build for production with the local `.env`: it sets
@@ -103,13 +102,10 @@ new components until it is republished.
 
 **Search Console** gets you indexed. Do this first.
 
-1. Open https://search.google.com/search-console and add a property.
-   - **Domain** property `devigner.cc` (recommended): add the TXT record it
-     gives you at your DNS provider. Covers `ui.` and every other subdomain,
-     http and https, in one.
-   - Or **URL prefix** `https://ui.devigner.cc`, method **HTML tag**: copy only
-     the `content="..."` value into `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`,
-     redeploy, then click **Verify**.
+1. Open https://search.google.com/search-console and add a **Domain**
+   property for `devigner.cc`: add the TXT record it gives you at your DNS
+   provider. It covers `ui.` and every other subdomain, http and https, in
+   one, and needs nothing in the code. (Already done for devigner.cc.)
 2. **Sitemaps**: submit `https://ui.devigner.cc/sitemap.xml`.
 3. **URL Inspection**: inspect `https://ui.devigner.cc/` and
    `https://ui.devigner.cc/components`, click **Request indexing** for each.

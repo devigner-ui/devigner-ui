@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "motion/react";
 import {
   IconArrowRight,
   IconMaximize,
@@ -12,7 +18,7 @@ import {
 } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { SPRING_LAYOUT } from "devignerui/motion";
-import { groupByCategory, searchEntries, type CatalogEntry } from "@/lib/catalog-query";
+import { searchEntries, type CatalogEntry } from "@/lib/catalog-query";
 import type { ComponentSlug } from "@/lib/registry";
 import { demos } from "../../demos";
 import { useTheme } from "../theme-provider";
@@ -28,12 +34,44 @@ const LABEL_H = 28;
 const GAP = 56;
 const PAD = 120;
 const COLS = 3;
+// The floating toolbar plus the size badge under a selected frame: keep this
+// much of the canvas bottom clear of any frame we bring into view.
+const TOOLBAR_CLEAR = 120;
 
 function framePosition(i: number) {
   return {
     left: PAD + (i % COLS) * (FRAME_W + GAP),
     top: PAD + Math.floor(i / COLS) * (FRAME_H + LABEL_H + GAP),
   };
+}
+
+/** Stacked backdrop blurs, each stronger and starting lower than the last,
+ *  so the blur ramps up toward the bottom edge instead of switching on. Each
+ *  layer also lifts saturation a touch; stacked, the bottom edge ends ~1.34x. */
+const BLUR_STEPS = [1, 2, 4, 8, 16];
+
+function ProgressiveBlur({ className }: { className?: string }) {
+  return (
+    <div aria-hidden className={className}>
+      {BLUR_STEPS.map((px, i) => {
+        const from = (i / BLUR_STEPS.length) * 100;
+        const to = ((i + 1) / BLUR_STEPS.length) * 100;
+        const mask = `linear-gradient(to bottom, transparent ${from}%, #000 ${to}%)`;
+        return (
+          <div
+            key={px}
+            className="absolute inset-0"
+            style={{
+              backdropFilter: `blur(${px}px) saturate(1.1)`,
+              WebkitBackdropFilter: `blur(${px}px) saturate(1.1)`,
+              maskImage: mask,
+              WebkitMaskImage: mask,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 function Frame({
@@ -65,7 +103,9 @@ function Frame({
         aria-pressed={selected}
         className={cn(
           "mb-2 flex h-5 items-center gap-2 rounded-sm text-[12px] whitespace-nowrap transition-colors duration-200 ease-out",
-          selected ? "font-medium text-brand" : "text-text-tertiary hover:text-foreground",
+          selected
+            ? "font-medium text-brand"
+            : "text-text-tertiary hover:text-foreground",
         )}
       >
         {entry.name}
@@ -83,7 +123,12 @@ function Frame({
           </FitToStage>
         </LazyMount>
         {selected && (
-          <motion.div layoutId="hero-selection" transition={SPRING_LAYOUT} className="absolute inset-0">
+          <motion.div
+            layoutId="hero-selection"
+            transition={SPRING_LAYOUT}
+            // Covers the demo, so it must let pointers through to it.
+            className="pointer-events-none absolute inset-0"
+          >
             <SelectionMarks />
           </motion.div>
         )}
@@ -103,18 +148,55 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
   const [dark, setDark] = useState<boolean | null>(null);
   const isDark = dark ?? theme === "dark";
   const [query, setQuery] = useState("");
-  const groups = useMemo(() => groupByCategory(searchEntries(entries, query)), [entries, query]);
+  const matches = useMemo(
+    () => searchEntries(entries, query),
+    [entries, query],
+  );
 
-  // Tilted back at first, flat once it has scrolled into place.
+  // Fully tilted back at the top of the page, flat once the window's top edge
+  // reaches 30% down the viewport. Driven by page scroll from 0, not by the
+  // window's own entry: it already peeks into view on load, which would
+  // start it part-way flattened.
   const wrap = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: wrap, offset: ["start end", "start 25%"] });
-  const tilt = useTransform(scrollYProgress, [0, 1], [9, 0]);
+  const flatAt = useRef(600);
+  useEffect(() => {
+    const measure = () => {
+      // offsetTop, not getBoundingClientRect: ignores the hero's rise transform.
+      let top = 0;
+      for (
+        let el: HTMLElement | null = wrap.current;
+        el;
+        el = el.offsetParent as HTMLElement | null
+      )
+        top += el.offsetTop;
+      flatAt.current = Math.max(1, top - window.innerHeight * 0.3);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+  const { scrollY } = useScroll();
+  const tilt = useTransform(
+    scrollY,
+    (y) => 24 * Math.max(0, 1 - y / flatAt.current),
+  );
+  // Backdrop blur under a 3D-rotated ancestor samples the wrong pixels in
+  // Chrome and paints a hard-edged block, so the toolbar's progressive blur
+  // only mounts once the window has settled flat.
+  const [flat, setFlat] = useState(false);
+  useMotionValueEvent(tilt, "change", (deg) => setFlat(deg < 0.01));
+  useEffect(() => setFlat(tilt.get() < 0.01), [tilt]);
 
   const canvas = useRef<HTMLDivElement>(null);
   const boardRows = Math.ceil(entries.length / COLS);
   const board = {
     width: PAD * 2 + COLS * FRAME_W + (COLS - 1) * GAP,
-    height: PAD * 2 + boardRows * (FRAME_H + LABEL_H) + (boardRows - 1) * GAP,
+    // Extra room under the last row so it can scroll clear of the toolbar.
+    height:
+      PAD * 2 +
+      TOOLBAR_CLEAR +
+      boardRows * (FRAME_H + LABEL_H) +
+      (boardRows - 1) * GAP,
   };
 
   const center = (target: ComponentSlug, smooth: boolean) => {
@@ -134,19 +216,47 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
   // list's job, since a frame you press is already in view.
   const first = useRef(slug);
   useLayoutEffect(() => center(first.current, false), []);
+  // Whoever changes the selection (a frame, the list, the install section
+  // below), the chosen frame must not sit under the toolbar or past the top
+  // edge. Frames already in clear view stay put.
+  const hidden = (target: ComponentSlug) => {
+    const el = canvas.current;
+    const i = entries.findIndex((e) => e.slug === target);
+    if (!el || i < 0) return false;
+    const top = framePosition(i).top - el.scrollTop;
+    return top < 0 || top + LABEL_H + FRAME_H > el.clientHeight - TOOLBAR_CLEAR;
+  };
   const select = (next: ComponentSlug, recenter: boolean) => {
     if (next === slug) return;
     setSlug(next);
     if (recenter) center(next, true);
   };
+  useEffect(() => {
+    if (hidden(slug)) center(slug, true);
+  }, [slug]);
 
   // Drag empty board with a mouse to pan; wheels and trackpads scroll natively.
-  const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+  const drag = useRef<{
+    x: number;
+    y: number;
+    left: number;
+    top: number;
+  } | null>(null);
   const [panning, setPanning] = useState(false);
   const onPointerDown = (e: React.PointerEvent) => {
     const el = canvas.current;
-    if (!el || e.pointerType !== "mouse" || (e.target as HTMLElement).closest("[data-frame]")) return;
-    drag.current = { x: e.clientX, y: e.clientY, left: el.scrollLeft, top: el.scrollTop };
+    if (
+      !el ||
+      e.pointerType !== "mouse" ||
+      (e.target as HTMLElement).closest("[data-frame]")
+    )
+      return;
+    drag.current = {
+      x: e.clientX,
+      y: e.clientY,
+      left: el.scrollLeft,
+      top: el.scrollTop,
+    };
     el.setPointerCapture(e.pointerId);
     setPanning(true);
   };
@@ -166,9 +276,16 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
   const list = useRef<HTMLDivElement>(null);
   const onListKey = (e: React.KeyboardEvent) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-    const items = [...(list.current?.querySelectorAll<HTMLButtonElement>("button[data-slug]") ?? [])];
+    const items = [
+      ...(list.current?.querySelectorAll<HTMLButtonElement>(
+        "button[data-slug]",
+      ) ?? []),
+    ];
     const at = items.indexOf(document.activeElement as HTMLButtonElement);
-    const next = items[(at + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
+    const next =
+      items[
+        (at + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length
+      ];
     if (!next) return;
     e.preventDefault();
     next.focus();
@@ -181,14 +298,20 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
   const themeScope = dark === null ? undefined : dark ? "dark" : "light";
 
   return (
-    <div ref={wrap} className="relative mx-auto w-full max-w-270 perspective-[2200px]">
+    <div
+      ref={wrap}
+      className="relative mx-auto w-full max-w-300 perspective-[2200px]"
+    >
       {/* Cobalt light behind the window's top edge. */}
-      <div aria-hidden className="absolute inset-x-[10%] -top-16 h-40 rounded-full bg-glow blur-3xl" />
+      <div
+        aria-hidden
+        className="absolute inset-x-[10%] -top-16 h-40 rounded-full bg-glow blur-3xl"
+      />
 
       <motion.section
         aria-label="Component preview"
         style={{ rotateX: reduce ? 0 : tilt, transformOrigin: "50% 0%" }}
-        className="relative overflow-hidden rounded-[18px] bg-background smooth-shadow-ring-lg"
+        className="relative overflow-hidden rounded-[18px] bg-background border-border border"
       >
         {/* The light catching the top edge. */}
         <div
@@ -204,10 +327,16 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
             <span aria-hidden className="hidden text-border-hover sm:inline">
               /
             </span>
-            <span className="truncate font-medium text-foreground">{entry.name}</span>
+            <span className="truncate font-medium text-foreground">
+              {entry.name}
+            </span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <div role="group" aria-label="Preview theme" className="flex rounded-full border border-border bg-background p-0.5">
+            <div
+              role="group"
+              aria-label="Preview theme"
+              className="flex rounded-full border border-border bg-background p-0.5"
+            >
               {[
                 { label: "Light", on: !isDark, icon: IconSun, set: false },
                 { label: "Dark", on: isDark, icon: IconMoon, set: true },
@@ -219,7 +348,9 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                   onClick={() => setDark(t.set)}
                   className={cn(
                     "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-colors duration-200 ease-out",
-                    t.on ? "bg-surface-hover text-foreground ring-1 ring-border-hover" : "text-text-muted hover:text-foreground",
+                    t.on
+                      ? "bg-surface-hover text-foreground"
+                      : "text-text-muted hover:text-foreground",
                   )}
                 >
                   <t.icon aria-hidden className="size-3.5" />
@@ -237,12 +368,15 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="grid md:grid-cols-[240px_minmax(0,1fr)]">
           {/* Component list (a row of chips below md) */}
           <div className="min-w-0 border-b border-border bg-background-100 md:border-r md:border-b-0">
             <div className="hidden p-2.5 md:block">
               <label className="flex h-8.5 items-center gap-2 rounded-[10px] border border-border bg-background px-2.5 text-[12.5px] focus-within:ring-2 focus-within:ring-brand">
-                <IconSearchNormal aria-hidden className="size-3.5 shrink-0 text-text-muted" />
+                <IconSearchNormal
+                  aria-hidden
+                  className="size-3.5 shrink-0 text-text-muted"
+                />
                 <span className="sr-only">Search components</span>
                 <input
                   type="search"
@@ -257,41 +391,46 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
             <div
               ref={list}
               onKeyDown={onListKey}
-              className="no-scrollbar flex gap-1 overflow-x-auto p-2 md:max-h-117.5 md:flex-col md:gap-0 md:overflow-y-auto md:px-2.5 md:pt-0"
+              className="no-scrollbar flex gap-1 overflow-x-auto p-2 md:max-h-150 md:flex-col md:gap-0.5 md:overflow-y-auto md:px-2.5 md:pt-1"
             >
-              {groups.map((g) => (
-                <div key={g.label} className="contents md:block">
-                  <p className="mx-2 mt-3 mb-1 hidden justify-between font-mono text-[10.5px] text-text-muted lowercase md:flex">
-                    {g.label}
-                    <span>{g.items.length}</span>
-                  </p>
-                  {g.items.map((e) => (
-                    <button
-                      key={e.slug}
-                      type="button"
-                      data-slug={e.slug}
-                      aria-pressed={e.slug === entry.slug}
-                      onClick={() => select(e.slug, true)}
-                      className={cn(
-                        "flex h-8 shrink-0 items-center gap-2.5 rounded-lg px-2.5 text-[13px] whitespace-nowrap transition-colors duration-200 ease-out md:w-full",
-                        e.slug === entry.slug
-                          ? "bg-brand/15 text-foreground ring-1 ring-brand/30 ring-inset"
-                          : "text-text-secondary hover:bg-surface-hover hover:text-foreground",
-                      )}
-                    >
-                      <span aria-hidden className="hidden font-mono text-[11px] text-text-muted md:inline">
-                        #
+              {matches.map((e) => {
+                const on = e.slug === entry.slug;
+                return (
+                  <button
+                    key={e.slug}
+                    type="button"
+                    data-slug={e.slug}
+                    aria-pressed={on}
+                    onClick={() => select(e.slug, true)}
+                    className={cn(
+                      "group relative flex h-9 shrink-0 items-center gap-2.5 rounded-[10px] px-3 text-[13px] whitespace-nowrap transition-colors duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-brand md:w-full cursor-pointer",
+                      on
+                        ? "text-foreground"
+                        : "text-text-secondary hover:bg-surface-hover/60 hover:text-foreground",
+                    )}
+                  >
+                    {/* One highlight that glides to whichever item is picked. */}
+                    {on && (
+                      <motion.span
+                        aria-hidden
+                        layoutId="hero-list-pill"
+                        transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+                        className="absolute inset-0 rounded-[10px] bg-surface-hover shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_6%,transparent)]"
+                      />
+                    )}
+                    <span className="relative min-w-0 truncate">{e.name}</span>
+                    {e.isNew && (
+                      <span className="relative ml-auto shrink-0 rounded-full bg-brand/10 px-1.5 text-[10px]/4 font-medium text-brand">
+                        New
                       </span>
-                      {e.name}
-                      {e.isNew && (
-                        <span className="ml-auto text-[10px] font-medium text-brand">New</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ))}
-              {groups.length === 0 && (
-                <p className="px-2 py-3 text-[12.5px] text-text-muted">No component called &ldquo;{query.trim()}&rdquo; yet.</p>
+                    )}
+                  </button>
+                );
+              })}
+              {matches.length === 0 && (
+                <p className="px-2 py-3 text-[12.5px] text-text-muted">
+                  No component called &ldquo;{query.trim()}&rdquo; yet.
+                </p>
               )}
             </div>
           </div>
@@ -305,7 +444,7 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
               onPointerUp={endDrag}
               onPointerCancel={endDrag}
               className={cn(
-                "no-scrollbar relative hidden h-117.5 overflow-auto bg-[radial-gradient(60%_60%_at_45%_40%,var(--background-200),var(--background)_80%)] md:block",
+                "no-scrollbar relative isolate hidden h-150 overflow-auto bg-[radial-gradient(60%_60%_at_45%_40%,var(--background-200),var(--background)_80%)] md:block",
                 panning ? "cursor-grabbing select-none" : "cursor-grab",
               )}
             >
@@ -335,9 +474,15 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
               </div>
             </div>
 
+            {/* Progressive blur under the toolbar: whatever is dragged or
+                scrolled down there goes soft instead of colliding with it. */}
+            {(flat || reduce) && (
+              <ProgressiveBlur className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-36 md:block" />
+            )}
+
             {/* Floating toolbar */}
             <div className="flex justify-center px-4 pb-4 md:absolute md:inset-x-0 md:bottom-4 md:p-0">
-              <div className="flex max-w-full items-center gap-1 rounded-2xl bg-background-100/90 p-1.5 smooth-shadow-ring-md backdrop-blur-xl">
+              <div className="flex max-w-full items-center gap-1 rounded-2xl bg-background-100/90 p-0.5 border border-border/60 backdrop-blur-xl">
                 <button
                   type="button"
                   aria-label="Recenter the selected component"
@@ -347,7 +492,10 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                 >
                   <IconMaximize aria-hidden className="size-4" />
                 </button>
-                <span aria-hidden className="mx-1 hidden h-5 w-px bg-border md:block" />
+                <span
+                  aria-hidden
+                  className="mx-1 hidden h-5 w-px bg-border md:block"
+                />
                 <CopyCommand
                   command={`npx devignerui add ${entry.slug}`}
                   highlight={entry.slug}

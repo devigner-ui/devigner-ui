@@ -6,7 +6,9 @@ const root = resolve(import.meta.dirname, "../..");
 const outputFile = resolve(root, "apps/docs/lib/registry.ts");
 
 export function copyPasteSource(sourceFile: string) {
+  // LF always: a Windows checkout (core.autocrlf) must not ship CRLF files.
   return readFileSync(resolve(root, sourceFile), "utf8")
+    .replaceAll("\r\n", "\n")
     .replaceAll('"../lib/easing"', '"devignerui/motion"')
     .replaceAll('"../lib/hooks/use-controllable-state"', '"devignerui/hooks"')
     .replaceAll('"../lib/hooks/use-hover-capable"', '"devignerui/hooks"')
@@ -45,7 +47,7 @@ export function renderRegistry() {
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   const output = renderRegistry();
   if (process.argv.includes("--check")) {
-    if (!existsSync(outputFile) || readFileSync(outputFile, "utf8") !== output) {
+    if (!existsSync(outputFile) || readFileSync(outputFile, "utf8").replaceAll("\r\n", "\n") !== output) {
       console.error("Generated registry is stale. Run pnpm registry:generate.");
       process.exitCode = 1;
     }
