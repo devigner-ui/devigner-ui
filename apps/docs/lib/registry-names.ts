@@ -24,5 +24,9 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "date-range-picker",
     "name": "Date Range Picker"
+  },
+  {
+    "slug": "inline-time-edit",
+    "name": "Inline Time Edit"
   }
 ];

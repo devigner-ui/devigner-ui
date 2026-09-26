@@ -480,4 +480,69 @@ export function ReportPeriod() {
       TOKENS_MISSING,
     ],
   },
+
+  "inline-time-edit": {
+    demo:
+      "The live demo reads 2:30. Press the pencil and the pill splits into an hours field and a minutes field with their units, and a save button; change a number and press the tick, and the fields fold back into one pill with the new time.",
+    whenToUse: [
+      "Durations shown inline in a row or card (estimates, timers, meeting lengths) that people occasionally correct in place.",
+      "Anywhere a full form or dialog would be too heavy for changing two numbers.",
+    ],
+    whenNotToUse: [
+      "Clock times or dates. The value is a duration in minutes, not a time of day.",
+      "Durations longer than 99 hours or finer than a minute.",
+    ],
+    keyboard: [
+      ["Enter / Space", "On the pencil, opens the edit. On the tick, saves."],
+      ["Tab", "Moves between the hours field, the minutes field and the button while editing."],
+      ["Enter", "In either field, saves."],
+      ["Up / Down arrows", "In either field, adds or removes 1, clamped to 0 to maxHours for hours and 0 to 59 for minutes."],
+      ["Shift + Up / Down", "Steps by 10 instead."],
+      ["Escape", "Anywhere in the control, discards the edit and returns focus to the button."],
+    ],
+    accessibility: [
+      "The fields are labelled with hoursLabel and minutesLabel, and are out of the tab order until the edit opens.",
+      "The button keeps focus across the swap and is renamed from editLabel to saveLabel, so screen readers hear what it will do.",
+      "Fields are role=\"spinbutton\" with aria-valuemin, aria-valuemax and aria-valuenow, and use inputMode=\"numeric\", so phones show a number pad.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "classNames targets root, tile, input, unit and button.",
+      "hourUnit and minuteUnit change the units shown while editing (\"h\", \"m\", or a translation). Closed, the time reads as a clock (2:05) with no units; pass shortTime={false} to keep the units there too.",
+      "Tiles use bg-background. The shadow is smooth-shadow-ring-sm, a shadow utility from shadow-plugin, drawn once around the closed pill and per tile when open; replace it with shadow-sm if you don't use shadow-plugin. Values use text-foreground and units text-muted-foreground.",
+    ],
+    edgeCases: [
+      "Each field takes up to two digits. Hours above maxHours and minutes above 59 are clamped on save; empty fields save as 0.",
+      "onValueChange only fires on save, with the total in minutes, and only when the total changed. Typing does not change the value.",
+      "Clicking outside or tabbing out of the control discards the edit, the same as Escape.",
+      "If a controlled value changes while the edit is open, the fields show the new value and anything typed is dropped.",
+      "open, defaultOpen and onOpenChange control the edit state, for example to open it from a row action.",
+      "Setting disabled while the edit is open discards it.",
+    ],
+    recipes: [
+      {
+        title: "Controlled duration",
+        description: "Keep the minutes in state and show them elsewhere.",
+        code: `import { useState } from "react";
+import { InlineTimeEdit } from "@/components/ui/inline-time-edit";
+
+export function Estimate() {
+  const [minutes, setMinutes] = useState(90);
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-sm text-muted-foreground">Estimate</span>
+      <InlineTimeEdit value={minutes} onValueChange={setMinutes} />
+    </div>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "Typing a number does not update my state.",
+        answer: "onValueChange fires when the edit is saved (tick or Enter), not on every keystroke.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
 } satisfies Record<string, ComponentGuide>;

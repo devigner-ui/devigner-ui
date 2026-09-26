@@ -15,9 +15,11 @@ import {
   EASE_OUT,
   SPRING_LAYOUT,
   SPRING_PANEL,
+  SPRING_PRESS,
   SPRING_SWAP,
 } from "devignerui/motion";
 import {
+  IconArrowLeft,
   IconArrowRight,
   IconBook2,
   IconCheck,
@@ -42,6 +44,7 @@ import {
   type CatalogEntry,
 } from "@/lib/catalog-query";
 import { CodeBlock } from "../code-block";
+import { ProgressiveBlur } from "../landing/hero-window";
 import { Wordmark } from "../landing/navbar";
 import { ThemeIcon, useTheme } from "../theme-provider";
 import { Inspector } from "./inspector";
@@ -73,6 +76,19 @@ const isTyping = (el: EventTarget | null) =>
  *  same on the panel and inside the search field. */
 const KBD =
   "grid h-5 min-w-5 place-items-center rounded-md border border-border px-1.5 font-mono text-[10.5px] leading-none text-text-muted";
+
+/** Single-key shortcuts for the dock, by item id. Holding Alt shows each one
+ *  as a keycap over its button. */
+const DOCK_KEYS: Record<string, React.ReactNode> = {
+  prev: <IconArrowLeft className="size-3" />,
+  components: "/",
+  docs: "D",
+  source: "C",
+  reset: "R",
+  theme: "T",
+  settings: "S",
+  next: <IconArrowRight className="size-3" />,
+};
 
 /* ─── Chrome ─── */
 
@@ -160,7 +176,9 @@ function SettingsGlyph({ enter }: { enter: boolean }) {
     <AnimatePresence initial={enter}>
       <motion.span
         className="grid place-items-center"
-        initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.4, rotate: -90 }}
+        initial={
+          reduce ? { opacity: 0 } : { opacity: 0, scale: 0.4, rotate: -90 }
+        }
         animate={{ opacity: 1, scale: 1, rotate: 0 }}
         transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
       >
@@ -248,6 +266,15 @@ function ComponentsPanel({
   const router = useRouter();
   const groups = groupByCategory(searchEntries(entries, query));
   const first = groups[0]?.items[0];
+  /** Whether rows are hidden below the list, for the bottom blur. */
+  const [more, setMore] = useState(false);
+  const measure = () => {
+    const box = list.current;
+    if (box)
+      setMore(box.scrollTop + box.clientHeight < box.scrollHeight - 1);
+  };
+  // A new query changes the list's height without a scroll event.
+  useEffect(measure, [query]);
 
   // The dock focuses the field when it opens the panel itself; opening from
   // "/" drives the dock's path from outside, so focus is taken here too.
@@ -260,6 +287,7 @@ function ComponentsPanel({
       const row = box?.querySelector<HTMLElement>("[aria-current]");
       if (box && row && row.offsetTop + row.offsetHeight > box.clientHeight)
         box.scrollTop = row.offsetTop + row.offsetHeight - box.clientHeight + 8;
+      measure();
     });
     return () => cancelAnimationFrame(frame);
   }, []);
@@ -326,70 +354,86 @@ function ComponentsPanel({
           /
         </kbd>
       </label>
-      <div
-        ref={list}
-        onPointerLeave={() => setHovered(null)}
-        className="no-scrollbar relative mt-1 max-h-[min(65vh,520px)] overflow-y-auto"
-      >
-        {groups.map((g) => (
-          <div key={g.label} role="group" aria-label={g.label}>
-            <p className="mx-3 mt-4 mb-1.5 flex items-baseline justify-between text-[11.5px] font-medium text-text-muted">
-              <span>{g.label}</span>
-              <span className="font-mono text-[10.5px] font-normal tabular-nums">
-                {g.items.length}
-              </span>
-            </p>
-            {g.items.map((e) => {
-              const on = e.slug === current;
-              return (
-                <Link
-                  key={e.slug}
-                  href={`/components/${e.slug}`}
-                  onClick={onGo}
-                  onPointerEnter={() => setHovered(e.slug)}
-                  onFocus={() => setHovered(e.slug)}
-                  aria-current={on ? "page" : undefined}
-                  className={cn(
-                    "relative flex h-9 items-center gap-3 rounded-xl pr-2 text-[13.5px] whitespace-nowrap outline-none! transition-colors duration-200 ease-out",
-                    // The current row's label clears its brand bar.
-                    on
-                      ? "bg-surface-hover pl-5 font-medium text-foreground"
-                      : "pl-3 text-text-secondary hover:text-foreground focus-visible:text-foreground",
-                  )}
-                >
-                  {/* One highlight that glides between rows instead of each
+      <div className="relative mt-1">
+        <div
+          ref={list}
+          onScroll={measure}
+          onPointerLeave={() => setHovered(null)}
+          // Only the list scrolls; the search above it stays put. Capped by the
+          // viewport too, so the panel never grows up under the top pill.
+          className="relative max-h-[clamp(8rem,calc(100dvh-13rem),400px)] overflow-y-auto overscroll-contain"
+        >
+          {groups.map((g) => (
+            <div key={g.label} role="group" aria-label={g.label}>
+              <p className="mx-3 mt-4 mb-1.5 flex items-baseline justify-between text-[11.5px] font-medium text-text-muted">
+                <span>{g.label}</span>
+                <span className="font-mono text-[10.5px] font-normal tabular-nums">
+                  {g.items.length}
+                </span>
+              </p>
+              {g.items.map((e) => {
+                const on = e.slug === current;
+                return (
+                  <Link
+                    key={e.slug}
+                    href={`/components/${e.slug}`}
+                    onClick={onGo}
+                    onPointerEnter={() => setHovered(e.slug)}
+                    onFocus={() => setHovered(e.slug)}
+                    aria-current={on ? "page" : undefined}
+                    className={cn(
+                      "relative flex h-9 items-center gap-3 rounded-xl pr-2 text-[13.5px] whitespace-nowrap outline-none! transition-colors duration-200 ease-out",
+                      // The current row's label clears its brand bar.
+                      on
+                        ? "bg-surface-hover pl-5 font-medium text-foreground"
+                        : "pl-3 text-text-secondary hover:text-foreground focus-visible:text-foreground",
+                    )}
+                  >
+                    {/* One highlight that glides between rows instead of each
                       row lighting up on its own. */}
-                  {hovered === e.slug && !on && (
-                    <motion.span
-                      layoutId="components-panel-hover"
-                      transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
-                      className="absolute inset-0 rounded-xl bg-surface"
-                    />
-                  )}
-                  {/* The current row carries a short brand bar on its edge,
+                    {hovered === e.slug && !on && (
+                      <motion.span
+                        layoutId="components-panel-hover"
+                        transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+                        className="absolute inset-0 rounded-xl bg-surface"
+                      />
+                    )}
+                    {/* The current row carries a short brand bar on its edge,
                       a nod to the ruler-tick sidebar this panel replaced. */}
-                  {on && (
-                    <span
-                      aria-hidden
-                      className="absolute top-1/2 left-1.5 h-4 w-0.75 -translate-y-1/2 rounded-full bg-brand shadow-[0_0_8px_var(--brand)]"
-                    />
-                  )}
-                  <span className="relative truncate">{e.name}</span>
-                  {e.isNew && (
-                    <span className="relative ml-auto rounded-full bg-brand/12 px-1.75 text-[10.5px] font-medium text-brand leading-loose">
-                      New
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
-        {groups.length === 0 && (
-          <p className="px-3 py-6 text-center text-[13px] text-text-muted">
-            Nothing matches &ldquo;{query}&rdquo;
-          </p>
-        )}
+                    {on && (
+                      <span
+                        aria-hidden
+                        className="absolute top-1/2 left-1.5 h-4 w-0.75 -translate-y-1/2 rounded-full bg-brand shadow-[0_0_8px_var(--brand)]"
+                      />
+                    )}
+                    <span className="relative truncate">{e.name}</span>
+                    {e.isNew && (
+                      <span className="relative ml-auto rounded-full bg-brand/12 px-1.75 text-[10.5px] font-medium text-brand leading-loose">
+                        New
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+          {groups.length === 0 && (
+            <p className="px-3 py-6 text-center text-[13px] text-text-muted">
+              Nothing matches &ldquo;{query}&rdquo;
+            </p>
+          )}
+        </div>
+        {/* Blur the rows sliding under the bottom edge, only while there are
+          rows past it. Bottom only: the search field above already ends the
+          list cleanly. It bleeds out to the dock's own edges (its padding plus
+          the panel's, 12px) so no sharp band of unblurred rows shows at the
+          sides or underneath; the shell's rounded clip trims it. */}
+        <ProgressiveBlur
+          className={cn(
+            "pointer-events-none absolute -inset-x-3 -bottom-3 h-13 transition-opacity duration-200 ease-out",
+            !more && "opacity-0",
+          )}
+        />
       </div>
     </div>
   );
@@ -461,6 +505,82 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
   );
 }
 
+/** The keycaps over the dock while Alt is held. Its own component so holding
+ *  Alt re-renders these chips, not the whole page (measured: at 4x CPU the
+ *  page re-render cost ~250ms of long tasks per press). */
+function DockKeycaps({
+  ids,
+  rows,
+  open,
+}: {
+  ids: string[];
+  rows: () => HTMLElement[];
+  open: boolean;
+}) {
+  const reduce = useReducedMotion();
+  /** The closed dock's button rects while Alt is held. */
+  const [rects, setRects] = useState<DOMRect[] | null>(null);
+  const live = useRef({ rows, open });
+  live.current = { rows, open };
+
+  useEffect(() => {
+    const onDown = (e: KeyboardEvent) => {
+      // ctrlKey too: AltGr arrives as Ctrl+Alt and is just typing.
+      if (e.key !== "Alt" || e.ctrlKey || e.repeat || live.current.open)
+        return;
+      setRects(live.current.rows().map((r) => r.getBoundingClientRect()));
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (e.key !== "Alt") return;
+      // Stops Firefox and Windows from focusing the browser's menu bar.
+      e.preventDefault();
+      setRects(null);
+    };
+    const hide = () => setRects(null);
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    window.addEventListener("blur", hide);
+    return () => {
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      window.removeEventListener("blur", hide);
+    };
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {rects &&
+        !open &&
+        ids.map((id, i) => {
+          const rect = rects[i];
+          const key = DOCK_KEYS[id];
+          if (!rect || !key) return null;
+          return (
+            <motion.kbd
+              key={id}
+              aria-hidden
+              // A short throw and a tight stagger: these are a glance while a
+              // key is held, so they land almost at once.
+              initial={{ opacity: 0, y: 2, scale: reduce ? 1 : 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 2, scale: reduce ? 1 : 0.85 }}
+              transition={
+                reduce ? { duration: 0.08 } : { ...SPRING_PRESS, delay: i * 0.008 }
+              }
+              style={{ left: rect.left + rect.width / 2, top: rect.top - 14 }}
+              className={cn(
+                KBD,
+                "pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full bg-background text-foreground shadow-subtle",
+              )}
+            >
+              {key}
+            </motion.kbd>
+          );
+        })}
+    </AnimatePresence>
+  );
+}
+
 /* ─── Page ─── */
 
 export function ComponentPage({
@@ -485,6 +605,11 @@ export function ComponentPage({
   // ponytail: never reset by hand - the page is keyed by slug, so arriving
   // at the neighbour remounts it with this back at null.
   const [going, setGoing] = useState<"Previous" | "Next" | null>(null);
+  const dock = useRef<HTMLDivElement>(null);
+  const dockRows = () =>
+    Array.from(
+      dock.current?.querySelectorAll<HTMLElement>("[data-dock-row]") ?? [],
+    );
 
   const playground = usePlayground(slug, meta.usage);
   const [settingsIsNew] = useState(() => lastHadSettings === false);
@@ -594,9 +719,12 @@ export function ComponentPage({
         </span>
       ),
       onSelect: () => {
-        const el = document.activeElement;
-        const rect =
-          el instanceof HTMLElement ? el.getBoundingClientRect() : undefined;
+        // The dock's own button, so the "T" shortcut ripples from it too.
+        const rect = path.length
+          ? undefined
+          : dockRows()[
+              items.findIndex((i) => i.id === "theme")
+            ]?.getBoundingClientRect();
         toggleTheme(
           rect && {
             x: rect.left + rect.width / 2,
@@ -631,18 +759,29 @@ export function ComponentPage({
   ];
 
   // Read by the key listener without rebinding it on every render.
-  const live = useRef({ path, docsOpen, going, go });
-  live.current = { path, docsOpen, going, go };
+  const live = useRef({ path, docsOpen, going, go, items });
+  live.current = { path, docsOpen, going, go, items };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const { path, docsOpen, go } = live.current;
+      const { path, docsOpen, go, items } = live.current;
       const typing = isTyping(e.target);
 
       if (e.key === "/" && !typing) {
         e.preventDefault();
         setPath([1]);
+        return;
+      }
+      const id = Object.keys(DOCK_KEYS).find(
+        (k) => DOCK_KEYS[k] === e.key.toUpperCase(),
+      );
+      if (id && id !== "components" && !typing && !e.defaultPrevented) {
+        const at = items.findIndex((i) => i.id === id);
+        if (at < 0) return;
+        e.preventDefault();
+        if (items[at].content) setPath([at]);
+        else items[at].onSelect?.();
         return;
       }
       // Arrows belong to whatever has focus (the live component, sliders,
@@ -697,7 +836,10 @@ export function ComponentPage({
             )}
           </div>
 
-          <div className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2">
+          <div
+            ref={dock}
+            className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2"
+          >
             <MenuDock
               items={items}
               path={path}
@@ -770,6 +912,12 @@ export function ComponentPage({
           )}
         </AnimatePresence>
       )}
+
+      <DockKeycaps
+        ids={items.map((i) => i.id ?? "")}
+        rows={dockRows}
+        open={path.length > 0}
+      />
 
       <AnimatePresence>
         {hint && (

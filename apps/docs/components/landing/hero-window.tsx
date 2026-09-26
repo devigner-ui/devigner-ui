@@ -53,13 +53,20 @@ function framePosition(i: number) {
  *  layer also lifts saturation a touch; stacked, the bottom edge ends ~1.34x. */
 const BLUR_STEPS = [1, 2, 4, 8, 16];
 
-function ProgressiveBlur({ className }: { className?: string }) {
+export function ProgressiveBlur({
+  className,
+  toward = "bottom",
+}: {
+  className?: string;
+  /** The edge the blur ramps up toward. */
+  toward?: "top" | "bottom";
+}) {
   return (
     <div aria-hidden className={className}>
       {BLUR_STEPS.map((px, i) => {
         const from = (i / BLUR_STEPS.length) * 100;
         const to = ((i + 1) / BLUR_STEPS.length) * 100;
-        const mask = `linear-gradient(to bottom, transparent ${from}%, #000 ${to}%)`;
+        const mask = `linear-gradient(to ${toward}, transparent ${from}%, #000 ${to}%)`;
         return (
           <div
             key={px}

@@ -17,7 +17,7 @@ export function Example() {
 }
 ```
 
-The package also exports `ChartCard`, `DeleteButton`, `Timeline`, `MenuDock`, and `DateRangePicker`. Motion tokens and hooks are available from `devignerui/motion` and `devignerui/hooks`.
+The package also exports `ChartCard`, `DeleteButton`, `Timeline`, `MenuDock`, `DateRangePicker`, and `InlineTimeEdit`. Motion tokens and hooks are available from `devignerui/motion` and `devignerui/hooks`.
 
 ## CLI
 

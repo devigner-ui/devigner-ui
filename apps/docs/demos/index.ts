@@ -17,4 +17,5 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   timeline: dynamic(() => import("./timeline"), { ssr: false, loading }),
   "menu-dock": dynamic(() => import("./menu-dock"), { ssr: false, loading }),
   "date-range-picker": dynamic(() => import("./date-range-picker"), { ssr: false, loading }),
+  "inline-time-edit": dynamic(() => import("./inline-time-edit"), { ssr: false, loading }),
 };

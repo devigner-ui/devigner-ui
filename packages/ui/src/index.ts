@@ -46,3 +46,8 @@ export {
   type DateRangePickerClassNames,
   type DateRangePickerSlotProps,
 } from "./components/date-range-picker";
+export {
+  InlineTimeEdit,
+  type InlineTimeEditProps,
+  type InlineTimeEditClassNames,
+} from "./components/inline-time-edit";

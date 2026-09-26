@@ -6,6 +6,7 @@ import {
   ChartCard,
   DateRangePicker,
   DeleteButton,
+  InlineTimeEdit,
   MagneticButton,
   Timeline,
 } from "devignerui";
@@ -88,6 +89,40 @@ const deleteUsage = (c: DeleteConfig) => {
 export function Example() {
   return (
     <DeleteButton
+${props}
+    />
+  );
+}`;
+};
+
+/* ─── Inline Time Edit ─── */
+
+const TIME_DEFAULTS = {
+  maxHours: 99,
+  shortTime: true,
+  disabled: false,
+};
+type TimeConfig = typeof TIME_DEFAULTS;
+
+const timeUsage = (c: TimeConfig) => {
+  const props = [
+    "value={minutes}",
+    "onValueChange={setMinutes}",
+    c.maxHours !== TIME_DEFAULTS.maxHours ? `maxHours={${c.maxHours}}` : null,
+    c.shortTime ? null : "shortTime={false}",
+    c.disabled ? "disabled" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { useState } from "react";
+import { InlineTimeEdit } from "@/components/ui/inline-time-edit";
+
+export function Example() {
+  const [minutes, setMinutes] = useState(150);
+  return (
+    <InlineTimeEdit
 ${props}
     />
   );
@@ -321,11 +356,13 @@ export function usePlayground(slug: string, fallbackUsage: string) {
   const [cfg, setCfg] = useState<MagneticConfig>(MAGNETIC_DEFAULTS);
   const [showField, setShowField] = useState(true);
   const [deleteCfg, setDeleteCfg] = useState<DeleteConfig>(DELETE_DEFAULTS);
+  const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
 
   const reset = () => {
     setCfg(MAGNETIC_DEFAULTS);
     setShowField(true);
     setDeleteCfg(DELETE_DEFAULTS);
+    setTimeCfg(TIME_DEFAULTS);
   };
 
   if (slug === "magnetic-button") {
@@ -398,6 +435,49 @@ export function usePlayground(slug: string, fallbackUsage: string) {
             <Switch
               checked={deleteCfg.disabled}
               onChange={(v) => setDeleteCfg((c) => ({ ...c, disabled: v }))}
+              label="Disabled"
+            />
+          </SettingsRow>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "inline-time-edit") {
+    return {
+      reset,
+      preview: (
+        <InlineTimeEdit
+          maxHours={timeCfg.maxHours}
+          shortTime={timeCfg.shortTime}
+          disabled={timeCfg.disabled}
+        />
+      ),
+      usage: timeUsage(timeCfg),
+      settings: (
+        <div className="flex w-72 flex-col divide-y divide-border px-3">
+          <div className="py-3">
+            <Knob
+              name="maxHours"
+              hint="h, clamps on save"
+              min={1}
+              max={99}
+              step={1}
+              value={timeCfg.maxHours}
+              onChange={(v) => setTimeCfg((c) => ({ ...c, maxHours: v }))}
+            />
+          </div>
+          <SettingsRow label="Short time">
+            <Switch
+              checked={timeCfg.shortTime}
+              onChange={(v) => setTimeCfg((c) => ({ ...c, shortTime: v }))}
+              label="Short time"
+            />
+          </SettingsRow>
+          <SettingsRow label="Disabled">
+            <Switch
+              checked={timeCfg.disabled}
+              onChange={(v) => setTimeCfg((c) => ({ ...c, disabled: v }))}
               label="Disabled"
             />
           </SettingsRow>
