@@ -162,8 +162,6 @@ export interface TimelineProps extends ListProps {
   defaultActiveId?: TimelineActiveId;
   /** Fires on every highlighted step change, including `null` or `-1`. */
   onActiveChange?: (id: TimelineActiveId) => void;
-  /** @deprecated Use `defaultActiveId`. Indexes without an `id` still work. */
-  defaultActive?: number;
   /** Custom content inside the preset timeline item. */
   renderStep?: (props: TimelineStepRenderProps) => React.ReactNode;
   classNames?: TimelineClassNames;
@@ -173,8 +171,7 @@ export interface TimelineProps extends ListProps {
 export function Timeline({
   steps,
   activeId,
-  defaultActiveId,
-  defaultActive,
+  defaultActiveId = -1,
   onActiveChange,
   renderStep,
   classNames,
@@ -182,15 +179,9 @@ export function Timeline({
   className,
   ...rest
 }: TimelineProps) {
-  const legacyDefaultActiveId =
-    defaultActive === undefined
-      ? -1
-      : (steps[defaultActive]?.id ?? defaultActive);
-  const restingActiveId =
-    defaultActiveId !== undefined ? defaultActiveId : legacyDefaultActiveId;
   const [active, setActive] = useControllableState({
     value: activeId,
-    defaultValue: restingActiveId,
+    defaultValue: defaultActiveId,
     onValueChange: onActiveChange,
   });
   // Under reduced motion nothing slides, so the rail never bends and only the
@@ -212,11 +203,11 @@ export function Timeline({
             aria-current={on ? "step" : undefined}
             className={cn("relative", classNames?.item)}
             onPointerEnter={() => highlight(stepId)}
-            onPointerLeave={() => highlight(restingActiveId)}
+            onPointerLeave={() => highlight(defaultActiveId)}
             // Focus bubbles in React, so anything focusable a caller puts
             // inside a step lights that step up too.
             onFocus={() => highlight(stepId)}
-            onBlur={() => highlight(restingActiveId)}
+            onBlur={() => highlight(defaultActiveId)}
           >
             {!last && (
               <Connector from={on} to={active === nextStepId} shift={shift} />

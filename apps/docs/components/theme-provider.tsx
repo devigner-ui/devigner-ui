@@ -201,52 +201,43 @@ export function ThemeToggle() {
   );
 }
 
-// Sun to moon (the toggles.dev "Spin" toggle), keyed off the button's
-// data-dark instead of a dark: variant. The core's clip path swaps shape
+// Sun to moon (the toggles.dev "Expand" toggle), keyed off the button's
+// data-dark instead of a dark: variant. The clip's notch sweeps across the sun
 // (CSS d:path, with a translate fallback where d isn't animatable) while the
-// rays spin and scale out around the centre. Timing uses the shared ease-out token.
-const RAYS = [
-  "M12 1.4v2.4",
-  "m20.3 3.7-2.5 2.5",
-  "M22.6 12h-2.4",
-  "M12 22.6v-2.4",
-  "M1.4 12h2.4",
-  "m20.3 20.3-2.5-2.5",
-  "m3.7 20.3 2.5-2.5",
-  "m3.7 3.7 2.5 2.5",
-];
+// core swells into the moon and the rays pull in behind it.
+const RAYS =
+  "M18.3 3.2c0 1.3-1 2.3-2.3 2.3s-2.3-1-2.3-2.3S14.7.9 16 .9s2.3 1 2.3 2.3zm-4.6 25.6c0-1.3 1-2.3 2.3-2.3s2.3 1 2.3 2.3-1 2.3-2.3 2.3-2.3-1-2.3-2.3zm15.1-10.5c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zM3.2 13.7c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3S.9 17.3.9 16s1-2.3 2.3-2.3zm5.8-7C9 7.9 7.9 9 6.7 9S4.4 8 4.4 6.7s1-2.3 2.3-2.3S9 5.4 9 6.7zm16.3 21c-1.3 0-2.3-1-2.3-2.3s1-2.3 2.3-2.3 2.3 1 2.3 2.3-1 2.3-2.3 2.3zm2.4-21c0 1.3-1 2.3-2.3 2.3S23 7.9 23 6.7s1-2.3 2.3-2.3 2.4 1 2.4 2.3zM6.7 23C8 23 9 24 9 25.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3z";
+
+/** Core and rays: they swell or pull in after the notch has moved, and on the
+ *  way back to light they wait for it. */
+const GROW =
+  "origin-center motion-safe:transition-transform motion-safe:duration-[calc(var(--dur)*0.65)] motion-safe:ease-overshoot motion-safe:delay-[calc(var(--dur)*0.35)] motion-safe:group-data-[dark=true]:delay-0";
 
 export function ThemeIcon() {
   const clip = `theme-icon-${useId()}`;
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="size-4.5 [--dur:400ms]">
+    <svg
+      aria-hidden
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      className="size-4.5 [--dur:500ms]"
+    >
       <defs>
         <clipPath id={clip}>
           <path
-            d="M0 0h25a1 1 0 0010 10v14H0Z"
-            className="motion-safe:transition-[d,translate] motion-safe:duration-(--dur) motion-safe:ease-out motion-safe:group-data-[dark=true]:delay-[calc(var(--dur)*0.15)] group-data-[dark=true]:[d:path('M0_2h13a1_1_0_0010_10v14H0Z')] group-data-[dark=true]:not-supports-[d:path('M0_0')]:-translate-x-3.25 group-data-[dark=true]:not-supports-[d:path('M0_0')]:translate-y-0.5"
+            d="M0-11h25a1 1 0 0017 13v30H0Z"
+            className="motion-safe:transition-[d,translate] motion-safe:duration-[calc(var(--dur)*0.6)] motion-safe:ease-out motion-safe:group-data-[dark=true]:ease-overshoot motion-safe:group-data-[dark=true]:delay-[calc(var(--dur)*0.4)] group-data-[dark=true]:[d:path('M0_0h15A1_1_0_0032_15v17H0Z')] group-data-[dark=true]:not-supports-[d:path('M0_0')]:-translate-x-1.25 group-data-[dark=true]:not-supports-[d:path('M0_0')]:translate-y-2.75"
           />
         </clipPath>
       </defs>
-      <g stroke="currentColor" strokeLinecap="round">
+      <g clipPath={`url(#${clip})`}>
         <circle
-          cx={12}
-          cy={12}
-          r={5}
-          fill="currentColor"
-          clipPath={`url(#${clip})`}
-          className="origin-center motion-safe:transition-transform motion-safe:duration-(--dur) motion-safe:ease-out group-data-[dark=true]:scale-170"
+          cx={16}
+          cy={16}
+          r={8.4}
+          className={`${GROW} group-data-[dark=true]:scale-160`}
         />
-        {RAYS.map((d) => (
-          <path
-            key={d}
-            d={d}
-            fill="none"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            className="origin-center transform-view motion-safe:transition-transform motion-safe:delay-[calc(var(--dur)*0.15)] motion-safe:duration-(--dur) motion-safe:ease-out motion-safe:group-data-[dark=true]:delay-0 group-data-[dark=true]:rotate-45 group-data-[dark=true]:scale-0"
-          />
-        ))}
+        <path d={RAYS} className={`${GROW} group-data-[dark=true]:scale-75`} />
       </g>
     </svg>
   );

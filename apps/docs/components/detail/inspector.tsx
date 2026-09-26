@@ -23,13 +23,6 @@ function Title({ name }: { name: string }) {
   );
 }
 
-const added = (iso: string) =>
-  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-
 function H2({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="mt-8 mb-3 text-[20px] leading-tight font-semibold tracking-[-0.04em] text-foreground">
@@ -118,13 +111,11 @@ function CodeFigure({ code }: { code: string }) {
 export function Inspector({
   meta,
   isNew,
-  categoryLabel,
   usage,
   onOpenCode,
 }: {
   meta: ComponentData;
   isNew: boolean;
-  categoryLabel: string;
   usage: string;
   onOpenCode: () => void;
 }) {
@@ -147,17 +138,16 @@ export function Inspector({
 
   return (
     <div className="flex flex-col pb-32 lg:pb-12">
-      <p className="flex items-center gap-2.5 font-mono text-[11.5px] text-text-muted">
+      <div className="flex items-center gap-3">
+        <h1 className="text-[38px] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground">
+          <Title name={meta.name} />
+        </h1>
         {isNew && (
-          <span className="rounded-full bg-brand/15 px-2 py-0.5 font-sans text-[11px] font-medium text-brand">
+          <span className="shrink-0 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] font-medium text-brand">
             New
           </span>
         )}
-        {categoryLabel} · added {added(meta.addedAt)}
-      </p>
-      <h1 className="mt-3 text-[38px] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground">
-        <Title name={meta.name} />
-      </h1>
+      </div>
       <p className="mt-3 text-[14.5px]/relaxed text-pretty text-text-secondary">
         {meta.description}
       </p>

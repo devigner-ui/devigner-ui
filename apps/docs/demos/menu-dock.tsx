@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { MenuDock, type MenuDockItem } from "devignerui";
 import {
   IconArchive,
@@ -103,24 +104,29 @@ function MenuDockSearch() {
         />
       </div>
 
-      {all === null ? null : hits.length === 0 ? (
-        <p className="px-3 py-2 text-[15px] text-text-muted">
-          Nothing matches “{query.trim()}”.
-        </p>
-      ) : (
-        // Capped once, by SEARCH_LIMIT above. A second slice here just means
-        // two numbers to keep in agreement.
-        hits.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/components/${c.slug}`}
-            className="flex h-10 items-center gap-3 rounded-2xl px-3 text-[15px] text-foreground transition-colors hover:bg-surface-hover"
-          >
-            <IconComponent className="size-5 shrink-0 text-text-muted" />
-            <span className="flex-1 truncate">{c.name}</span>
-          </Link>
-        ))
-      )}
+      {/* The list changes height without the dock re-rendering (the registry
+          arrives late, the query filters it), so it is a layout node: that
+          is what lets the dock resize to it instead of snapping. */}
+      <motion.div layout="position" className="flex flex-col gap-1">
+        {all === null ? null : hits.length === 0 ? (
+          <p className="px-3 py-2 text-[15px] text-text-muted">
+            Nothing matches “{query.trim()}”.
+          </p>
+        ) : (
+          // Capped once, by SEARCH_LIMIT above. A second slice here just means
+          // two numbers to keep in agreement.
+          hits.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/components/${c.slug}`}
+              className="flex h-10 items-center gap-3 rounded-2xl px-3 text-[15px] text-foreground transition-colors hover:bg-surface-hover"
+            >
+              <IconComponent className="size-5 shrink-0 text-text-muted" />
+              <span className="flex-1 truncate">{c.name}</span>
+            </Link>
+          ))
+        )}
+      </motion.div>
     </div>
   );
 }

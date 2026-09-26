@@ -15,5 +15,5 @@ const SALES = [
 export default function ChartCardDemo() {
   // The card is w-full: stages shrink to their content, so give it its
   // intended width here (FitToStage scales it down where that's too wide).
-  return <ChartCard total={90744} data={SALES} defaultActive={4} className="w-lg max-w-full" />;
+  return <ChartCard total={90744} data={SALES} defaultActiveId={4} className="w-lg max-w-full" />;
 }

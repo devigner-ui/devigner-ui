@@ -38,7 +38,9 @@ string forms are too weak).
   - `SPRING_GOO` - liquid/viscous entrances (the notch droplet)
   - `SPRING_RETRACT` - over-damped exits that must not bounce
   - `EASE_OUT` / `EASE_IN_OUT` / `EASE_DRAWER` - tween easings; `EASE_OUT_CSS` for inline styles
-- **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`
+  - `EASE_OVERSHOOT` - a tween that lands past the target and settles (the theme toggle)
+- **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`,
+  `ease-overshoot`
   (defined as `--ease-*` in both `globals.css` files). Never `ease-[cubic-bezier(...)]`.
 - New curves/springs require adding a token to `easing.ts` (and `--ease-*` CSS vars if
   used from CSS) first - keep both in sync. No one-off values in components.

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
 import { cn } from "cn";
 import { SPRING_LAYOUT, SPRING_PRESS, SPRING_SWAP } from "../lib/easing";
@@ -14,19 +14,18 @@ import { IconChevronRight } from "@devigner-ui/icons";
 const TAP = 40;
 const PAD = 8;
 const DOCK_RADIUS = (TAP + PAD * 2) / 2;
-/** The shell's own border and the gap between dock buttons. Both live here
- *  rather than only in the classes because the closed footprint is computed
- *  from them. */
-const BORDER = 1;
+/** The gap between dock buttons. It lives here rather than only in the
+ *  classes because the closed footprint is computed from it. The shell has no
+ *  border: its edge is the shadow's ring, drawn outside the box. */
 const GAP = 4;
 /** The closed dock's outer height. The wrapper is fixed to exactly this, so
  *  the dock reserves its own footprint and a panel grows up out of it rather
  *  than pushing the page around. */
-const CLOSED_H = BORDER * 2 + PAD * 2 + TAP;
+const CLOSED_H = PAD * 2 + TAP;
 /** The closed dock's outer width, from the item count alone - every dock
  *  button is TAP wide with GAP between, so this needs no measuring. */
 const closedWidth = (count: number) =>
-  BORDER * 2 + PAD * 2 + count * TAP + Math.max(0, count - 1) * GAP;
+  PAD * 2 + count * TAP + Math.max(0, count - 1) * GAP;
 /** Panel corners. Close to DOCK_RADIUS on purpose: the two states share a
  *  corner, so the morph reads as one surface growing rather than a box
  *  swapping in. Pull them apart and the radius becomes the effect. */
@@ -76,7 +75,10 @@ export interface MenuDockItem extends MenuNode {
   /** Makes the surface morph into this instead of into a menu - a search
    *  field, a grid, anything. The dock never learns what it is. Content is
    *  terminal, nothing nests below it, and it wins over `items` if both are
-   *  given. The Back row above it carries the item's label, same as a menu. */
+   *  given. The Back row above it carries the item's label, same as a menu.
+   *  Content whose height changes on its own (results, a late load) wraps the
+   *  changing part in `<motion.div layout="position">` so the surface resizes
+   *  with it instead of snapping. */
   content?: React.ReactNode;
   href?: string;
   onSelect?: () => void;
@@ -486,6 +488,12 @@ export function MenuDock({
           would resolve against the wrapper, which is the closed pill, and a
           panel is meant to be wider than the pill it grew out of. */}
       <div className="absolute bottom-0 left-1/2 w-fit -translate-x-1/2">
+        {/* Content re-renders on its own state (a query, a late fetch) without
+            the shell re-rendering, so the shell never measures the new size:
+            it snaps, and mid-morph its corners are corrected for the old box.
+            The group lets a `layout` node inside the content pull the shell
+            into the same measurement. */}
+        <LayoutGroup>
         <motion.div
           {...slotProps?.shell}
           ref={shell}
@@ -499,7 +507,7 @@ export function MenuDock({
             isContent ? undefined : open ? "vertical" : "horizontal"
           }
           className={cn(
-            "w-fit max-w-[calc(100vw-2rem)] overflow-hidden border border-border bg-background p-2 shadow-elevated",
+            "w-fit max-w-[calc(100vw-2rem)] overflow-hidden bg-background p-2 smooth-shadow-ring-lg",
             className,
             classNames?.shell,
           )}
@@ -640,6 +648,7 @@ export function MenuDock({
             </motion.div>
           </AnimatePresence>
         </motion.div>
+        </LayoutGroup>
       </div>
     </div>
   );

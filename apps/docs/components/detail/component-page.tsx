@@ -26,7 +26,7 @@ import {
   IconCode,
   IconCopy,
   IconDashboardGrid,
-  IconDownload,
+  IconDownloadMinimalistic,
   IconRestart,
   IconSearchNormal,
   IconSettings,
@@ -399,7 +399,7 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
         aria-label="Download file"
         className="grid size-8 cursor-pointer place-items-center rounded-full border border-border text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground"
       >
-        <IconDownload aria-hidden className="size-3.5" />
+        <IconDownloadMinimalistic aria-hidden className="size-3.5" />
       </button>
     </div>
   );
@@ -472,20 +472,35 @@ export function ComponentPage({
       onSelect: () => setDocsOpen((v) => !v),
     },
     {
+      id: "source",
+      label: "Code",
+      showLabel: isLg,
+      icon: (
+        <DockGlyph active={sourceOpen}>
+          <IconCode strokeWidth={2} />
+        </DockGlyph>
+      ),
+      onSelect: () => setSourceOpen((v) => !v),
+    },
+    {
       id: "reset",
       label: "Reset",
-      // Keyed by the click count, so every press remounts the span and
-      // replays the spin from 0 rather than skipping it on an odd click.
       icon: (
-        <motion.span
-          key={resetSpins}
-          className="inline-flex"
-          initial={{ rotate: 0 }}
-          animate={{ rotate: reduce ? 0 : 360 }}
-          transition={{ duration: 1, ease: EASE_OUT }}
-        >
-          <IconRestart strokeWidth={2} />
-        </motion.span>
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-[-2.7px] h-5 w-px -translate-y-1/2 bg-border"
+          />
+          <motion.span
+            key={resetSpins}
+            className="inline-flex"
+            initial={{ rotate: 0 }}
+            animate={{ rotate: reduce ? 0 : 360 }}
+            transition={{ duration: 1, ease: EASE_OUT }}
+          >
+            <IconRestart strokeWidth={2} />
+          </motion.span>
+        </>
       ),
       onSelect: () => {
         setResetSpins((n) => n + 1);
@@ -496,7 +511,6 @@ export function ComponentPage({
     {
       id: "theme",
       label: "Toggle theme",
-      // The home navbar's spin icon keys off a `group` with data-dark.
       icon: (
         <span
           className="group grid place-items-center"
@@ -505,10 +519,6 @@ export function ComponentPage({
           <ThemeIcon />
         </span>
       ),
-      // MenuDock rows don't forward the click event to `onSelect`, so the
-      // clicked button (still focused from the click) is read back off
-      // `document.activeElement` - that's what lets the circle reveal expand
-      // from this row rather than the viewport centre.
       onSelect: () => {
         const el = document.activeElement;
         const rect =
@@ -521,7 +531,6 @@ export function ComponentPage({
         );
       },
     },
-    // Only a preview with props to tune gets a Settings row.
     ...(playground.settings
       ? [
           {
@@ -532,17 +541,6 @@ export function ComponentPage({
           },
         ]
       : []),
-    {
-      id: "source",
-      label: "Code",
-      showLabel: isLg,
-      icon: (
-        <DockGlyph active={sourceOpen}>
-          <IconCode strokeWidth={2} />
-        </DockGlyph>
-      ),
-      onSelect: () => setSourceOpen((v) => !v),
-    },
     {
       id: "next",
       label: `Next: ${next.name}`,
@@ -599,7 +597,6 @@ export function ComponentPage({
     <Inspector
       meta={meta}
       isNew={entry?.isNew ?? false}
-      categoryLabel={entry?.categoryLabel ?? meta.category}
       usage={playground.usage}
       onOpenCode={() => setSourceOpen(true)}
     />

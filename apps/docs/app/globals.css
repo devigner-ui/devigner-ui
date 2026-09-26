@@ -96,6 +96,8 @@
 
 /* ── 1 · Palette · dark (graphite ground + cool bone ink) ────────────────── */
 .dark {
+  /* shadow-plugin's dark hairline (0.18) reads too bright on graphite. */
+  --smooth-ring-color: rgb(255 255 255 / 0.1);
   --background: oklch(15.2% 0.006 260);
   --background-100: oklch(17.2% 0.007 260);
   --background-200: oklch(19.6% 0.008 260);
@@ -305,6 +307,7 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);
 }
 
 /* tokens:end */

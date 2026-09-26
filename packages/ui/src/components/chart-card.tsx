@@ -17,6 +17,8 @@ import { IconBarChart } from "@devigner-ui/icons";
 const BAR_FLOOR = 20;
 /** Tallest bar, leaving the rest of the track as headroom for the tooltip. */
 const BAR_CEILING = 88;
+/** Clears a circle around the bar's top dot: its 3px radius plus a 3px gap. */
+const DOT_GAP = "radial-gradient(circle at 50% 0, transparent 6px, #000 6.5px)";
 
 export interface ChartCardPoint {
   /** Stable selection ID. Defaults to the point index for legacy data. */
@@ -81,8 +83,6 @@ export interface ChartCardProps extends Omit<
   defaultActiveId?: ChartCardActiveId;
   /** Fires whenever a bar requests a new active ID. */
   onActiveChange?: (id: ChartCardActiveId) => void;
-  /** @deprecated Use `defaultActiveId`. Indexes without an `id` still work. */
-  defaultActive?: number;
   /** Header actions with behavior. Actions without `onSelect` are not rendered. */
   actions?: readonly ChartCardAction[];
   /** Custom content inside each semantic chart button. */
@@ -140,7 +140,6 @@ export function ChartCard({
   data,
   activeId,
   defaultActiveId,
-  defaultActive,
   onActiveChange,
   actions,
   renderPoint,
@@ -154,15 +153,10 @@ export function ChartCard({
   const fallbackActiveId = data.length
     ? (data[Math.floor(data.length / 2)]?.id ?? Math.floor(data.length / 2))
     : null;
-  const legacyDefaultActiveId =
-    defaultActive === undefined
-      ? fallbackActiveId
-      : (data[defaultActive]?.id ?? defaultActive);
-  const initialActiveId =
-    defaultActiveId !== undefined ? defaultActiveId : legacyDefaultActiveId;
   const [active, setActive] = useControllableState({
     value: activeId,
-    defaultValue: initialActiveId,
+    defaultValue:
+      defaultActiveId !== undefined ? defaultActiveId : fallbackActiveId,
     onValueChange: onActiveChange,
   });
   const reduced = useReducedMotionPreference();
@@ -189,13 +183,16 @@ export function ChartCard({
     <div
       {...slotProps?.root}
       className={cn(
-        "w-full max-w-lg rounded-4xl bg-background p-6 text-foreground",
+        "w-full max-w-lg rounded-4xl bg-background p-6 text-foreground smooth-shadow-ring-lg",
         className,
         classNames?.root,
       )}
       {...rest}
     >
-      <div {...slotProps?.header} className={cn("flex items-center gap-3", classNames?.header)}>
+      <div
+        {...slotProps?.header}
+        className={cn("flex items-center gap-3", classNames?.header)}
+      >
         <span
           aria-hidden
           className="inline-grid size-13 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground"
@@ -206,24 +203,27 @@ export function ChartCard({
           {title}
         </h3>
         {actionableActions && actionableActions.length > 0 && (
-          <div {...slotProps?.actions} className={cn("flex items-center gap-2", classNames?.actions)}>
+          <div
+            {...slotProps?.actions}
+            className={cn("flex items-center gap-2", classNames?.actions)}
+          >
             {renderActions
               ? renderActions(actionableActions)
               : actionableActions.map((action) => (
-              <IconButton
-                key={action.id}
-                label={action.label}
-                disabled={action.disabled}
-                onClick={action.onSelect}
-              >
-                {action.icon}
-                {action.badge !== undefined && action.badge !== null && (
-                  <span className="absolute -top-0.5 -right-0.5 grid min-size-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white ring-3 leading-none ring-background">
-                    {action.badge}
-                  </span>
-                )}
-              </IconButton>
-            ))}
+                  <IconButton
+                    key={action.id}
+                    label={action.label}
+                    disabled={action.disabled}
+                    onClick={action.onSelect}
+                  >
+                    {action.icon}
+                    {action.badge !== undefined && action.badge !== null && (
+                      <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[11px] font-bold text-white ring-3 leading-none ring-background">
+                        {action.badge}
+                      </span>
+                    )}
+                  </IconButton>
+                ))}
           </div>
         )}
       </div>
@@ -233,7 +233,10 @@ export function ChartCard({
         <SplitNumber value={total ?? sum} muted="text-muted-foreground" />
       </p>
 
-      <div {...slotProps?.chart} className={cn("mt-8 flex h-52 items-end gap-2", classNames?.chart)}>
+      <div
+        {...slotProps?.chart}
+        className={cn("mt-8 flex h-52 items-end gap-2", classNames?.chart)}
+      >
         {data.map((point, i) => {
           const pointId = point.id ?? i;
           const height = heightOf(point.value);
@@ -250,7 +253,8 @@ export function ChartCard({
                 // projection writes transform, which the old x: "-50%" fought.
                 <div
                   className="pointer-events-none absolute inset-x-0 z-10 flex justify-center"
-                  style={{ bottom: `calc(${height}% + 0.75rem)` }}
+                  // Room for the pointer plus a hair of air above the dot.
+                  style={{ bottom: `calc(${height}% + 1.125rem)` }}
                 >
                   <motion.div
                     layoutId={reduced ? undefined : tooltipId}
@@ -261,14 +265,33 @@ export function ChartCard({
                       ease: EASE_OUT,
                       layout: { duration: 0.2, ease: EASE_OUT },
                     }}
-                    className="origin-bottom rounded-xl bg-primary/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-primary-foreground tabular-nums"
+                    className="relative origin-bottom rounded-full bg-primary px-3.5 py-2 text-sm font-medium whitespace-nowrap text-primary-foreground tabular-nums"
                   >
+                    {/* Pointer: curved shoulders flow out of the pill and the
+                        tip is rounded, so it reads as one soft shape. */}
+                    <svg
+                      aria-hidden
+                      viewBox="0 0 24 9"
+                      className="absolute top-full left-1/2 -mt-px h-2.25 w-6 -translate-x-1/2 fill-primary"
+                    >
+                      <path d="M0 0C4.5 0 7 1.5 9 5L9.6 6.2C10.8 8.6 13.2 8.6 14.4 6.2L15 5C17 1.5 19.5 0 24 0Z" />
+                    </svg>
                     {renderTooltip?.({
                       point,
                       index: i,
                       active: isActive,
-                      defaultTooltip: <SplitNumber value={point.value} muted="text-primary-foreground/60" />,
-                    }) ?? <SplitNumber value={point.value} muted="text-primary-foreground/60" />}
+                      defaultTooltip: (
+                        <SplitNumber
+                          value={point.value}
+                          muted="text-primary-foreground/60"
+                        />
+                      ),
+                    }) ?? (
+                      <SplitNumber
+                        value={point.value}
+                        muted="text-primary-foreground/60"
+                      />
+                    )}
                   </motion.div>
                 </div>
               )}
@@ -289,24 +312,37 @@ export function ChartCard({
                   // never inherits the entrance stagger.
                   scaleX: { ...SPRING_PRESS, delay: 0 },
                 }}
-                style={
-                  isActive
-                    ? {
-                        backgroundImage:
-                          "repeating-linear-gradient(45deg, currentColor 0 4px, transparent 4px 10px)",
-                      }
-                    : undefined
-                }
-                className={cn(
-                  "relative w-full cursor-pointer self-end rounded-2xl bg-accent text-foreground/10 transition-colors border-t-3 border-input",
-                  !isActive && "hover:bg-input",
-                  classNames?.point,
-                )}
+                className="group relative w-full cursor-pointer self-end"
               >
-                {renderPoint?.({ point, index: i, active: isActive })}
+                {/* The fill, with a hole punched around the dot: a real gap,
+                    not a ring in the page colour, so it holds on any card. */}
+                <span
+                  aria-hidden
+                  style={{
+                    maskImage: DOT_GAP,
+                    WebkitMaskImage: DOT_GAP,
+                    backgroundImage: isActive
+                      ? "repeating-linear-gradient(45deg, currentColor 0 4px, transparent 4px 10px)"
+                      : undefined,
+                  }}
+                  className={cn(
+                    // The stripe colour lives on every bar, not just the active
+                    // one: toggled, transition-colors would fade it in from
+                    // the inherited foreground and flash the stripes black.
+                    "absolute inset-0 rounded-2xl border-t-3 text-background/6 transition-colors",
+                    // Active inverts against the card; its stripes stay faint.
+                    isActive
+                      ? "bg-primary border-primary"
+                      : "bg-accent border-input group-hover:bg-input",
+                    classNames?.point,
+                  )}
+                />
+                <span className="relative">
+                  {renderPoint?.({ point, index: i, active: isActive })}
+                </span>
                 <span
                   className={cn(
-                    "absolute -top-1.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-foreground ring-3 ring-background transition-colors",
+                    "absolute top-0 left-1/2 size-1.5 -translate-1/2 rounded-full bg-foreground transition-colors",
                     isActive && "bg-primary",
                   )}
                 />
@@ -316,7 +352,10 @@ export function ChartCard({
         })}
       </div>
 
-      <div {...slotProps?.labels} className={cn("mt-3 flex gap-2", classNames?.labels)}>
+      <div
+        {...slotProps?.labels}
+        className={cn("mt-3 flex gap-2", classNames?.labels)}
+      >
         {data.map((point, i) => (
           <span
             key={point.id ?? i}
@@ -335,11 +374,21 @@ export function ChartCard({
 }
 
 export namespace ChartCard {
-  export function Header({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-    return <div {...props} className={cn("flex items-center gap-3", className)} />;
+  export function Header({
+    className,
+    ...props
+  }: React.HTMLAttributes<HTMLDivElement>) {
+    return (
+      <div {...props} className={cn("flex items-center gap-3", className)} />
+    );
   }
 
-  export function Chart({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-    return <div {...props} className={cn("flex h-52 items-end gap-2", className)} />;
+  export function Chart({
+    className,
+    ...props
+  }: React.HTMLAttributes<HTMLDivElement>) {
+    return (
+      <div {...props} className={cn("flex h-52 items-end gap-2", className)} />
+    );
   }
 }

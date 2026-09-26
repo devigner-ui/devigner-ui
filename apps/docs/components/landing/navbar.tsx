@@ -88,10 +88,10 @@ export function Navbar({ autoHide = false }: { autoHide?: boolean }) {
           <motion.div layout="position" transition={layoutTransition} className="flex items-center gap-2">
             <ThemeToggle />
             <Link
-              href="/#install"
+              href="/components"
               className="group inline-flex h-10 items-center gap-1.5 rounded-full bg-foreground pr-3.5 pl-4.5 text-[14px] font-medium whitespace-nowrap text-background transition-transform duration-200 ease-out active:scale-[0.97]"
             >
-              Get started
+              Components
               <IconArrowRight
                 aria-hidden
                 className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5"

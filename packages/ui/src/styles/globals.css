@@ -73,6 +73,7 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);
 }
 
 /* Light theme */
@@ -132,6 +133,8 @@
 
 /* Dark theme */
 .dark {
+  /* shadow-plugin's dark hairline (0.18) reads too bright on graphite. */
+  --smooth-ring-color: rgb(255 255 255 / 0.1);
   --brand: oklch(64% 0.201 26.03);
   --background: oklch(11.492% 0.00001 271.152);
   --background-100: oklch(14.479% 0.00002 271.152);

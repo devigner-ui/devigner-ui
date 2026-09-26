@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
+  AnimatePresence,
   motion,
   useMotionValueEvent,
   useReducedMotion,
@@ -12,12 +13,13 @@ import {
 import {
   IconArrowRight,
   IconMaximize,
+  IconMinimize,
   IconMoon,
   IconSearchNormal,
   IconSun,
 } from "@devigner-ui/icons";
 import { cn } from "cn";
-import { SPRING_LAYOUT } from "devignerui/motion";
+import { SPRING_LAYOUT, SPRING_PANEL, SPRING_RETRACT } from "devignerui/motion";
 import { searchEntries, type CatalogEntry } from "@/lib/catalog-query";
 import type { ComponentSlug } from "@/lib/registry";
 import { demos } from "../../demos";
@@ -109,9 +111,9 @@ function Frame({
         )}
       >
         {entry.name}
-        <span className="font-mono text-[11px] font-normal text-text-muted">
+        {/* <span className="font-mono text-[11px] font-normal text-text-muted">
           {entry.categoryLabel.toLowerCase()}
-        </span>
+        </span> */}
       </button>
       <div
         className="frame-surface relative ring-1 ring-border ring-inset"
@@ -291,6 +293,15 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
     next.focus();
   };
 
+  // Maximize: the selected frame grows to fill the canvas; Escape restores.
+  const [max, setMax] = useState(false);
+  useEffect(() => {
+    if (!max) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMax(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [max]);
+
   const [announce, setAnnounce] = useState("");
   useEffect(() => setAnnounce(`Showing ${entry.name}`), [entry.name]);
 
@@ -311,7 +322,7 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
       <motion.section
         aria-label="Component preview"
         style={{ rotateX: reduce ? 0 : tilt, transformOrigin: "50% 0%" }}
-        className="relative overflow-hidden rounded-[18px] bg-background border-border border"
+        className="relative overflow-hidden rounded-[18px] bg-background smooth-shadow-ring-xl"
       >
         {/* Keeps the outline in order: the demos' own headings (Chart Card's
             h3) sit under this, not straight under the page h1. */}
@@ -350,7 +361,7 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                   aria-pressed={t.on}
                   onClick={() => setDark(t.set)}
                   className={cn(
-                    "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-colors duration-200 ease-out",
+                    "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-medium transition-colors duration-200 ease-out cursor-pointer",
                     t.on
                       ? "bg-surface-hover text-foreground"
                       : "text-text-muted hover:text-foreground",
@@ -465,6 +476,31 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
               </div>
             </div>
 
+            {/* The maximized frame covers the board, leaving the toolbar clear. */}
+            <AnimatePresence>
+              {max && (
+                <motion.div
+                  key="max"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1, transition: SPRING_PANEL }}
+                  exit={{ opacity: 0, scale: 0.96, transition: SPRING_RETRACT }}
+                  className="absolute inset-0 hidden flex-col bg-[radial-gradient(60%_60%_at_45%_40%,var(--background-200),var(--background)_80%)] px-8 pt-6 pb-20 md:flex"
+                >
+                  <p className="mb-2 flex h-5 items-center text-[12px] font-medium text-brand">
+                    {entry.name}
+                  </p>
+                  <div className="frame-surface relative flex-1 ring-1 ring-border ring-inset">
+                    <LazyMount key={entry.slug}>
+                      <FitToStage align={entry.stageAlign}>
+                        <Demo />
+                      </FitToStage>
+                    </LazyMount>
+                    <SelectionMarks label="inside" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Below md: just the selected frame, no panning. */}
             <div className="p-4 md:hidden">
               <div className="frame-surface relative h-85 ring-1 ring-border ring-inset">
@@ -489,12 +525,17 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
               <div className="flex max-w-full items-center gap-1 rounded-2xl bg-background-100/90 p-0.5 border border-border/60 backdrop-blur-xl">
                 <button
                   type="button"
-                  aria-label="Recenter the selected component"
-                  title="Recenter"
-                  onClick={() => center(entry.slug, true)}
-                  className="hidden size-9 shrink-0 place-items-center rounded-xl text-text-secondary transition-colors duration-200 ease-out hover:bg-surface-hover hover:text-foreground md:grid"
+                  aria-label={max ? "Restore the board" : "Maximize the selected component"}
+                  aria-pressed={max}
+                  title={max ? "Restore" : "Maximize"}
+                  onClick={() => setMax((m) => !m)}
+                  className="hidden size-9 shrink-0 cursor-pointer place-items-center rounded-xl text-text-secondary transition-colors duration-200 ease-out hover:bg-surface-hover hover:text-foreground md:grid"
                 >
-                  <IconMaximize aria-hidden className="size-4" />
+                  {max ? (
+                    <IconMinimize aria-hidden className="size-4" />
+                  ) : (
+                    <IconMaximize aria-hidden className="size-4" />
+                  )}
                 </button>
                 <span
                   aria-hidden

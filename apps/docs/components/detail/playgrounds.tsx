@@ -11,6 +11,7 @@ import {
 } from "devignerui";
 import { SPRING_PANEL, SPRING_PRESS } from "devignerui/motion";
 import { cn } from "cn";
+import { IconBell, IconMenuDots } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
 import { RangeSlider } from "../range-slider";
 
@@ -168,7 +169,13 @@ function Switch({
 }
 
 /** A settings-panel row: label on the left, control on the right. */
-function SettingsRow({ label, children }: { label: string; children: React.ReactNode }) {
+function SettingsRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between gap-3 py-3">
       <span className="text-[13px] font-medium text-foreground">{label}</span>
@@ -231,15 +238,42 @@ const CHART_CARD_SALES = [
   { label: "Aug", value: 15960 },
 ];
 
+// ponytail: no-op handlers, the preview has nothing to notify or open. They
+// still count as actionable, so the card renders the buttons.
+const CHART_CARD_ACTIONS = [
+  {
+    id: "notifications",
+    label: "Notifications",
+    icon: <IconBell aria-hidden className="size-6" variant="Bulk" />,
+    onSelect: () => {},
+    badge: 3,
+  },
+  {
+    id: "more",
+    label: "More options",
+    icon: <IconMenuDots aria-hidden className="size-6" variant="Bold" />,
+    onSelect: () => {},
+  },
+];
+
 /** Sample rail for the Timeline preview - same steps as its Usage snippet. */
 const TIMELINE_STEPS = [
-  { title: "Project Kickoff", description: "Define goals and gather requirements." },
+  {
+    title: "Project Kickoff",
+    description: "Define goals and gather requirements.",
+  },
   { title: "Planning", description: "Create the roadmap and strategy." },
   { title: "Design & Build", description: "Design, develop, and iterate." },
   { title: "Launch", description: "Test, deploy, and provide support." },
 ];
 
-function MagneticPlayground({ cfg, showField }: { cfg: MagneticConfig; showField: boolean }) {
+function MagneticPlayground({
+  cfg,
+  showField,
+}: {
+  cfg: MagneticConfig;
+  showField: boolean;
+}) {
   return (
     <div className="relative inline-flex">
       {/* The field is padding cancelled by margin, so the button's own box is
@@ -250,7 +284,7 @@ function MagneticPlayground({ cfg, showField }: { cfg: MagneticConfig; showField
         style={{ inset: -cfg.field }}
         className={cn(
           "pointer-events-none absolute rounded-full border border-dashed transition-colors duration-200",
-          showField ? "border-brand/25" : "border-transparent",
+          showField ? "border-border" : "border-transparent",
         )}
       />
       <MagneticButton
@@ -272,7 +306,9 @@ function DeleteButtonPlayground({ cfg }: { cfg: DeleteConfig }) {
       // Without a promise a synchronous confirm skips the spinner and cuts
       // straight to the tick, so the pending phase never plays.
       onConfirm={
-        cfg.async ? () => new Promise((resolve) => setTimeout(resolve, 900)) : () => undefined
+        cfg.async
+          ? () => new Promise((resolve) => setTimeout(resolve, 900))
+          : () => undefined
       }
     />
   );
@@ -315,7 +351,11 @@ export function usePlayground(slug: string, fallbackUsage: string) {
           </div>
           <div className="px-3">
             <SettingsRow label="Show field">
-              <Switch checked={showField} onChange={setShowField} label="Show field" />
+              <Switch
+                checked={showField}
+                onChange={setShowField}
+                label="Show field"
+              />
             </SettingsRow>
           </div>
         </div>
@@ -368,11 +408,16 @@ export function usePlayground(slug: string, fallbackUsage: string) {
 
   const preview =
     slug === "chart-card" ? (
-      <ChartCard total={90744} data={CHART_CARD_SALES} defaultActive={4} />
+      <ChartCard
+        total={90744}
+        data={CHART_CARD_SALES}
+        defaultActiveId={4}
+        actions={CHART_CARD_ACTIONS}
+      />
     ) : slug === "timeline" ? (
       <Timeline steps={TIMELINE_STEPS} className="w-full max-w-md" />
     ) : slug === "menu-dock" ? (
-      <MenuDockPreview className="border-none! shadow-none!" />
+      <MenuDockPreview />
     ) : slug === "date-range-picker" ? (
       // Past days are disabled, as in the reference recording.
       <DateRangePicker minDate={new Date()} />

@@ -42,7 +42,7 @@ export function Hero({ entries }: { entries: CatalogEntry[] }) {
             React
           </span>{" "}
           <span className="rise block" style={line(2)}>
-            Components for Developers.
+            Components for Developers
           </span>
         </h1>
 
