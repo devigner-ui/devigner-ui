@@ -59,10 +59,10 @@ function Price({ value }: { value: string }) {
   return (
     <span className="inline-flex items-start leading-none font-bold tracking-[-0.045em] text-foreground tabular-nums">
       {money && (
-        <span className="mt-1.5 mr-0.5 text-[26px] text-text-secondary">$</span>
+        <span className="mt-2 mr-0.5 text-[30px] text-text-secondary">$</span>
       )}
-      <span className="text-[60px]">{whole}</span>
-      {cents && <span className="mt-1.5 text-[26px]">.{cents}</span>}
+      <span className="text-[72px]">{whole}</span>
+      {cents && <span className="mt-2 text-[30px]">.{cents}</span>}
     </span>
   );
 }
@@ -196,7 +196,7 @@ export function Pricing() {
             <p className="mt-6 flex h-6 items-center text-[12.5px] font-medium text-text-muted">
               No sign-up needed
             </p>
-            <p className="mt-2 flex h-15 items-end gap-2">
+            <p className="mt-2 flex h-18 items-end gap-2">
               <Price value="FREE" />
               <span className="pb-1 text-[15px] text-text-muted">forever</span>
             </p>
@@ -243,7 +243,7 @@ export function Pricing() {
                 </motion.s>
               </AnimatePresence>
             </div>
-            <div className="mt-2 flex h-15 items-end overflow-hidden">
+            <div className="mt-2 flex h-18 items-end overflow-hidden">
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.p
                   key={plan}
