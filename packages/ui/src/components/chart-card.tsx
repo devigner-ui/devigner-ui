@@ -123,7 +123,7 @@ function IconButton({
       whileTap={{ scale: 0.92 }}
       transition={SPRING_PRESS}
       className={cn(
-        "relative inline-grid size-11 cursor-pointer place-items-center rounded-full bg-surface-hover text-text-secondary transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "relative inline-grid size-11 cursor-pointer place-items-center rounded-full bg-accent text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...rest}
@@ -198,7 +198,7 @@ export function ChartCard({
       <div {...slotProps?.header} className={cn("flex items-center gap-3", classNames?.header)}>
         <span
           aria-hidden
-          className="inline-grid size-13 shrink-0 place-items-center rounded-full bg-surface2 text-text-secondary"
+          className="inline-grid size-13 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground"
         >
           <IconBarChart className="size-6.5" variant="Bulk" />
         </span>
@@ -218,7 +218,7 @@ export function ChartCard({
               >
                 {action.icon}
                 {action.badge !== undefined && action.badge !== null && (
-                  <span className="absolute -top-0.5 -right-0.5 grid min-size-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground ring-3 leading-none ring-background">
+                  <span className="absolute -top-0.5 -right-0.5 grid min-size-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white ring-3 leading-none ring-background">
                     {action.badge}
                   </span>
                 )}
@@ -228,9 +228,9 @@ export function ChartCard({
         )}
       </div>
 
-      <p className="mt-7 text-sm text-text-muted">{caption}</p>
+      <p className="mt-7 text-sm text-muted-foreground">{caption}</p>
       <p className="mt-1 text-5xl tracking-tight tabular-nums">
-        <SplitNumber value={total ?? sum} muted="text-text-tertiary" />
+        <SplitNumber value={total ?? sum} muted="text-muted-foreground" />
       </p>
 
       <div {...slotProps?.chart} className={cn("mt-8 flex h-52 items-end gap-2", classNames?.chart)}>
@@ -261,14 +261,14 @@ export function ChartCard({
                       ease: EASE_OUT,
                       layout: { duration: 0.2, ease: EASE_OUT },
                     }}
-                    className="origin-bottom rounded-xl bg-brand/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-accent-foreground tabular-nums"
+                    className="origin-bottom rounded-xl bg-primary/70 px-3.5 py-2 text-sm font-medium whitespace-nowrap text-primary-foreground tabular-nums"
                   >
                     {renderTooltip?.({
                       point,
                       index: i,
                       active: isActive,
-                      defaultTooltip: <SplitNumber value={point.value} muted="text-accent-foreground/60" />,
-                    }) ?? <SplitNumber value={point.value} muted="text-accent-foreground/60" />}
+                      defaultTooltip: <SplitNumber value={point.value} muted="text-primary-foreground/60" />,
+                    }) ?? <SplitNumber value={point.value} muted="text-primary-foreground/60" />}
                   </motion.div>
                 </div>
               )}
@@ -298,8 +298,8 @@ export function ChartCard({
                     : undefined
                 }
                 className={cn(
-                  "relative w-full cursor-pointer self-end rounded-2xl bg-surface-hover text-foreground/10 transition-colors border-t-3 border-border-hover",
-                  !isActive && "hover:bg-border-hover",
+                  "relative w-full cursor-pointer self-end rounded-2xl bg-accent text-foreground/10 transition-colors border-t-3 border-input",
+                  !isActive && "hover:bg-input",
                   classNames?.point,
                 )}
               >
@@ -307,7 +307,7 @@ export function ChartCard({
                 <span
                   className={cn(
                     "absolute -top-1.5 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-foreground ring-3 ring-background transition-colors",
-                    isActive && "bg-brand",
+                    isActive && "bg-primary",
                   )}
                 />
               </motion.button>
@@ -323,7 +323,7 @@ export function ChartCard({
             aria-hidden
             className={cn(
               "flex-1 text-center text-xs transition-colors",
-              i === activeIndex ? "text-foreground" : "text-text-muted",
+              i === activeIndex ? "text-foreground" : "text-muted-foreground",
             )}
           >
             {point.label}

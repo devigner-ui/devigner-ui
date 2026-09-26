@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { descriptors } from "./descriptors.mts";
 import { copyPasteSource } from "./generate.mts";
+import { guides } from "./guides.mts";
 
 const root = resolve(import.meta.dirname, "../..");
 const fixturesRoot = resolve(root, "packages/ui/.registry-fixtures");
@@ -22,6 +23,14 @@ try {
     if (missing.length) throw new Error(`${descriptor.slug} is missing declared dependencies: ${missing.join(", ")}`);
     mkdirSync(resolve(fixture, "components/ui"), { recursive: true });
     writeFileSync(resolve(fixture, "components/ui", `${descriptor.slug}.tsx`), source);
+    // Each guide recipe is a complete module: type-check it against the copy
+    // of the component a user would have, so the docs cannot drift.
+    guides[descriptor.slug].recipes.forEach((recipe, index) => {
+      writeFileSync(
+        resolve(fixture, "components", `recipe-${index}.tsx`),
+        recipe.code.replaceAll(`"@/components/ui/${descriptor.slug}"`, `"./ui/${descriptor.slug}"`),
+      );
+    });
     writeFileSync(resolve(fixture, "package.json"), JSON.stringify({
       private: true,
       dependencies: Object.fromEntries(descriptor.dependencies.map((dependency) => [dependency, dependency === "devignerui" ? "file:../.." : (uiPackage.dependencies[dependency] ?? uiPackage.peerDependencies[dependency] ?? uiPackage.devDependencies[dependency] ?? "*")])),

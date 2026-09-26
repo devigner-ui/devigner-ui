@@ -45,7 +45,7 @@ export function IconButton({
       } ${
         active
           ? "text-foreground"
-          : "text-foreground/70 bg-muted/50 backdrop-blur-sm hover:text-foreground"
+          : "text-foreground/70 bg-background-200/50 backdrop-blur-sm hover:text-foreground"
       } ${className}`}
       {...props}
     >

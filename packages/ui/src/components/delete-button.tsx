@@ -390,7 +390,7 @@ export function DeleteButton({
             transition={SPRING_SWAP}
             style={{ borderRadius: INNER_RADIUS }}
             className={cn(
-              "relative flex h-12 items-center gap-2.5 bg-surface px-3",
+              "relative flex h-12 items-center gap-2.5 bg-secondary px-3",
               onLeft && "flex-row-reverse",
               classNames?.confirmation,
             )}
@@ -398,7 +398,7 @@ export function DeleteButton({
             <span
               aria-hidden
               className={cn(
-                "pointer-events-none absolute top-1/2 h-4 w-2 -translate-y-1/2 bg-surface",
+                "pointer-events-none absolute top-1/2 h-4 w-2 -translate-y-1/2 bg-secondary",
                 onLeft
                   ? "-right-1.5 [clip-path:polygon(0_0,100%_50%,0_100%)]"
                   : "-left-1.5 [clip-path:polygon(100%_0,0_50%,100%_100%)]",

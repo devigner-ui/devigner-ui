@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { SITE_URL, getCatalog } from "@/lib/catalog";
+import { components } from "@/lib/registry";
+import { REQUIREMENTS, markdownUrl } from "@/lib/llms";
 import { JsonLd } from "../../../components/json-ld";
 
 export function generateStaticParams() {
@@ -26,7 +28,8 @@ export async function generateMetadata({
   return {
     title: { absolute: title },
     description,
-    alternates: { canonical: url },
+    // The markdown twin, for assistants that prefer plain text to the page.
+    alternates: { canonical: url, types: { "text/markdown": markdownUrl(entry.slug) } },
     openGraph: { title, description, url },
   };
 }
@@ -39,9 +42,10 @@ export default async function ComponentLayout({
   params: Promise<{ slug: string }>;
 }) {
   const entry = find((await params).slug);
+  const guide = entry && components[entry.slug].guide;
   return (
     <>
-      {entry && (
+      {entry && guide && (
         <JsonLd
           data={{
             "@context": "https://schema.org",
@@ -62,13 +66,25 @@ export default async function ComponentLayout({
                 url: `${SITE_URL}/components/${entry.slug}`,
                 image: `${SITE_URL}/components/${entry.slug}/opengraph-image`,
                 programmingLanguage: ["TypeScript", "React"],
-                runtimePlatform: "React 18+ with Tailwind CSS v4",
+                runtimePlatform: REQUIREMENTS,
+                softwareRequirements: REQUIREMENTS,
                 codeSampleType: "full solution",
-                keywords: [entry.categoryLabel, "React component", "Tailwind CSS", "animation"].join(", "),
+                keywords: [entry.categoryLabel, "animated React component", "Tailwind CSS", "accessible", "TypeScript"].join(", "),
+                license: "https://opensource.org/licenses/MIT",
+                encoding: { "@type": "MediaObject", encodingFormat: "text/markdown", contentUrl: markdownUrl(entry.slug) },
                 dateCreated: entry.addedAt,
                 isAccessibleForFree: true,
                 author: { "@id": `${SITE_URL}/#organization` },
                 isPartOf: { "@id": `${SITE_URL}/#website` },
+              },
+              // The Troubleshooting answers shown in the page's Guide tab.
+              {
+                "@type": "FAQPage",
+                mainEntity: guide.troubleshooting.map((t) => ({
+                  "@type": "Question",
+                  name: t.question,
+                  acceptedAnswer: { "@type": "Answer", text: t.answer },
+                })),
               },
             ],
           }}

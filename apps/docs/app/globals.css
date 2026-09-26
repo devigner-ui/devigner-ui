@@ -164,11 +164,9 @@
 :root,
 .dark,
 .light {
-  --accent: var(--brand);
   --accent-hover: var(--brand-hover);
   --accent-secondary: var(--brand-secondary);
   --accent-tertiary: var(--brand-tertiary);
-  --accent-foreground: var(--brand-foreground);
 
   --text-primary: var(--foreground);
   /* Ink for a panel that inverts the page - the page's own ground colour. */
@@ -178,19 +176,24 @@
   --warning-foreground: var(--brand-foreground);
   --destructive-foreground: var(--brand-foreground);
 
-  /* shadcn-compatible names, aliased onto Devigner tokens. */
+  /* shadcn names, aliased onto Devigner tokens. The published components
+     use only these (plus background, foreground, border and destructive),
+     so they drop into any shadcn/ui project and pick up its theme with
+     nothing to install. The values below are what they look like here. */
   --card: var(--surface);
   --card-foreground: var(--foreground);
   --popover: var(--background-100);
   --popover-foreground: var(--foreground);
-  --primary: var(--foreground);
-  --primary-foreground: var(--background);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
   --secondary: var(--surface);
   --secondary-foreground: var(--foreground);
-  --muted: var(--background-200);
+  --muted: var(--surface2);
   --muted-foreground: var(--text-muted);
-  --input: var(--border);
-  --ring: var(--accent);
+  --accent: var(--surface-hover);
+  --accent-foreground: var(--foreground);
+  --input: var(--border-hover);
+  --ring: var(--brand);
 }
 
 /* ── 3 · Tailwind mapping ────────────────────────────────────────────────────
@@ -332,12 +335,12 @@ html {
 }
 
 ::selection {
-  background-color: var(--accent);
-  color: var(--accent-foreground);
+  background-color: var(--brand);
+  color: var(--brand-foreground);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
@@ -362,7 +365,7 @@ html {
   background:
     radial-gradient(
       ellipse 80% 50% at 20% 40%,
-      color-mix(in oklab, var(--accent) 7%, transparent),
+      color-mix(in oklab, var(--brand) 7%, transparent),
       transparent
     ),
     radial-gradient(
@@ -381,7 +384,7 @@ html {
   background:
     radial-gradient(
       ellipse 80% 50% at 20% 40%,
-      color-mix(in oklab, var(--accent) 10%, transparent),
+      color-mix(in oklab, var(--brand) 10%, transparent),
       transparent
     ),
     radial-gradient(

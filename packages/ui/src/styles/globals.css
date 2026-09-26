@@ -47,6 +47,12 @@
 
   /* shadcn-compatible aliases, used by Button/Input's shared source */
   --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
   --color-primary-foreground: var(--primary-foreground);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -95,8 +101,8 @@
   --text-muted: oklch(71.625% 0 0);
   --text-on-dark: oklch(100% 0 0);
 
-  --accent: oklch(54.643% 0.21525 262.825);
-  --accent-foreground: oklch(100% 0 0);
+  --primary: oklch(54.643% 0.21525 262.825);
+  --primary-foreground: oklch(100% 0 0);
   --accent-hover: oklch(48.821% 0.21731 264.661);
 
   --success: oklch(62.697% 0.17032 149.482);
@@ -106,10 +112,17 @@
   --destructive: oklch(57.677% 0.21482 27.53);
   --destructive-foreground: oklch(100% 0 0);
 
-  --primary: var(--foreground);
-  --primary-foreground: var(--background);
-  --input: var(--border);
-  --ring: var(--accent);
+  /* shadcn roles: primary is the brand blue, accent the hover surface. */
+  --accent: var(--surface-hover);
+  --accent-foreground: var(--foreground);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-hover);
+  --muted-foreground: var(--text-muted);
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --input: var(--border-hover);
+  --ring: var(--primary);
 
   --shadow-card-val: 0 0 0 1px rgba(0, 0, 0, 0.06);
   --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -143,8 +156,8 @@
   --text-muted: oklch(44.186% 0.01467 285.743);
   --text-on-dark: oklch(11.492% 0.00001 271.152);
 
-  --accent: oklch(62.31% 0.1881 259.83);
-  --accent-foreground: oklch(100% 0.00011 271.152);
+  --primary: oklch(62.31% 0.1881 259.83);
+  --primary-foreground: oklch(100% 0.00011 271.152);
   --accent-hover: oklch(71.375% 0.14347 254.643);
 
   --success: oklch(80.036% 0.18204 151.736);
@@ -154,10 +167,17 @@
   --destructive: oklch(71.061% 0.16614 22.191);
   --destructive-foreground: oklch(100% 0.00011 271.152);
 
-  --primary: var(--foreground);
-  --primary-foreground: var(--background);
-  --input: var(--border);
-  --ring: var(--accent);
+  /* shadcn roles: primary is the brand blue, accent the hover surface. */
+  --accent: var(--surface-hover);
+  --accent-foreground: var(--foreground);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-hover);
+  --muted-foreground: var(--text-muted);
+  --card: var(--background);
+  --card-foreground: var(--foreground);
+  --input: var(--border-hover);
+  --ring: var(--primary);
 
   --shadow-card-val: 0 0 0 1px rgba(255, 255, 255, 0.06);
   --shadow-subtle-val: 0 1px 2px rgba(0, 0, 0, 0.4);

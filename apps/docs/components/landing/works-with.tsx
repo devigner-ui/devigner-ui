@@ -22,7 +22,7 @@ export function WorksWith() {
     <section aria-label="Works with" className="border-y border-border">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 lg:flex-row lg:items-center lg:justify-between">
         <p className="max-w-64 text-[14px]/6 text-text-muted">
-          Built for React 19 and Tailwind CSS v4. It drops into the stack you already have.
+          Works with React 18 and 19 on Tailwind CSS v4. It drops into the stack you already have.
         </p>
         <ul className="flex flex-wrap items-center gap-x-9 gap-y-4">
           {STACK.map(({ name, Logo }) => (

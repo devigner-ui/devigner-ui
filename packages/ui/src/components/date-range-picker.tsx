@@ -255,7 +255,7 @@ function NavButton({
       whileTap={reduced ? undefined : { scale: 0.9 }}
       transition={SPRING_PRESS}
       className={cn(
-        "inline-grid size-7 cursor-pointer place-items-center rounded-full text-text-secondary transition-colors duration-150 ease-out outline-none hover:bg-surface-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent",
+        "inline-grid size-7 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors duration-150 ease-out outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent",
         className,
       )}
       {...rest}
@@ -290,7 +290,7 @@ function Field({
     >
       <span
         className={cn(
-          "block text-[10.5px]/4 font-medium tracking-[0.08em] text-text-secondary uppercase",
+          "block text-[10.5px]/4 font-medium tracking-[0.08em] text-muted-foreground uppercase",
           labelClassName,
         )}
       >
@@ -303,7 +303,7 @@ function Field({
           "mt-0.75 text-[16px]/6 tracking-[-0.01em]",
           date
             ? "font-semibold text-foreground"
-            : "font-normal text-text-secondary",
+            : "font-normal text-muted-foreground",
         )}
       >
         {date ? formatShortDate(date) : "Add date"}
@@ -313,7 +313,7 @@ function Field({
           <motion.span
             layoutId={underlineId}
             transition={reduced ? INSTANT : SPRING_LAYOUT}
-            className="block size-full rounded-full bg-primary"
+            className="block size-full rounded-full bg-foreground"
           />
         )}
       </span>
@@ -613,7 +613,7 @@ export function DateRangePicker({
     <div
       {...slotProps?.root}
       className={cn(
-        "flex w-105 max-w-full flex-col rounded-[26px] bg-surface-hover p-2.5 smooth-shadow-ring-lg",
+        "flex w-105 max-w-full flex-col rounded-[26px] bg-accent p-2.5 smooth-shadow-ring-lg",
         slotProps?.root?.className,
         className,
         classNames?.root,
@@ -630,8 +630,8 @@ export function DateRangePicker({
           className={cn(
             "flex h-5.5 shrink-0 items-center overflow-hidden rounded-full px-2.5 text-[11.5px] leading-none font-medium transition-colors duration-300 ease-out",
             badge.value.accent
-              ? "bg-primary/10 text-primary"
-              : "bg-border text-text-secondary",
+              ? "bg-foreground/10 text-foreground"
+              : "bg-border text-muted-foreground",
             classNames?.badge,
           )}
         >
@@ -689,7 +689,7 @@ export function DateRangePicker({
             <div className="text-[16px]/6 font-bold tracking-[-0.01em] text-foreground">
               <RollingText id={monthTime} reduced={reduced}>
                 {formatMonthName(month)}{" "}
-                <span className="text-text-secondary">
+                <span className="text-muted-foreground">
                   {month.getFullYear()}
                 </span>
               </RollingText>
@@ -721,7 +721,7 @@ export function DateRangePicker({
           >
             <div
               role="row"
-              className="grid grid-cols-7 text-center text-[10px]/4 font-medium text-text-secondary"
+              className="grid grid-cols-7 text-center text-[10px]/4 font-medium text-muted-foreground"
             >
               {WEEKDAYS.map(([short, full]) => (
                 <div key={full} role="columnheader" aria-label={full}>
@@ -828,7 +828,7 @@ export function DateRangePicker({
                 className={cn(
                   "h-7.25 cursor-pointer rounded-full border px-3.25 text-[11.5px] font-medium whitespace-nowrap transition-colors duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   active
-                    ? "border-transparent bg-primary/15 text-primary"
+                    ? "border-transparent bg-foreground/15 text-foreground"
                     : "border-border bg-card text-foreground/80 hover:bg-background",
                   classNames?.presetButton,
                 )}
@@ -842,7 +842,7 @@ export function DateRangePicker({
           type="button"
           onClick={handleClear}
           className={cn(
-            "shrink-0 cursor-pointer rounded-md text-[11.5px] font-medium text-text-secondary transition-colors duration-150 ease-out outline-none hover:text-foreground hover:underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-ring",
+            "shrink-0 cursor-pointer rounded-md text-[11.5px] font-medium text-muted-foreground transition-colors duration-150 ease-out outline-none hover:text-foreground hover:underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-ring",
             classNames?.clearButton,
           )}
         >
@@ -1056,11 +1056,11 @@ function DayCell({
         className={cn(
           "relative grid size-9 cursor-pointer place-items-center rounded-full text-[13.5px] transition-colors duration-150 ease-out outline-none focus-visible:ring-2 focus-visible:ring-ring border border-transparent",
           disabled
-            ? "cursor-not-allowed text-text-muted/70"
+            ? "cursor-not-allowed text-muted-foreground/70"
             : circle
-              ? "font-medium text-primary-foreground"
+              ? "font-medium text-background"
               : inRange
-                ? "text-primary hover:bg-secondary hover:border-border"
+                ? "text-foreground hover:bg-secondary hover:border-border"
                 : "text-foreground/85 hover:bg-secondary hover:border-border",
           className,
         )}
@@ -1078,7 +1078,7 @@ function DayCell({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.97, opacity: 0 }}
               transition={reduced ? INSTANT : SPRING_LAYOUT}
-              className="absolute inset-0 rounded-full bg-primary shadow-[0_2px_6px_-1px_rgb(0_0_0/0.25)]"
+              className="absolute inset-0 rounded-full bg-foreground shadow-[0_2px_6px_-1px_rgb(0_0_0/0.25)]"
             />
           )}
         </AnimatePresence>
@@ -1087,7 +1087,7 @@ function DayCell({
       {isToday && !circle && (
         <span
           aria-hidden="true"
-          className="absolute bottom-1.25 size-0.75 rounded-full bg-text-muted"
+          className="absolute bottom-1.25 size-0.75 rounded-full bg-muted-foreground"
         />
       )}
     </div>

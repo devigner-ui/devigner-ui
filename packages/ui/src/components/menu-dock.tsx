@@ -225,7 +225,7 @@ function Row({
     transition: SPRING_PRESS,
     className: cn(
       "relative flex cursor-pointer items-center outline-none",
-      "focus-visible:ring-2 focus-visible:ring-accent/60",
+      "focus-visible:ring-2 focus-visible:ring-ring/60",
       className,
     ),
 
@@ -535,7 +535,7 @@ export function MenuDock({
                     tabIndex={isContent || focusIndex === 0 ? 0 : -1}
                     className={cn(
                       "h-10 w-full gap-3 rounded-2xl px-3 text-left text-[15px]",
-                      "font-medium text-foreground transition-colors hover:bg-surface-hover",
+                      "font-medium text-foreground transition-colors hover:bg-accent",
                     )}
                   >
                     <span className={GLYPH} aria-hidden>
@@ -599,7 +599,7 @@ export function MenuDock({
                             : { width: TAP, height: TAP }
                       }
                       className={cn(
-                        "transition-colors hover:bg-surface-hover",
+                        "transition-colors hover:bg-accent",
                         open
                           ? "h-10 w-full gap-3 rounded-2xl px-3 text-left text-[15px]"
                           : labelled
@@ -610,7 +610,7 @@ export function MenuDock({
                         !open &&
                           (on
                             ? "text-foreground"
-                            : "text-text-secondary hover:text-foreground"),
+                            : "text-muted-foreground hover:text-foreground"),
                       )}
                     >
                       <span className={GLYPH}>
@@ -628,7 +628,7 @@ export function MenuDock({
                       )}
                       {open && expands && (
                         <IconChevronRight
-                          className={cn(GLYPH, "text-text-muted size-4")}
+                          className={cn(GLYPH, "text-muted-foreground size-4")}
                           strokeWidth={2.5}
                           aria-hidden
                         />
