@@ -134,6 +134,10 @@ export interface MenuDockProps extends Omit<
   renderIcon?: (props: MenuDockIconRenderProps) => React.ReactNode;
   classNames?: MenuDockClassNames;
   slotProps?: MenuDockSlotProps;
+  /** Shared-layout id for the surface. A dock that remounts with the same id
+   *  (a route change swapping in a dock with different items) glides from the
+   *  old one's size instead of snapping to the new one. */
+  layoutId?: string;
 }
 
 /** The shell clips its overflow, and focusing something the clip is hiding
@@ -258,6 +262,7 @@ export function MenuDock({
   renderIcon,
   classNames,
   slotProps,
+  layoutId,
   ...rest
 }: MenuDockProps) {
   const reduced = useReducedMotionPreference();
@@ -498,6 +503,7 @@ export function MenuDock({
           {...slotProps?.shell}
           ref={shell}
           layout
+          layoutId={layoutId}
           style={{ borderRadius: open ? PANEL_RADIUS : DOCK_RADIUS }}
           transition={reduced ? { duration: 0 } : SPRING_LAYOUT}
           onKeyDown={onKeyDown}

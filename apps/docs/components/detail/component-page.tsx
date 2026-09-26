@@ -30,6 +30,7 @@ import {
   IconRestart,
   IconSearchNormal,
   IconSettings,
+  IconSpinner,
 } from "@devigner-ui/icons";
 import { cn } from "cn";
 import type { ComponentData } from "@/lib/registry";
@@ -143,19 +144,51 @@ function DockGlyph({
 
 type Hint = { dir: "Previous" | "Next"; name: string; rect: DOMRect } | null;
 
+const MotionSpinner = motion.create(IconSpinner);
+
+/** Whether the last details page's dock had a Settings button. Each page
+ *  mounts a fresh dock, so this is how the next one knows Settings is new to
+ *  it. null on a first visit, where nothing should animate in. */
+let lastHadSettings: boolean | null = null;
+
+/** The Settings glyph. Arriving from a dock without it, it pops in while the
+ *  shell glides wider; its own AnimatePresence, because the dock's one runs
+ *  with initial={false} and would swallow the entrance. */
+function SettingsGlyph({ enter }: { enter: boolean }) {
+  const reduce = useReducedMotion();
+  return (
+    <AnimatePresence initial={enter}>
+      <motion.span
+        className="grid place-items-center"
+        initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.4, rotate: -90 }}
+        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+        transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
+      >
+        <IconSettings strokeWidth={2} />
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
 /** Prev / next glyph. The span covers the row's whole tap target to report
  *  hover for the page's tooltip; its empty title stops the row's native one
  *  from stacking on top. */
 function ArrowGlyph({
   dir,
   name,
+  busy,
   onHint,
 }: {
   dir: "Previous" | "Next";
   name: string;
+  /** Navigation to this neighbour is under way: the chevron morphs into a
+   *  spinner, the same hand-off as Delete Button's pending state. */
+  busy: boolean;
   onHint: (h: Hint) => void;
 }) {
+  const reduce = useReducedMotion();
   const Icon = dir === "Previous" ? IconChevronLeft : IconChevronRight;
+  const swap = reduce ? { duration: 0 } : SPRING_SWAP;
   return (
     <>
       <span
@@ -168,7 +201,30 @@ function ArrowGlyph({
         }
         onPointerLeave={() => onHint(null)}
       />
-      <Icon strokeWidth={2} />
+      <span className="grid place-items-center">
+        <motion.span
+          className="col-start-1 row-start-1 grid place-items-center"
+          initial={false}
+          animate={{ opacity: busy ? 0 : 1, scale: busy && !reduce ? 0.5 : 1 }}
+          transition={swap}
+        >
+          <Icon strokeWidth={2} />
+        </motion.span>
+        <MotionSpinner
+          aria-hidden
+          strokeWidth={2}
+          className="col-start-1 row-start-1"
+          style={{ transformOrigin: "50% 50%" }}
+          initial={false}
+          animate={{ rotate: busy ? 360 : 0, opacity: busy ? 1 : 0 }}
+          transition={{
+            rotate: busy
+              ? { duration: 0.9, ease: "linear", repeat: Infinity }
+              : { duration: 0 },
+            opacity: swap,
+          }}
+        />
+      </span>
     </>
   );
 }
@@ -426,8 +482,16 @@ export function ComponentPage({
   const [resetSpins, setResetSpins] = useState(0);
   const [path, setPath] = useState<number[]>([]);
   const [hint, setHint] = useState<Hint>(null);
+  // ponytail: never reset by hand - the page is keyed by slug, so arriving
+  // at the neighbour remounts it with this back at null.
+  const [going, setGoing] = useState<"Previous" | "Next" | null>(null);
 
   const playground = usePlayground(slug, meta.usage);
+  const [settingsIsNew] = useState(() => lastHadSettings === false);
+  const hasSettings = !!playground.settings;
+  useEffect(() => {
+    lastHadSettings = hasSettings;
+  }, [hasSettings]);
   const entry = entries.find((e) => e.slug === slug);
   const order = useMemo(
     () => groupByCategory(entries).flatMap((g) => g.items),
@@ -435,8 +499,11 @@ export function ComponentPage({
   );
   const { prev, next } = neighbors(order, slug);
 
-  const go = (to: CatalogEntry) => {
+  const go = (dir: "Previous" | "Next") => {
+    if (live.current.going) return;
     setHint(null);
+    setGoing(dir);
+    const to = dir === "Previous" ? prev : next;
     router.push(`/components/${to.slug}`);
   };
 
@@ -444,8 +511,15 @@ export function ComponentPage({
     {
       id: "prev",
       label: `Previous: ${prev.name}`,
-      icon: <ArrowGlyph dir="Previous" name={prev.name} onHint={setHint} />,
-      onSelect: () => go(prev),
+      icon: (
+        <ArrowGlyph
+          dir="Previous"
+          name={prev.name}
+          busy={going === "Previous"}
+          onHint={setHint}
+        />
+      ),
+      onSelect: () => go("Previous"),
     },
     {
       id: "components",
@@ -536,7 +610,7 @@ export function ComponentPage({
           {
             id: "settings",
             label: "Settings",
-            icon: <IconSettings strokeWidth={2} />,
+            icon: <SettingsGlyph enter={settingsIsNew} />,
             content: playground.settings,
           },
         ]
@@ -544,19 +618,26 @@ export function ComponentPage({
     {
       id: "next",
       label: `Next: ${next.name}`,
-      icon: <ArrowGlyph dir="Next" name={next.name} onHint={setHint} />,
-      onSelect: () => go(next),
+      icon: (
+        <ArrowGlyph
+          dir="Next"
+          name={next.name}
+          busy={going === "Next"}
+          onHint={setHint}
+        />
+      ),
+      onSelect: () => go("Next"),
     },
   ];
 
   // Read by the key listener without rebinding it on every render.
-  const live = useRef({ path, docsOpen, prev, next });
-  live.current = { path, docsOpen, prev, next };
+  const live = useRef({ path, docsOpen, going, go });
+  live.current = { path, docsOpen, going, go };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const { path, docsOpen, prev, next } = live.current;
+      const { path, docsOpen, go } = live.current;
       const typing = isTyping(e.target);
 
       if (e.key === "/" && !typing) {
@@ -575,10 +656,7 @@ export function ComponentPage({
           document.activeElement === null)
       ) {
         e.preventDefault();
-        setHint(null);
-        router.push(
-          `/components/${(e.key === "ArrowLeft" ? prev : next).slug}`,
-        );
+        go(e.key === "ArrowLeft" ? "Previous" : "Next");
         return;
       }
       if (e.key === "Escape" && !typing) {
@@ -625,6 +703,7 @@ export function ComponentPage({
               path={path}
               onNavigate={setPath}
               label="Preview actions"
+              layoutId="detail-dock"
             />
           </div>
         </div>
