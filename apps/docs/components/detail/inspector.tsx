@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { IconCheck, IconCopy } from "@devigner-ui/icons";
@@ -10,7 +9,7 @@ import type { ComponentData } from "@/lib/registry";
 import { CodeBlock } from "../code-block";
 import { CopyCommand } from "../landing/copy-command";
 
-const TABS = ["Install", "Usage", "Props", "Notes"] as const;
+const TABS = ["Install", "Usage", "Props", "Guide"] as const;
 type Tab = (typeof TABS)[number];
 
 /** "Magnetic Button" keeps "Button" for the accent; one-word names get none. */
@@ -48,6 +47,24 @@ function Mono({ children }: { children: React.ReactNode }) {
     <code className="rounded-md bg-surface px-1.5 py-0.5 font-mono text-[12.5px] text-foreground">
       {children}
     </code>
+  );
+}
+
+function H3({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="mt-7 mb-3 text-[15px] font-semibold tracking-[-0.02em] text-foreground">
+      {children}
+    </h3>
+  );
+}
+
+function Bullets({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="flex list-disc flex-col gap-2.5 pl-5 text-[13.5px]/relaxed text-text-secondary marker:text-text-muted">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
   );
 }
 
@@ -97,7 +114,7 @@ function CodeFigure({ code }: { code: string }) {
   );
 }
 
-/** The Docs panel: header, then Install / Usage / Props / Notes tabs. */
+/** The Docs panel: header, then Install / Usage / Props / Guide tabs. */
 export function Inspector({
   meta,
   isNew,
@@ -207,7 +224,7 @@ export function Inspector({
 
             <Label>Or by hand</Label>
             <ol className="flex list-decimal flex-col gap-3 pl-5 text-[13.5px]/relaxed text-text-secondary marker:font-mono marker:text-[12px] marker:text-text-muted">
-              <li>Needs React 18+ and Tailwind CSS v4.</li>
+              <li>Needs React 18 or 19 and Tailwind CSS v4.</li>
               {deps.length > 0 && (
                 <li>
                   <p className="mb-2">Install the dependencies.</p>
@@ -248,6 +265,15 @@ export function Inspector({
                 <CodeFigure code={meta.customUsage} />
               </>
             )}
+            {meta.guide.recipes.map((recipe) => (
+              <section key={recipe.title}>
+                <H3>{recipe.title}</H3>
+                <p className="mb-3 text-[13.5px]/relaxed text-text-secondary">
+                  {recipe.description}
+                </p>
+                <CodeFigure code={recipe.code} />
+              </section>
+            ))}
         </div>
 
         <div
@@ -282,31 +308,52 @@ export function Inspector({
         </div>
 
         <div
-          id="doc-panel-Notes"
+          id="doc-panel-Guide"
           role="tabpanel"
-          aria-labelledby="doc-tab-Notes"
-          hidden={tab !== "Notes"}
+          aria-labelledby="doc-tab-Guide"
+          hidden={tab !== "Guide"}
         >
-            <H2>Notes</H2>
-            {meta.notes && meta.notes.length > 0 && (
-              <ul className="mb-6 flex list-disc flex-col gap-3 pl-5 text-[14px]/relaxed text-text-secondary marker:text-text-muted">
-                {meta.notes.map((n, i) => (
-                  <li key={i}>{n}</li>
-                ))}
-              </ul>
-            )}
-            <p className="text-[14px]/relaxed text-text-secondary">
-              It&apos;s your code now. Edit it however you like. If something breaks in
-              your setup, the{" "}
-              <Link
-                href="/components"
-                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
-              >
-                registry
-              </Link>{" "}
-              has the latest version.
-            </p>
-            <p className="mt-4 text-[14px]/relaxed text-text-secondary">
+            <H2>
+              How to <span className="accent-word">use</span> it
+            </H2>
+            <p className="text-[14px]/relaxed text-text-secondary">{meta.guide.demo}</p>
+
+            <H3>When to use it</H3>
+            <Bullets items={meta.guide.whenToUse} />
+
+            <H3>When to reach for something else</H3>
+            <Bullets items={meta.guide.whenNotToUse} />
+
+            <H3>Keyboard</H3>
+            <dl className="overflow-hidden rounded-xl border border-border">
+              {meta.guide.keyboard.map(([keys, action], i) => (
+                <div key={keys} className={cn("px-4 py-3", i > 0 && "border-t border-border")}>
+                  <dt className="font-mono text-[12.5px] font-medium text-foreground">{keys}</dt>
+                  <dd className="mt-1 text-[13.5px]/relaxed text-text-secondary">{action}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <H3>Accessibility</H3>
+            <Bullets items={meta.guide.accessibility} />
+
+            <H3>Theming</H3>
+            <Bullets items={meta.guide.theming} />
+
+            <H3>Edge cases</H3>
+            <Bullets items={meta.guide.edgeCases} />
+
+            <H3>Troubleshooting</H3>
+            <div className="flex flex-col gap-4">
+              {meta.guide.troubleshooting.map((t) => (
+                <div key={t.question}>
+                  <h4 className="text-[13.5px] font-medium text-foreground">{t.question}</h4>
+                  <p className="mt-1 text-[13.5px]/relaxed text-text-secondary">{t.answer}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-8 text-[13px]/relaxed text-text-muted">
               Some of these designs take cues from interfaces we&apos;ve admired around the
               web. If one started as your idea and you&apos;d like credit, message us on{" "}
               <a

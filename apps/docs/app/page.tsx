@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BENTO, FEATURED, SITE_URL, getCatalog } from "@/lib/catalog";
+import { REQUIREMENTS } from "@/lib/llms";
 import { JsonLd } from "../components/json-ld";
 import { Navbar } from "../components/landing/navbar";
 import { Hero } from "../components/landing/hero";
@@ -18,7 +19,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", types: { "text/plain": "/llms.txt" } },
   openGraph: { title: TITLE, description: DESCRIPTION, url: "/" },
 };
 
@@ -65,7 +66,10 @@ export default function HomePage() {
               url: SITE_URL,
               description: DESCRIPTION,
               applicationCategory: "DeveloperApplication",
-              operatingSystem: "Any (React 18+ and Tailwind CSS v4)",
+              operatingSystem: "Any",
+              softwareRequirements: REQUIREMENTS,
+              license: "https://opensource.org/licenses/MIT",
+              downloadUrl: "https://www.npmjs.com/package/devignerui",
               offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
               publisher: { "@id": `${SITE_URL}/#organization` },
             },

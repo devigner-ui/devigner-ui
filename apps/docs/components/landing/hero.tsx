@@ -38,11 +38,11 @@ export function Hero({ entries }: { entries: CatalogEntry[] }) {
 
         <h1 className="mx-auto mt-7 max-w-6xl text-[clamp(2.5rem,5vw,4rem)] leading-[1.03] font-semibold tracking-[-0.055em] text-balance text-foreground">
           <span className="rise block" style={line(1)}>
-            Beautifully <span className="accent-word">Crafted</span> React
-            Components,
+            Beautifully <span className="accent-word">Crafted</span> Animated
+            React
           </span>{" "}
           <span className="rise block" style={line(2)}>
-            Built for Developers.
+            Components for Developers.
           </span>
         </h1>
 
