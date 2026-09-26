@@ -232,7 +232,7 @@ export function Timeline({
                   // Filled inside a transparent 3px ring: the dot keeps its 28px
                   // footprint while the rail stops short of it.
                   "block shrink-0 rounded-full bg-clip-content p-0.75 transition-colors duration-300",
-                  on ? "bg-brand" : "bg-border",
+                  on ? "bg-primary" : "bg-border",
                 )}
                 style={{
                   width: DOT,
@@ -244,7 +244,7 @@ export function Timeline({
               <div className={cn("min-w-0", classNames?.content)}>
                 {renderStep?.({ step, index: i, active: on })}
                 <span
-                  className="inline-flex items-center rounded-full border border-border px-2 font-mono text-[11px] leading-none text-text-muted"
+                  className="inline-flex items-center rounded-full border border-border px-2 font-mono text-[11px] leading-none text-muted-foreground"
                   style={{ height: BADGE }}
                 >
                   {step.label ?? `Step ${i + 1}`}
@@ -253,7 +253,7 @@ export function Timeline({
                   {step.title}
                 </h3>
                 {step.description && (
-                  <p className="mt-1.5 text-[14px]/5 text-text-muted">
+                  <p className="mt-1.5 text-[14px]/5 text-muted-foreground">
                     {step.description}
                   </p>
                 )}

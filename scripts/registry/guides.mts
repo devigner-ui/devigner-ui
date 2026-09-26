@@ -33,7 +33,7 @@ export interface ComponentGuide {
 const TOKENS_MISSING: GuideQuestion = {
   question: "The component renders with no background or the wrong colors.",
   answer:
-    "Its classes (bg-surface, text-foreground, bg-brand and similar) read CSS variables such as --surface, --foreground and --brand through your Tailwind v4 @theme. Define those variables in your global CSS for :root and .dark. shadcn/ui projects already have most of them; --surface, --surface-hover and --brand usually need adding.",
+    "Colors use the standard shadcn/ui tokens only (background, foreground, primary, secondary, muted, accent, border, input, ring, destructive), so a project set up with shadcn/ui needs nothing extra and the component follows its theme, dark mode included. Without shadcn/ui, define those CSS variables for :root and .dark and map them in your Tailwind v4 @theme, or run npx shadcn init.",
 };
 
 const REDUCED_MOTION =
@@ -63,7 +63,7 @@ export const guides = {
     ],
     theming: [
       "className styles the visible pill, not the invisible field, so backgrounds, rounding and padding go there.",
-      "Defaults use bg-surface and text-foreground, and the focus ring uses ring-accent.",
+      "Defaults use bg-secondary and text-foreground, and the focus ring uses ring-ring.",
       "strength and labelStrength are 0 to 10 dials. A different value for each gives the parallax between pill and label.",
     ],
     edgeCases: [
@@ -124,7 +124,7 @@ export function DocsLink() {
     ],
     theming: [
       "classNames targets the root, header, actions, chart, point, tooltip and labels slots, and slotProps passes attributes to them.",
-      "The open bar and its dot use --brand; idle bars use bg-surface-hover with a border-border-hover top edge.",
+      "The open bar, its dot and the tooltip use primary; idle bars use bg-accent with a border-input top edge.",
       "renderTooltip replaces the tooltip content but keeps its position and motion; renderPoint adds content inside each bar.",
     ],
     edgeCases: [
@@ -199,7 +199,7 @@ export function SalesCard() {
     ],
     theming: [
       "classNames targets the root, the tile and the confirmation pill.",
-      "Uses bg-background with the shadow-elevated token for the shell and bg-surface for the confirmation.",
+      "Uses bg-background for the shell and bg-secondary for the confirmation. The shell's shadow-elevated utility is a Devigner shadow token: define --shadow-elevated in your @theme or swap in shadow-lg.",
       "label, confirmLabel, cancelLabel, pendingLabel and doneLabel set every accessible name, for translation or more specific wording (\"Delete invoice\").",
       "left puts the confirmation on the left of the tile, and the lid opens toward it.",
     ],
@@ -264,7 +264,7 @@ export function DeleteInvoice({ id }: { id: string }) {
     ],
     theming: [
       "classNames targets the root list, each item and each content block.",
-      "The active dot uses --brand, idle dots and the rail use --border, titles use text-foreground and descriptions text-text-muted.",
+      "The active dot uses primary, idle dots and the rail use border, titles use text-foreground and descriptions text-muted-foreground.",
       "renderStep adds your own content above the badge, such as a date, icon or link.",
     ],
     edgeCases: [
@@ -329,7 +329,7 @@ export function Roadmap() {
       REDUCED_MOTION,
     ],
     theming: [
-      "className goes on the footprint wrapper that holds the dock's place in the layout; position the dock there. classNames.shell styles the surface that grows.",
+      "className goes on the footprint wrapper that holds the dock's place in the layout; position the dock there. classNames.shell styles the surface that grows, whose shadow-elevated utility is a Devigner shadow token (define --shadow-elevated in your @theme or swap in shadow-lg).",
       "floating pins the dock to the bottom center of the viewport.",
       "destructive rows (such as Sign out) use the destructive color.",
       "Pass activeIcon next to icon to swap in a filled glyph for the active item, and renderIcon to wrap or replace any icon.",
@@ -409,6 +409,7 @@ export function AppDock({ signOut }: { signOut: () => void }) {
       "title, startLabel and endLabel change the copy, so it works for things other than trips (\"Report period\", \"From\", \"To\").",
       "renderBadge replaces the nights badge; it receives the committed range, or the preview range while the end is being picked.",
       "Pass presets={[]} to hide the presets, or your own list of { id, label, getRange }.",
+      "Colors come from shadcn tokens. The card's smooth-shadow-ring-lg and the header's shadow-subtle are shadow utilities from shadow-plugin and a Devigner shadow token; replace them with shadow-lg and shadow-xs if you don't use those.",
     ],
     edgeCases: [
       "minDate and maxDate disable everything outside them; isDateDisabled disables single days (weekends, booked nights). All three combine.",

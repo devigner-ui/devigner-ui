@@ -16,7 +16,7 @@ export const FAQS: { question: string; answer: string }[] = [
   {
     question: "Does it work with shadcn/ui?",
     answer:
-      "Yes. Both use a components/ui folder and many of the same CSS variable names, like --primary and --ring. Devigner components also read a few tokens of their own, such as --surface and --brand.",
+      "Yes. Components install into the same components/ui folder and use the standard shadcn/ui color tokens (primary, secondary, muted, accent, border, ring and the rest), so they pick up your existing theme and dark mode with nothing to add.",
   },
   {
     question: "Do I need Framer Motion?",

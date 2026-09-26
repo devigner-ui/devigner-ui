@@ -197,7 +197,7 @@ export function MagneticButton(props: MagneticButtonProps) {
       <span
         ref={pillRef}
         className={cn(
-          "relative inline-flex cursor-pointer items-center justify-center rounded-full bg-surface px-8 py-4 text-sm font-medium whitespace-nowrap text-foreground will-change-transform group-focus-visible:ring-2 group-focus-visible:ring-accent group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background",
+          "relative inline-flex cursor-pointer items-center justify-center rounded-full bg-secondary px-8 py-4 text-sm font-medium whitespace-nowrap text-foreground will-change-transform group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background",
           className,
         )}
       >
