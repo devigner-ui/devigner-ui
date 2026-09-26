@@ -14,10 +14,10 @@ import { LogoX } from "../brand-logos";
 const PLANS = {
   monthly: {
     label: "Monthly",
-    price: "$14.99",
-    was: "$24.99",
+    price: "$5.99",
+    was: "$9.99",
     per: "a month",
-    sub: "Cancel whenever. Lifetime is one payment of $149.99.",
+    sub: "Cancel whenever. Lifetime is one payment of $179.99.",
     features: [
       "Everything in Free",
       "Every Pro component while you're subscribed",
@@ -27,10 +27,10 @@ const PLANS = {
   },
   lifetime: {
     label: "Lifetime",
-    price: "$149.99",
-    was: "$249.99",
+    price: "$179.99",
+    was: "$299.99",
     per: "once",
-    sub: "About ten months of Monthly, then it's paid for good.",
+    sub: "About two and a half years of Monthly, then it's paid for good.",
     features: [
       "Everything in Free",
       "Every Pro component, including future ones",
@@ -224,7 +224,7 @@ export function Pricing() {
               <Badge>Not on sale yet</Badge>
             </div>
             <div className="mt-6 flex h-6 items-center gap-2.5 overflow-hidden">
-              <span className="rounded-full bg-brand px-2 py-0.5 text-[11.5px] font-semibold text-brand-foreground">
+              <span className="rounded-full bg-brand px-2 py-0.5 text-[11.5px]/4 font-semibold text-brand-foreground">
                 {LAUNCH_OFF}
               </span>
               <span className="text-[12.5px] font-medium text-text-muted">
