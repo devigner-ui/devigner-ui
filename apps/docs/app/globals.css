@@ -277,10 +277,8 @@
   --radius: 0.625rem;
 
   /* Typography - Geist for titles and body, Mazius Display for one accent
-     word per title, Bricolage Grotesque for the logo only. */
+     word per title. The logo is SVG outlines (wordmark-glyphs.ts). */
   --font-accent: var(--font-mazius), Georgia, serif;
-  --font-display:
-    var(--font-bricolage), var(--font-geist-sans), system-ui, sans-serif;
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
@@ -587,9 +585,9 @@ html {
   /* The footer wordmark, pressed into the page. */
   .wordmark-pressed {
     color: var(--background-200);
-    text-shadow:
-      0 -1px 0 var(--emboss-lip),
-      0 1px 0 var(--emboss-catch);
+    /* The letters are SVG, so the emboss is a drop-shadow, not text-shadow. */
+    filter: drop-shadow(0 -1px 0 var(--emboss-lip))
+      drop-shadow(0 1px 0 var(--emboss-catch));
   }
 }
 

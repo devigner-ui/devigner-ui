@@ -7,18 +7,37 @@ import { IconArrowRight } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { EASE_DRAWER, SPRING_LAYOUT } from "devignerui/motion";
 import { ThemeToggle } from "../theme-provider";
+import { WORDMARK_SMALL } from "./wordmark-glyphs";
 
-/** "devigner." in the display face, the period in cobalt. */
+// Tracking in em units: letter-spacing lands after every letter, so each
+// advance carries it.
+const SMALL_TRACK = -45;
+const SMALL_WIDTH = WORDMARK_SMALL.reduce((x, g) => x + g.w + SMALL_TRACK, 0);
+
+/** "devigner." as outlines of the logo face, the period in cobalt. Sized by
+ *  font-size (1em tall), so `text-[19px]` still scales it. */
 export function Wordmark({ className }: { className?: string }) {
+  let x = 0;
   return (
-    <span
-      className={cn(
-        "font-display text-[21px] leading-none font-extrabold tracking-[-0.045em] text-foreground",
-        className,
-      )}
+    <svg
+      aria-hidden
+      viewBox={`0 -830 ${SMALL_WIDTH} 1000`}
+      style={{ width: `${SMALL_WIDTH / 1000}em` }}
+      className={cn("h-[1em] overflow-visible fill-current align-[-0.17em] text-[21px] text-foreground", className)}
     >
-      devigner<span className="text-brand">.</span>
-    </span>
+      {WORDMARK_SMALL.map((g, i) => {
+        const at = x;
+        x += g.w + SMALL_TRACK;
+        return (
+          <path
+            key={i}
+            d={g.d}
+            transform={`translate(${at} 0)`}
+            className={i === WORDMARK_SMALL.length - 1 ? "fill-brand" : undefined}
+          />
+        );
+      })}
+    </svg>
   );
 }
 

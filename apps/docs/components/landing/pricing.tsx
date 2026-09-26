@@ -51,13 +51,13 @@ type Plan = keyof typeof PLANS;
 // ponytail: one launch discount for both plans; per-plan if they ever differ.
 const LAUNCH_OFF = "40% off";
 
-/** A price set in the logo face: the dollar sign and cents sit smaller, so
+/** A price: the dollar sign and cents sit smaller, so
  *  the whole number carries the weight. */
 function Price({ value }: { value: string }) {
   const money = value.startsWith("$");
   const [whole, cents] = (money ? value.slice(1) : value).split(".");
   return (
-    <span className="inline-flex items-start font-display leading-none font-bold tracking-[-0.045em] text-foreground tabular-nums">
+    <span className="inline-flex items-start leading-none font-bold tracking-[-0.045em] text-foreground tabular-nums">
       {money && (
         <span className="mt-1.5 mr-0.5 text-[26px] text-text-secondary">$</span>
       )}
@@ -237,7 +237,7 @@ export function Pricing() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={roll(-1)}
                   transition={SPRING_SWAP}
-                  className="font-display text-[14px] font-semibold text-text-muted tabular-nums"
+                  className="text-[14px] font-semibold text-text-muted tabular-nums"
                 >
                   {current.was}
                 </motion.s>

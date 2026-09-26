@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { MenuDock, type MenuDockItem } from "devignerui";
+import { componentNames } from "@/lib/registry-names";
 import {
   IconArchive,
   IconArrowUpDown,
@@ -69,30 +70,19 @@ export default function MenuDockDemo() {
  *  ordinary markup with its own state - the dock morphs into whatever this
  *  renders and never learns that it is a search box.
  *
- *  It searches the real registry, so the results are real components. The
- *  registry holds every component's source, so it loads when this panel
- *  first opens instead of riding in every page that shows the dock. Capped,
+ *  It searches the real component names (lib/registry-names.ts, generated
+ *  with the registry but without its sources, so it can ship inline). Capped,
  *  because the surface animates to fit its content: an uncapped list would
  *  have the panel lurching a row taller on every keystroke. */
 const SEARCH_LIMIT = 4;
 
 function MenuDockSearch() {
   const [query, setQuery] = useState("");
-  const [all, setAll] = useState<{ slug: string; name: string }[] | null>(null);
-  useEffect(() => {
-    let alive = true;
-    import("@/lib/registry").then(
-      ({ components }) => alive && setAll(Object.values(components)),
-    );
-    return () => {
-      alive = false;
-    };
-  }, []);
   const q = query.trim().toLowerCase();
   const hits = (
     q
-      ? (all ?? []).filter((c) => c.name.toLowerCase().includes(q))
-      : (all ?? [])
+      ? componentNames.filter((c) => c.name.toLowerCase().includes(q))
+      : componentNames
   ).slice(0, SEARCH_LIMIT);
 
   return (
@@ -108,7 +98,7 @@ function MenuDockSearch() {
         />
       </div>
       <motion.div layout="position" className="flex flex-col gap-1">
-        {all === null ? null : hits.length === 0 ? (
+        {hits.length === 0 ? (
           <p className="px-3 py-2 text-[15px] text-text-muted">
             Nothing matches “{query.trim()}”.
           </p>
@@ -185,14 +175,28 @@ const MENU_DOCK_ITEMS: MenuDockItem[] = [
   },
 ];
 
+/** Index of the Search item, for opening the dock on its panel. */
+export const MENU_DOCK_SEARCH = [MENU_DOCK_ITEMS.findIndex((item) => item.id === "search")];
+
 /** The details page's dock, with `active` wired to the last leaf picked - without state the
- *  outline/solid swap has nothing to swap on. */
-export function MenuDockPreview({ className }: { className?: string }) {
+ *  outline/solid swap has nothing to swap on. `initialPath` opens it on a
+ *  level, which then behaves like any other: Escape or a click closes it. */
+export function MenuDockPreview({
+  className,
+  initialPath,
+}: {
+  className?: string;
+  initialPath?: number[];
+}) {
   const [active, setActive] = useState("home");
+  const [path, setPath] = useState(initialPath ?? []);
 
   return (
     <MenuDock
       active={active}
+      // Controlled only when asked to open somewhere, so other callers keep
+      // the dock's own navigation.
+      {...(initialPath && { path, onNavigate: setPath })}
       items={MENU_DOCK_ITEMS.map((item) =>
         item.items ? item : { ...item, onSelect: () => setActive(item.id!) },
       )}

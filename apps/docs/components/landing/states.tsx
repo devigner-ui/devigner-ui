@@ -21,7 +21,7 @@ import { cn } from "cn";
 import type { CatalogEntry } from "@/lib/catalog-query";
 import type { BENTO } from "@/lib/catalog";
 import { demos } from "../../demos";
-import { MenuDockPreview } from "../../demos/menu-dock";
+import { MENU_DOCK_SEARCH, MenuDockPreview } from "../../demos/menu-dock";
 import { FitToStage } from "./canvas-frame";
 import { useSelection } from "./selection";
 
@@ -129,6 +129,7 @@ function KeyboardCell() {
         <Stage
           prop="event.key"
           value={last}
+          idle="press Tab"
           lit={pressed.size > 0}
           controls={
             <div aria-hidden className="flex justify-center px-2 py-5">
@@ -160,7 +161,8 @@ function KeyboardCell() {
           {/* Room above the dock for its menus and search panel to open into. */}
           <div className="relative h-84 w-full">
             <FitToStage align="end" className="inset-0">
-              <MenuDockPreview />
+              {/* Open on Search, so the room above shows what it is for. */}
+              <MenuDockPreview initialPath={MENU_DOCK_SEARCH} />
             </FitToStage>
           </div>
         </Stage>
@@ -255,6 +257,7 @@ function ThemesCell({ entry }: { entry: CatalogEntry }) {
 function Stage({
   prop,
   value,
+  idle,
   lit,
   controls,
   children,
@@ -262,6 +265,8 @@ function Stage({
   prop: string;
   /** Null before anything has set it. */
   value: string | null;
+  /** Shown instead of `null` before the first value, as a prompt. */
+  idle?: string;
   lit: boolean;
   controls: React.ReactNode;
   children: React.ReactNode;
@@ -280,7 +285,7 @@ function Stage({
               lit ? "text-brand" : "text-text-secondary",
             )}
           >
-            {value === null ? "null" : `"${value}"`}
+            {value === null ? (idle ?? "null") : `"${value}"`}
           </span>
         </span>
         {children}

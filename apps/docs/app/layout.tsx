@@ -1,20 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "../components/theme-provider";
 import { SITE_URL } from "@/lib/catalog";
 // @ts-ignore - CSS module declarations not available in this project
 import "./globals.css";
 
-// The logo face: the wordmark, brand tile and the giant footer word only.
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  axes: ["opsz"],
-  display: "swap",
-  variable: "--font-bricolage",
+// geist/font/mono's own settings, minus the preload: code blocks sit below
+// the fold, so only Geist Sans is preloaded.
+const geistMono = localFont({
+  src: "../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2",
+  variable: "--font-geist-mono",
+  adjustFontFallback: false,
+  weight: "100 900",
+  preload: false,
 });
 
 // The accent face: one emphasized word in a title (.accent-word). OFL,
@@ -25,6 +25,7 @@ const mazius = localFont({
   style: "italic",
   display: "swap",
   variable: "--font-mazius",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -80,7 +81,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} ${bricolage.variable} ${mazius.variable}`}
+      className={`${GeistSans.variable} ${geistMono.variable} ${mazius.variable}`}
       suppressHydrationWarning
     >
       <head>

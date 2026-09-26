@@ -48,8 +48,8 @@ import { Inspector } from "./inspector";
 import { usePlayground } from "./playgrounds";
 
 const INSPECTOR_W = 460;
-/** Space kept between the floating Docs panel and the viewport edges. */
-const INSPECTOR_GAP = 12;
+/** Space kept between the floating Docs/code panels and the viewport edges. */
+const PANEL_GAP = 12;
 const DRAWER_H = 320;
 
 const lgQuery = "(min-width: 1024px)";
@@ -710,13 +710,18 @@ export function ComponentPage({
 
         <motion.div
           initial={false}
-          animate={{ height: sourceOpen ? DRAWER_H : 0 }}
+          animate={{ height: sourceOpen ? DRAWER_H + PANEL_GAP : 0 }}
           transition={panel}
-          className="shrink-0 overflow-hidden bg-background-100"
+          className="shrink-0 overflow-hidden"
           aria-hidden={!sourceOpen}
         >
           {sourceOpen && (
-            <div className="flex h-full flex-col border-t border-border">
+            // Fixed height, not h-full: the drawer clips it while it grows
+            // instead of the code block re-laying out every frame.
+            <div
+              style={{ height: DRAWER_H }}
+              className="mx-3 flex flex-col overflow-hidden rounded-2xl bg-background-100"
+            >
               <DrawerHeader code={meta.code} fileName={`${slug}.tsx`} />
               <div className="code-scroll min-h-0 flex-1 overflow-y-auto">
                 <CodeBlock code={meta.code} lang="tsx" />
@@ -733,7 +738,7 @@ export function ComponentPage({
       {isLg ? (
         <motion.div
           initial={false}
-          animate={{ width: docsOpen ? INSPECTOR_W + INSPECTOR_GAP : 0 }}
+          animate={{ width: docsOpen ? INSPECTOR_W + PANEL_GAP : 0 }}
           transition={layout}
           className="relative shrink-0 overflow-hidden"
         >
