@@ -8,7 +8,7 @@ const program = new Command();
 program
   .name("devignerui")
   .description("CLI for Devigner UI component library")
-  .version("1.0.1");
+  .version("1.1.0");
 
 program.addCommand(initCommand);
 program.addCommand(addCommand);
