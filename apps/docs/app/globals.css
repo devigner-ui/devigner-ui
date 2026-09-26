@@ -6,7 +6,7 @@
    packages/ui never gets generated and the component renders unstyled. */
 @source "../../../packages/ui/src";
 
-@variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Tokens come in three layers, and every value is written exactly once.

@@ -545,4 +545,84 @@ export function Estimate() {
       TOKENS_MISSING,
     ],
   },
+  "goo-switch": {
+    demo:
+      "The live demo is a switch that is on. Click it and the thumb shrinks to a drop, runs to the other end with a tail behind it and settles back into a pill; drag it past either end and it spreads over the edge, and letting go there slings it to the opposite side.",
+    whenToUse: [
+      "A single on/off setting that applies right away, where the switch itself is part of the product's personality.",
+      "Settings screens and toolbars with only a few toggles, so the motion stays a treat.",
+    ],
+    whenNotToUse: [
+      "Choices that only apply after a Save button. Use a checkbox.",
+      "Dense tables or long settings lists, where every row moving like liquid gets tiring.",
+    ],
+    keyboard: [
+      ["Space / Enter", "Toggles the switch."],
+      ["Tab", "Moves focus to and from the switch."],
+    ],
+    accessibility: [
+      "Renders a native button with role=\"switch\" and aria-checked, so screen readers announce it as a switch and its state.",
+      "It has no visible label of its own. Pass aria-label, or aria-labelledby pointing at the text next to it.",
+      "The form checkbox is hidden from assistive tech and the tab order; when validation lands on it, focus moves to the switch.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "On, the track uses var(--primary); off, a mix of var(--muted-foreground) and var(--background). The thumb is white in both themes.",
+      "Hover and press wash the track toward var(--background), so it follows dark mode.",
+      "size picks a 24, 32 or 40px track; a height class in className overrides it, and the width always follows at 62:32. classNames targets root and svg.",
+      "inset sets the gap around the thumb in 32nds of the track height; the thumb grows into whatever the gap gives up.",
+      "trail sets how long the droplet tail is on a toggle, and 0 turns it off for a plainer switch.",
+    ],
+    edgeCases: [
+      "A click toggles on release. A drag ends on the side the thumb was let go on.",
+      "A drag pulled past sling (half the stretch by default) slings the thumb to the other side: pulled past the right end it turns off, past the left end it turns on. sling={false} turns this off, and stretch={false} stops the thumb at the ends altogether.",
+      "With name set, a hidden checkbox submits value under name while the switch is on, and nothing while it is off, the same as a checkbox. required blocks submission while off, and a form reset returns it to defaultChecked.",
+      "The pointer is captured while pressed, so the drag keeps working outside the switch.",
+      "Setting checked from outside moves the thumb with the same droplet motion as a click.",
+    ],
+    recipes: [
+      {
+        title: "In a form",
+        description: "Submits \"yes\" under newsletter while on, and must be on to submit.",
+        code: `import { GooSwitch } from "@/components/ui/goo-switch";
+
+export function Signup() {
+  return (
+    <form action="/api/signup" className="flex items-center gap-3">
+      <span id="newsletter-label" className="text-sm">Send me the newsletter</span>
+      <GooSwitch name="newsletter" value="yes" required aria-labelledby="newsletter-label" />
+      <button type="submit">Sign up</button>
+    </form>
+  );
+}`,
+      },
+      {
+        title: "Labelled setting",
+        description: "Keep the state in React and label the switch with the text beside it.",
+        code: `import { useState } from "react";
+import { GooSwitch } from "@/components/ui/goo-switch";
+
+export function WifiSetting() {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="flex items-center justify-between gap-6">
+      <span id="wifi-label" className="text-sm font-medium">Wi-Fi</span>
+      <GooSwitch checked={on} onCheckedChange={setOn} aria-labelledby="wifi-label" />
+    </div>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "Dragging the switch scrolls the page on a phone.",
+        answer: "The switch sets touch-action: none on itself. If a parent handles the gesture first (a carousel or a sheet), stop propagation of pointerdown on the switch.",
+      },
+      {
+        question: "My form does not receive the switch value.",
+        answer: "Pass name. Without it no form field is rendered. Like a checkbox, the field is only sent while the switch is on.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
 } satisfies Record<string, ComponentGuide>;

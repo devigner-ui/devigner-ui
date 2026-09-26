@@ -28,5 +28,9 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "inline-time-edit",
     "name": "Inline Time Edit"
+  },
+  {
+    "slug": "goo-switch",
+    "name": "Goo Switch"
   }
 ];

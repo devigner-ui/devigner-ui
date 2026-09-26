@@ -51,3 +51,8 @@ export {
   type InlineTimeEditProps,
   type InlineTimeEditClassNames,
 } from "./components/inline-time-edit";
+export {
+  GooSwitch,
+  type GooSwitchProps,
+  type GooSwitchClassNames,
+} from "./components/goo-switch";

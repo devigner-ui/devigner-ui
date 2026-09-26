@@ -18,4 +18,5 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   "menu-dock": dynamic(() => import("./menu-dock"), { ssr: false, loading }),
   "date-range-picker": dynamic(() => import("./date-range-picker"), { ssr: false, loading }),
   "inline-time-edit": dynamic(() => import("./inline-time-edit"), { ssr: false, loading }),
+  "goo-switch": dynamic(() => import("./goo-switch"), { ssr: false, loading }),
 };

@@ -6,11 +6,12 @@ import {
   ChartCard,
   DateRangePicker,
   DeleteButton,
+  GooSwitch,
   InlineTimeEdit,
   MagneticButton,
   Timeline,
 } from "devignerui";
-import { SPRING_PANEL, SPRING_PRESS } from "devignerui/motion";
+import { SPRING_PANEL } from "devignerui/motion";
 import { cn } from "cn";
 import { IconBell, IconMenuDots } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
@@ -129,6 +130,50 @@ ${props}
 }`;
 };
 
+/* ─── Goo Switch ─── */
+
+const GOO_SIZES = ["sm", "md", "lg"] as const;
+const GOO_DEFAULTS = {
+  size: 2,
+  inset: 4,
+  stretch: true,
+  sling: 0.5,
+  trail: 3.2,
+  disabled: false,
+};
+type GooConfig = typeof GOO_DEFAULTS;
+
+const gooUsage = (c: GooConfig) => {
+  const props = [
+    "checked={on}",
+    "onCheckedChange={setOn}",
+    'aria-label="Wi-Fi"',
+    GOO_SIZES[c.size] !== "md" ? `size="${GOO_SIZES[c.size]}"` : null,
+    c.inset !== 4 ? `inset={${c.inset}}` : null,
+    c.stretch ? null : "stretch={false}",
+    c.stretch && c.sling !== 0.5
+      ? `sling={${c.sling >= 1 ? "false" : c.sling}}`
+      : null,
+    c.trail !== 3.2 ? `trail={${c.trail}}` : null,
+    c.disabled ? "disabled" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { useState } from "react";
+import { GooSwitch } from "@/components/ui/goo-switch";
+
+export function Example() {
+  const [on, setOn] = useState(true);
+  return (
+    <GooSwitch
+${props}
+    />
+  );
+}`;
+};
+
 /* ─── Settings panel controls ─── */
 
 function Knob({
@@ -183,23 +228,12 @@ function Switch({
   label: string;
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
+    <GooSwitch
+      size="sm"
+      checked={checked}
+      onCheckedChange={onChange}
       aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={cn(
-        "relative h-6 w-10 shrink-0 cursor-pointer rounded-full border transition-colors",
-        checked ? "border-brand bg-brand" : "border-border bg-surface2",
-      )}
-    >
-      <motion.span
-        animate={{ x: checked ? 16 : 0 }}
-        transition={SPRING_PRESS}
-        className="absolute left-0.5 top-0.5 size-5 rounded-full bg-background shadow-elevated"
-      />
-    </button>
+    />
   );
 }
 
@@ -357,12 +391,14 @@ export function usePlayground(slug: string, fallbackUsage: string) {
   const [showField, setShowField] = useState(true);
   const [deleteCfg, setDeleteCfg] = useState<DeleteConfig>(DELETE_DEFAULTS);
   const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
+  const [gooCfg, setGooCfg] = useState<GooConfig>(GOO_DEFAULTS);
 
   const reset = () => {
     setCfg(MAGNETIC_DEFAULTS);
     setShowField(true);
     setDeleteCfg(DELETE_DEFAULTS);
     setTimeCfg(TIME_DEFAULTS);
+    setGooCfg(GOO_DEFAULTS);
   };
 
   if (slug === "magnetic-button") {
@@ -435,6 +471,67 @@ export function usePlayground(slug: string, fallbackUsage: string) {
             <Switch
               checked={deleteCfg.disabled}
               onChange={(v) => setDeleteCfg((c) => ({ ...c, disabled: v }))}
+              label="Disabled"
+            />
+          </SettingsRow>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "goo-switch") {
+    const knob = (
+      key: "size" | "inset" | "sling" | "trail",
+      hint: string,
+      min: number,
+      max: number,
+      step: number,
+    ) => (
+      <Knob
+        name={key}
+        hint={hint}
+        min={min}
+        max={max}
+        step={step}
+        value={gooCfg[key]}
+        onChange={(v) => setGooCfg((c) => ({ ...c, [key]: v }))}
+      />
+    );
+    return {
+      reset,
+      preview: (
+        <GooSwitch
+          defaultChecked
+          aria-label="Wi-Fi"
+          size={GOO_SIZES[gooCfg.size]}
+          inset={gooCfg.inset}
+          stretch={gooCfg.stretch}
+          // The top of the range stands for "never sling".
+          sling={gooCfg.sling >= 1 ? false : gooCfg.sling}
+          trail={gooCfg.trail}
+          disabled={gooCfg.disabled}
+        />
+      ),
+      usage: gooUsage(gooCfg),
+      settings: (
+        <div className="flex w-72 flex-col divide-y divide-border px-3">
+          <div className="flex flex-col gap-5 py-3">
+            {knob("size", GOO_SIZES[gooCfg.size], 0, 2, 1)}
+            {knob("inset", "of 32", 1, 10, 1)}
+            {knob("sling", gooCfg.sling >= 1 ? "never" : "of the stretch", 0.1, 1, 0.05)}
+            {knob("trail", "x the lag, 0 hides it", 0, 6, 0.2)}
+          </div>
+          <SettingsRow label="Stretch">
+            <Switch
+              checked={gooCfg.stretch}
+              onChange={(v) => setGooCfg((c) => ({ ...c, stretch: v }))}
+              label="Stretch"
+            />
+          </SettingsRow>
+          <SettingsRow label="Disabled">
+            <Switch
+              checked={gooCfg.disabled}
+              onChange={(v) => setGooCfg((c) => ({ ...c, disabled: v }))}
               label="Disabled"
             />
           </SettingsRow>

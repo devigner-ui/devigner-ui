@@ -15,7 +15,7 @@ import {
   IconChevronRight,
   IconDocumentCode,
 } from "@devigner-ui/icons";
-import { DeleteButton, type DeleteButtonStatus } from "devignerui";
+import { DeleteButton, GooSwitch, type DeleteButtonStatus } from "devignerui";
 import { SPRING_LAYOUT } from "devignerui/motion";
 import { cn } from "cn";
 import type { CatalogEntry } from "@/lib/catalog-query";
@@ -313,29 +313,23 @@ function MotionCell({ entry }: { entry: CatalogEntry }) {
         value={still ? "always" : "user"}
         lit={still}
         controls={
-          <button
-            type="button"
-            role="switch"
-            aria-checked={still}
-            onClick={() => setStill((v) => !v)}
-            className="flex h-11 w-full items-center justify-between rounded-[10px] px-3 text-[14px] font-medium text-foreground transition-colors duration-200 ease-out outline-none hover:bg-background-200 focus-visible:ring-2 focus-visible:ring-brand"
+          // The whole row toggles, as before; the switch inside is the
+          // focusable control and handles its own presses.
+          <div
+            onClick={(e) => {
+              if (!(e.target as Element).closest("[role=switch]"))
+                setStill((v) => !v);
+            }}
+            className="flex h-11 w-full cursor-pointer items-center justify-between rounded-[10px] px-3 text-[14px] font-medium text-foreground transition-colors duration-200 ease-out hover:bg-background-200"
           >
-            Reduce motion
-            <span
-              aria-hidden
-              className={cn(
-                "relative h-6 w-10 rounded-full transition-colors duration-200 ease-out",
-                still ? "bg-brand" : "bg-border-hover",
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.75 left-0.75 size-4.5 rounded-full bg-white shadow-subtle transition-transform duration-200 ease-out",
-                  still && "translate-x-4",
-                )}
-              />
-            </span>
-          </button>
+            <span id="reduce-motion-label">Reduce motion</span>
+            <GooSwitch
+              size="sm"
+              checked={still}
+              onCheckedChange={setStill}
+              aria-labelledby="reduce-motion-label"
+            />
+          </div>
         }
       >
         <MotionConfig reducedMotion={still ? "always" : "user"}>
