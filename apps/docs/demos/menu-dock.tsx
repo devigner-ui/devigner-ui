@@ -81,19 +81,23 @@ function MenuDockSearch() {
   const [all, setAll] = useState<{ slug: string; name: string }[] | null>(null);
   useEffect(() => {
     let alive = true;
-    import("@/lib/registry").then(({ components }) => alive && setAll(Object.values(components)));
+    import("@/lib/registry").then(
+      ({ components }) => alive && setAll(Object.values(components)),
+    );
     return () => {
       alive = false;
     };
   }, []);
   const q = query.trim().toLowerCase();
   const hits = (
-    q ? (all ?? []).filter((c) => c.name.toLowerCase().includes(q)) : (all ?? [])
+    q
+      ? (all ?? []).filter((c) => c.name.toLowerCase().includes(q))
+      : (all ?? [])
   ).slice(0, SEARCH_LIMIT);
 
   return (
     <div className="flex w-72 flex-col gap-1">
-      <div className="flex h-10 items-center gap-3 rounded-full bg-surface2 px-3">
+      <div className="flex h-10 items-center gap-3 rounded-2xl bg-surface2 px-3">
         <IconSearchNormal className="size-5 shrink-0 text-text-muted" />
         <input
           value={query}
@@ -103,10 +107,6 @@ function MenuDockSearch() {
           className="w-full bg-transparent text-[15px] text-foreground outline-none! placeholder:text-text-muted"
         />
       </div>
-
-      {/* The list changes height without the dock re-rendering (the registry
-          arrives late, the query filters it), so it is a layout node: that
-          is what lets the dock resize to it instead of snapping. */}
       <motion.div layout="position" className="flex flex-col gap-1">
         {all === null ? null : hits.length === 0 ? (
           <p className="px-3 py-2 text-[15px] text-text-muted">

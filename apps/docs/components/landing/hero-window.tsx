@@ -36,9 +36,10 @@ const LABEL_H = 28;
 const GAP = 56;
 const PAD = 120;
 const COLS = 3;
-// The floating toolbar plus the size badge under a selected frame: keep this
-// much of the canvas bottom clear of any frame we bring into view.
-const TOOLBAR_CLEAR = 120;
+// The floating toolbar, its progressive blur (h-36) and the size badge under a
+// selected frame: keep this much of the canvas bottom clear of any frame we
+// bring into view.
+const TOOLBAR_CLEAR = 152;
 
 function framePosition(i: number) {
   return {
@@ -209,7 +210,7 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
     el.scrollTo({
       left: left + FRAME_W / 2 - el.clientWidth / 2,
       // Leave room for the toolbar under the frame.
-      top: top + (FRAME_H + LABEL_H) / 2 - el.clientHeight / 2 + 28,
+      top: top + (FRAME_H + LABEL_H) / 2 - el.clientHeight / 2 + 40,
       behavior: smooth && !reduce ? "smooth" : "auto",
     });
   };
@@ -484,18 +485,27 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                   initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1, transition: SPRING_PANEL }}
                   exit={{ opacity: 0, scale: 0.96, transition: SPRING_RETRACT }}
-                  className="absolute inset-0 hidden flex-col bg-[radial-gradient(60%_60%_at_45%_40%,var(--background-200),var(--background)_80%)] px-8 pt-6 pb-20 md:flex"
+                  className="absolute inset-0 hidden flex-col bg-[radial-gradient(60%_60%_at_45%_40%,var(--background-200),var(--background)_80%)] px-8 pt-6 pb-38 md:flex"
                 >
-                  <p className="mb-2 flex h-5 items-center text-[12px] font-medium text-brand">
-                    {entry.name}
-                  </p>
-                  <div className="frame-surface relative flex-1 ring-1 ring-border ring-inset">
-                    <LazyMount key={entry.slug}>
-                      <FitToStage align={entry.stageAlign}>
-                        <Demo />
-                      </FitToStage>
-                    </LazyMount>
-                    <SelectionMarks label="inside" />
+                  {/* Same 4:3 as the board frames (FRAME_W x FRAME_H), as large
+                      as fits once the 28px label is taken off the height. */}
+                  <div
+                    className="flex min-h-0 flex-1 items-center justify-center"
+                    style={{ containerType: "size" }}
+                  >
+                    <div className="w-[min(100cqw,calc((100cqh-28px)*4/3))]">
+                      <p className="mb-2 flex h-5 items-center text-[12px] font-medium text-brand">
+                        {entry.name}
+                      </p>
+                      <div className="frame-surface relative aspect-4/3 ring-1 ring-border ring-inset">
+                        <LazyMount key={entry.slug}>
+                          <FitToStage align={entry.stageAlign}>
+                            <Demo />
+                          </FitToStage>
+                        </LazyMount>
+                        <SelectionMarks />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
