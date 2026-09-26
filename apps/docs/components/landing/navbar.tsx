@@ -75,7 +75,7 @@ export function Navbar({ autoHide = false }: { autoHide?: boolean }) {
           className={cn(
             "flex items-center justify-between",
             scrolled
-              ? "h-14 w-auto gap-6 border border-border bg-background/75 pr-2 pl-5 shadow-subtle backdrop-blur-xl"
+              ? "h-14 w-auto gap-6 border border-border bg-background/65 pr-2 pl-5 shadow-subtle backdrop-blur-xl"
               : "h-18 w-full max-w-7xl gap-6 border border-transparent px-5",
           )}
         >

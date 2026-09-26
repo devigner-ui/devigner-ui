@@ -1,7 +1,7 @@
 import { getCatalog } from "@/lib/catalog";
 import { Accent, Chip, Command, OG, OgCanvas, OgIcon, OgWordmark, Stage, ogImage, ogShot, ogSize } from "@/lib/og";
 
-export const alt = "Beautifully Crafted React Components, Built for Developers. Devigner UI, free for React and Tailwind CSS.";
+export const alt = "Beautifully Crafted Animated React Components for Developers. Devigner UI, free for React and Tailwind CSS.";
 export const size = ogSize;
 export const contentType = "image/png";
 
@@ -31,9 +31,9 @@ export default async function Image() {
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 24, fontSize: 58, fontWeight: 600, lineHeight: 1.06, letterSpacing: "-0.055em" }}>
           <div style={{ display: "flex", alignItems: "baseline" }}>
-            Beautifully&nbsp;<Accent>Crafted</Accent>&nbsp;React Components,
+            Beautifully&nbsp;<Accent>Crafted</Accent>&nbsp;Animated React
           </div>
-          <div style={{ display: "flex" }}>Built for Developers.</div>
+          <div style={{ display: "flex" }}>Components for Developers</div>
         </div>
 
         <div style={{ display: "flex", gap: 14, marginTop: 30 }}>
