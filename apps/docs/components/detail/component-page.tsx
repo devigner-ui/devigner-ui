@@ -563,7 +563,7 @@ export function ComponentPage({
         <>
           <span
             aria-hidden
-            className="pointer-events-none absolute top-1/2 left-[-2.7px] h-5 w-px -translate-y-1/2 bg-border"
+            className="dock-sep pointer-events-none absolute top-1/2 left-[-6.5px] h-5 w-px -translate-y-1/2 bg-border"
           />
           <motion.span
             key={resetSpins}
@@ -704,6 +704,9 @@ export function ComponentPage({
               onNavigate={setPath}
               label="Preview actions"
               layoutId="detail-dock"
+              // Room either side of the separator before Reset: the dock's
+              // 4px gap plus this 8px, with the line centred in the 12px.
+              className="[&_[data-dock-row]:has(.dock-sep)]:ml-2"
             />
           </div>
         </div>
