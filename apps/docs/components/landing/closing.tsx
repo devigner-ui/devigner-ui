@@ -18,12 +18,16 @@ const COMPONENT_LINKS = Object.values(components)
 const GROUPS = [
   { title: "Components", links: COMPONENT_LINKS },
   {
-    title: "More from Devigner",
+    title: "Community",
     links: [
       { label: "Request a component", href: "/requests?new" },
       { label: "Request board", href: "/requests" },
-      { label: "Devigner Icons", href: "https://icons.devigner.cc" },
+      { label: "Discord", href: DISCORD_URL },
     ],
+  },
+  {
+    title: "More from Devigner",
+    links: [{ label: "Devigner Icons", href: "https://icons.devigner.cc" }],
   },
 ];
 
@@ -133,7 +137,7 @@ export function SiteFooter() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:col-span-7">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:col-span-7">
             {GROUPS.map((group) => (
               // The long components list takes two columns, split top to bottom.
               <nav

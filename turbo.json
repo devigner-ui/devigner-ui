@@ -8,6 +8,27 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      // Vercel project vars. Turbo's strict env mode hides anything not
+      // listed here from the build. NEXT_PUBLIC_* is passed on its own.
+      "env": [
+        "CREEM_API_KEY",
+        "CREEM_WEBHOOK_SECRET",
+        "CREEM_PRODUCT_BASIC_MONTHLY",
+        "CREEM_PRODUCT_BASIC_YEARLY",
+        "CREEM_PRODUCT_PRO_MONTHLY",
+        "CREEM_PRODUCT_PRO_YEARLY",
+        "CREEM_PRODUCT_ULTRA_MONTHLY",
+        "CREEM_PRODUCT_ULTRA_YEARLY",
+        "CREEM_PRODUCT_LIFETIME",
+        "KV_URL",
+        "KV_REST_API_TOKEN",
+        "KV_REST_API_URL",
+        "KV_REST_API_READ_ONLY_TOKEN",
+        "REDIS_URL",
+        "DISCORD_REQUESTS_WEBHOOK_URL",
+        "DISCORD_BOT_TOKEN",
+        "TURNSTILE_SECRET_KEY"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {

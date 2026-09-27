@@ -164,7 +164,7 @@ export function CatalogGrid({ entries }: { entries: CatalogEntry[] }) {
     <div>
       {/* Rides up into the navbar's spot while the navbar is scrolled away. */}
       <div className="sticky top-19 z-30 transition-transform duration-500 ease-drawer in-data-nav-hidden:-translate-y-16">
-        <div className="flex flex-col gap-2 rounded-[20px] bg-background-100/85 p-1.5 shadow-elevated backdrop-blur-xl lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-2 bg-background-100/85 p-1.5 border border-border backdrop-blur-xl lg:flex-row lg:items-center">
           <label className="flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-full border border-border bg-background px-4 ring-brand focus-within:ring-2 lg:max-w-xs">
             <IconSearchNormal
               aria-hidden
@@ -231,12 +231,12 @@ export function CatalogGrid({ entries }: { entries: CatalogEntry[] }) {
         </div>
       </div>
 
-      <p
+      {/* <p
         aria-live="polite"
         className="min-h-6 px-2 pt-4 text-[14px] text-text-muted"
       >
         {filtering && `${shown.length} of ${entries.length} components`}
-      </p>
+      </p> */}
 
       {shown.length > 0 ? (
         // Cards overlap by 1px so shared edges collapse into one border, and a

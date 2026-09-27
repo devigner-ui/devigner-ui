@@ -11,6 +11,7 @@ import { FAQS, Faq } from "../components/landing/faq";
 import { Pricing } from "../components/landing/pricing";
 import { LastCall, SiteFooter } from "../components/landing/closing";
 import { SelectionProvider } from "../components/landing/selection";
+import { RequestFab } from "../components/request/request-fab";
 
 const TITLE = "Devigner UI: Animated React Components for Tailwind CSS";
 const DESCRIPTION =
@@ -97,6 +98,7 @@ export default function HomePage() {
         <LastCall />
       </main>
       <SiteFooter />
+      <RequestFab />
     </div>
   );
 }

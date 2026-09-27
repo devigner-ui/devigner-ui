@@ -7,6 +7,7 @@ import { Navbar } from "../../components/landing/navbar";
 import { SiteFooter } from "../../components/landing/closing";
 import { CopyCommand } from "../../components/landing/copy-command";
 import { CatalogGrid } from "../../components/catalog/catalog-grid";
+import { RequestFab } from "../../components/request/request-fab";
 
 const TITLE = "React Components for Tailwind CSS";
 const INTRO =
@@ -115,6 +116,7 @@ export default function ComponentsPage() {
         </section>
       </main>
       <SiteFooter />
+      <RequestFab />
     </div>
   );
 }
