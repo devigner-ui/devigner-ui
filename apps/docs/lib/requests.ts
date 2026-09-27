@@ -212,9 +212,12 @@ export async function findMember(
   const webhook = process.env.DISCORD_REQUESTS_WEBHOOK_URL;
   if (!token || !webhook) return null;
   try {
-    const hook = await fetch(webhook, { next: { revalidate: BOARD_TTL } }).then(
-      (r) => r.json() as Promise<{ guild_id: string }>,
-    );
+    // Checked: an error body has no guild_id, and searching guilds/undefined
+    // is what Discord answers with a bare 400.
+    const hookRes = await fetch(webhook, { next: { revalidate: BOARD_TTL } });
+    const hook = (await hookRes.json().catch(() => ({}))) as { guild_id?: string };
+    if (!hookRes.ok || !hook.guild_id)
+      throw new Error(`Discord ${hookRes.status} for webhook: ${JSON.stringify(hook).slice(0, 200)}`);
     // The search matches server nicknames as well as usernames, by prefix,
     // so ask for plenty and keep only an exact account username below: a
     // crowd of nickname matches must not push the real username out.
@@ -231,7 +234,8 @@ export async function findMember(
         res = await fetch(url, init);
       }
     }
-    if (!res.ok) throw new Error(`Discord ${res.status} for member search`);
+    if (!res.ok)
+      throw new Error(`Discord ${res.status} for member search: ${(await res.text()).slice(0, 200)}`);
     const list = (await res.json()) as {
       nick?: string | null;
       user: { id: string; username: string; global_name?: string | null; avatar?: string | null };
