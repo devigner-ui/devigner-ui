@@ -80,6 +80,16 @@ export default function ComponentsPage() {
               <p className="mt-3 px-1 text-[13px] text-text-muted">
                 Once per project, then add any of these by name
               </p>
+              <Link
+                href="/requests?new"
+                className="group mt-1 inline-flex min-h-9 items-center gap-1.5 px-1 text-[13px] text-text-secondary transition-colors duration-200 ease-out hover:text-foreground"
+              >
+                Missing one? Request a component
+                <IconArrowRight
+                  aria-hidden
+                  className="size-3.5 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+                />
+              </Link>
             </div>
           </div>
         </section>

@@ -12,10 +12,11 @@
   "dependencies": {
     "@devigner-ui/icons": "3.3.0",
     "@devignerui/shared": "workspace:*",
-    "devignerui": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
+    "cuelume": "^0.2.2",
+    "devignerui": "workspace:*",
     "geist": "^1.7.2",
     "gsap": "^3.15.0",
     "motion": "^13.4.0",

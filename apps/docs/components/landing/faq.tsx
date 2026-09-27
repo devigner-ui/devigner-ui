@@ -1,5 +1,6 @@
 import { IconArrowRight } from "@devigner-ui/icons";
 import { FaqList } from "./faq-list";
+import { DISCORD_URL } from "../brand-logos";
 
 /** One array feeds both the section and the FAQPage JSON-LD. */
 export const FAQS: { question: string; answer: string }[] = [
@@ -58,6 +59,19 @@ export function Faq() {
             className="group inline-flex items-center gap-1 font-medium text-foreground"
           >
             Ask @devignerui on X
+            <IconArrowRight
+              aria-hidden
+              className="size-3.5 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+            />
+          </a>{" "}
+          or{" "}
+          <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-1 font-medium text-foreground"
+          >
+            ask in the Discord
             <IconArrowRight
               aria-hidden
               className="size-3.5 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"

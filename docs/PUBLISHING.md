@@ -16,7 +16,7 @@ pnpm test                 # menu-path + catalog checks
 pnpm lint
 pnpm build                # builds packages/ui, the CLI and the site
 pnpm --dir packages/ui test:package   # installs a component from the packed CLI
-git grep -n -P "\x{2014}" -- ':!apps/docs/AGENTS.md'   # must print nothing
+git grep -n -P "\x{2014}" -- ':!apps/docs/AGENTS.md' ':!.agents' ':!.claude'   # must print nothing
 ```
 
 If a component was added or its look changed, refresh the previews used by

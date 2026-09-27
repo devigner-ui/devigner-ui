@@ -252,7 +252,7 @@ export function CatalogGrid({ entries }: { entries: CatalogEntry[] }) {
             Nothing called &ldquo;{query.trim()}&rdquo; yet.
           </p>
           <p className="mt-4 text-[16px] text-text-secondary">
-            Tell us you want one on X.{" "}
+            Tell us you want one.{" "}
             <a
               href="https://x.com/devignerui"
               target="_blank"
@@ -260,7 +260,14 @@ export function CatalogGrid({ entries }: { entries: CatalogEntry[] }) {
               className="font-medium text-foreground underline decoration-brand underline-offset-4"
             >
               Ask @devignerui on X
-            </a>
+            </a>{" "}
+            or{" "}
+            <Link
+              href={`/requests?new&name=${encodeURIComponent(query.trim())}`}
+              className="font-medium text-foreground underline decoration-brand underline-offset-4"
+            >
+              request it here
+            </Link>
           </p>
           <p className="mt-6 text-[15px] text-text-muted">
             Or try:{" "}

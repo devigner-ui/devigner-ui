@@ -8,6 +8,8 @@ import { cn } from "cn";
 import type { ComponentData } from "@/lib/registry";
 import { CodeBlock } from "../code-block";
 import { CopyCommand } from "../landing/copy-command";
+import { DISCORD_URL, LogoDiscord } from "../brand-logos";
+import { cue } from "@/lib/sound";
 
 const TABS = ["Install", "Usage", "Props", "Guide"] as const;
 type Tab = (typeof TABS)[number];
@@ -74,6 +76,7 @@ function CodeFigure({ code }: { code: string }) {
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(code);
+            cue("success");
             setCopied(true);
             clearTimeout(timer.current);
             timer.current = setTimeout(() => setCopied(false), 1800);
@@ -107,14 +110,18 @@ function CodeFigure({ code }: { code: string }) {
   );
 }
 
+export type RequestCredit = { url: string; requester?: string };
+
 /** The Docs panel: header, then Install / Usage / Props / Guide tabs. */
 export function Inspector({
   meta,
+  request,
   isNew,
   usage,
   onOpenCode,
 }: {
   meta: ComponentData;
+  request?: RequestCredit | null;
   isNew: boolean;
   usage: string;
   onOpenCode: () => void;
@@ -151,6 +158,23 @@ export function Inspector({
       <p className="mt-3 text-[14.5px]/relaxed text-pretty text-text-secondary">
         {meta.description}
       </p>
+      {request && (
+        <a
+          href={request.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 self-start text-[13px] text-text-muted transition-colors duration-200 ease-out hover:text-foreground"
+        >
+          <LogoDiscord className="size-3.5" />
+          {request.requester ? (
+            <>
+              Requested by <span className="text-text-secondary">{request.requester}</span>
+            </>
+          ) : (
+            "Built from a community request"
+          )}
+        </a>
+      )}
 
       <div
         role="tablist"
@@ -169,7 +193,10 @@ export function Inspector({
             aria-selected={tab === t}
             aria-controls={`doc-panel-${t}`}
             tabIndex={tab === t ? 0 : -1}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              if (t !== tab) cue("toggle");
+              setTab(t);
+            }}
             onKeyDown={(e) => onTabKey(e, i)}
             className={cn(
               "relative h-7 cursor-pointer rounded-full px-3 text-[12.5px] transition-colors duration-200 ease-out",
@@ -229,7 +256,10 @@ export function Inspector({
                 Paste the source from{" "}
                 <button
                   type="button"
-                  onClick={onOpenCode}
+                  onClick={() => {
+                    cue("toggle");
+                    onOpenCode();
+                  }}
                   className="cursor-pointer font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
                 >
                   Code
@@ -342,6 +372,18 @@ export function Inspector({
                 </div>
               ))}
             </div>
+            <p className="mt-4 text-[13.5px]/relaxed text-text-secondary">
+              Stuck on something else?{" "}
+              <a
+                href={DISCORD_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+              >
+                Ask in the Discord
+              </a>
+              .
+            </p>
 
             <p className="mt-8 text-[13px]/relaxed text-text-muted">
               Some of these designs take cues from interfaces we&apos;ve admired around the
@@ -353,6 +395,15 @@ export function Inspector({
                 className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
               >
                 X @devignerui
+              </a>{" "}
+              or in the{" "}
+              <a
+                href={DISCORD_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+              >
+                Discord
               </a>{" "}
               and we&apos;ll add it.
             </p>

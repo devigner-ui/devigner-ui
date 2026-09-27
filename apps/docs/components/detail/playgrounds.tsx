@@ -16,6 +16,12 @@ import { cn } from "cn";
 import { IconBell, IconMenuDots } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
 import { RangeSlider } from "../range-slider";
+import { cue } from "@/lib/sound";
+
+/** Fastest a dragged slider ticks, ms. A quick drag crosses many steps a
+ *  frame; past this the ticks blur into a buzz. */
+const TICK_GAP = 45;
+let lastTick = 0;
 
 /* ─── Magnetic Button ─── */
 
@@ -210,7 +216,15 @@ function Knob({
         max={max}
         step={step}
         showTicks={false}
-        onValueChange={onChange}
+        onValueChange={(v) => {
+          // A detent per step crossed, quiet: it repeats on every drag.
+          const now = performance.now();
+          if (v !== value && now - lastTick > TICK_GAP) {
+            lastTick = now;
+            cue("tick", { volume: 0.5 });
+          }
+          onChange(v);
+        }}
         className="h-7"
       />
     </div>
@@ -231,7 +245,10 @@ function Switch({
     <GooSwitch
       size="sm"
       checked={checked}
-      onCheckedChange={onChange}
+      onCheckedChange={(v) => {
+        cue("toggle");
+        onChange(v);
+      }}
       aria-label={label}
     />
   );
@@ -274,7 +291,10 @@ function SideTabs({
           type="button"
           role="radio"
           aria-checked={value === side}
-          onClick={() => onChange(side)}
+          onClick={() => {
+            if (side !== value) cue("toggle");
+            onChange(side);
+          }}
           className={cn(
             "relative cursor-pointer rounded-full px-3 py-1 font-mono text-[11px] transition-colors",
             value === side ? "text-foreground" : "text-text-muted",

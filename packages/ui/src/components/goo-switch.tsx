@@ -222,13 +222,24 @@ export function GooSwitch({
   );
   const thumbX = useTransform([cx, width], ([c, w]: number[]) => c - w / 2);
   const shadowRx = useTransform(width, (w) => w / 2 + 2);
-  // A wedge from the head back past the lagging tail; the goo filter rounds
-  // it into a drawn-out drop. The lag alone stays inside the thumb, so it is
-  // stretched. At rest it collapses into the thumb.
+  // A teardrop from the head back past the lagging tail: full at the neck,
+  // tapering along soft curves to a round cap, so it reads as liquid rather
+  // than a blade. The lag alone stays inside the thumb, so it is stretched.
+  // At rest it collapses into the thumb.
   const tailPath = useTransform([cx, tail], ([c, t]: number[]) => {
     const { g, trail } = live.current;
-    const h = g.r * 0.8;
-    return `M${c} ${H / 2 - h}L${c + (t - c) * trail} ${H / 2}L${c} ${H / 2 + h}Z`;
+    const h = g.r * 0.9;
+    const len = (t - c) * trail;
+    const s = len < 0 ? -1 : 1;
+    const tip = c + len;
+    const tr = h * 0.38;
+    const m = H / 2;
+    return (
+      `M${c} ${m - h}` +
+      `C${c + len * 0.4} ${m - h} ${tip - s * tr * 1.5} ${m - tr} ${tip} ${m - tr}` +
+      `A${tr} ${tr} 0 0 ${s > 0 ? 1 : 0} ${tip} ${m + tr}` +
+      `C${tip - s * tr * 1.5} ${m + tr} ${c + len * 0.4} ${m + h} ${c} ${m + h}Z`
+    );
   });
 
   // Over-pull, worked out for the right end and mirrored for the left. The

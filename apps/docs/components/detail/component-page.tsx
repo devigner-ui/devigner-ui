@@ -33,9 +33,13 @@ import {
   IconSearchNormal,
   IconSettings,
   IconSpinner,
+  IconVolumeCross,
+  IconVolumeHigh,
 } from "@devigner-ui/icons";
 import { cn } from "cn";
 import type { ComponentData } from "@/lib/registry";
+import { SOUND_KEY, cue, play, setEnabled } from "@/lib/sound";
+import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 import {
   countLines,
   groupByCategory,
@@ -47,7 +51,7 @@ import { CodeBlock } from "../code-block";
 import { ProgressiveBlur } from "../landing/hero-window";
 import { Wordmark } from "../landing/navbar";
 import { ThemeIcon, useTheme } from "../theme-provider";
-import { Inspector } from "./inspector";
+import { Inspector, type RequestCredit } from "./inspector";
 import { usePlayground } from "./playgrounds";
 
 const INSPECTOR_W = 460;
@@ -84,8 +88,8 @@ const DOCK_KEYS: Record<string, React.ReactNode> = {
   components: "/",
   docs: "D",
   source: "C",
-  reset: "R",
   theme: "T",
+  sound: "M",
   settings: "S",
   next: <IconArrowRight className="size-3" />,
 };
@@ -158,7 +162,20 @@ function DockGlyph({
   );
 }
 
-type Hint = { dir: "Previous" | "Next"; name: string; rect: DOMRect } | null;
+/** The dock tooltip. `instant` skips the entrance: once one tooltip has
+ *  shown, the next row's opens with no delay and no animation, so sweeping
+ *  the dock reads as one tooltip following the cursor. */
+type Hint = { id: string; rect: DOMRect; instant: boolean } | null;
+/** Hover before the first tooltip opens, so passing over the dock on the way
+ *  somewhere else never flashes one. */
+const HINT_DELAY = 400;
+/** How long after a tooltip closes the next one still opens instantly. */
+const HINT_WARM = 300;
+/** Grace before closing, long enough to cross the gap to the next row
+ *  without the tooltip unmounting in between. */
+const HINT_GRACE = 80;
+/** Dock ids without the press/release knock. */
+const QUIET_PRESS = new Set(["components", "theme", "settings"]);
 
 const MotionSpinner = motion.create(IconSpinner);
 
@@ -188,37 +205,21 @@ function SettingsGlyph({ enter }: { enter: boolean }) {
   );
 }
 
-/** Prev / next glyph. The span covers the row's whole tap target to report
- *  hover for the page's tooltip; its empty title stops the row's native one
- *  from stacking on top. */
+/** Prev / next glyph. */
 function ArrowGlyph({
   dir,
-  name,
   busy,
-  onHint,
 }: {
   dir: "Previous" | "Next";
-  name: string;
   /** Navigation to this neighbour is under way: the chevron morphs into a
    *  spinner, the same hand-off as Delete Button's pending state. */
   busy: boolean;
-  onHint: (h: Hint) => void;
 }) {
   const reduce = useReducedMotion();
   const Icon = dir === "Previous" ? IconChevronLeft : IconChevronRight;
   const swap = reduce ? { duration: 0 } : SPRING_SWAP;
   return (
     <>
-      <span
-        aria-hidden
-        title=""
-        className="absolute inset-0 rounded-full"
-        onPointerEnter={(e) =>
-          e.pointerType === "mouse" &&
-          onHint({ dir, name, rect: e.currentTarget.getBoundingClientRect() })
-        }
-        onPointerLeave={() => onHint(null)}
-      />
       <span className="grid place-items-center">
         <motion.span
           className="col-start-1 row-start-1 grid place-items-center"
@@ -270,8 +271,7 @@ function ComponentsPanel({
   const [more, setMore] = useState(false);
   const measure = () => {
     const box = list.current;
-    if (box)
-      setMore(box.scrollTop + box.clientHeight < box.scrollHeight - 1);
+    if (box) setMore(box.scrollTop + box.clientHeight < box.scrollHeight - 1);
   };
   // A new query changes the list's height without a scroll event.
   useEffect(measure, [query]);
@@ -333,6 +333,28 @@ function ComponentsPanel({
       >
         esc
       </kbd>
+
+      {/* Below the list, not in it: always in reach, and the arrow keys keep
+          walking components only. A search that found nothing carries over. */}
+      <Link
+        href={
+          groups.length === 0 && query.trim()
+            ? `/requests?new&name=${encodeURIComponent(query.trim())}`
+            : "/requests?new"
+        }
+        onClick={onGo}
+        className="group mb-1 flex h-10 items-center gap-2 px-3 text-[13px] text-text-secondary transition-colors duration-200 ease-out hover:text-foreground"
+      >
+        {groups.length === 0 && query.trim() ? (
+          <span className="truncate">Request &ldquo;{query.trim()}&rdquo;</span>
+        ) : (
+          "Request a component"
+        )}
+        <IconArrowRight
+          aria-hidden
+          className="ml-auto size-3.5 shrink-0 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+        />
+      </Link>
       <label className="flex h-10 items-center gap-2.5 rounded-xl bg-surface px-3 text-[13.5px] text-text-muted transition-colors duration-200 ease-out focus-within:bg-surface-hover">
         <IconSearchNormal aria-hidden className="size-4 shrink-0" />
         <input
@@ -449,6 +471,7 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(code);
+      cue("success");
       setCopied(true);
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 1800);
@@ -457,6 +480,7 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
     }
   };
   const download = () => {
+    cue("success");
     const url = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;
@@ -526,8 +550,7 @@ function DockKeycaps({
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
       // ctrlKey too: AltGr arrives as Ctrl+Alt and is just typing.
-      if (e.key !== "Alt" || e.ctrlKey || e.repeat || live.current.open)
-        return;
+      if (e.key !== "Alt" || e.ctrlKey || e.repeat || live.current.open) return;
       setRects(live.current.rows().map((r) => r.getBoundingClientRect()));
     };
     const onUp = (e: KeyboardEvent) => {
@@ -565,7 +588,9 @@ function DockKeycaps({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 2, scale: reduce ? 1 : 0.85 }}
               transition={
-                reduce ? { duration: 0.08 } : { ...SPRING_PRESS, delay: i * 0.008 }
+                reduce
+                  ? { duration: 0.08 }
+                  : { ...SPRING_PRESS, delay: i * 0.008 }
               }
               style={{ left: rect.left + rect.width / 2, top: rect.top - 14 }}
               className={cn(
@@ -586,9 +611,12 @@ function DockKeycaps({
 export function ComponentPage({
   meta,
   entries,
+  request,
 }: {
   meta: ComponentData;
   entries: CatalogEntry[];
+  /** The community request this component was built for, if any. */
+  request?: RequestCredit | null;
 }) {
   const slug = meta.slug;
   const router = useRouter();
@@ -602,10 +630,69 @@ export function ComponentPage({
   const [resetSpins, setResetSpins] = useState(0);
   const [path, setPath] = useState<number[]>([]);
   const [hint, setHint] = useState<Hint>(null);
+  // On unless the visitor turned it off. Read after mount: the server has no
+  // storage, and a mismatch would flash the wrong icon anyway.
+  const [sound, setSound] = useState(true);
+  useEffect(() => {
+    let on = true;
+    try {
+      on = localStorage.getItem(SOUND_KEY) !== "off";
+    } catch {}
+    setSound(on);
+    setEnabled(on);
+    return () => setEnabled(false);
+  }, []);
+  const toggleSound = () => {
+    const on = !sound;
+    setSound(on);
+    setEnabled(on);
+    try {
+      localStorage.setItem(SOUND_KEY, on ? "on" : "off");
+    } catch {}
+    // Turning it on answers with the sound it just allowed.
+    if (on) cue("toggle");
+  };
+  // A panel growing out of the dock swells in; folding back falls away.
+  const panelOpen = path.length > 0;
+  const panelSeen = useRef(panelOpen);
+  useEffect(() => {
+    if (panelSeen.current === panelOpen) return;
+    panelSeen.current = panelOpen;
+    cue(panelOpen ? "bloom" : "droplet");
+  }, [panelOpen]);
   // ponytail: never reset by hand - the page is keyed by slug, so arriving
   // at the neighbour remounts it with this back at null.
   const [going, setGoing] = useState<"Previous" | "Next" | null>(null);
   const dock = useRef<HTMLDivElement>(null);
+  // One timer for both the open delay and the close grace: entering a row
+  // cancels a pending close, leaving one cancels a pending open.
+  const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Until when the next tooltip opens instantly. Infinity while one is showing.
+  const hintWarm = useRef(0);
+  const showHint = (id: string, el: HTMLElement) => {
+    clearTimeout(hintTimer.current);
+    const instant = performance.now() < hintWarm.current;
+    const open = () => {
+      hintWarm.current = Infinity;
+      setHint({ id, rect: el.getBoundingClientRect(), instant });
+      // Only the first of a sweep: the instant ones would chatter.
+      if (!instant) play("whisper");
+    };
+    if (instant) open();
+    else hintTimer.current = setTimeout(open, HINT_DELAY);
+  };
+  // `now` is a press: close at once and go cold, so the tooltip does not
+  // pop straight back over the row that was just used.
+  const hideHint = (now = false) => {
+    clearTimeout(hintTimer.current);
+    const close = () => {
+      if (hintWarm.current === Infinity)
+        hintWarm.current = now ? 0 : performance.now() + HINT_WARM;
+      setHint(null);
+    };
+    if (now) close();
+    else hintTimer.current = setTimeout(close, HINT_GRACE);
+  };
   const dockRows = () =>
     Array.from(
       dock.current?.querySelectorAll<HTMLElement>("[data-dock-row]") ?? [],
@@ -626,24 +713,24 @@ export function ComponentPage({
 
   const go = (dir: "Previous" | "Next") => {
     if (live.current.going) return;
-    setHint(null);
+    hideHint(true);
     setGoing(dir);
     const to = dir === "Previous" ? prev : next;
     router.push(`/components/${to.slug}`);
+  };
+
+  const reset = () => {
+    cue("pulse");
+    setResetSpins((n) => n + 1);
+    setPreviewKey((k) => k + 1);
+    playground.reset();
   };
 
   const items: MenuDockItem[] = [
     {
       id: "prev",
       label: `Previous: ${prev.name}`,
-      icon: (
-        <ArrowGlyph
-          dir="Previous"
-          name={prev.name}
-          busy={going === "Previous"}
-          onHint={setHint}
-        />
-      ),
+      icon: <ArrowGlyph dir="Previous" busy={going === "Previous"} />,
       onSelect: () => go("Previous"),
     },
     {
@@ -668,7 +755,10 @@ export function ComponentPage({
           <IconBook2 strokeWidth={2} />
         </DockGlyph>
       ),
-      onSelect: () => setDocsOpen((v) => !v),
+      onSelect: () => {
+        cue("toggle");
+        setDocsOpen((v) => !v);
+      },
     },
     {
       id: "source",
@@ -679,46 +769,30 @@ export function ComponentPage({
           <IconCode strokeWidth={2} />
         </DockGlyph>
       ),
-      onSelect: () => setSourceOpen((v) => !v),
-    },
-    {
-      id: "reset",
-      label: "Reset",
-      icon: (
-        <>
-          <span
-            aria-hidden
-            className="dock-sep pointer-events-none absolute top-1/2 left-[-6.5px] h-5 w-px -translate-y-1/2 bg-border"
-          />
-          <motion.span
-            key={resetSpins}
-            className="inline-flex"
-            initial={{ rotate: 0 }}
-            animate={{ rotate: reduce ? 0 : 360 }}
-            transition={{ duration: 1, ease: EASE_OUT }}
-          >
-            <IconRestart strokeWidth={2} />
-          </motion.span>
-        </>
-      ),
       onSelect: () => {
-        setResetSpins((n) => n + 1);
-        setPreviewKey((k) => k + 1);
-        playground.reset();
+        cue("toggle");
+        setSourceOpen((v) => !v);
       },
     },
     {
       id: "theme",
       label: "Toggle theme",
       icon: (
-        <span
-          className="group grid place-items-center"
-          data-dark={theme === "dark"}
-        >
-          <ThemeIcon />
-        </span>
+        <>
+          <span
+            aria-hidden
+            className="dock-sep pointer-events-none absolute top-1/2 left-[-6.5px] h-5 w-px -translate-y-1/2 bg-border"
+          />
+          <span
+            className="group grid place-items-center"
+            data-dark={theme === "dark"}
+          >
+            <ThemeIcon />
+          </span>
+        </>
       ),
       onSelect: () => {
+        cue("toggle");
         // The dock's own button, so the "T" shortcut ripples from it too.
         const rect = path.length
           ? undefined
@@ -733,44 +807,100 @@ export function ComponentPage({
         );
       },
     },
+    {
+      id: "sound",
+      label: sound ? "Mute sounds" : "Turn sounds on",
+      icon: (
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.span
+            key={sound ? "on" : "off"}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+            transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
+            className="grid place-items-center"
+          >
+            {sound ? (
+              <IconVolumeHigh strokeWidth={2} />
+            ) : (
+              <IconVolumeCross strokeWidth={2} />
+            )}
+          </motion.span>
+        </AnimatePresence>
+      ),
+      onSelect: toggleSound,
+    },
+    {
+      id: "discord",
+      label: "Join the Discord",
+      icon: <LogoDiscord />,
+      onSelect: () => window.open(DISCORD_URL, "_blank", "noopener"),
+    },
     ...(playground.settings
       ? [
           {
             id: "settings",
             label: "Settings",
             icon: <SettingsGlyph enter={settingsIsNew} />,
-            content: playground.settings,
+            content: (
+              <div className="flex flex-col">
+                {playground.settings}
+                <div className="mt-1 border-t border-border px-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-surface text-[13px] font-medium text-foreground transition-colors duration-200 ease-out hover:bg-surface/70"
+                  >
+                    <motion.span
+                      key={resetSpins}
+                      className="inline-flex"
+                      initial={{ rotate: 0 }}
+                      animate={{ rotate: reduce ? 0 : 360 }}
+                      transition={{ duration: 1, ease: EASE_OUT }}
+                    >
+                      <IconRestart strokeWidth={2} className="size-4" />
+                    </motion.span>
+                    Reset
+                    <kbd className={cn(KBD, "ml-1")}>R</kbd>
+                  </button>
+                </div>
+              </div>
+            ),
           },
         ]
       : []),
     {
       id: "next",
       label: `Next: ${next.name}`,
-      icon: (
-        <ArrowGlyph
-          dir="Next"
-          name={next.name}
-          busy={going === "Next"}
-          onHint={setHint}
-        />
-      ),
+      icon: <ArrowGlyph dir="Next" busy={going === "Next"} />,
       onSelect: () => go("Next"),
     },
   ];
 
   // Read by the key listener without rebinding it on every render.
-  const live = useRef({ path, docsOpen, going, go, items });
-  live.current = { path, docsOpen, going, go, items };
+  const live = useRef({ path, docsOpen, going, go, items, reset, hasSettings });
+  live.current = { path, docsOpen, going, go, items, reset, hasSettings };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const { path, docsOpen, go, items } = live.current;
+      const { path, docsOpen, go, items, reset, hasSettings } = live.current;
       const typing = isTyping(e.target);
 
       if (e.key === "/" && !typing) {
         e.preventDefault();
         setPath([1]);
+        return;
+      }
+      // Reset lives in the Settings panel, but its key works from anywhere.
+      if (
+        e.key.toUpperCase() === "R" &&
+        hasSettings &&
+        !typing &&
+        !e.defaultPrevented
+      ) {
+        e.preventDefault();
+        reset();
         return;
       }
       const id = Object.keys(DOCK_KEYS).find(
@@ -808,11 +938,14 @@ export function ComponentPage({
   }, [router]);
 
   const panel = reduce ? { duration: 0 } : SPRING_PANEL;
+  const hintItem = hint && items.find((i) => i.id === hint.id);
+  const hintAway = reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 };
   const layout = reduce ? { duration: 0 } : SPRING_LAYOUT;
 
   const inspector = (
     <Inspector
       meta={meta}
+      request={request}
       isNew={entry?.isNew ?? false}
       usage={playground.usage}
       onOpenCode={() => setSourceOpen(true)}
@@ -846,7 +979,36 @@ export function ComponentPage({
               onNavigate={setPath}
               label="Preview actions"
               layoutId="detail-dock"
-              // Room either side of the separator before Reset: the dock's
+              // A cover over each row's whole tap target reports hover for
+              // the tooltip; its empty title keeps the row's native one from
+              // stacking on top. Rows showing their label need no tooltip.
+              // Buttons with a sound of their own (a panel's swell, the theme
+              // cue) skip the press knock rather than stack on it.
+              renderIcon={({ item, defaultIcon }) => {
+                const knocks = !QUIET_PRESS.has(item.id!);
+                return (
+                  <>
+                    {defaultIcon}
+                    <span
+                      aria-hidden
+                      title=""
+                      className="absolute inset-0 z-20 rounded-full"
+                      onPointerEnter={(e) =>
+                        e.pointerType === "mouse" &&
+                        !item.showLabel &&
+                        showHint(item.id!, e.currentTarget)
+                      }
+                      onPointerLeave={() => hideHint()}
+                      onPointerDown={() => {
+                        if (knocks) play("press");
+                        hideHint(true);
+                      }}
+                      onPointerUp={() => knocks && play("release")}
+                    />
+                  </>
+                );
+              }}
+              // Room either side of the separator before Theme: the dock's
               // 4px gap plus this 8px, with the line centred in the 12px.
               className="[&_[data-dock-row]:has(.dock-sep)]:ml-2"
             />
@@ -920,22 +1082,38 @@ export function ComponentPage({
       />
 
       <AnimatePresence>
-        {hint && (
+        {hint && hintItem && path.length === 0 && (
           <motion.div
             aria-hidden
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.15, ease: EASE_OUT }}
+            // Grows out of its arrow, which points at the row.
+            initial={hint.instant ? false : hintAway}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={hintAway}
+            transition={
+              reduce ? { duration: 0.1 } : { duration: 0.125, ease: EASE_OUT }
+            }
             style={{
               left: hint.rect.left + hint.rect.width / 2,
               top: hint.rect.top - 10,
             }}
-            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full"
+            className="pointer-events-none fixed z-50 origin-bottom -translate-x-1/2 -translate-y-full"
           >
             <div className="relative flex h-7.5 items-center gap-1.5 rounded-[9px] bg-foreground px-2.5 text-[12.5px] font-medium whitespace-nowrap text-background shadow-elevated">
-              <span className="font-normal opacity-60">{hint.dir}</span>
-              {hint.name}
+              {hint.id === "prev" || hint.id === "next" ? (
+                <>
+                  <span className="font-normal opacity-60">
+                    {hint.id === "prev" ? "Previous" : "Next"}
+                  </span>
+                  {hint.id === "prev" ? prev.name : next.name}
+                </>
+              ) : (
+                hintItem.label
+              )}
+              {DOCK_KEYS[hint.id] && (
+                <kbd className="-mr-1 ml-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-[5px] bg-background/15 px-1 font-mono text-[10.5px] leading-none text-background/70">
+                  {DOCK_KEYS[hint.id]}
+                </kbd>
+              )}
               <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 rounded-[1px] bg-foreground" />
             </div>
           </motion.div>

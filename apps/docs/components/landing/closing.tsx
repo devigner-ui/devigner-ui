@@ -5,7 +5,7 @@ import { IconArrowRight, IconArrowUp } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { CopyCommand } from "./copy-command";
 import { PressedWordmark } from "./pressed-wordmark";
-import { LogoX } from "../brand-logos";
+import { DISCORD_URL, LogoDiscord, LogoX } from "../brand-logos";
 import { LogoMark } from "../logo-mark";
 import { Wordmark } from "./navbar";
 import { components } from "@/lib/registry";
@@ -19,7 +19,11 @@ const GROUPS = [
   { title: "Components", links: COMPONENT_LINKS },
   {
     title: "More from Devigner",
-    links: [{ label: "Devigner Icons", href: "https://icons.devigner.cc" }],
+    links: [
+      { label: "Request a component", href: "/requests?new" },
+      { label: "Request board", href: "/requests" },
+      { label: "Devigner Icons", href: "https://icons.devigner.cc" },
+    ],
   },
 ];
 
@@ -88,25 +92,45 @@ export function SiteFooter() {
               highlight="init"
               className="mt-7 w-full sm:w-80"
             />
-            <a
-              href="https://x.com/devignerui"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group mt-3 inline-flex h-11 w-full items-center gap-3 rounded-full border border-border bg-background-100 pr-4 pl-1.5 text-[13.5px] text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground sm:w-fit sm:max-w-full"
-            >
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background">
-                <LogoX className="size-3.5" />
-              </span>
-              <span className="min-w-0 truncate">
-                Follow{" "}
-                <span className="font-medium text-foreground">@devignerui</span>{" "}
-                for new components
-              </span>
-              <IconArrowRight
-                aria-hidden
-                className="ml-auto size-3.5 shrink-0 -rotate-45 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </a>
+            <div className="mt-3 flex flex-col gap-2 sm:items-start">
+              <a
+                href="https://x.com/devignerui"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex h-11 w-full items-center gap-3 rounded-full border border-border bg-background-100 pr-4 pl-1.5 text-[13.5px] text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground sm:w-fit sm:max-w-full"
+              >
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background">
+                  <LogoX className="size-3.5" />
+                </span>
+                <span className="min-w-0 truncate">
+                  Follow{" "}
+                  <span className="font-medium text-foreground">@devignerui</span>{" "}
+                  for new components
+                </span>
+                <IconArrowRight
+                  aria-hidden
+                  className="ml-auto size-3.5 shrink-0 -rotate-45 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </a>
+              <a
+                href={DISCORD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex h-11 w-full items-center gap-3 rounded-full border border-border bg-background-100 pr-4 pl-1.5 text-[13.5px] text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground sm:w-fit sm:max-w-full"
+              >
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background">
+                  <LogoDiscord className="size-4" />
+                </span>
+                <span className="min-w-0 truncate">
+                  Join the <span className="font-medium text-foreground">Discord</span>{" "}
+                  for help and previews
+                </span>
+                <IconArrowRight
+                  aria-hidden
+                  className="ml-auto size-3.5 shrink-0 -rotate-45 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </a>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:col-span-7">

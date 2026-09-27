@@ -45,6 +45,22 @@ string forms are too weak).
 - New curves/springs require adding a token to `easing.ts` (and `--ease-*` CSS vars if
   used from CSS) first - keep both in sync. No one-off values in components.
 
+## Versioning (HARD RULE)
+
+Never pick, bump, or write a new version number on your own. This covers every
+`package.json` `version` field, release commits and tags, changelogs, and publish commands.
+
+Before setting any new version, stop and ask the user, offering exactly 3 options derived
+from the actual changes since the last release (check `git log` and the diff first):
+
+- **Patch** (`x.y.Z`) - bug fixes, internal tweaks, no API changes
+- **Minor** (`x.Y.0`) - new components, props, or features that stay backward compatible
+- **Major** (`X.0.0`) - breaking changes (removed or renamed exports/props, changed defaults)
+
+Show the concrete resulting version for each option (e.g. `1.2.1` / `1.3.0` / `2.0.0`),
+mark the one you recommend with a one-line reason tied to the changes, then wait. Only
+continue the release work after the user selects a version, and use exactly that version.
+
 ## IMPORTANT
 
 - Always use skills from `.agents/skills/*`.

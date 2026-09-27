@@ -330,7 +330,7 @@ export function RangeSlider({
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
       className={cn(
-        "relative flex h-10 w-full touch-none select-none items-center overflow-hidden rounded-md bg-surface",
+        "relative flex h-10 w-full touch-none select-none items-center overflow-hidden rounded-lg bg-surface",
         disabled
           ? "pointer-events-none opacity-50"
           : "cursor-grab active:cursor-grabbing",
