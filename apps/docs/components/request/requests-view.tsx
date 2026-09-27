@@ -106,9 +106,14 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
       trigger.current?.querySelector("button")?.focus({ preventScroll: true });
   }, [open, morph, reduce]);
 
-  // Shared ids only for a morph; otherwise button and panel stay strangers.
-  const shell = morph && !reduce ? "request-shell" : undefined;
-  const label = morph && !reduce ? "request-label" : undefined;
+  // The button always carries the shared ids: motion can only grow the panel
+  // out of a box it measured before the click, so an id handed over in the
+  // same render the button leaves has nothing to start from. The panel takes
+  // them only for a morph; otherwise the two stay strangers.
+  const pillShell = reduce ? undefined : "request-shell";
+  const pillLabel = reduce ? undefined : "request-label";
+  const shell = morph ? pillShell : undefined;
+  const label = morph ? pillLabel : undefined;
   // Without a morph the panel rises a little and fades; reduced motion only fades.
   const plain = shell
     ? {}
@@ -174,7 +179,7 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
                 type="button"
                 onClick={() => request()}
                 aria-haspopup="dialog"
-                layoutId={shell}
+                layoutId={pillShell}
                 transition={SPRING_RETRACT}
                 // Half its height, not 999: the radius tweens with the morph,
                 // and 999 on a panel-sized box reads as an ellipse.
@@ -182,10 +187,10 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
                 className="absolute inset-0 inline-flex cursor-pointer items-center gap-2 bg-foreground pr-5 pl-4 text-[14.5px] font-medium whitespace-nowrap text-background transition-[scale] duration-150 ease-out active:scale-[0.97]"
               >
                 {/* layout: counter-scaled while the shell morphs, so it keeps its shape. */}
-                <motion.span layout={!!shell} className="grid place-items-center">
+                <motion.span layout={!reduce} className="grid place-items-center">
                   <IconAdd aria-hidden className="size-4.5" />
                 </motion.span>
-                <motion.span layoutId={label} transition={SPRING_RETRACT}>
+                <motion.span layoutId={pillLabel} transition={SPRING_RETRACT}>
                   Request a component
                 </motion.span>
               </motion.button>
@@ -235,8 +240,13 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
                 sent ? "sm:max-w-sm" : "sm:max-w-xl",
               )}
             >
+              {/* layout on the panel's children: the shell grows by scaling, and
+                  only children with layout get counter-scaled, so without it
+                  the form reads squashed until the spring settles. */}
               {!sent && (
-                <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border py-3 pr-3 pl-6 sm:pl-7">
+                <motion.div
+                  layout={!!shell}
+                  className="flex shrink-0 items-center justify-between gap-4 border-b border-border py-3 pr-3 pl-6 sm:pl-7">
                   <motion.h2
                     layoutId={label}
                     transition={SPRING_LAYOUT}
@@ -248,15 +258,17 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
                     type="button"
                     onClick={close}
                     aria-label="Close"
+                    layout={!!shell}
                     {...(shell ? BLUR_IN : {})}
                     className="grid size-9 cursor-pointer place-items-center rounded-full text-text-muted transition-[color,background-color,scale] duration-150 ease-out hover:bg-surface hover:text-foreground active:scale-[0.94]"
                   >
                     <IconClose aria-hidden className="size-4.5" />
                   </motion.button>
-                </div>
+                </motion.div>
               )}
               <motion.div
                 key={sent ? "sent" : "form"}
+                layout={!!shell}
                 {...(reduce ? {} : BLUR_IN)}
                 className="flex min-h-0 flex-1 flex-col"
               >
