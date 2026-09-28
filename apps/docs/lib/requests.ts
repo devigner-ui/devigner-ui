@@ -4,14 +4,14 @@
 
 import { components } from "@/lib/registry";
 
-export const STATUSES = ["pending", "review", "queue", "published"] as const;
+export const STATUSES = ["pending", "progress", "published", "rejected"] as const;
 export type Status = (typeof STATUSES)[number];
 
 export const STATUS_LABEL: Record<Status, string> = {
   pending: "Pending",
-  review: "In review",
-  queue: "In queue",
-  published: "Built",
+  progress: "In progress",
+  published: "Published",
+  rejected: "Rejected",
 };
 
 export type RequestPost = {
@@ -53,9 +53,9 @@ const API = "https://discord.com/api/v10";
 function statusOf(tagNames: string[]): Status {
   const names = tagNames.map((n) => n.toLowerCase());
   const has = (...words: string[]) => names.some((n) => words.some((w) => n.includes(w)));
+  if (has("reject")) return "rejected";
   if (has("publish", "built", "shipped")) return "published";
-  if (has("queue")) return "queue";
-  if (has("review")) return "review";
+  if (has("progress")) return "progress";
   return "pending";
 }
 
@@ -141,9 +141,13 @@ export async function getBoard(): Promise<Board> {
     const isVote = (e: { id: string | null; name: string | null }) =>
       vote ? (vote.emoji_id ? e.id === vote.emoji_id : e.name === vote.emoji_name) : true;
 
+    const tagsOf = (t: Thread) => (t.applied_tags ?? []).map((id) => tagName.get(id) ?? "");
+    // The forum also takes icon requests; the board lists components only.
+    const isComponent = (t: Thread) => tagsOf(t).some((n) => /component/i.test(n));
+
     const seen = new Set<string>();
     const threads = [...active.threads, ...archived.threads]
-      .filter((t) => t.parent_id === hook.channel_id && !seen.has(t.id) && seen.add(t.id))
+      .filter((t) => t.parent_id === hook.channel_id && isComponent(t) && !seen.has(t.id) && seen.add(t.id))
       .sort((a, b) => createdAt(b.id) - createdAt(a.id));
 
     // A forum post's first message shares the post's id.
@@ -170,7 +174,7 @@ export async function getBoard(): Promise<Board> {
       return {
         id: t.id,
         title: t.name,
-        status: statusOf((t.applied_tags ?? []).map((id) => tagName.get(id) ?? "")),
+        status: statusOf(tagsOf(t)),
         createdAt: createdAt(t.id),
         // The opening message counts; replies are the rest.
         replies: Math.max(0, (t.message_count ?? 1) - 1),

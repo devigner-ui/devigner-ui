@@ -9,6 +9,7 @@
     "shot": "node scripts/shot.mjs",
     "og:shots": "node scripts/og-shots.mjs",
     "test": "node scripts/menu-path.check.mts && node scripts/catalog.check.mts && node scripts/request-rate-limit.check.mts",
+    "request:publish": "node scripts/request-publish.mts",
     "registry:generate": "node scripts/registry/generate.mts",
     "registry:check": "node scripts/registry/generate.mts --check",
     "registry:validate": "node scripts/registry/validate.mts",

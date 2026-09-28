@@ -1,55 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        width: 1920px;
-        height: 1080px;
-        overflow: hidden;
-        background: #0a0a0a;
-      }
-      #root {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-      }
-      #title {
-        color: #f4f4f5;
-        font-size: 72px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
-      }
-    </style>
-  </head>
-  <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="10"
-      data-width="1920"
-      data-height="1080"
-    >
-      <h1 id="title" class="clip" data-start="0" data-duration="10" data-track-index="0">Title</h1>
-    </div>
-    <script>
-      const tl = gsap.timeline({ paused: true });
-      // Example: tl.fromTo("#title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, 0);
-      window.__timelines["main"] = tl;
-      tl.seek(0);
-    </script>
-  </body>
-</html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920,height=1080"><title>Devigner UI</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face{font-family:Geist;src:url('assets/fonts/geist-400.ttf');font-weight:400}
+@font-face{font-family:Geist;src:url('assets/fonts/geist-600.ttf');font-weight:600}
+@font-face{font-family:GeistMono;src:url('assets/fonts/geist-mono-400.woff')}
+@font-face{font-family:Bricolage;src:url('assets/fonts/bricolage-grotesque-700.woff');font-weight:700}
+:root{--bg:#f7f8fa;--paper:#fff;--ink:#151922;--muted:#536071;--line:#d5dce8;--blue:#365ee9;--soft:#e8edfc;--dark:#171b24}
+*{box-sizing:border-box}html,body{width:1920px;height:1080px;margin:0;overflow:hidden;background:var(--bg)}
+body{font-family:Geist,Arial,sans-serif;color:var(--ink)}
+#root{position:relative;width:100%;height:100%;overflow:hidden;background:var(--bg)}
+.scene{position:absolute;inset:0;padding:76px 112px;overflow:hidden;background:var(--bg)}
+#s1{z-index:1}#s2{z-index:2;opacity:0}#s3{z-index:3;opacity:0}#s4{z-index:4;opacity:0}#s5{z-index:5;opacity:0}
+.meta{display:flex;justify-content:space-between;font:21px GeistMono,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.meta b{color:var(--blue);font-weight:400}.rule{height:2px;margin-top:24px;background:var(--line)}
+.inner{height:calc(100% - 56px);display:flex;align-items:center;gap:70px;padding:70px 0 18px}
+.copy{flex:0 0 700px}.eyebrow{margin:0 0 20px;color:var(--blue);font:22px GeistMono,monospace;text-transform:uppercase;letter-spacing:.07em}
+h1,h2{margin:0;font-size:95px;line-height:1.035;font-weight:600;letter-spacing:-.065em}p.desc{margin:30px 0 0;font-size:33px;line-height:1.3;color:var(--muted)}
+.blue{color:var(--blue)}.shadow{box-shadow:0 38px 95px rgba(24,42,77,.13),0 2px 5px rgba(24,42,77,.06)}
+.frame{position:relative;border:4px solid var(--blue);background:var(--paper);display:grid;place-items:center}
+.h{position:absolute;width:15px;height:15px;background:white;border:3px solid var(--blue)}.tl{top:-10px;left:-10px}.tr{top:-10px;right:-10px}.bl{bottom:-10px;left:-10px}.br{bottom:-10px;right:-10px}
+.pill{display:grid;place-items:center;height:76px;padding:0 42px;border-radius:40px;background:var(--blue);color:white;font-size:27px;font-weight:600;text-transform:uppercase;box-shadow:0 17px 30px rgba(54,94,233,.2)}
+.size{position:absolute;bottom:-38px;left:50%;transform:translateX(-50%);padding:4px 9px;border-radius:4px;background:var(--blue);color:white;font:17px GeistMono,monospace;white-space:nowrap}
+.grid{background-color:#f5f7fc;background-image:linear-gradient(#e5eaf4 1px,transparent 1px),linear-gradient(90deg,#e5eaf4 1px,transparent 1px);background-size:34px 34px}
+#s1 .inner{justify-content:space-between}#s1 .art{flex:0 0 800px;height:600px;border:2px solid var(--line);display:grid;place-items:center}
+#s1 .frame{width:585px;height:390px}#s1 .label{position:absolute;top:-48px;left:-4px;font-size:23px;font-weight:600;color:var(--blue)}
+.window{width:100%;border:2px solid var(--line);border-radius:20px;overflow:hidden;background:white}
+.bar{height:70px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:2px solid var(--line);background:#fbfcfe}
+.logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--ink);color:white;font:27px Bricolage,sans-serif}.logo span{color:var(--blue)}
+.crumb{margin-left:14px;color:var(--muted);font-size:23px}.crumb b{color:var(--ink);font-weight:600}.theme{margin-left:auto;padding:9px 16px;border:2px solid var(--line);border-radius:30px;font-size:20px;color:var(--muted)}
+#s2 .inner{padding-top:55px}#s2 .window{height:760px}.body{display:flex;height:calc(100% - 70px)}
+.side{flex:0 0 320px;padding:26px 18px;background:#fbfcfe;border-right:2px solid var(--line)}.search{padding:14px;border:2px solid var(--line);border-radius:10px;color:var(--muted);font-size:20px}
+.side-label{margin:26px 12px 8px;color:var(--muted);font:18px GeistMono,monospace;text-transform:uppercase}.row{padding:16px 18px;border-radius:9px;font-size:23px}.row.active{background:var(--soft);color:var(--blue);font-weight:600}
+.canvas{position:relative;flex:1;background:radial-gradient(circle at 50% 43%,#e7ecfa,var(--bg) 68%)}.canvas .name{position:absolute;top:50px;left:60px;color:var(--blue);font-size:24px;font-weight:600}
+.canvas .frame{position:absolute;top:120px;left:50%;width:770px;height:450px;transform:translateX(-50%)}
+#preview-magnetic{position:absolute;opacity:0}#preview-delete{padding:20px 42px;border-radius:15px;background:#e9eaed;font-size:27px;font-weight:600}
+.toolbar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);padding:17px 24px;border:2px solid var(--line);border-radius:15px;background:white;font:20px GeistMono,monospace;white-space:nowrap}
+#cursor{position:absolute;left:265px;top:265px;width:0;height:0;border-left:20px solid var(--ink);border-top:26px solid transparent;transform:rotate(-20deg);filter:drop-shadow(3px 3px 1px white)}
+#s3 .copy{flex-basis:600px}#s3 h2{font-size:82px}.terminal{width:980px;height:650px;background:var(--dark);border-radius:20px;overflow:hidden;color:#ecf0f6}
+.termbar{height:70px;display:flex;align-items:center;gap:10px;padding:0 25px;border-bottom:2px solid #3b4352;color:#aab3c2;font-size:20px}.traffic{width:14px;height:14px;border-radius:50%;background:#6b7380}.termbar span:last-child{margin-left:25px}
+.termcontent{padding:50px 48px;font:27px/1.8 GeistMono,monospace}.termcontent div{margin-bottom:22px}.prompt{color:#98a8f5}.dim{color:#aab3c2}.success{color:#90e3b5}.path{padding:8px 12px;border-radius:6px;background:#183a30;color:#90e3b5}
+#s4 .copy{flex-basis:630px}#s4 h2{font-size:86px}.files{width:980px;height:670px;border:2px solid var(--line);border-radius:20px;overflow:hidden;background:white}
+.filesbody{display:flex;height:calc(100% - 70px)}.tree{flex:0 0 315px;padding:30px 18px;border-right:2px solid var(--line);background:#fbfcfe;font:21px/2.1 GeistMono,monospace;color:var(--muted)}.tree .child{padding-left:24px}.tree .file{padding:5px 9px;border-radius:7px;background:var(--soft);color:var(--blue);font-size:17px;white-space:nowrap}
+.editor{overflow:hidden;flex:1}.tab{padding:19px 24px;border-bottom:2px solid var(--line);font:20px GeistMono,monospace}.editor pre{padding:25px;margin:0;color:#354152;font:18px/1.5 GeistMono,monospace}.editor .kw{color:var(--blue)}
+#s5 .inner{flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding-top:0}.brand{display:flex;align-items:center;gap:30px;margin-bottom:50px}.brand .logo{width:110px;height:110px;border-radius:24px;font-size:82px}.wordmark{font:700 94px Bricolage,sans-serif;letter-spacing:-.06em}
+#s5 h2{font-size:116px}#s5 .finalcmd{margin-top:60px;padding:19px 26px;border:2px solid var(--line);border-radius:12px;background:white;font:25px GeistMono,monospace}
+</style>
+</head>
+<body><div data-hf-id="hf-at0g" id="root" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+<section data-hf-id="hf-mcnq" id="s1" class="scene"><div data-hf-id="hf-puvz" class="meta"><span data-hf-id="hf-g0q5">Devigner UI / Component canvas</span><b data-hf-id="hf-kw16">01 / 05</b></div><div data-hf-id="hf-a46i" class="rule"></div><div data-hf-id="hf-lm34" class="inner"><div data-hf-id="hf-bdx3" class="copy"><p data-hf-id="hf-dh3s" id="s1a" class="eyebrow">Made to be yours</p><h1 data-hf-id="hf-a68t" id="s1b">Pick the part<br data-hf-id="hf-x5px">you <span data-hf-id="hf-3cwv" class="blue">want.</span></h1><p data-hf-id="hf-a43w" id="s1c" class="desc">Animated React components, ready to become your code.</p></div><div data-hf-id="hf-l35r" id="s1d" class="art grid shadow"><div data-hf-id="hf-yx5y" id="s1e" class="frame"><span data-hf-id="hf-ljs5" class="label">Magnetic Button</span><div data-hf-id="hf-x0yk" id="s1f" class="pill">Get started</div><i data-hf-id="hf-lpb0" class="h tl"></i><i data-hf-id="hf-sqa2" class="h tr"></i><i data-hf-id="hf-8o8u" class="h bl"></i><i data-hf-id="hf-rch4" class="h br"></i><span data-hf-id="hf-b73m" class="size">585 x 390</span></div></div></div></section>
+<section data-hf-id="hf-iejp" id="s2" class="scene"><div data-hf-id="hf-zjfj" class="meta"><span data-hf-id="hf-sdjf">Browse / Try / Choose</span><b data-hf-id="hf-syxd">02 / 05</b></div><div data-hf-id="hf-ya9a" class="rule"></div><div data-hf-id="hf-bug8" class="inner"><div data-hf-id="hf-qlm2" id="s2a" class="window shadow"><div data-hf-id="hf-ufsv" class="bar"><div data-hf-id="hf-vpyz" class="logo">d<span data-hf-id="hf-iyzh">.</span></div><div data-hf-id="hf-1xxk" class="crumb">Components / <b data-hf-id="hf-oef1">Magnetic Button</b></div><div data-hf-id="hf-aidf" class="theme">Light &#160; Dark</div></div><div data-hf-id="hf-2t3w" class="body"><div data-hf-id="hf-cww1" class="side"><div data-hf-id="hf-sbpo" class="search">Search components</div><div data-hf-id="hf-zu70" class="side-label">Components</div><div data-hf-id="hf-t3nm" class="row">Chart Card</div><div data-hf-id="hf-zjrx" id="row-delete" class="row active">Delete Button</div><div data-hf-id="hf-pdqh" id="row-magnetic" class="row">Magnetic Button</div><div data-hf-id="hf-kcby" class="row">Menu Dock</div><div data-hf-id="hf-pmnj" class="row">Timeline</div></div><div data-hf-id="hf-nq1o" class="canvas"><div data-hf-id="hf-ftsa" id="canvas-name" class="name">Delete Button</div><div data-hf-id="hf-o0yc" id="s2b" class="frame"><div data-hf-id="hf-j0tx" id="preview-delete">Delete item</div><div data-hf-id="hf-21bx" id="preview-magnetic" class="pill">Get started</div><i data-hf-id="hf-71as" class="h tl"></i><i data-hf-id="hf-m5la" class="h tr"></i><i data-hf-id="hf-skv6" class="h bl"></i><i data-hf-id="hf-sq1s" class="h br"></i><span data-hf-id="hf-g1b5" class="size">770 x 450</span></div><div data-hf-id="hf-ujck" id="s2c" class="toolbar">npx devignerui add <span data-hf-id="hf-uebq" class="blue">magnetic-button</span></div><div data-hf-id="hf-8gdj" id="cursor"></div></div></div></div></div></section>
+<section data-hf-id="hf-hmvw" id="s3" class="scene"><div data-hf-id="hf-z54i" class="meta"><span data-hf-id="hf-hhko">Install / One command</span><b data-hf-id="hf-u2n0">03 / 05</b></div><div data-hf-id="hf-yokb" class="rule"></div><div data-hf-id="hf-anj5" class="inner"><div data-hf-id="hf-r8s7" class="copy"><p data-hf-id="hf-rayz" id="s3a" class="eyebrow">From preview to project</p><h2 data-hf-id="hf-bctc" id="s3b">Add it with<br data-hf-id="hf-rsrt"><span data-hf-id="hf-z9ns" class="blue">one command.</span></h2><p data-hf-id="hf-9xyf" id="s3c" class="desc">A component in your repo, ready to edit.</p></div><div data-hf-id="hf-7ojs" id="s3d" class="terminal shadow"><div data-hf-id="hf-6n2h" class="termbar"><i data-hf-id="hf-kyov" class="traffic"></i><i data-hf-id="hf-3py7" class="traffic"></i><i data-hf-id="hf-3bn6" class="traffic"></i><span data-hf-id="hf-2v4b">your-app / terminal</span></div><div data-hf-id="hf-22hd" class="termcontent"><div data-hf-id="hf-pu0n" id="s3e"><span data-hf-id="hf-r47x" class="prompt">~/your-app</span> $ npx devignerui add <span data-hf-id="hf-z7bs" class="prompt">magnetic-button</span></div><div data-hf-id="hf-cvpb" id="s3f" class="dim">Adding components...</div><div data-hf-id="hf-9sia" id="s3g"><span data-hf-id="hf-4d3r" class="success">✓</span> <span data-hf-id="hf-izbo" class="path">components/ui/magnetic-button.tsx</span></div><div data-hf-id="hf-i1jy" id="s3h" class="success">Done!</div></div></div></div></section>
+<section data-hf-id="hf-54df" id="s4" class="scene"><div data-hf-id="hf-yqth" class="meta"><span data-hf-id="hf-qsku">Source / Yours to edit</span><b data-hf-id="hf-1iir">04 / 05</b></div><div data-hf-id="hf-z2vc" class="rule"></div><div data-hf-id="hf-b1u6" class="inner"><div data-hf-id="hf-quh6" class="copy"><p data-hf-id="hf-ibvh" id="s4a" class="eyebrow">A real file</p><h2 data-hf-id="hf-m5vc" id="s4b">A normal file<br data-hf-id="hf-szow">in <span data-hf-id="hf-us7k" class="blue">your repo.</span></h2><p data-hf-id="hf-qc5z" id="s4c" class="desc">Open it. Change it. Ship it.</p></div><div data-hf-id="hf-elho" id="s4d" class="files shadow"><div data-hf-id="hf-c51b" class="bar"><div data-hf-id="hf-py4b" class="logo">d<span data-hf-id="hf-39gx">.</span></div><div data-hf-id="hf-cw59" class="crumb">your-app / <b data-hf-id="hf-fs7d">components</b></div></div><div data-hf-id="hf-eh19" class="filesbody"><div data-hf-id="hf-4g4g" class="tree"><div data-hf-id="hf-wacq">▾ components</div><div data-hf-id="hf-btme" class="child">▾ ui</div><div data-hf-id="hf-9688" id="s4e" class="child file">magnetic-button.tsx</div><div data-hf-id="hf-781w">package.json</div></div><div data-hf-id="hf-6k2j" class="editor"><div data-hf-id="hf-2iub" class="tab">magnetic-button.tsx</div><pre data-hf-id="hf-yz3k"><span data-hf-id="hf-p52r" class="kw">export function</span> MagneticButton(props) {
+  const {
+    children,
+    strength = 3,
+    labelStrength = 4,
+    field = 40,
+  } = props;
+
+  <span data-hf-id="hf-l6xl" class="kw">return</span> (
+    &lt;button className="group"&gt;
+      &lt;span className="rounded-full"&gt;
+        {children}
+      &lt;/span&gt;
+    &lt;/button&gt;
+  );
+}</pre></div></div></div></div></section>
+<section data-hf-id="hf-yynm" id="s5" class="scene"><div data-hf-id="hf-1iyo" class="meta"><span data-hf-id="hf-3ckh">Devigner UI</span><b data-hf-id="hf-uel2">05 / 05</b></div><div data-hf-id="hf-waq5" class="rule"></div><div data-hf-id="hf-9ux3" class="inner"><div data-hf-id="hf-e43q" id="s5a" class="brand"><div data-hf-id="hf-pjta" class="logo">d<span data-hf-id="hf-4ge0">.</span></div><div data-hf-id="hf-iss7" class="wordmark">devigner ui</div></div><h2 data-hf-id="hf-1yll" id="s5b">Beautiful motion.<br data-hf-id="hf-sldv"><span data-hf-id="hf-p7jf" class="blue">Your code.</span></h2><div data-hf-id="hf-7azm" id="s5c" class="finalcmd">npx devignerui add <span data-hf-id="hf-x24q" class="blue">magnetic-button</span></div></div></section>
+<audio data-hf-id="hf-44ps" id="music" data-start="0" data-duration="20" data-track-index="10" data-volume="0.28" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+<audio data-hf-id="hf-s0x9" id="select-sfx" data-start="5.45" data-track-index="11" data-volume="0.58" src="assets/sfx/click_001.ogg"></audio>
+<audio data-hf-id="hf-k7i9" id="add-sfx" data-start="11.78" data-track-index="12" data-volume="0.52" src="assets/sfx/drop_001.ogg"></audio>
+<audio data-hf-id="hf-37xk" id="file-sfx" data-start="13.11" data-track-index="13" data-volume="0.52" src="assets/sfx/drop_001.ogg"></audio>
+<audio data-hf-id="hf-ry4f" id="end-sfx" data-start="18.56" data-track-index="14" data-volume="0.4" src="assets/sfx/impactSoft_medium_000.ogg"></audio>
+</div>
+<script>
+const tl=gsap.timeline({paused:true});
+// The entrance ease follows GSAP_MAGNET in packages/ui/src/lib/easing.ts.
+const EASE='power2.out';
+const enter=(selector,x,y,at,duration=.5)=>tl.fromTo(selector,{x,y,opacity:0},{x:0,y:0,opacity:1,duration,ease:EASE,immediateRender:false},at);
+const change=(oldScene,newScene,at)=>{tl.to(oldScene,{opacity:0,duration:.56,ease:EASE},at);tl.fromTo(newScene,{opacity:0},{opacity:1,duration:.56,ease:EASE,immediateRender:false},at)};
+enter('#s1a',0,22,.16);enter('#s1b',0,37,.28,.55);enter('#s1c',0,23,.48);enter('#s1d',50,0,.22,.62);enter('#s1e',0,26,.58);enter('#s1f',0,20,.78,.35);
+change('#s1','#s2',2.25);enter('#s2a',0,38,2.45,.62);enter('#s2b',0,27,2.75);enter('#s2c',0,22,3.02);
+enter('#cursor',0,0,4.43,.25);tl.to('#cursor',{x:70,y:94,duration:.72,ease:EASE},4.68);
+tl.to('#row-delete',{backgroundColor:'#fbfcfe',color:'#536071',duration:.26,ease:EASE},5.42);tl.to('#row-magnetic',{backgroundColor:'#e8edfc',color:'#2d4dba',duration:.26,ease:EASE},5.42);
+tl.to('#preview-delete',{opacity:0,duration:.22,ease:EASE},5.42);tl.to('#preview-magnetic',{opacity:1,duration:.32,ease:EASE},5.57);
+tl.to('#canvas-name',{opacity:0,duration:.18,ease:EASE},5.42);tl.set('#canvas-name',{textContent:'Magnetic Button'},5.62);tl.to('#canvas-name',{opacity:1,duration:.2,ease:EASE},5.65);
+change('#s2','#s3',7.2);enter('#s3a',0,24,7.42);enter('#s3b',0,36,7.53,.56);enter('#s3c',0,24,7.8);enter('#s3d',52,0,7.43,.62);enter('#s3e',0,20,8.31,.38);enter('#s3f',0,18,9.02,.36);enter('#s3g',0,18,9.68,.38);enter('#s3h',0,18,10.28,.34);
+change('#s3','#s4',11.15);enter('#s4a',0,24,11.4);enter('#s4b',0,35,11.52,.56);enter('#s4c',0,24,11.8);enter('#s4d',54,0,11.42,.64);enter('#s4e',0,22,12.9,.4);
+change('#s4','#s5',16);enter('#s5a',0,30,16.33,.58);enter('#s5b',0,44,16.7,.64);enter('#s5c',0,24,17.45,.5);
+window.__timelines['main']=tl;
+</script></body></html>

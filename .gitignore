@@ -36,3 +36,9 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 .vercel
+/brag-output
+/brag-output
+/brag-output/composition
+/brag-output
+/brag-output
+/brag-output/composition

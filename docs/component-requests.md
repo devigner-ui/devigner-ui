@@ -26,12 +26,12 @@ After changing `.env`, restart `pnpm dev`: Next reads it only at startup. On Ver
 
 ## Status workflow
 
-Each new post gets two tags: the forum's request tag and **Pending** (ids in `app/api/request/route.ts`). A webhook can only tag a post when it creates it, so later statuses are set by a moderator:
+The forum takes both kinds of request, tagged **COMPONENT** or **ICON**. The board lists COMPONENT posts only; icon requests stay in Discord. Each post from the form gets **COMPONENT** and **Pending** (ids in `app/api/request/route.ts`). A webhook can only tag a post when it creates it, so later statuses are set by a moderator:
 
 1. Open the post in Discord.
-2. Click the tags at the top of the post and swap **Pending** for **In review**, **In queue** or **Built**.
+2. Click the tags at the top of the post and swap **Pending** for **In Progress**, **Published** or **Rejected**.
 
-The board reads status from tag names, loosely: a name containing "review" shows as In review, "queue" as In queue, "publish" or "built" as Built, and anything else as Pending. Renaming a tag in Discord keeps working as long as it still contains that word.
+The board reads status from tag names, loosely: a name containing "progress" shows as In progress, "publish" or "built" as Published, "reject" as Rejected, and anything else as Pending. Renaming a tag in Discord keeps working as long as it still contains that word.
 
 The board refreshes from Discord at most every 5 minutes. A new request through the form refreshes it at once; a tag change in Discord shows up within 5 minutes.
 
@@ -39,22 +39,26 @@ Votes are reactions with the forum's default reaction emoji (Edit Channel > Defa
 
 ## Crediting a requested component
 
-When a component you ship answers a request:
+When a component you ship answers a request, one command links the two. Run it from the repo root.
 
-1. **Get the post id.** In Discord, right-click the request post, choose **Copy Link**, and take the last number, for example `1553900000000000000` from `https://discord.com/channels/<server>/<post>`.
-2. **Add it to the descriptor.** In `scripts/registry/descriptors.mts`, add `requestId` to that component's entry:
+1. **Copy the post link.** In Discord, right-click the request post and choose **Copy Link**.
+2. **Link it:**
 
-   ```ts
-   {
-     slug: "command-palette",
-     name: "Command Palette",
-     // ...
-     requestId: "1553900000000000000",
-   },
+   ```sh
+   pnpm request:publish command-palette https://discord.com/channels/<server>/<post>
    ```
 
-3. **Regenerate the registry:** `pnpm registry:generate` from the repo root. `pnpm registry:check` should then pass.
-4. **Mark it Built in Discord** by swapping the post's tag, so the status matches.
+   The first argument is the component's slug, the second the post link (or just its id). This sets `requestId` on the component in `scripts/registry/descriptors.mts` and regenerates the registry.
+3. **Commit and deploy.**
+4. **Tell Discord, once it's live:**
+
+   ```sh
+   pnpm request:publish command-palette https://discord.com/channels/<server>/<post> --discord
+   ```
+
+   This swaps the post's status tag for **Published** and replies in the post with the component's link, mentioning the requester. It reads `DISCORD_BOT_TOKEN` and `DISCORD_REQUESTS_WEBHOOK_URL` from `apps/docs/.env`. The bot needs **Manage Threads** on the forum to change tags. A closed post is reopened.
+
+Rerunning is safe: the id is replaced, not duplicated. Rerunning with `--discord` posts the reply again, so delete the extra in Discord.
 
 What changes:
 

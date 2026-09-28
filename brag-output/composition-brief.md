@@ -43,7 +43,7 @@ Use `brag-output/brag-plan.md` as the creative contract.
 - Audio role: restrained clean bed with sparse UI sounds
 - Music: `assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3`
 - Music cues: bundled vol-12 preset, with optional strong accents near 8.74s, 13.11s, and 18.56s
-- Audio-reactive treatment: subtle cobalt glow response only if extraction is available
+- Audio-reactive treatment: skipped because the bundled Python extraction helper requires `numpy`, which is unavailable in this environment
 - Audio-coupled moments: component selection, command entry, file placement, final mark
 - SFX guidance: choose low high-frequency-risk files from the bundled SFX analysis; copy the selected sounds locally
 

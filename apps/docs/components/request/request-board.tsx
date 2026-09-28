@@ -20,9 +20,9 @@ import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 /** Mirrors STATUSES / STATUS_LABEL in lib/requests.ts, which is server only. */
 const STATUS: { id: Status; label: string; dot: string; badge: string }[] = [
   { id: "pending", label: "Pending", dot: "bg-text-muted", badge: "text-text-secondary" },
-  { id: "review", label: "In review", dot: "bg-brand", badge: "text-brand" },
-  { id: "queue", label: "In queue", dot: "bg-warning", badge: "text-warning" },
-  { id: "published", label: "Built", dot: "bg-success", badge: "text-success" },
+  { id: "progress", label: "In progress", dot: "bg-brand", badge: "text-brand" },
+  { id: "published", label: "Published", dot: "bg-success", badge: "text-success" },
+  { id: "rejected", label: "Rejected", dot: "bg-destructive", badge: "text-destructive" },
 ];
 const statusOf = (id: Status) => STATUS.find((s) => s.id === id)!;
 

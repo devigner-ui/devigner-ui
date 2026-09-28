@@ -11,11 +11,12 @@ import { BOARD_TAG, findMember } from "@/lib/requests";
 
 const LIMITS = { name: 80, details: 1000, contact: 120, link: 300 } as const;
 
-/** Forum tags every new post gets: the forum's own tag, plus the Pending
- *  status. Later statuses (In review, In queue, Built) are set by hand in
- *  Discord - a webhook can only tag a post when it creates it. The board at
- *  /requests reads them back by tag name (lib/requests.ts). */
-const REQUEST_TAG = "1553757865645187173";
+/** Forum tags every new post gets: COMPONENT (the forum also takes ICON
+ *  requests, which the board skips), plus the Pending status. Later statuses
+ *  (In Progress, Published, Rejected) are set by hand in Discord - a webhook
+ *  can only tag a post when it creates it. The board at /requests reads them
+ *  back by tag name (lib/requests.ts). */
+const COMPONENT_TAG = "1553757865645187173";
 const PENDING_TAG = "1553763217388601354";
 
 const clean = (v: FormDataEntryValue | null, max: number) =>
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
       thread_name: name,
       // Text is from strangers: never let it ping @everyone or a role.
       allowed_mentions: { parse: [] },
-      applied_tags: [REQUEST_TAG, PENDING_TAG],
+      applied_tags: [COMPONENT_TAG, PENDING_TAG],
       embeds: [
         {
           description: details || "_No details given._",
