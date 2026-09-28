@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { motion } from "motion/react";
 import {
   ChartCard,
@@ -10,11 +10,21 @@ import {
   InlineTimeEdit,
   MagneticButton,
   Timeline,
+  type FileUploadStatus,
 } from "devignerui";
 import { SPRING_PANEL } from "devignerui/motion";
 import { cn } from "cn";
 import { IconBell, IconMenuDots } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
+import FileUploadDemo, {
+  ACCEPT,
+  CARD_DEFAULTS,
+  FILE_STATUSES,
+  FileUploadCardDemo,
+  UPLOADER_DEFAULTS,
+  type CardConfig,
+  type UploaderConfig,
+} from "../../demos/file-upload";
 import { RangeSlider } from "../range-slider";
 import { cue } from "@/lib/sound";
 
@@ -180,6 +190,83 @@ ${props}
 }`;
 };
 
+/* ─── File Upload ─── */
+
+const UPLOAD_MODES = ["uploader", "card"] as const;
+type UploadMode = (typeof UPLOAD_MODES)[number];
+
+const uploaderUsage = (c: UploaderConfig) => {
+  const props = [
+    "upload={upload}",
+    `accept="${ACCEPT}"`,
+    `maxSize={${c.maxSize} * 1024 * 1024}`,
+    `maxFiles={${c.maxFiles}}`,
+    c.concurrency !== 2 ? `concurrency={${c.concurrency}}` : null,
+    c.multiple ? null : "multiple={false}",
+    c.resumable ? "resumable" : null,
+    c.disabled ? "disabled" : null,
+    "onCancel={close}",
+    "onSubmit={save}",
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import {
+  FileUploader,
+  type FileUploaderContext,
+} from "@/components/ui/file-upload";
+
+async function upload(file: File, { onProgress, signal }: FileUploaderContext) {
+  // Send the file, calling onProgress(0 to 1) as bytes go out.
+}
+
+export function Example({ close, save }: { close: () => void; save: (files: File[]) => void }) {
+  return (
+    <FileUploader
+${props}
+    />
+  );
+}`;
+};
+
+/** Only the handlers the chosen status shows a button for. */
+const CARD_HANDLERS: Record<FileUploadStatus, string[]> = {
+  queued: ["onResume={start}", "onCancel={cancel}"],
+  uploading: ["onPause={pause}", "onCancel={cancel}"],
+  paused: ["onResume={resume}", "onCancel={cancel}"],
+  completed: ["onRemove={remove}", "onChange={replace}", "onDownload={download}"],
+  error: ["onRetry={retry}", "onCancel={cancel}"],
+};
+
+const cardUsage = (c: CardConfig) => {
+  const status = FILE_STATUSES[c.status];
+  const props = [
+    `name="${c.preview ? "moodboard.png" : "brand-assets.zip"}"`,
+    `size={${c.preview ? 1.6 : 2.4} * 1024 * 1024}`,
+    `status="${status}"`,
+    status === "uploading" || status === "paused"
+      ? `progress={${+(c.progress / 100).toFixed(2)}}`
+      : null,
+    status === "error" ? 'error="Connection lost, try again"' : null,
+    c.preview ? "preview={URL.createObjectURL(file)}" : null,
+    ...(c.actions ? CARD_HANDLERS[status] : []),
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { FileUpload } from "@/components/ui/file-upload";
+
+export function Example() {
+  return (
+    <FileUpload
+${props}
+    />
+  );
+}`;
+};
+
 /* ─── Settings panel controls ─── */
 
 function Knob({
@@ -270,22 +357,44 @@ function SettingsRow({
   );
 }
 
+/** Short rows (switches, tabs, buttons) two across once the panel is as
+ *  wide as the full dock, one per line below that. Rows are ruled off like
+ *  the panel's other sections: every one after the first, or after the
+ *  first pair in two columns. */
+function SettingsRows({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid [&>*:nth-child(n+2)]:border-t [&>*:nth-child(n+2)]:border-border @md:grid-cols-2 @md:gap-x-6 @md:[&>*:nth-child(2)]:border-t-0">
+      {children}
+    </div>
+  );
+}
+
+/** Knobs two across on a full-width panel, stacked below that. */
+const KNOB_GRID = "grid gap-x-6 @md:grid-cols-2";
+
 /** Reads as tabs, behaves as a radio group - each press swaps a prop on the
- *  same button rather than revealing a different panel. */
-function SideTabs({
+ *  same preview rather than revealing a different panel. */
+function Tabs<T extends string>({
   value,
+  options,
   onChange,
+  label,
+  id,
 }: {
-  value: DeleteConfig["side"];
-  onChange: (side: DeleteConfig["side"]) => void;
+  value: T;
+  options: readonly T[];
+  onChange: (value: T) => void;
+  label: string;
+  /** Shared-layout id for the sliding pill, unique per tab group. */
+  id: string;
 }) {
   return (
     <div
       role="radiogroup"
-      aria-label="Actions position"
+      aria-label={label}
       className="inline-flex rounded-full border border-border bg-surface/60 p-0.5"
     >
-      {(["left", "right"] as const).map((side) => (
+      {options.map((side) => (
         <button
           key={side}
           type="button"
@@ -302,7 +411,7 @@ function SideTabs({
         >
           {value === side && (
             <motion.span
-              layoutId="delete-side-tab"
+              layoutId={id}
               transition={SPRING_PANEL}
               className="absolute inset-0 rounded-full bg-background shadow-elevated"
             />
@@ -406,12 +515,32 @@ function DeleteButtonPlayground({ cfg }: { cfg: DeleteConfig }) {
 /** Everything the page needs from a slug's playground: the live preview, the
  *  Usage snippet (tracking the knobs where there are any), the Settings panel
  *  (undefined when the preview has no props to tune) and a reset. */
-export function usePlayground(slug: string, fallbackUsage: string) {
+export interface Playground {
+  reset: () => void;
+  preview: React.ReactNode;
+  usage: string;
+  settings: React.ReactNode;
+  /** A long panel (6+ controls): opens as wide as the dock, two columns.
+   *  Shorter ones keep the narrow single column. */
+  wide?: boolean;
+}
+
+export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [cfg, setCfg] = useState<MagneticConfig>(MAGNETIC_DEFAULTS);
   const [showField, setShowField] = useState(true);
   const [deleteCfg, setDeleteCfg] = useState<DeleteConfig>(DELETE_DEFAULTS);
   const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
   const [gooCfg, setGooCfg] = useState<GooConfig>(GOO_DEFAULTS);
+  const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
+  const [uploaderCfg, setUploaderCfg] =
+    useState<UploaderConfig>(UPLOADER_DEFAULTS);
+  const [seed, setSeed] = useState(0);
+  const [cardCfg, setCardCfg] = useState<CardConfig>(CARD_DEFAULTS);
+  // Stable, so the card's autoplay timer doesn't restart on every tick.
+  const patchCard = useCallback(
+    (next: Partial<CardConfig>) => setCardCfg((c) => ({ ...c, ...next })),
+    [],
+  );
 
   const reset = () => {
     setCfg(MAGNETIC_DEFAULTS);
@@ -419,6 +548,10 @@ export function usePlayground(slug: string, fallbackUsage: string) {
     setDeleteCfg(DELETE_DEFAULTS);
     setTimeCfg(TIME_DEFAULTS);
     setGooCfg(GOO_DEFAULTS);
+    setUploadMode("uploader");
+    setUploaderCfg(UPLOADER_DEFAULTS);
+    setSeed(0);
+    setCardCfg(CARD_DEFAULTS);
   };
 
   if (slug === "magnetic-button") {
@@ -427,8 +560,8 @@ export function usePlayground(slug: string, fallbackUsage: string) {
       preview: <MagneticPlayground cfg={cfg} showField={showField} />,
       usage: magneticUsage(cfg),
       settings: (
-        <div className="flex w-72 flex-col divide-y divide-border">
-          <div className="flex flex-col gap-4 px-3 pb-3">
+        <div className="flex w-full flex-col divide-y divide-border">
+          <div className={`${KNOB_GRID} gap-y-4 px-3 pb-3`}>
             {MAGNETIC_KNOBS.map((k) => (
               <Knob
                 key={k.key}
@@ -462,9 +595,12 @@ export function usePlayground(slug: string, fallbackUsage: string) {
       preview: <DeleteButtonPlayground cfg={deleteCfg} />,
       usage: deleteUsage(deleteCfg),
       settings: (
-        <div className="flex w-72 flex-col divide-y divide-border px-3">
+        <div className="flex w-full flex-col divide-y divide-border px-3">
           <SettingsRow label="Actions">
-            <SideTabs
+            <Tabs
+              id="delete-side-tab"
+              label="Actions position"
+              options={["left", "right"] as const}
               value={deleteCfg.side}
               onChange={(v) => setDeleteCfg((c) => ({ ...c, side: v }))}
             />
@@ -480,20 +616,22 @@ export function usePlayground(slug: string, fallbackUsage: string) {
               onChange={(v) => setDeleteCfg((c) => ({ ...c, resetAfter: v }))}
             />
           </div>
-          <SettingsRow label="Async confirm">
-            <Switch
-              checked={deleteCfg.async}
-              onChange={(v) => setDeleteCfg((c) => ({ ...c, async: v }))}
-              label="Async confirm"
-            />
-          </SettingsRow>
-          <SettingsRow label="Disabled">
-            <Switch
-              checked={deleteCfg.disabled}
-              onChange={(v) => setDeleteCfg((c) => ({ ...c, disabled: v }))}
-              label="Disabled"
-            />
-          </SettingsRow>
+          <SettingsRows>
+            <SettingsRow label="Async confirm">
+              <Switch
+                checked={deleteCfg.async}
+                onChange={(v) => setDeleteCfg((c) => ({ ...c, async: v }))}
+                label="Async confirm"
+              />
+            </SettingsRow>
+            <SettingsRow label="Disabled">
+              <Switch
+                checked={deleteCfg.disabled}
+                onChange={(v) => setDeleteCfg((c) => ({ ...c, disabled: v }))}
+                label="Disabled"
+              />
+            </SettingsRow>
+          </SettingsRows>
         </div>
       ),
     };
@@ -519,6 +657,7 @@ export function usePlayground(slug: string, fallbackUsage: string) {
     );
     return {
       reset,
+      wide: true,
       preview: (
         <GooSwitch
           defaultChecked
@@ -534,27 +673,29 @@ export function usePlayground(slug: string, fallbackUsage: string) {
       ),
       usage: gooUsage(gooCfg),
       settings: (
-        <div className="flex w-72 flex-col divide-y divide-border px-3">
-          <div className="flex flex-col gap-5 py-3">
+        <div className="flex w-full flex-col divide-y divide-border px-3">
+          <div className={`${KNOB_GRID} gap-y-5 py-3`}>
             {knob("size", GOO_SIZES[gooCfg.size], 0, 2, 1)}
             {knob("inset", "of 32", 1, 10, 1)}
             {knob("sling", gooCfg.sling >= 1 ? "never" : "of the stretch", 0.1, 1, 0.05)}
             {knob("trail", "x the lag, 0 hides it", 0, 6, 0.2)}
           </div>
-          <SettingsRow label="Stretch">
-            <Switch
-              checked={gooCfg.stretch}
-              onChange={(v) => setGooCfg((c) => ({ ...c, stretch: v }))}
-              label="Stretch"
-            />
-          </SettingsRow>
-          <SettingsRow label="Disabled">
-            <Switch
-              checked={gooCfg.disabled}
-              onChange={(v) => setGooCfg((c) => ({ ...c, disabled: v }))}
-              label="Disabled"
-            />
-          </SettingsRow>
+          <SettingsRows>
+            <SettingsRow label="Stretch">
+              <Switch
+                checked={gooCfg.stretch}
+                onChange={(v) => setGooCfg((c) => ({ ...c, stretch: v }))}
+                label="Stretch"
+              />
+            </SettingsRow>
+            <SettingsRow label="Disabled">
+              <Switch
+                checked={gooCfg.disabled}
+                onChange={(v) => setGooCfg((c) => ({ ...c, disabled: v }))}
+                label="Disabled"
+              />
+            </SettingsRow>
+          </SettingsRows>
         </div>
       ),
     };
@@ -572,7 +713,7 @@ export function usePlayground(slug: string, fallbackUsage: string) {
       ),
       usage: timeUsage(timeCfg),
       settings: (
-        <div className="flex w-72 flex-col divide-y divide-border px-3">
+        <div className="flex w-full flex-col divide-y divide-border px-3">
           <div className="py-3">
             <Knob
               name="maxHours"
@@ -584,20 +725,149 @@ export function usePlayground(slug: string, fallbackUsage: string) {
               onChange={(v) => setTimeCfg((c) => ({ ...c, maxHours: v }))}
             />
           </div>
-          <SettingsRow label="Short time">
-            <Switch
-              checked={timeCfg.shortTime}
-              onChange={(v) => setTimeCfg((c) => ({ ...c, shortTime: v }))}
-              label="Short time"
+          <SettingsRows>
+            <SettingsRow label="Short time">
+              <Switch
+                checked={timeCfg.shortTime}
+                onChange={(v) => setTimeCfg((c) => ({ ...c, shortTime: v }))}
+                label="Short time"
+              />
+            </SettingsRow>
+            <SettingsRow label="Disabled">
+              <Switch
+                checked={timeCfg.disabled}
+                onChange={(v) => setTimeCfg((c) => ({ ...c, disabled: v }))}
+                label="Disabled"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "file-upload") {
+    const card = uploadMode === "card";
+    const upKnob = (
+      key: "seconds" | "failEvery" | "concurrency" | "maxFiles" | "maxSize",
+      hint: string,
+      min: number,
+      max: number,
+      step: number,
+    ) => (
+      <Knob
+        name={key}
+        hint={hint}
+        min={min}
+        max={max}
+        step={step}
+        value={uploaderCfg[key]}
+        onChange={(v) => setUploaderCfg((c) => ({ ...c, [key]: v }))}
+      />
+    );
+    const upSwitch = (key: "resumable" | "multiple" | "disabled") => (
+      <SettingsRow label={key}>
+        <Switch
+          checked={uploaderCfg[key]}
+          onChange={(v) => setUploaderCfg((c) => ({ ...c, [key]: v }))}
+          label={key}
+        />
+      </SettingsRow>
+    );
+    const cardSwitch = (key: "autoplay" | "preview" | "actions") => (
+      <SettingsRow label={key}>
+        <Switch
+          checked={cardCfg[key]}
+          onChange={(v) => patchCard({ [key]: v })}
+          label={key}
+        />
+      </SettingsRow>
+    );
+
+    return {
+      reset,
+      // Past the mode tabs, the uploader has nine controls, the card five.
+      wide: !card,
+      preview: card ? (
+        <FileUploadCardDemo config={cardCfg} onConfig={patchCard} />
+      ) : (
+        <FileUploadDemo config={uploaderCfg} seed={seed} />
+      ),
+      usage: card ? cardUsage(cardCfg) : uploaderUsage(uploaderCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-border px-3">
+          <SettingsRow label="Preview">
+            <Tabs
+              id="file-upload-mode-tab"
+              label="Preview"
+              options={UPLOAD_MODES}
+              value={uploadMode}
+              onChange={setUploadMode}
             />
           </SettingsRow>
-          <SettingsRow label="Disabled">
-            <Switch
-              checked={timeCfg.disabled}
-              onChange={(v) => setTimeCfg((c) => ({ ...c, disabled: v }))}
-              label="Disabled"
-            />
-          </SettingsRow>
+          {card ? (
+            <>
+              <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+                <Knob
+                  name="status"
+                  hint={FILE_STATUSES[cardCfg.status]}
+                  min={0}
+                  max={FILE_STATUSES.length - 1}
+                  step={1}
+                  value={cardCfg.status}
+                  onChange={(v) => patchCard({ status: v })}
+                />
+                <Knob
+                  name="progress"
+                  hint="%"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Math.round(cardCfg.progress)}
+                  onChange={(v) => patchCard({ progress: v })}
+                />
+              </div>
+              <SettingsRows>
+                {cardSwitch("autoplay")}
+                {cardSwitch("preview")}
+                {cardSwitch("actions")}
+              </SettingsRows>
+            </>
+          ) : (
+            <>
+              <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+                {upKnob("seconds", "per file", 1, 12, 0.5)}
+                {upKnob(
+                  "failEvery",
+                  uploaderCfg.failEvery ? "uploads, one fails" : "never fails",
+                  0,
+                  6,
+                  1,
+                )}
+                {upKnob("concurrency", "at once", 1, 5, 1)}
+                {upKnob("maxFiles", "in the list", 1, 10, 1)}
+                {upKnob("maxSize", "MB", 1, 50, 1)}
+              </div>
+              <SettingsRows>
+                {upSwitch("resumable")}
+                {upSwitch("multiple")}
+                {upSwitch("disabled")}
+                <SettingsRow label="Sample files">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      cue("toggle");
+                      // Never reused, so a load after Reset still drops.
+                      setSeed(Date.now());
+                    }}
+                    className="cursor-pointer rounded-full border border-border bg-surface/60 px-3 py-1 font-mono text-[11px] text-foreground transition-colors duration-200 ease-out hover:bg-surface"
+                  >
+                    load
+                  </button>
+                </SettingsRow>
+              </SettingsRows>
+            </>
+          )}
         </div>
       ),
     };

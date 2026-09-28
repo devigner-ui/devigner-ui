@@ -32,5 +32,9 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "goo-switch",
     "name": "Goo Switch"
+  },
+  {
+    "slug": "file-upload",
+    "name": "File Upload"
   }
 ];

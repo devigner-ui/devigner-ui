@@ -56,3 +56,20 @@ export {
   type GooSwitchProps,
   type GooSwitchClassNames,
 } from "./components/goo-switch";
+export {
+  FileUpload,
+  FileDropzone,
+  FileUploader,
+  type FileUploadProps,
+  type FileUploadStatus,
+  type FileUploadClassNames,
+  type FileDropzoneProps,
+  type FileDropzoneClassNames,
+  type FileRejection,
+  type FileRejectionReason,
+  type FileValidator,
+  type FileUploaderProps,
+  type FileUploaderItem,
+  type FileUploaderContext,
+  type FileUploaderClassNames,
+} from "./components/file-upload";

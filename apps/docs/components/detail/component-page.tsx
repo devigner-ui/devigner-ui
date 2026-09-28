@@ -55,6 +55,10 @@ import { Inspector, type RequestCredit } from "./inspector";
 import { usePlayground } from "./playgrounds";
 
 const INSPECTOR_W = 460;
+/** The dock shell's own padding either side, taken off the Settings content
+ *  so the open panel comes out exactly as wide as the closed dock. */
+const SETTINGS_INSET = 16;
+
 /** Space kept between the floating Docs/code panels and the viewport edges. */
 const PANEL_GAP = 12;
 const DRAWER_H = 320;
@@ -697,6 +701,16 @@ export function ComponentPage({
     Array.from(
       dock.current?.querySelectorAll<HTMLElement>("[data-dock-row]") ?? [],
     );
+  // The closed dock's width, so Settings opens exactly as wide as the dock
+  // it grows out of. Only read while closed: open, the dock is the panel.
+  const [dockWidth, setDockWidth] = useState<number>();
+  useEffect(() => {
+    const el = dock.current;
+    if (!el || panelOpen) return;
+    const ro = new ResizeObserver(() => setDockWidth(el.offsetWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [panelOpen]);
 
   const playground = usePlayground(slug, meta.usage);
   const [settingsIsNew] = useState(() => lastHadSettings === false);
@@ -843,8 +857,22 @@ export function ComponentPage({
             label: "Settings",
             icon: <SettingsGlyph enter={settingsIsNew} />,
             content: (
-              <div className="flex flex-col">
-                {playground.settings}
+              <div
+                style={{
+                  width:
+                    playground.wide && dockWidth
+                      ? dockWidth - SETTINGS_INSET
+                      : undefined,
+                }}
+                // A container, so the rows inside go two across only when
+                // the panel is as wide as the full dock.
+                className="@container flex w-72 max-w-full flex-col"
+              >
+                {/* Capped like the Components list: only the knobs scroll,
+                    Reset stays in reach below them. */}
+                <div className="code-scroll max-h-[clamp(8rem,calc(100dvh-13rem),400px)] overflow-y-auto overscroll-contain">
+                  {playground.settings}
+                </div>
                 <div className="mt-1 border-t border-border px-3 pt-3">
                   <button
                     type="button"

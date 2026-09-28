@@ -19,4 +19,5 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   "date-range-picker": dynamic(() => import("./date-range-picker"), { ssr: false, loading }),
   "inline-time-edit": dynamic(() => import("./inline-time-edit"), { ssr: false, loading }),
   "goo-switch": dynamic(() => import("./goo-switch"), { ssr: false, loading }),
+  "file-upload": dynamic(() => import("./file-upload"), { ssr: false, loading }),
 };

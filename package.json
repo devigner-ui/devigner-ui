@@ -10,6 +10,8 @@
     "og:shots": "node scripts/og-shots.mjs",
     "test": "node scripts/menu-path.check.mts && node scripts/catalog.check.mts && node scripts/request-rate-limit.check.mts",
     "request:publish": "node scripts/request-publish.mts",
+    "changelog:publish": "node scripts/changelog-publish.mts",
+    "changelog:test": "node scripts/changelog-publish.mts --test",
     "registry:generate": "node scripts/registry/generate.mts",
     "registry:check": "node scripts/registry/generate.mts --check",
     "registry:validate": "node scripts/registry/validate.mts",
@@ -17,6 +19,7 @@
     "registry:ci": "pnpm registry:check && pnpm registry:validate && pnpm registry:fixtures"
   },
   "devDependencies": {
+    "@types/node": "^22.20.3",
     "eslint": "^10.10.0",
     "eslint-plugin-better-tailwindcss": "^4.7.0",
     "playwright": "^1.63.0",
