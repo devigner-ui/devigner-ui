@@ -149,7 +149,17 @@ export function Stage({ src, style }: { src: string; style: React.CSSProperties 
         ...style,
       }}
     >
-      <img alt="" src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <img alt="" src={src} style={{ width: "100%", height: "100%", padding: 20, objectFit: "contain" }} />
+    </div>
+  );
+}
+
+/** A shot straight on the ground, no box: fitted into `style`'s area and
+ *  scaled up when the component is smaller than it. */
+export function Shot({ src, style }: { src: string; style: React.CSSProperties }) {
+  return (
+    <div style={{ display: "flex", ...style }}>
+      <img alt="" src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
     </div>
   );
 }

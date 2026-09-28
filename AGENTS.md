@@ -132,6 +132,27 @@ Always in this order. Never skip a step, never go back to an earlier one without
    Changelog role and crossposts to following servers. It can't be taken back cleanly,
    which is why the user runs it, never the agent.
 
+## OG images (HARD RULE)
+
+Every component page's share image (`apps/docs/app/components/[slug]/opengraph-image.tsx`)
+shows a preview of the component, taken from `apps/docs/assets/og/<slug>.png`.
+
+- **Regenerate** whenever a component is added or its look changes: build the docs, run
+  them (`pnpm dev`, or `next start` after a build), then `pnpm og:shots [baseUrl]`. A new
+  component with no PNG gets an image with no preview, so this is part of shipping it.
+- **The component alone, never its box.** The shot is the demo cropped tight on a
+  transparent background: no stage frame, no dot field, no card, no NEW badge.
+  `scripts/og-shots.mjs` does this; don't go back to screenshotting the stage.
+- **Printed on the background, fitted whole.** The OG image draws the shot with `Shot`
+  from `apps/docs/lib/og.tsx` straight on the ground (no `Stage` box) and fits it into
+  the free area right of the text with `objectFit: "contain"`: never cropped, and scaled
+  up when the component is smaller than the area.
+- **Check before committing.** Build, open `/components/<slug>/opengraph-image` for the
+  new or changed components, and look at each one. Commit only the PNGs of components
+  that were added or changed; revert the rest, since the script rewrites every PNG.
+- **Discord caches images by URL**, so the changelog script adds `?v=<run>` to every OG
+  image link. Keep that, or a post shows whatever Discord fetched before the deploy.
+
 ## IMPORTANT
 
 - Always use skills from `.agents/skills/*`.

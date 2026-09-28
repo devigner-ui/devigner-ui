@@ -21,7 +21,8 @@ git grep -n -P "\x{2014}" -- ':!apps/docs/AGENTS.md' ':!.agents' ':!.claude'   #
 
 If a component was added or its look changed, refresh the previews used by
 the OG share images (needs `pnpm dev` running) and commit the PNGs in
-`apps/docs/assets/og/`:
+`apps/docs/assets/og/`. Each shot is the component alone on a transparent
+background, fitted onto the OG ground; see "OG images" in `AGENTS.md`:
 
 ```sh
 pnpm og:shots

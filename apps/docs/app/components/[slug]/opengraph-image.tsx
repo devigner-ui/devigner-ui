@@ -1,5 +1,5 @@
 import { getCatalog } from "@/lib/catalog";
-import { Accent, Chip, Command, OG, OgCanvas, OgIcon, OgWordmark, Stage, ogImage, ogShot, ogSize } from "@/lib/og";
+import { Accent, Chip, Command, OG, OgCanvas, OgIcon, OgWordmark, Shot, ogImage, ogShot, ogSize } from "@/lib/og";
 
 export const alt = "A Devigner UI component: free for React and Tailwind CSS.";
 export const size = ogSize;
@@ -54,7 +54,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         </Command>
       </div>
 
-      {shot && <Stage src={shot} style={{ position: "absolute", top: 64, right: -40, width: 600, height: 502 }} />}
+      {shot && <Shot src={shot} style={{ position: "absolute", top: 48, right: 48, width: 520, height: 534 }} />}
     </OgCanvas>,
   );
 }

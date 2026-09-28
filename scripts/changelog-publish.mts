@@ -20,6 +20,9 @@ const root = resolve(import.meta.dirname, "..");
 // Keep in step with SITE in scripts/request-publish.mts.
 const SITE = "https://ui.devigner.cc";
 const API = "https://discord.com/api/v10";
+// Discord caches images by URL, so a fresh query per run skips any stale OG image
+// it fetched before the page was deployed.
+const RUN = Date.now().toString(36);
 // Keep in step with DISCORD_URL in apps/docs/components/brand-logos.tsx.
 const DISCORD = "https://discord.gg/PSv2aFYhuC";
 // The logo travels with the post as an attachment, so it needs no hosting.
@@ -273,7 +276,7 @@ const components: Component[] = [
       text(body.join("\n")),
       ...(live ? [row([link("Try it live", page, `cl_${e.label.toLowerCase()}`)])] : []),
       ...(e.label === "NEW" || e.label === "UPDATED"
-        ? [{ type: 12, items: [{ media: { url: `${page}/opengraph-image` }, description: `${e.name} preview` }] }]
+        ? [{ type: 12, items: [{ media: { url: `${page}/opengraph-image?v=${RUN}` }, description: `${e.name} preview` }] }]
         : []),
     ]);
   }),
