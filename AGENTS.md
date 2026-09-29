@@ -153,6 +153,12 @@ shows a preview of the component, taken from `apps/docs/assets/og/<slug>.png`.
 - **Discord caches images by URL**, so the changelog script adds `?v=<run>` to every OG
   image link. Keep that, or a post shows whatever Discord fetched before the deploy.
 
+## New components (HARD RULE)
+
+Adding or finishing a component follows `docs/new-component.md` step by step: Part 1
+until every box in "The component is final when" is checked and the user agrees, then
+Part 2 to publish. Don't skip steps and don't start publishing early.
+
 ## IMPORTANT
 
 - Always use skills from `.agents/skills/*`.

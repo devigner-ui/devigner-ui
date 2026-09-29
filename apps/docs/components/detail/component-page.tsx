@@ -31,9 +31,11 @@ import {
   IconCopy,
   IconDashboardGrid,
   IconDownloadMinimalistic,
+  IconMagicStick3,
   IconRestart,
   IconSearchNormal,
   IconSettings,
+  IconShare,
   IconSpinner,
   IconVolumeCross,
   IconVolumeHigh,
@@ -41,7 +43,18 @@ import {
 import { cn } from "cn";
 import type { ComponentData } from "@/lib/registry";
 import { SOUND_KEY, cue, play, setEnabled } from "@/lib/sound";
-import { DISCORD_URL, LogoDiscord } from "../brand-logos";
+import { PROMPT_TARGETS, buildPrompt, openTarget } from "@/lib/prompt";
+import {
+  LogoBluesky,
+  LogoClaude,
+  LogoFacebook,
+  LogoLinkedIn,
+  LogoOpenAI,
+  LogoReddit,
+  LogoV0,
+  LogoWhatsApp,
+  LogoX,
+} from "../brand-logos";
 import {
   countLines,
   groupByCategory,
@@ -77,7 +90,7 @@ function useMedia(query: string, server: boolean) {
   );
 }
 const useIsLg = () => useMedia("(min-width: 1024px)", true);
-/** Below Tailwind's `sm`: the dock folds Sound and Discord into one row. */
+/** Below Tailwind's `sm`: the dock folds Sound and Share into one row. */
 const useIsPhone = () => useMedia("(max-width: 639.98px)", false);
 
 /** Up and down chevrons stacked: the "more" row that opens a short menu. */
@@ -106,6 +119,7 @@ const DOCK_KEYS: Record<string, React.ReactNode> = {
   components: "/",
   docs: "D",
   source: "C",
+  prompt: "P",
   theme: "T",
   sound: "M",
   settings: "S",
@@ -193,7 +207,7 @@ const HINT_WARM = 300;
  *  without the tooltip unmounting in between. */
 const HINT_GRACE = 80;
 /** Dock ids without the press/release knock. */
-const QUIET_PRESS = new Set(["components", "theme", "settings", "more"]);
+const QUIET_PRESS = new Set(["components", "prompt", "theme", "settings", "more"]);
 
 const MotionSpinner = motion.create(IconSpinner);
 
@@ -610,6 +624,470 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
   );
 }
 
+/** `inline code` inside a prompt line, as mono chips. */
+function Inline({ text }: { text: string }) {
+  return (
+    <>
+      {text
+        .replace(/\*\*/g, "")
+        .split(/`([^`]+)`/)
+        .map((part, i) =>
+          i % 2 ? (
+            <code
+              key={i}
+              className="rounded-[5px] bg-foreground/[0.06] px-1 py-px font-mono text-[10.5px] text-foreground"
+            >
+              {part}
+            </code>
+          ) : (
+            part
+          ),
+        )}
+    </>
+  );
+}
+
+/** The sheet's colour, shared by its sticky headings and the frost at its
+ *  foot so both melt into it. */
+const SHEET_BG = "bg-surface dark:bg-surface-hover";
+const SHEET_FROM = "from-surface dark:from-surface-hover";
+
+/** The prompt drawn as a page instead of raw markdown: steps as pinned
+ *  numbered headings, props as rows, defaults in brand, commands as code. */
+function PromptPreview({ prompt, props }: { prompt: string; props: number }) {
+  const out: React.ReactNode[] = [];
+  const lines = prompt.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    if (line.startsWith("```")) {
+      const shell = line === "```sh";
+      const code: string[] = [];
+      while (++i < lines.length && !lines[i].startsWith("```")) code.push(lines[i]);
+      out.push(
+        <pre
+          key={i}
+          className="no-scrollbar my-1.5 overflow-x-auto rounded-[9px] bg-foreground px-2.75 py-2.25 font-mono text-[10.5px]/[1.65] text-background/85 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] dark:bg-background dark:text-text-secondary"
+        >
+          {code.map((l, j) => {
+            const [cmd, note] = shell ? l.split(/\s+(?=#)/) : [l];
+            return (
+              <span key={j} className="block">
+                {shell && <span className="opacity-50">$ </span>}
+                {cmd}
+                {note && <span className="opacity-50"> {note}</span>}
+              </span>
+            );
+          })}
+        </pre>,
+      );
+      continue;
+    }
+    const step = line.match(/^## Step (\d+): (.*)/);
+    if (step) {
+      out.push(
+        <h4
+          key={i}
+          className={cn(
+            "sticky -top-3.5 z-10 -mx-4.5 mt-3.5 mb-0.5 flex items-center gap-2 bg-linear-to-b via-75% to-transparent px-4.5 pt-3 pb-2 text-[12px] font-medium text-foreground",
+            SHEET_FROM,
+            "via-surface dark:via-surface-hover",
+          )}
+        >
+          <span className="grid size-4.25 place-items-center rounded-full bg-foreground font-mono text-[9.5px] text-background">
+            {step[1]}
+          </span>
+          {step[2]}
+          {step[1] === "2" && (
+            <span className="ml-auto font-mono text-[10px] font-normal text-text-muted">
+              {props}
+            </span>
+          )}
+        </h4>,
+      );
+      continue;
+    }
+    if (line.startsWith("### ")) {
+      // A prop: its name, then description, default and options lines.
+      const name = line.slice(4).replace(/`/g, "");
+      const desc = lines[i + 1] ?? "";
+      const def = (lines[i + 2] ?? "").match(/Default: `?([^`*(]+)/)?.[1]?.trim();
+      const opts = (lines[i + 3] ?? "")
+        .replace(/^- Other options: /, "")
+        .replace(/`/g, "");
+      i += 3;
+      out.push(
+        <div key={i} className="border-t border-dashed border-foreground/10 py-1.75">
+          <div className="flex items-baseline gap-2">
+            <code className="font-mono text-[11px] font-medium text-foreground">{name}</code>
+            <span className="rounded-full bg-brand/12 px-1.75 font-mono text-[10px] font-medium whitespace-nowrap text-brand">
+              {def && !def.startsWith("none") ? def : "none"}
+            </span>
+            <span className="ml-auto truncate pl-2 text-right font-mono text-[10px] text-text-muted">
+              {opts}
+            </span>
+          </div>
+          <p className="mt-0.5 text-[10.5px]/snug text-text-muted">{desc}</p>
+        </div>,
+      );
+      continue;
+    }
+    const word = line.match(/^- "(.+?)" (.*)/);
+    if (word) {
+      out.push(
+        <p key={i} className="mt-1 flex items-baseline gap-2">
+          <kbd className="rounded-md border border-foreground/10 bg-foreground/[0.04] px-1.5 font-mono text-[10px] text-text-secondary">
+            {word[1]}
+          </kbd>
+          <span className="text-text-muted">{word[2]}</span>
+        </p>,
+      );
+      continue;
+    }
+    if (line.startsWith("- ")) {
+      out.push(
+        <p key={i} className="relative mt-0.5 pl-3 text-pretty">
+          <span aria-hidden className="absolute top-[0.6em] left-0.5 size-1 rounded-full bg-text-muted/60" />
+          <Inline text={line.slice(2)} />
+        </p>,
+      );
+      continue;
+    }
+    out.push(
+      <p
+        key={i}
+        className={cn(
+          "mt-1.5 text-pretty",
+          i === 0 && "text-text-muted",
+          line.endsWith(":") && "mt-2.5 font-medium text-foreground",
+        )}
+      >
+        <Inline text={line} />
+      </p>,
+    );
+  }
+  return <>{out}</>;
+}
+
+/** A pill link on the Prompt and Share panels. */
+const CHIP =
+  "flex h-10 items-center justify-center gap-2 rounded-full bg-background-100 text-[12.5px] font-medium whitespace-nowrap text-text-secondary shadow-[0_1px_2px_rgb(0_0_0/0.06),0_0_0_1px_rgb(0_0_0/0.04)] transition-[color,background-color,box-shadow] duration-200 ease-out hover:text-foreground hover:shadow-[0_2px_6px_-1px_rgb(0_0_0/0.1),0_0_0_1px_rgb(0_0_0/0.07)] dark:bg-surface dark:shadow-[0_0_0_1px_transparent] dark:hover:bg-surface-hover dark:hover:shadow-[0_0_0_1px_var(--border)]";
+
+/** A "── label ──" rule whose lines fade out toward the edges. */
+function FadeRule({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-1 flex items-center gap-3 px-2">
+      <span aria-hidden className="h-px flex-1 bg-linear-to-r from-transparent to-border" />
+      <span className="text-[11px] text-text-muted">{children}</span>
+      <span aria-hidden className="h-px flex-1 bg-linear-to-l from-transparent to-border" />
+    </div>
+  );
+}
+
+const TARGET_LOGOS: Record<
+  (typeof PROMPT_TARGETS)[number]["name"],
+  (p: { className?: string }) => React.ReactNode
+> = { Claude: LogoClaude, Codex: LogoOpenAI, v0: LogoV0 };
+
+/** The Prompt panel: the prompt as a page resting on a small stack, Copy
+ *  floating over its frosted foot, then the chat apps that open with it
+ *  already typed in. */
+function PromptPanel({
+  prompt,
+  props,
+  name,
+  slug,
+}: {
+  prompt: string;
+  props: number;
+  name: string;
+  slug: string;
+}) {
+  const reduce = useReducedMotion();
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      cue("success");
+      setCopied(true);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard unavailable - the Open in links still carry it */
+    }
+  };
+
+  return (
+    <div className="relative flex w-84 max-w-full flex-col gap-2.5 px-1 pb-1">
+      <kbd
+        aria-hidden
+        className={cn(KBD, "pointer-events-none absolute -top-8.5 right-3")}
+      >
+        esc
+      </kbd>
+
+      <p className="px-2 text-[12.5px]/relaxed text-pretty text-text-muted">
+        Paste it into your AI. It installs {name}, asks about its{" "}
+        <span className="text-text-secondary">{props} props</span>, then writes
+        the code.
+      </p>
+
+      {/* The stack: two sheets peeking out under the page, each a little
+          narrower. At rest the page leans back; hovered it stands up and
+          the sheets drop a touch further out. */}
+      <div className="group/stack relative mt-0.5 mb-1.5 h-73 perspective-[900px]">
+        <div
+          aria-hidden
+          className="absolute inset-x-6 top-4 bottom-0 rounded-2xl bg-surface-hover shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_14px_-6px_rgb(0_0_0/0.12)] dark:shadow-[0_1px_2px_rgb(0_0_0/0.3),0_6px_14px_-6px_rgb(0_0_0/0.5)] transition-transform duration-700 ease-out group-hover/stack:translate-y-1 dark:bg-background-100"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-3.5 top-2 bottom-1.5 rounded-2xl bg-background-200 shadow-[0_1px_2px_rgb(0_0_0/0.05),0_6px_14px_-6px_rgb(0_0_0/0.12)] dark:shadow-[0_1px_2px_rgb(0_0_0/0.3),0_6px_14px_-6px_rgb(0_0_0/0.5)] transition-transform duration-700 ease-out group-hover/stack:translate-y-0.5"
+        />
+        {/* Copying lifts the page once, like it was just picked up. */}
+        <motion.div
+          className="absolute inset-x-1.5 top-0 bottom-3"
+          animate={{ y: copied && !reduce ? [0, -10, 0] : 0 }}
+          transition={{ duration: 0.7, ease: EASE_OUT }}
+        >
+          {/* The drop shadow lives out here: the page below clips itself
+              (for the blur), which would clip its own shadow too. */}
+          <div className="h-full origin-bottom rotate-x-5 rounded-2xl shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_28px_-12px_rgb(0_0_0/0.22)] transition-transform duration-700 ease-out group-hover/stack:-translate-y-0.5 group-hover/stack:rotate-x-0 dark:shadow-[0_1px_2px_rgb(0_0_0/0.35),0_14px_32px_-12px_rgb(0_0_0/0.7)]">
+          <div
+            className={cn(
+              "relative isolate h-full overflow-hidden rounded-2xl text-text-secondary shadow-[inset_0_1px_0_white] [clip-path:inset(0_round_var(--radius-2xl))] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]",
+              SHEET_BG,
+            )}
+          >
+            <div
+              aria-label="Prompt preview"
+              tabIndex={0}
+              // isolate: keeps the sticky step headings' z-10 inside the
+              // scroller, so the blur and Copy below still paint over them.
+              className="isolate h-full overflow-y-auto no-scrollbar overscroll-contain px-4.5 pt-3.5 pb-24 text-[11.5px]/[1.6] outline-none!"
+            >
+              <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.06em] text-text-muted uppercase">
+                <span>
+                  prompt.md &middot; {(prompt.length / 1000).toFixed(1)}k chars
+                </span>
+                <motion.span
+                  animate={{ scale: copied && !reduce ? 1.08 : 1 }}
+                  transition={SPRING_SWAP}
+                  className={cn(
+                    "-rotate-4 rounded-md border px-1.5 transition-colors duration-200 ease-out",
+                    copied
+                      ? "border-success/45 text-success"
+                      : "border-brand/40 text-brand",
+                  )}
+                >
+                  {copied ? "copied" : slug}
+                </motion.span>
+              </div>
+              <p className="mt-3 mb-1 text-base/tight font-semibold tracking-tight text-foreground">
+                Add {name} to my app
+              </p>
+              <PromptPreview prompt={prompt} props={props} />
+            </div>
+
+            {/* The page's foot dissolves under Copy: the hero window's
+                progressive blur, with a thin frost of the sheet's own
+                colour so it reads as glass the text sits behind. */}
+            <ProgressiveBlur className="pointer-events-none absolute inset-x-0 bottom-0 h-30" />
+            <div
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute inset-x-0 bottom-0 h-30 bg-linear-to-t to-transparent opacity-60",
+                SHEET_FROM,
+              )}
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-3 pb-3">
+              <button
+                type="button"
+                onClick={copy}
+                className="pointer-events-auto flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground text-[13px] font-medium text-background shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_8px_20px_-8px_rgb(0_0_0/0.35),0_1px_3px_rgb(0_0_0/0.12)] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_10px_24px_-8px_rgb(0_0_0/0.55),0_2px_6px_rgb(0_0_0/0.2)] transition-transform duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98]"
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={copied ? "done" : "copy"}
+                    initial={reduce ? false : { scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={reduce ? undefined : { scale: 0.5, opacity: 0 }}
+                    transition={SPRING_SWAP}
+                    className="grid place-items-center"
+                  >
+                    {copied ? (
+                      <IconCheck aria-hidden className="size-4" />
+                    ) : (
+                      <IconCopy aria-hidden className="size-4" />
+                    )}
+                  </motion.span>
+                </AnimatePresence>
+                {copied ? "Copied to clipboard" : "Copy prompt"}
+              </button>
+            </div>
+          </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <FadeRule>or send it straight to</FadeRule>
+      <div className="grid grid-cols-3 gap-1.5">
+        {PROMPT_TARGETS.map((t) => (
+          <a
+            key={t.name}
+            href={t.url(prompt)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              // Left clicks try the desktop app first; a modifier click or
+              // middle click still follows the plain web link.
+              if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+              e.preventDefault();
+              cue("success");
+              openTarget(t, prompt);
+            }}
+            aria-label={`Open in ${t.name}`}
+            className={CHIP}
+          >
+            {/* v0's mark is its name, so it stands alone and a little larger. */}
+            {t.name === "v0" ? (
+              <LogoV0 className="h-4.5 w-6 text-foreground" />
+            ) : (
+              <>
+                {TARGET_LOGOS[t.name]({ className: "size-4 shrink-0 text-foreground" })}
+                {t.name}
+              </>
+            )}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Where a component page can be posted. Each builds the platform's own
+ *  share link from the page URL and a line of text. */
+const q = encodeURIComponent;
+
+const SHARE_TARGETS = [
+  {
+    name: "X",
+    Logo: LogoX,
+    url: (u: string, t: string) =>
+      `https://x.com/intent/post?text=${q(t)}&url=${q(u)}`,
+  },
+  {
+    name: "LinkedIn",
+    Logo: LogoLinkedIn,
+    url: (u: string) =>
+      `https://www.linkedin.com/sharing/share-offsite/?url=${q(u)}`,
+  },
+  {
+    name: "Reddit",
+    Logo: LogoReddit,
+    url: (u: string, t: string) =>
+      `https://www.reddit.com/submit?url=${q(u)}&title=${q(t)}`,
+  },
+  {
+    name: "Bluesky",
+    Logo: LogoBluesky,
+    url: (u: string, t: string) =>
+      `https://bsky.app/intent/compose?text=${q(`${t} ${u}`)}`,
+  },
+  {
+    name: "Facebook",
+    Logo: LogoFacebook,
+    url: (u: string) => `https://www.facebook.com/sharer/sharer.php?u=${q(u)}`,
+  },
+  {
+    name: "WhatsApp",
+    Logo: LogoWhatsApp,
+    url: (u: string, t: string) => `https://wa.me/?text=${q(`${t} ${u}`)}`,
+  },
+] as const;
+
+/** The Share panel: the page's link to the usual places, and a copy row. */
+function SharePanel({ name, slug }: { name: string; slug: string }) {
+  const reduce = useReducedMotion();
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  // The panel only renders once the dock opens it, so window is there.
+  const url =
+    typeof window === "undefined"
+      ? `/components/${slug}`
+      : `${window.location.origin}/components/${slug}`;
+  const text = `${name}, a React component from Devigner UI`;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      cue("success");
+      setCopied(true);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard unavailable - the link is on screen to copy by hand */
+    }
+  };
+
+  return (
+    <div className="flex w-84 max-w-full flex-col gap-2.5 px-1 pb-1">
+      <p className="px-2 text-[12.5px]/relaxed text-pretty text-text-muted">
+        Send {name} to someone who&apos;d build with it.
+      </p>
+      <div className="grid grid-cols-3 gap-1.5">
+        {SHARE_TARGETS.map((t) => (
+          <a
+            key={t.name}
+            href={t.url(url, text)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => cue("success")}
+            aria-label={`Share on ${t.name}`}
+            className={CHIP}
+          >
+            <t.Logo className="size-3.5 shrink-0 text-foreground" />
+            {t.name}
+          </a>
+        ))}
+      </div>
+      <FadeRule>or copy the link</FadeRule>
+      <button
+        type="button"
+        onClick={copy}
+        className={cn(CHIP, "justify-between gap-3 pr-2 pl-4")}
+      >
+        <span className="truncate font-mono text-[11.5px] font-normal text-text-muted">
+          {url.replace(/^https?:\/\//, "")}
+        </span>
+        <span className="flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3 text-[12px] text-background">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={copied ? "done" : "copy"}
+              initial={reduce ? false : { scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={reduce ? undefined : { scale: 0.5, opacity: 0 }}
+              transition={SPRING_SWAP}
+              className="grid place-items-center"
+            >
+              {copied ? (
+                <IconCheck aria-hidden className="size-3.5" />
+              ) : (
+                <IconCopy aria-hidden className="size-3.5" />
+              )}
+            </motion.span>
+          </AnimatePresence>
+          {copied ? "Copied" : "Copy"}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 /** The keycaps over the dock while Alt is held. Its own component so holding
  *  Alt re-renders these chips, not the whole page (measured: at 4x CPU the
  *  page re-render cost ~250ms of long tasks per press). */
@@ -800,6 +1278,7 @@ export function ComponentPage({
   useEffect(() => {
     lastHadSettings = hasSettings;
   }, [hasSettings]);
+  const prompt = useMemo(() => buildPrompt(meta), [meta]);
   const entry = entries.find((e) => e.slug === slug);
   const order = useMemo(
     () => groupByCategory(entries).flatMap((g) => g.items),
@@ -859,7 +1338,7 @@ export function ComponentPage({
         );
       },
   };
-  // Sound and Discord: in the dock on wider screens, one level down behind a
+  // Sound and Share: in the dock on wider screens, one level down behind a
   // single row at the end on a phone.
   const utility: MenuDockItem[] = [
     {
@@ -886,10 +1365,10 @@ export function ComponentPage({
       onSelect: toggleSound,
     },
     {
-      id: "discord",
-      label: "Join the Discord",
-      icon: <LogoDiscord />,
-      onSelect: () => window.open(DISCORD_URL, "_blank", "noopener"),
+      id: "share",
+      label: "Share",
+      icon: <IconShare strokeWidth={2} />,
+      content: <SharePanel name={meta.name} slug={slug} />,
     },
   ];
 
@@ -935,6 +1414,12 @@ export function ComponentPage({
         setSourceOpen((v) => !v);
       },
     },
+    {
+      id: "prompt",
+      label: "Prompt",
+      icon: <IconMagicStick3 strokeWidth={2} />,
+      content: <PromptPanel prompt={prompt} props={meta.props.length} name={meta.name} slug={slug} />,
+    },
     themeItem,
     ...(isPhone ? [] : utility),
     ...(playground.settings
@@ -960,7 +1445,7 @@ export function ComponentPage({
                 <div className="code-scroll max-h-[clamp(8rem,calc(100dvh-13rem),400px)] overflow-y-auto overscroll-contain">
                   {playground.settings}
                 </div>
-                <div className="mt-1 border-t border-border px-3 pt-3">
+                <div className="fade-border mt-1 border-t px-3 pt-3">
                   <button
                     type="button"
                     onClick={reset}
@@ -1194,7 +1679,7 @@ export function ComponentPage({
             >
               <DrawerHeader code={meta.code} fileName={`${slug}.tsx`} />
               <div className="code-scroll min-h-0 flex-1 overflow-y-auto">
-                <CodeBlock code={meta.code} lang="tsx" />
+                <CodeBlock code={meta.code} />
               </div>
             </div>
           )}

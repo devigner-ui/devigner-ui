@@ -570,12 +570,7 @@ export function FooterBento({
       </Card>
 
       <Card index={3} className="footer-card-brand lg:col-span-2">
-        <a
-          href={ICONS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group grid items-center gap-10 p-9 lg:grid-cols-[0.9fr_1.3fr]"
-        >
+        <div className="group grid items-center gap-10 p-9 lg:grid-cols-[0.9fr_1.3fr]">
           <div>
             <Eyebrow className="text-brand">More from Devigner</Eyebrow>
             <h3 className="mt-3 text-[32px] font-semibold tracking-[-0.045em] text-foreground">
@@ -586,7 +581,11 @@ export function FooterBento({
             </p>
             {/* A light sweeps across on hover, and the arrow in its chip
                 flies out top-right while a fresh one lands from bottom-left. */}
-            <span className="relative mt-5.5 inline-flex h-11 items-center gap-3 overflow-hidden rounded-full bg-linear-to-b from-brand-hover to-brand pr-1.5 pl-5 text-[13.5px] font-semibold text-brand-foreground shadow-[inset_0_1px_0_oklch(100%_0_0/0.35),inset_0_-1px_0_oklch(0%_0_0/0.12),0_12px_28px_-10px_var(--brand)] ring-1 ring-brand/40 transition-[translate,box-shadow] duration-300 ease-overshoot group-hover:-translate-y-px group-hover:shadow-[inset_0_1px_0_oklch(100%_0_0/0.35),inset_0_-1px_0_oklch(0%_0_0/0.12),0_16px_34px_-10px_var(--brand)] group-active:scale-[0.97]">
+            <a
+              href={ICONS_URL}
+              target="_blank"
+              className="relative mt-5.5 inline-flex h-11 items-center gap-3 overflow-hidden rounded-full bg-linear-to-b from-brand-hover to-brand pr-1.5 pl-5 text-[13.5px] font-semibold text-brand-foreground shadow-[inset_0_1px_0_oklch(100%_0_0/0.35),inset_0_-1px_0_oklch(0%_0_0/0.12),0_12px_28px_-10px_var(--brand)] ring-1 ring-brand/40 transition-[translate,box-shadow] duration-300 ease-overshoot group-hover:-translate-y-px group-hover:shadow-[inset_0_1px_0_oklch(100%_0_0/0.35),inset_0_-1px_0_oklch(0%_0_0/0.12),0_16px_34px_-10px_var(--brand)] group-active:scale-[0.97]"
+            >
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12 bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[320%]"
@@ -596,16 +595,18 @@ export function FooterBento({
                 <IconArrowRight
                   aria-hidden
                   className="size-3.5 -rotate-45 transition-transform duration-400 ease-out group-hover:translate-x-4 group-hover:-translate-y-4"
+                  strokeWidth={2}
                 />
                 <IconArrowRight
                   aria-hidden
+                  strokeWidth={2}
                   className="absolute size-3.5 -translate-x-4 translate-y-4 -rotate-45 transition-transform duration-400 ease-out group-hover:translate-0"
                 />
               </span>
-            </span>
+            </a>
           </div>
           <IconWall />
-        </a>
+        </div>
       </Card>
     </div>
   );

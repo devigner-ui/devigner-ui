@@ -7,6 +7,7 @@ import {
   DateRangePicker,
   DeleteButton,
   GooSwitch,
+  Slider,
   InlineTimeEdit,
   MagneticButton,
   Timeline,
@@ -32,6 +33,14 @@ import { cue } from "@/lib/sound";
  *  frame; past this the ticks blur into a buzz. */
 const TICK_GAP = 45;
 let lastTick = 0;
+/** A detent per step crossed, quiet: it repeats on every drag. */
+const tick = () => {
+  const now = performance.now();
+  if (now - lastTick > TICK_GAP) {
+    lastTick = now;
+    cue("tick", { volume: 0.5 });
+  }
+};
 
 /* ─── Magnetic Button ─── */
 
@@ -190,6 +199,50 @@ ${props}
 }`;
 };
 
+/* ─── Slider ─── */
+
+const SLIDER_SIZES = ["sm", "md", "lg"] as const;
+const SLIDER_DEFAULTS = {
+  size: "md" as (typeof SLIDER_SIZES)[number],
+  step: 10,
+  marks: true,
+  snap: false,
+  horizontal: true,
+  inverted: false,
+  disabled: false,
+};
+type SliderConfig = typeof SLIDER_DEFAULTS;
+
+const sliderUsage = (c: SliderConfig) => {
+  const props = [
+    "value={value}",
+    "onValueChange={setValue}",
+    'aria-label="Heat"',
+    c.horizontal ? null : 'orientation="vertical"',
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.step !== 10 ? `step={${c.step}}` : null,
+    c.snap ? "snap" : null,
+    c.marks ? null : "marks={false}",
+    c.inverted ? "inverted" : null,
+    c.disabled ? "disabled" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { useState } from "react";
+import { Slider } from "@/components/ui/slider";
+
+export function Example() {
+  const [value, setValue] = useState(40);
+  return (
+    <Slider
+${props}
+    />
+  );
+}`;
+};
+
 /* ─── File Upload ─── */
 
 const UPLOAD_MODES = ["uploader", "card"] as const;
@@ -304,12 +357,7 @@ function Knob({
         step={step}
         showTicks={false}
         onValueChange={(v) => {
-          // A detent per step crossed, quiet: it repeats on every drag.
-          const now = performance.now();
-          if (v !== value && now - lastTick > TICK_GAP) {
-            lastTick = now;
-            cue("tick", { volume: 0.5 });
-          }
+          if (v !== value) tick();
           onChange(v);
         }}
         className="h-7"
@@ -363,7 +411,7 @@ function SettingsRow({
  *  first pair in two columns. */
 function SettingsRows({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid [&>*:nth-child(n+2)]:border-t [&>*:nth-child(n+2)]:border-border @md:grid-cols-2 @md:gap-x-6 @md:[&>*:nth-child(2)]:border-t-0">
+    <div className="grid fade-divide [&>*:nth-child(n+2)]:border-t @md:grid-cols-2 @md:gap-x-6 @md:[&>*:nth-child(2)]:border-t-0">
       {children}
     </div>
   );
@@ -531,6 +579,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [deleteCfg, setDeleteCfg] = useState<DeleteConfig>(DELETE_DEFAULTS);
   const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
   const [gooCfg, setGooCfg] = useState<GooConfig>(GOO_DEFAULTS);
+  const [sliderCfg, setSliderCfg] = useState<SliderConfig>(SLIDER_DEFAULTS);
   const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
   const [uploaderCfg, setUploaderCfg] =
     useState<UploaderConfig>(UPLOADER_DEFAULTS);
@@ -548,6 +597,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setDeleteCfg(DELETE_DEFAULTS);
     setTimeCfg(TIME_DEFAULTS);
     setGooCfg(GOO_DEFAULTS);
+    setSliderCfg(SLIDER_DEFAULTS);
     setUploadMode("uploader");
     setUploaderCfg(UPLOADER_DEFAULTS);
     setSeed(0);
@@ -560,7 +610,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       preview: <MagneticPlayground cfg={cfg} showField={showField} />,
       usage: magneticUsage(cfg),
       settings: (
-        <div className="flex w-full flex-col divide-y divide-border">
+        <div className="flex w-full flex-col fade-divide divide-y">
           <div className={`${KNOB_GRID} gap-y-4 px-3 pb-3`}>
             {MAGNETIC_KNOBS.map((k) => (
               <Knob
@@ -595,7 +645,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       preview: <DeleteButtonPlayground cfg={deleteCfg} />,
       usage: deleteUsage(deleteCfg),
       settings: (
-        <div className="flex w-full flex-col divide-y divide-border px-3">
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
           <SettingsRow label="Actions">
             <Tabs
               id="delete-side-tab"
@@ -673,7 +723,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: gooUsage(gooCfg),
       settings: (
-        <div className="flex w-full flex-col divide-y divide-border px-3">
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
           <div className={`${KNOB_GRID} gap-y-5 py-3`}>
             {knob("size", GOO_SIZES[gooCfg.size], 0, 2, 1)}
             {knob("inset", "of 32", 1, 10, 1)}
@@ -701,6 +751,99 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     };
   }
 
+  if (slug === "slider") {
+    const knob = (
+      key: "step",
+      hint: string,
+      min: number,
+      max: number,
+      step: number,
+    ) => (
+      <Knob
+        name={key}
+        hint={hint}
+        min={min}
+        max={max}
+        step={step}
+        value={sliderCfg[key]}
+        onChange={(v) => setSliderCfg((c) => ({ ...c, [key]: v }))}
+      />
+    );
+    return {
+      reset,
+      preview: (
+        <Slider
+          // Remount on orientation, so the thumb doesn't glide across axes.
+          key={sliderCfg.horizontal ? "h" : "v"}
+          defaultValue={40}
+          aria-label="Heat"
+          orientation={sliderCfg.horizontal ? "horizontal" : "vertical"}
+          size={sliderCfg.size}
+          step={sliderCfg.step}
+          snap={sliderCfg.snap}
+          marks={sliderCfg.marks}
+          inverted={sliderCfg.inverted}
+          disabled={sliderCfg.disabled}
+          // Fires only when the value changes, so each call is a step crossed.
+          onValueChange={tick}
+        />
+      ),
+      usage: sliderUsage(sliderCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <SettingsRow label="Size">
+            <Tabs
+              id="slider-size-tab"
+              label="Size"
+              options={SLIDER_SIZES}
+              value={sliderCfg.size}
+              onChange={(v) => setSliderCfg((c) => ({ ...c, size: v }))}
+            />
+          </SettingsRow>
+          <div className="py-3">
+            {knob("step", "of 100", 1, 25, 1)}
+          </div>
+          <SettingsRows>
+            <SettingsRow label="Marks">
+              <Switch
+                checked={sliderCfg.marks}
+                onChange={(v) => setSliderCfg((c) => ({ ...c, marks: v }))}
+                label="Marks"
+              />
+            </SettingsRow>
+            <SettingsRow label="Snap">
+              <Switch
+                checked={sliderCfg.snap}
+                onChange={(v) => setSliderCfg((c) => ({ ...c, snap: v }))}
+                label="Snap"
+              />
+            </SettingsRow>
+            <SettingsRow label="Horizontal">
+              <Switch
+                checked={sliderCfg.horizontal}
+                onChange={(v) => setSliderCfg((c) => ({ ...c, horizontal: v }))}
+                label="Horizontal"
+              />
+            </SettingsRow>
+            <SettingsRow label="Inverted">
+              <Switch
+                checked={sliderCfg.inverted}
+                onChange={(v) => setSliderCfg((c) => ({ ...c, inverted: v }))}
+                label="Inverted"
+              />
+            </SettingsRow>            <SettingsRow label="Disabled">
+              <Switch
+                checked={sliderCfg.disabled}
+                onChange={(v) => setSliderCfg((c) => ({ ...c, disabled: v }))}
+                label="Disabled"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
   if (slug === "inline-time-edit") {
     return {
       reset,
@@ -713,7 +856,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: timeUsage(timeCfg),
       settings: (
-        <div className="flex w-full flex-col divide-y divide-border px-3">
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
           <div className="py-3">
             <Knob
               name="maxHours"
@@ -795,7 +938,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: card ? cardUsage(cardCfg) : uploaderUsage(uploaderCfg),
       settings: (
-        <div className="flex w-full flex-col divide-y divide-border px-3">
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
           <SettingsRow label="Preview">
             <Tabs
               id="file-upload-mode-tab"

@@ -36,5 +36,9 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "file-upload",
     "name": "File Upload"
+  },
+  {
+    "slug": "slider",
+    "name": "Slider"
   }
 ];

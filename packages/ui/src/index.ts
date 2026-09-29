@@ -57,6 +57,11 @@ export {
   type GooSwitchClassNames,
 } from "./components/goo-switch";
 export {
+  Slider,
+  type SliderProps,
+  type SliderClassNames,
+} from "./components/slider";
+export {
   FileUpload,
   FileDropzone,
   FileUploader,

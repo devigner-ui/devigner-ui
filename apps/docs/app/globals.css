@@ -6,6 +6,19 @@
    packages/ui never gets generated and the component renders unstyled. */
 @source "../../../packages/ui/src";
 
+/* Hairline dividers that fade out at both ends, like the "or send it
+   straight to" rule. fade-border paints an element's own border that way;
+   fade-divide does it for the borders divide-* and border-t put on its
+   children. */
+@utility fade-border {
+  border-image: linear-gradient(to right, transparent, var(--border), transparent) 1;
+}
+@utility fade-divide {
+  & > * {
+    border-image: linear-gradient(to right, transparent, var(--border), transparent) 1;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════

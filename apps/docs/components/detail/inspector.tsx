@@ -103,7 +103,7 @@ function CodeFigure({ code }: { code: string }) {
       </button>
       <div className="p-1.5">
         <div className="overflow-hidden rounded-lg">
-          <CodeBlock code={code} lang="tsx" />
+          <CodeBlock code={code} />
         </div>
       </div>
     </figure>

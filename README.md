@@ -275,7 +275,7 @@ Use these exact patterns for new components in these roles - the negative-tracki
 
 ## 14. Development Workflow
 
-**New component checklist (binding):** write the `.tsx` source first against the token contract (no hardcoded colors, `forwardRef`, `displayName`, exported `<X>Props`) → add the `registry.ts` entry (slug/name/description/category/variants/props/code/usage) → write a standalone `usage` example → add `addedAt` (and `tryIt`/`stageAlign` if useful) to its descriptor → add `apps/docs/demos/{slug}.tsx` and its line in `demos/index.ts` → add the live preview + register in `previews[slug]` → check the manners: it keeps still under `<MotionConfig reducedMotion="always">` as well as the OS setting (read reduced motion through `useReducedMotionPreference` from `lib/hooks/use-reduced-motion`, never Motion's `useReducedMotion` or `useReducedMotionConfig` alone), looks right in both themes with no `dark:` class, works from the keyboard → verify both themes manually → `turbo build && turbo lint` → PR states slug/category/one-line design rationale.
+**New component checklist (binding):** `docs/new-component.md`, from the source file to the npm release. The registry source is `scripts/registry/descriptors.mts` plus `scripts/registry/guides.mts`; `apps/docs/lib/registry.ts` is generated.
 
 - Versioning: see §6/§13 - never a third scheme.
 - Release: merge to `main` → Vercel deploy → registry API reflects immediately → CLI users get it on next `add`/`list` (no CLI publish needed for catalog-only changes) - preserve this.
