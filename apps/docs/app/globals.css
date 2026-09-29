@@ -590,6 +590,73 @@ html {
     color: var(--brand);
   }
 
+  /* Footer cards: a layered surface with fine grain, and a border that
+     lights up in brand blue under the pointer (--mx/--my, set on move). */
+  .footer-card {
+    --mx: 50%;
+    --my: -40%;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: 26px;
+    background: linear-gradient(180deg, var(--background-100), var(--background) 70%);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent);
+  }
+  .footer-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      380px circle at var(--mx) var(--my),
+      color-mix(in oklab, var(--brand) 65%, transparent),
+      var(--border) 50%
+    );
+    /* Only the 1px padding ring shows: the content box is cut out. */
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .footer-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(
+        480px circle at var(--mx) var(--my),
+        color-mix(in oklab, var(--brand) 7%, transparent),
+        transparent 55%
+      ),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  /* The Icons card: tinted, with a brighter resting border. */
+  .footer-card-brand {
+    background: linear-gradient(
+      115deg,
+      color-mix(in oklab, var(--brand) 10%, transparent),
+      var(--background-100) 38%,
+      var(--background)
+    );
+  }
+  .footer-card-brand::before {
+    background: radial-gradient(
+      420px circle at var(--mx) var(--my),
+      color-mix(in oklab, var(--brand) 75%, transparent),
+      color-mix(in oklab, var(--brand) 22%, transparent) 50%
+    );
+  }
+  /* A dot field fading out from a corner. */
+  .footer-dots {
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 18px 18px;
+    mask: radial-gradient(60% 55% at 88% 6%, #000, transparent);
+  }
+
   /* The footer wordmark, pressed into the page. */
   .wordmark-pressed {
     color: var(--background-200);
@@ -616,4 +683,42 @@ html {
 .rise {
   animation: rise 0.9s var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+/* Footer: the hero card's slow aurora, and the light across a NEW badge. */
+@keyframes footer-drift {
+  to {
+    transform: translate(-60px, 40px) rotate(40deg);
+  }
+}
+.footer-aurora {
+  animation: footer-drift 18s var(--ease-in-out) infinite alternate;
+}
+@keyframes footer-ping {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  80%,
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+.footer-ping {
+  animation: footer-ping 2.4s var(--ease-out) infinite;
+}
+@keyframes footer-shine {
+  60%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+.footer-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, oklch(100% 0 0 / 0.35), transparent 70%);
+  transform: translateX(-120%);
+  animation: footer-shine 3.6s var(--ease-out) infinite;
 }

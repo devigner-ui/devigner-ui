@@ -7,7 +7,6 @@ import { IconArrowRight } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { EASE_DRAWER, SPRING_LAYOUT } from "devignerui/motion";
 import { ThemeToggle } from "../theme-provider";
-import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 import { WORDMARK_SMALL } from "./wordmark-glyphs";
 
 // Tracking in em units: letter-spacing lands after every letter, so each
@@ -106,16 +105,6 @@ export function Navbar({ autoHide = false }: { autoHide?: boolean }) {
           </motion.div>
 
           <motion.div layout="position" transition={layoutTransition} className="flex items-center gap-2">
-            <a
-              href={DISCORD_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Join the Devigner UI Discord"
-              title="Join the Discord"
-              className="inline-flex size-9 items-center justify-center rounded-full border border-border text-foreground transition-colors duration-200 ease-out hover:bg-surface-hover"
-            >
-              <LogoDiscord className="size-4" />
-            </a>
             <ThemeToggle />
             <Link
               href="/components"

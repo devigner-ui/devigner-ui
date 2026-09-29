@@ -414,13 +414,7 @@ export function InlineTimeEdit({
           type="button"
           disabled={disabled}
           aria-label={open ? saveLabel : editLabel}
-          // Keeps focus in the field while the button is pressed: browsers
-          // that never focus a clicked button would otherwise blur the
-          // control and discard the edit before the save lands.
           onPointerDown={(e) => e.preventDefault()}
-          // detail is 0 for a keyboard press. From the keyboard, focus stays
-          // on the button with its ring; from a pointer, opening lands in the
-          // hours field and saving returns focus without a ring.
           onClick={(e) => {
             const keyboard = e.detail === 0;
             if (open) save(keyboard ? true : "quiet");
