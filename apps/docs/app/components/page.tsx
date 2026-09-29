@@ -9,18 +9,18 @@ import { CopyCommand } from "../../components/landing/copy-command";
 import { CatalogGrid } from "../../components/catalog/catalog-grid";
 import { RequestFab } from "../../components/request/request-fab";
 
-const TITLE = "React Components for Tailwind CSS";
+const TITLE = "Animated React Components for Tailwind CSS";
 const INTRO =
   "Free animated React components for Tailwind CSS. Every card below is running, so try it right here, then copy the command that installs it.";
 
 export function generateMetadata(): Metadata {
   const count = getCatalog().length;
-  const description = `Every Devigner UI component, running live: ${count} free, animated React components for Tailwind CSS. Try one, then install it with a single command.`;
+  const description = `All ${count} Devigner UI components, running live: free, animated React components for Tailwind CSS. Try one, then install it with one command.`;
   return {
     title: TITLE,
     description,
     alternates: { canonical: "/components" },
-    openGraph: { title: `${TITLE} · Devigner UI`, description, url: "/components" },
+    openGraph: { title: "Animated React Components · Devigner UI", description, url: "/components" },
   };
 }
 

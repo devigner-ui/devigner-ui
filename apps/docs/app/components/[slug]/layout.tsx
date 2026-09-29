@@ -18,11 +18,20 @@ export async function generateMetadata({
   const entry = find((await params).slug);
   if (!entry) return { title: "Component not found" };
 
-  const base = `${entry.name}: React Component for Tailwind CSS`;
-  const branded = `${base} · Devigner UI`;
-  const title = branded.length <= 60 ? branded : base;
-  const long = `${entry.description} Free for React and Tailwind CSS, installed with one command.`;
-  const description = long.length <= 155 ? long : entry.description;
+  // The longest form that fits: titles in 60 characters, descriptions in 155.
+  const fit = (max: number, ...options: string[]) =>
+    options.find((o) => o.length <= max) ?? options[options.length - 1];
+  const title = fit(
+    60,
+    `${entry.name}: Animated React Component · Devigner UI`,
+    `${entry.name}: Animated React Component`,
+  );
+  const description = fit(
+    155,
+    `${entry.description} Free for React and Tailwind CSS, installed with one command.`,
+    `${entry.description} Free for React and Tailwind CSS.`,
+    entry.description,
+  );
   const url = `/components/${entry.slug}`;
 
   return {

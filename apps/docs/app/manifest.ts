@@ -4,7 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Devigner UI",
     short_name: "Devigner UI",
-    description: "Free animated React components for Tailwind CSS, installed as plain files you own.",
+    description:
+      "Beautifully crafted animated React components for Tailwind CSS, installed as plain .tsx files you own.",
     start_url: "/",
     display: "standalone",
     background_color: "#0a0c0e",

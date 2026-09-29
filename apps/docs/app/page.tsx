@@ -13,9 +13,10 @@ import { LastCall, SiteFooter } from "../components/landing/closing";
 import { SelectionProvider } from "../components/landing/selection";
 import { RequestFab } from "../components/request/request-fab";
 
-const TITLE = "Devigner UI: Animated React Components for Tailwind CSS";
+// The hero's own words, so a search result reads like the page it opens.
+const TITLE = "Devigner UI: Beautifully Crafted Animated React Components";
 const DESCRIPTION =
-  "Free animated React components for Tailwind CSS. Keyboard support, reduced motion and dark mode are built in, and one command copies each into your repo.";
+  "Animated, accessible React components you install as plain .tsx files. Free for Tailwind CSS, with keyboard support, reduced motion and dark mode built in.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

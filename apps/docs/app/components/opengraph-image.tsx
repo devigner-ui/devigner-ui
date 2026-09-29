@@ -1,7 +1,7 @@
 import { getCatalog } from "@/lib/catalog";
 import { Accent, Chip, Command, OG, OgCanvas, OgWordmark, Stage, ogImage, ogShot, ogSize } from "@/lib/og";
 
-export const alt = "Devigner UI components: free, animated React components for Tailwind CSS.";
+export const alt = "Animated React Components. Devigner UI, free for React and Tailwind CSS.";
 export const size = ogSize;
 export const contentType = "image/png";
 

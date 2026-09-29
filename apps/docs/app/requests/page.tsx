@@ -6,9 +6,9 @@ import { RequestsView } from "../../components/request/requests-view";
 import { getBoard } from "@/lib/requests";
 
 export const metadata: Metadata = {
-  title: "Component Requests",
+  title: "Request a Component",
   description:
-    "Ask Devigner UI for the animated React component you're missing, and vote on what others asked for: pending, in review, in queue or built.",
+    "Missing an animated React component? Request it from Devigner UI and vote on what others asked for, from pending through in review and in queue to built.",
   alternates: { canonical: "/requests" },
 };
 

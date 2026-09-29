@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "Devigner UI", template: "%s · Devigner UI" },
   description:
-    "Free animated React components for Tailwind CSS, installed as plain files you own.",
+    "Beautifully crafted animated React components for Tailwind CSS, installed as plain .tsx files you own.",
   applicationName: "Devigner UI",
   authors: [{ name: "Devigner", url: "https://devigner.cc" }],
   creator: "Devigner",
