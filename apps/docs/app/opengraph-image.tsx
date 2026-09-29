@@ -1,18 +1,55 @@
 import { getCatalog } from "@/lib/catalog";
-import { Accent, Chip, Command, OG, OgCanvas, OgIcon, OgWordmark, Stage, ogImage, ogShot, ogSize } from "@/lib/og";
+import { Accent, Chip, Command, OG, OgCanvas, OgIcon, OgWordmark, Shot, ogImage, ogShot, ogSize } from "@/lib/og";
 
 export const alt = "Beautifully Crafted Animated React Components for Developers. Devigner UI, free for React and Tailwind CSS.";
 export const size = ogSize;
 export const contentType = "image/png";
 
-/** The hero, then three live previews rising from the bottom edge. */
+/** Fitted whole into their slot along the bottom, no box. */
+const ROW = [
+  { slug: "file-upload", width: 340 },
+  { slug: "chart-card", width: 260 },
+  { slug: "date-range-picker", width: 208 },
+];
+
+/** Small ones drifting at the edges, out of focus, as if further back. */
+const FLOATERS = [
+  { slug: "goo-switch", left: 28, top: 150, width: 104, rotate: -10, blur: 1.5 },
+  { slug: "inline-time-edit", left: 40, top: 262, width: 116, rotate: 6, blur: 2.5 },
+  { slug: "delete-button", left: 1072, top: 124, width: 96, rotate: 9, blur: 1.5 },
+  { slug: "magnetic-button", left: 1030, top: 250, width: 150, rotate: -6, blur: 2.5 },
+];
+
+/** The hero on top, three live previews below, and small ones floating around it. */
 export default async function Image() {
   const entries = getCatalog();
-  // Previews whose content sits high in the stage, so the peek shows UI.
-  const shots = (await Promise.all(["date-range-picker", "chart-card", "timeline"].map(ogShot))).filter((s): s is string => !!s);
+  const [row, floaters] = await Promise.all([
+    Promise.all(ROW.map(async (r) => ({ ...r, src: await ogShot(r.slug) }))),
+    Promise.all(FLOATERS.map(async (f) => ({ ...f, src: await ogShot(f.slug) }))),
+  ]);
 
   return ogImage(
     <OgCanvas>
+      {floaters.map(
+        (f) =>
+          f.src && (
+            <Shot
+              key={f.slug}
+              src={f.src}
+              style={{
+                position: "absolute",
+                left: f.left,
+                top: f.top,
+                width: f.width,
+                height: f.width,
+                opacity: 0.65,
+                transform: `rotate(${f.rotate}deg)`,
+                filter: `blur(${f.blur}px)`,
+              }}
+            />
+          ),
+      )}
+
       <div style={{ position: "absolute", top: 44, left: 56, display: "flex" }}>
         <OgWordmark size={30} />
       </div>
@@ -21,64 +58,50 @@ export default async function Image() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", paddingTop: 92 }}>
-        <Chip style={{ gap: 12, height: 40, padding: "0 16px 0 5px", fontSize: 18 }}>
-          <span style={{ display: "flex", borderRadius: 999, background: "rgba(90,148,255,0.16)", color: OG.brand, padding: "4px 12px", fontSize: 16 }}>
+        <Chip style={{ gap: 9, height: 30, padding: "0 12px 0 4px", fontSize: 14 }}>
+          <span style={{ display: "flex", borderRadius: 999, background: "rgba(90,148,255,0.16)", color: OG.brand, padding: "2px 9px", fontSize: 12.5 }}>
             New
           </span>
           {entries[0].name}
-          <OgIcon name="arrowRight" color={OG.muted} size={17} />
+          <OgIcon name="arrowRight" color={OG.muted} size={13} />
         </Chip>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 24, fontSize: 58, fontWeight: 600, lineHeight: 1.06, letterSpacing: "-0.055em" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 20, fontSize: 54, fontWeight: 600, lineHeight: 1.06, letterSpacing: "-0.055em" }}>
           <div style={{ display: "flex", alignItems: "baseline" }}>
             Beautifully&nbsp;<Accent>Crafted</Accent>&nbsp;Animated React
           </div>
           <div style={{ display: "flex" }}>Components for Developers</div>
         </div>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 30 }}>
+        <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
-              height: 58,
-              padding: "0 26px",
+              gap: 8,
+              height: 42,
+              padding: "0 18px",
               borderRadius: 999,
               background: OG.brand,
               color: OG.brandInk,
-              fontSize: 21,
+              fontSize: 16,
               fontWeight: 600,
               letterSpacing: "-0.01em",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 30px rgba(90,148,255,0.3)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px rgba(90,148,255,0.28)",
             }}
           >
             Browse components
-            <OgIcon name="arrowRight" color={OG.brandInk} size={20} />
+            <OgIcon name="arrowRight" color={OG.brandInk} size={15} />
           </div>
-          <Command size={21}>
+          <Command size={16}>
             npx devignerui&nbsp;<span style={{ color: OG.ink }}>init</span>
           </Command>
         </div>
       </div>
 
-      {/* Previews, cut by the bottom edge like the hero window below the fold. */}
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: -170, display: "flex", justifyContent: "center", gap: 24 }}>
-        {shots.map((src, i) => (
-          <Stage key={i} src={src} style={{ width: 350, height: 330, marginTop: i === 1 ? 0 : 30 }} />
-        ))}
+      <div style={{ position: "absolute", left: 0, right: 0, top: 362, height: 240, display: "flex", justifyContent: "center", gap: 40 }}>
+        {row.map((r) => r.src && <Shot key={r.slug} src={r.src} style={{ width: r.width, height: 240 }} />)}
       </div>
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 90,
-          display: "flex",
-          backgroundImage: `linear-gradient(to bottom, rgba(10,12,14,0), ${OG.ground})`,
-        }}
-      />
     </OgCanvas>,
   );
 }

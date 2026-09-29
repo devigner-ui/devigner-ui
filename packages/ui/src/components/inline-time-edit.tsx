@@ -430,7 +430,7 @@ export function InlineTimeEdit({
           style={{ outline: "none" }}
           className={cn(
             "relative grid size-full cursor-pointer place-items-center rounded-[inherit]",
-            !open && "pr-1.5",
+            // !open && "pr-1.5",
             classNames?.button,
           )}
         >

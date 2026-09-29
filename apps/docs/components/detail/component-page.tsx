@@ -23,8 +23,10 @@ import {
   IconArrowRight,
   IconBook2,
   IconCheck,
+  IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
+  IconChevronUp,
   IconCode,
   IconCopy,
   IconDashboardGrid,
@@ -63,16 +65,28 @@ const SETTINGS_INSET = 16;
 const PANEL_GAP = 12;
 const DRAWER_H = 320;
 
-const lgQuery = "(min-width: 1024px)";
-function useIsLg() {
+function useMedia(query: string, server: boolean) {
   return useSyncExternalStore(
     (cb) => {
-      const mq = window.matchMedia(lgQuery);
+      const mq = window.matchMedia(query);
       mq.addEventListener("change", cb);
       return () => mq.removeEventListener("change", cb);
     },
-    () => window.matchMedia(lgQuery).matches,
-    () => true,
+    () => window.matchMedia(query).matches,
+    () => server,
+  );
+}
+const useIsLg = () => useMedia("(min-width: 1024px)", true);
+/** Below Tailwind's `sm`: the dock folds Sound and Discord into one row. */
+const useIsPhone = () => useMedia("(max-width: 639.98px)", false);
+
+/** Up and down chevrons stacked: the "more" row that opens a short menu. */
+function UpDownGlyph() {
+  return (
+    <span className="flex flex-col items-center [&_svg]:size-3.5!">
+      <IconChevronUp strokeWidth={2.5} className="-mb-1" />
+      <IconChevronDown strokeWidth={2.5} className="-mt-1" />
+    </span>
   );
 }
 
@@ -179,7 +193,7 @@ const HINT_WARM = 300;
  *  without the tooltip unmounting in between. */
 const HINT_GRACE = 80;
 /** Dock ids without the press/release knock. */
-const QUIET_PRESS = new Set(["components", "theme", "settings"]);
+const QUIET_PRESS = new Set(["components", "theme", "settings", "more"]);
 
 const MotionSpinner = motion.create(IconSpinner);
 
@@ -249,6 +263,69 @@ function ArrowGlyph({
         />
       </span>
     </>
+  );
+}
+
+/** Prev / next as their own round buttons either side of the dock, the same
+ *  height and surface as it. They step aside while a panel is open. */
+function SideArrow({
+  dir,
+  name,
+  busy,
+  hidden,
+  onGo,
+  onHint,
+  onUnhint,
+  ref,
+}: {
+  dir: "Previous" | "Next";
+  name: string;
+  busy: boolean;
+  hidden: boolean;
+  onGo: () => void;
+  onHint: (el: HTMLElement) => void;
+  onUnhint: (now?: boolean) => void;
+  ref: React.Ref<HTMLButtonElement>;
+}) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.button
+      ref={ref}
+      type="button"
+      aria-label={`${dir}: ${name}`}
+      aria-hidden={hidden}
+      tabIndex={hidden ? -1 : undefined}
+      onClick={onGo}
+      onPointerEnter={(e) => e.pointerType === "mouse" && onHint(e.currentTarget)}
+      onPointerLeave={() => onUnhint()}
+      onPointerDown={() => {
+        play("press");
+        onUnhint(true);
+      }}
+      onPointerUp={() => play("release")}
+      initial={false}
+      animate={{
+        opacity: hidden ? 0 : 1,
+        scale: hidden && !reduce ? 0.85 : 1,
+      }}
+      whileTap={{ scale: 0.96 }}
+      transition={
+        reduce
+          ? { duration: 0 }
+          : {
+              ...SPRING_PRESS,
+              // Back only once the panel has folded into the dock, so they
+              // never show under a shell that is still shrinking past them.
+              opacity: { duration: 0.16, ease: EASE_OUT, delay: hidden ? 0 : 0.22 },
+            }
+      }
+      className={cn(
+        "relative z-10 grid size-14 shrink-0 cursor-pointer place-items-center rounded-full bg-background text-muted-foreground smooth-shadow-ring-lg transition-colors duration-200 ease-out hover:text-foreground [&_svg]:size-5",
+        hidden && "pointer-events-none",
+      )}
+    >
+      <ArrowGlyph dir={dir} busy={busy} />
+    </motion.button>
   );
 }
 
@@ -626,6 +703,7 @@ export function ComponentPage({
   const router = useRouter();
   const reduce = useReducedMotion();
   const isLg = useIsLg();
+  const isPhone = useIsPhone();
   const { theme, toggleTheme } = useTheme();
 
   const [docsOpen, setDocsOpen] = useState(false);
@@ -668,6 +746,10 @@ export function ComponentPage({
   // at the neighbour remounts it with this back at null.
   const [going, setGoing] = useState<"Previous" | "Next" | null>(null);
   const dock = useRef<HTMLDivElement>(null);
+  /** The arrows and the dock together. */
+  const bar = useRef<HTMLDivElement>(null);
+  const prevArrow = useRef<HTMLButtonElement>(null);
+  const nextArrow = useRef<HTMLButtonElement>(null);
   // One timer for both the open delay and the close grace: entering a row
   // cancels a pending close, leaving one cancels a pending open.
   const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -705,7 +787,7 @@ export function ComponentPage({
   // it grows out of. Only read while closed: open, the dock is the panel.
   const [dockWidth, setDockWidth] = useState<number>();
   useEffect(() => {
-    const el = dock.current;
+    const el = dock.current?.firstElementChild as HTMLElement | null | undefined;
     if (!el || panelOpen) return;
     const ro = new ResizeObserver(() => setDockWidth(el.offsetWidth));
     ro.observe(el);
@@ -740,13 +822,78 @@ export function ComponentPage({
     playground.reset();
   };
 
-  const items: MenuDockItem[] = [
+  // The hairline before Theme, parting page tools from site ones.
+  const sep = (
+    <span
+      aria-hidden
+      className="dock-sep pointer-events-none absolute top-1/2 left-[-6.5px] h-5 w-px -translate-y-1/2 bg-border"
+    />
+  );
+  const themeItem: MenuDockItem = {
+      id: "theme",
+      label: "Toggle theme",
+      icon: (
+        <>
+          {sep}
+          <span
+            className="group grid place-items-center"
+            data-dark={theme === "dark"}
+          >
+            <ThemeIcon />
+          </span>
+        </>
+      ),
+      onSelect: () => {
+        cue("toggle");
+        // The dock's own button, so the "T" shortcut ripples from it too.
+        const rect = path.length
+          ? undefined
+          : dockRows()[
+              items.findIndex((i) => i.id === "theme")
+            ]?.getBoundingClientRect();
+        toggleTheme(
+          rect && {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          },
+        );
+      },
+  };
+  // Sound and Discord: in the dock on wider screens, one level down behind a
+  // single row at the end on a phone.
+  const utility: MenuDockItem[] = [
     {
-      id: "prev",
-      label: `Previous: ${prev.name}`,
-      icon: <ArrowGlyph dir="Previous" busy={going === "Previous"} />,
-      onSelect: () => go("Previous"),
+      id: "sound",
+      label: sound ? "Mute sounds" : "Turn sounds on",
+      icon: (
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.span
+            key={sound ? "on" : "off"}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+            transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
+            className="grid place-items-center"
+          >
+            {sound ? (
+              <IconVolumeHigh strokeWidth={2} />
+            ) : (
+              <IconVolumeCross strokeWidth={2} />
+            )}
+          </motion.span>
+        </AnimatePresence>
+      ),
+      onSelect: toggleSound,
     },
+    {
+      id: "discord",
+      label: "Join the Discord",
+      icon: <LogoDiscord />,
+      onSelect: () => window.open(DISCORD_URL, "_blank", "noopener"),
+    },
+  ];
+
+  const items: MenuDockItem[] = [
     {
       id: "components",
       label: "Components",
@@ -788,68 +935,8 @@ export function ComponentPage({
         setSourceOpen((v) => !v);
       },
     },
-    {
-      id: "theme",
-      label: "Toggle theme",
-      icon: (
-        <>
-          <span
-            aria-hidden
-            className="dock-sep pointer-events-none absolute top-1/2 left-[-6.5px] h-5 w-px -translate-y-1/2 bg-border"
-          />
-          <span
-            className="group grid place-items-center"
-            data-dark={theme === "dark"}
-          >
-            <ThemeIcon />
-          </span>
-        </>
-      ),
-      onSelect: () => {
-        cue("toggle");
-        // The dock's own button, so the "T" shortcut ripples from it too.
-        const rect = path.length
-          ? undefined
-          : dockRows()[
-              items.findIndex((i) => i.id === "theme")
-            ]?.getBoundingClientRect();
-        toggleTheme(
-          rect && {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2,
-          },
-        );
-      },
-    },
-    {
-      id: "sound",
-      label: sound ? "Mute sounds" : "Turn sounds on",
-      icon: (
-        <AnimatePresence initial={false} mode="popLayout">
-          <motion.span
-            key={sound ? "on" : "off"}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
-            transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
-            className="grid place-items-center"
-          >
-            {sound ? (
-              <IconVolumeHigh strokeWidth={2} />
-            ) : (
-              <IconVolumeCross strokeWidth={2} />
-            )}
-          </motion.span>
-        </AnimatePresence>
-      ),
-      onSelect: toggleSound,
-    },
-    {
-      id: "discord",
-      label: "Join the Discord",
-      icon: <LogoDiscord />,
-      onSelect: () => window.open(DISCORD_URL, "_blank", "noopener"),
-    },
+    themeItem,
+    ...(isPhone ? [] : utility),
     ...(playground.settings
       ? [
           {
@@ -897,27 +984,33 @@ export function ComponentPage({
           },
         ]
       : []),
-    {
-      id: "next",
-      label: `Next: ${next.name}`,
-      icon: <ArrowGlyph dir="Next" busy={going === "Next"} />,
-      onSelect: () => go("Next"),
-    },
+    ...(isPhone
+      ? [
+          {
+            id: "more",
+            label: "More",
+            icon: <UpDownGlyph />,
+            items: utility,
+          },
+        ]
+      : []),
   ];
-
+  // Every action by id, wherever it sits (on a phone some are one level down),
+  // for the letter shortcuts.
+  const actions = items.flatMap((i) => [i, ...(i.items ?? [])]);
   // Read by the key listener without rebinding it on every render.
-  const live = useRef({ path, docsOpen, going, go, items, reset, hasSettings });
-  live.current = { path, docsOpen, going, go, items, reset, hasSettings };
+  const live = useRef({ path, docsOpen, going, go, items, actions, reset, hasSettings });
+  live.current = { path, docsOpen, going, go, items, actions, reset, hasSettings };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const { path, docsOpen, go, items, reset, hasSettings } = live.current;
+      const { path, docsOpen, items, actions, reset, hasSettings } = live.current;
       const typing = isTyping(e.target);
 
       if (e.key === "/" && !typing) {
         e.preventDefault();
-        setPath([1]);
+        setPath([items.findIndex((i) => i.id === "components")]);
         return;
       }
       // Reset lives in the Settings panel, but its key works from anywhere.
@@ -935,25 +1028,11 @@ export function ComponentPage({
         (k) => DOCK_KEYS[k] === e.key.toUpperCase(),
       );
       if (id && id !== "components" && !typing && !e.defaultPrevented) {
-        const at = items.findIndex((i) => i.id === id);
-        if (at < 0) return;
+        const action = actions.find((i) => i.id === id);
+        if (!action) return;
         e.preventDefault();
-        if (items[at].content) setPath([at]);
-        else items[at].onSelect?.();
-        return;
-      }
-      // Arrows belong to whatever has focus (the live component, sliders,
-      // tabs, the dock). Only with nothing focused do they change component.
-      if (
-        (e.key === "ArrowLeft" || e.key === "ArrowRight") &&
-        !e.shiftKey &&
-        !e.defaultPrevented &&
-        path.length === 0 &&
-        (document.activeElement === document.body ||
-          document.activeElement === null)
-      ) {
-        e.preventDefault();
-        go(e.key === "ArrowLeft" ? "Previous" : "Next");
+        if (action.content) setPath([items.indexOf(action)]);
+        else action.onSelect?.();
         return;
       }
       if (e.key === "Escape" && !typing) {
@@ -961,12 +1040,39 @@ export function ComponentPage({
         else if (docsOpen) setDocsOpen(false);
       }
     };
+    // ←/→ change component whenever nothing else owns them: nothing focused,
+    // or focus left on the dock or an arrow (closing a panel hands it back to
+    // the dock). Captured before the dock sees them, so they never walk its
+    // rows and light a focus ring. The live component, sliders and tabs keep
+    // their arrows.
+    const onArrow = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const { path, go } = live.current;
+      const at = document.activeElement;
+      const free =
+        !at || at === document.body || !!bar.current?.contains(at);
+      if (path.length || !free) return;
+      e.preventDefault();
+      e.stopPropagation();
+      go(e.key === "ArrowLeft" ? "Previous" : "Next");
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onArrow, true);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onArrow, true);
+    };
   }, [router]);
 
   const panel = reduce ? { duration: 0 } : SPRING_PANEL;
-  const hintItem = hint && items.find((i) => i.id === hint.id);
+  // Prev / next sit outside the dock, so they aren't items; their tooltip
+  // builds its own label below.
+  const hintItem =
+    hint &&
+    (hint.id === "prev" || hint.id === "next"
+      ? { label: "" }
+      : items.find((i) => i.id === hint.id));
   const hintAway = reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 };
   const layout = reduce ? { duration: 0 } : SPRING_LAYOUT;
 
@@ -997,13 +1103,31 @@ export function ComponentPage({
             )}
           </div>
 
-          <div
-            ref={dock}
-            className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2"
-          >
+          <div ref={bar} className="absolute inset-x-0 bottom-5 z-20 mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center gap-1.5 sm:gap-2">
+          <SideArrow
+            ref={prevArrow}
+            dir="Previous"
+            name={prev.name}
+            busy={going === "Previous"}
+            hidden={panelOpen}
+            onGo={() => go("Previous")}
+            onHint={(el) => showHint("prev", el)}
+            onUnhint={hideHint}
+          />
+          {/* min-w-0 lets the dock give way to the arrows on a narrow
+              screen; its row then scrolls sideways instead. */}
+          <div ref={dock} className="min-w-0">
             <MenuDock
               items={items}
               path={path}
+              // The closed shell stops short of the arrows (56px each, plus
+              // the gaps and the page gutter). Open,
+              // the arrows step aside and a panel may use the full width.
+              classNames={{
+                shell: panelOpen
+                  ? undefined
+                  : "max-w-[calc(100vw-2rem-124px)] sm:max-w-[calc(100vw-2rem-128px)]",
+              }}
               onNavigate={setPath}
               label="Preview actions"
               layoutId="detail-dock"
@@ -1040,6 +1164,17 @@ export function ComponentPage({
               // 4px gap plus this 8px, with the line centred in the 12px.
               className="[&_[data-dock-row]:has(.dock-sep)]:ml-2"
             />
+          </div>
+          <SideArrow
+            ref={nextArrow}
+            dir="Next"
+            name={next.name}
+            busy={going === "Next"}
+            hidden={panelOpen}
+            onGo={() => go("Next")}
+            onHint={(el) => showHint("next", el)}
+            onUnhint={hideHint}
+          />
           </div>
         </div>
 
@@ -1104,8 +1239,12 @@ export function ComponentPage({
       )}
 
       <DockKeycaps
-        ids={items.map((i) => i.id ?? "")}
-        rows={dockRows}
+        ids={["prev", ...items.map((i) => i.id ?? ""), "next"]}
+        rows={() =>
+          [prevArrow.current, ...dockRows(), nextArrow.current].filter(
+            (el): el is HTMLElement => !!el,
+          )
+        }
         open={path.length > 0}
       />
 

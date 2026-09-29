@@ -301,10 +301,14 @@ export function MenuDock({
    *  the footprint is meant to hold that shape regardless of what opens on
    *  top of it later. Skipped entirely for a plain icon-only dock, which
    *  keeps its exact pre-computed width and never mounts an observer. */
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (open || !hasLabelledItem || !shell.current) return;
     const el = shell.current;
-    const measure = () => setMeasuredWidth(el.getBoundingClientRect().width);
+    // offsetWidth, not the bounding rect: right after a panel closes the shell
+    // is still shrinking by a layout transform, and the rect would lock in
+    // that mid-morph width. Laid out before paint, so no first frame at the
+    // icon-only estimate either.
+    const measure = () => setMeasuredWidth(el.offsetWidth);
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);

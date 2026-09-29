@@ -42,10 +42,10 @@ export default async function Image() {
             Newest: {entries[0].name}
           </Chip>
           <div style={{ display: "flex", flexDirection: "column", marginTop: 26, fontSize: 84, fontWeight: 600, lineHeight: 1.02, letterSpacing: "-0.055em" }}>
-            <div style={{ display: "flex", alignItems: "baseline" }}>
-              React&nbsp;<Accent>Components</Accent>
+            <div style={{ display: "flex" }}>Animated React</div>
+            <div style={{ display: "flex" }}>
+              <Accent>Components</Accent>
             </div>
-            <div style={{ display: "flex" }}>for Tailwind CSS</div>
           </div>
           <div style={{ display: "flex", marginTop: 24, maxWidth: 560, fontSize: 25, lineHeight: 1.45, color: OG.secondary }}>
             Free and animated. Try each one live, then install it with one command.

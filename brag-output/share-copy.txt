@@ -1,1 +1,0 @@
-Pick a component, preview every state, then copy it into your repo. Devigner UI makes the animated part your code.
