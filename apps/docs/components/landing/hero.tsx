@@ -14,7 +14,6 @@ export function Hero({ entries }: { entries: CatalogEntry[] }) {
 
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-36 lg:pb-28">
-      {/* Cobalt light from the top. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-160 bg-[radial-gradient(42%_60%_at_50%_0%,var(--glow),transparent_70%)]"

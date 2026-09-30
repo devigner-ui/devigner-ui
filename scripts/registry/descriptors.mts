@@ -5,6 +5,7 @@ export const descriptors = [
     description:
       "Leans toward your cursor before you reach it, then lets go with a wobble.",
     addedAt: "2026-09-14",
+    since: "1.0.0",
     stageAlign: "center",
     tryIt: "circle it slowly, then pull away",
     category: "animation",
@@ -37,6 +38,7 @@ export const descriptors = [
     description:
       "A stats card whose bars show their value as you move across them.",
     addedAt: "2026-09-21",
+    since: "1.0.0",
     stageAlign: "center",
     tryIt: "sweep across the bars",
     category: "data",
@@ -75,6 +77,7 @@ export const descriptors = [
     description:
       "Asks before it deletes, waits for your API call, then shows a tick.",
     addedAt: "2026-09-21",
+    since: "1.0.0",
     stageAlign: "center",
     tryIt: "press it, then confirm",
     category: "primitives",
@@ -122,6 +125,7 @@ export const descriptors = [
     description:
       "The active step slides off the rail, and the line bends to follow it.",
     addedAt: "2026-09-21",
+    since: "1.0.0",
     stageAlign: "center",
     tryIt: "move across the steps",
     category: "data",
@@ -154,6 +158,7 @@ export const descriptors = [
     description:
       "A dock that grows into its own menus, nested as deep as you need.",
     addedAt: "2026-09-21",
+    since: "1.0.0",
     stageAlign: "end",
     tryIt: "open Account, then use the arrow keys",
     category: "navigation",
@@ -199,6 +204,7 @@ export const descriptors = [
     description:
       "A calendar that shows the range before you commit to it, with presets.",
     addedAt: "2026-09-23",
+    since: "1.0.0",
     stageAlign: "center",
     tryIt: "pick a day, then move across the calendar",
     category: "forms",
@@ -247,6 +253,7 @@ export const descriptors = [
     description:
       "A 2:30 that splits into hour and minute fields when you edit it, then folds back.",
     addedAt: "2026-09-27",
+    since: "1.1.0",
     stageAlign: "center",
     tryIt: "press the pencil, change the hours, then save",
     category: "forms",
@@ -303,6 +310,7 @@ export const descriptors = [
     description:
       "A switch whose thumb is a drop of liquid: it trails a tail when it moves and stretches over the edge when you pull it too far.",
     addedAt: "2026-09-27",
+    since: "1.2.0",
     stageAlign: "center",
     tryIt: "drag the thumb past the end, then let go",
     category: "forms",
@@ -361,6 +369,7 @@ export const descriptors = [
     description:
       "An iOS 27 style glass menu whose rim bends the page behind it: a pill that swells into a squircle panel of rows and melts back once you pick one.",
     addedAt: "2026-09-30",
+    since: "1.5.0",
     stageAlign: "center",
     tryIt: "open the menu, then use the arrow keys",
     category: "primitives",
@@ -404,6 +413,7 @@ export const descriptors = [
     description:
       "An upload panel whose files drip out of the dropzone as liquid, then queue, pause, fail and retry in compact cards before you submit them.",
     addedAt: "2026-09-28",
+    since: "1.3.0",
     stageAlign: "center",
     tryIt: "drop a few files, then pause one",
     category: "forms",
@@ -451,6 +461,7 @@ export const descriptors = [
     description:
       "A slider whose fill heats from yellow to red as it grows, with a glass thumb that opens to show the value while you drag.",
     addedAt: "2026-09-30",
+    since: "1.4.0",
     stageAlign: "center",
     tryIt: "drag the fill to the end, then press Home",
     category: "forms",

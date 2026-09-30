@@ -22,6 +22,9 @@ for (const descriptor of descriptors) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(descriptor.addedAt) || Number.isNaN(added.getTime()) || added.toISOString().slice(0, 10) !== descriptor.addedAt) {
     failures.push(`${descriptor.slug}: addedAt "${descriptor.addedAt}" is not a valid YYYY-MM-DD date`);
   }
+  if (!/^\d+\.\d+\.\d+$/.test(descriptor.since)) {
+    failures.push(`${descriptor.slug}: since "${descriptor.since}" is not an x.y.z version`);
+  }
   for (const [name] of descriptor.props) {
     if (!exported.has(name)) failures.push(`${descriptor.slug}: documented prop ${name} is not exported by its Props type`);
   }

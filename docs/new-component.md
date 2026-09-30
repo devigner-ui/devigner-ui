@@ -51,7 +51,8 @@ truth: `apps/docs/lib/registry.ts` is generated from it and is never edited by
 hand.
 
 Required: `slug`, `name`, `description` (one plain sentence), `addedAt`
-(today, `YYYY-MM-DD`), `category`, `variants`, `sourceFile`, `dependencies`,
+(today, `YYYY-MM-DD`), `since` (the release it ships in, `x.y.z`; ask the user, never
+pick it), `category`, `variants`, `sourceFile`, `dependencies`,
 `transformations`, `props`, `examples.standard`, `examples.custom`. Optional:
 `tryIt` (the stage hint, "drag the thumb past the end"), `stageAlign` (`"end"`
 for panels that open upward).

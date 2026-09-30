@@ -20,7 +20,8 @@ function Title({ name }: { name: string }) {
   if (cut < 0) return <>{name}</>;
   return (
     <>
-      {name.slice(0, cut)} <span className="accent-word">{name.slice(cut + 1)}</span>
+      {name.slice(0, cut)}{" "}
+      <span className="accent-word">{name.slice(cut + 1)}</span>
     </>
   );
 }
@@ -34,7 +35,11 @@ function H2({ children }: { children: React.ReactNode }) {
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <p className="mt-6 mb-2.5 font-mono text-[11.5px] text-text-muted">{children}</p>;
+  return (
+    <p className="mt-6 mb-2.5 font-mono text-[11.5px] text-text-muted">
+      {children}
+    </p>
+  );
 }
 
 function Mono({ children }: { children: React.ReactNode }) {
@@ -135,7 +140,15 @@ export function Inspector({
   // WAI-ARIA tabs: arrows move between tabs and select them.
   const onTabKey = (e: React.KeyboardEvent, i: number) => {
     const to =
-      e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : null;
+      e.key === "ArrowRight"
+        ? i + 1
+        : e.key === "ArrowLeft"
+          ? i - 1
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? TABS.length - 1
+              : null;
     if (to === null) return;
     e.preventDefault();
     const next = (to + TABS.length) % TABS.length;
@@ -150,7 +163,7 @@ export function Inspector({
           <Title name={meta.name} />
         </h1>
         {isNew && (
-          <span className="shrink-0 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] font-medium text-brand">
+          <span className="shrink-0 rounded-full bg-brand/15 px-2 py-1 text-[11px] font-medium text-brand leading-none uppercase">
             New
           </span>
         )}
@@ -168,7 +181,8 @@ export function Inspector({
           <LogoDiscord className="size-3.5" />
           {request.requester ? (
             <>
-              Requested by <span className="text-text-secondary">{request.requester}</span>
+              Requested by{" "}
+              <span className="text-text-secondary">{request.requester}</span>
             </>
           ) : (
             "Built from a community request"
@@ -200,7 +214,9 @@ export function Inspector({
             onKeyDown={(e) => onTabKey(e, i)}
             className={cn(
               "relative h-7 cursor-pointer rounded-full px-3 text-[12.5px] transition-colors duration-200 ease-out",
-              tab === t ? "text-foreground" : "text-text-muted hover:text-text-secondary",
+              tab === t
+                ? "text-foreground"
+                : "text-text-muted hover:text-text-secondary",
             )}
           >
             {tab === t && (
@@ -224,49 +240,57 @@ export function Inspector({
           aria-labelledby="doc-tab-Install"
           hidden={tab !== "Install"}
         >
-            <H2>
-              Install it in <span className="accent-word">one</span> line
-            </H2>
-            <CopyCommand
-              command={`npx devignerui add ${meta.slug}`}
-              highlight={meta.slug}
-              className="w-full"
-            />
-            <p className="mt-3 text-[13.5px]/relaxed text-text-secondary">
-              Writes <Mono>components/ui/{file}</Mono> and lists what it needs.
-            </p>
+          <H2>
+            Install it in <span className="accent-word">one</span> line
+          </H2>
+          <p className="mb-2.5 font-mono text-[11.5px] tracking-wide text-text-muted">
+            Available in{" "}
+            <span className="text-text-secondary">v{meta.since}</span>
+          </p>
+          <CopyCommand
+            command={`npx devignerui add ${meta.slug}`}
+            highlight={meta.slug}
+            className="w-full"
+          />
+          <p className="mt-3 text-[13.5px]/relaxed text-text-secondary">
+            Writes <Mono>components/ui/{file}</Mono> and lists what it needs.
+          </p>
 
-            <Label>First time here</Label>
-            <CopyCommand command="npx devignerui init" highlight="init" className="w-full" />
+          <Label>First time here</Label>
+          <CopyCommand
+            command="npx devignerui init"
+            highlight="init"
+            className="w-full"
+          />
 
-            <Label>Or by hand</Label>
-            <ol className="flex list-decimal flex-col gap-3 pl-5 text-[13.5px]/relaxed text-text-secondary marker:font-mono marker:text-[12px] marker:text-text-muted">
-              <li>Needs React 18 or 19 and Tailwind CSS v4.</li>
-              {deps.length > 0 && (
-                <li>
-                  <p className="mb-2">Install the dependencies.</p>
-                  <CopyCommand
-                    command={`npm i ${deps.join(" ")}`}
-                    size="compact"
-                    className="w-full"
-                  />
-                </li>
-              )}
+          <Label>Or by hand</Label>
+          <ol className="flex list-decimal flex-col gap-3 pl-5 text-[13.5px]/relaxed text-text-secondary marker:font-mono marker:text-[12px] marker:text-text-muted">
+            <li>Needs React 18 or 19 and Tailwind CSS v4.</li>
+            {deps.length > 0 && (
               <li>
-                Paste the source from{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    cue("toggleOn");
-                    onOpenCode();
-                  }}
-                  className="cursor-pointer font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
-                >
-                  Code
-                </button>{" "}
-                into <Mono>components/ui/{file}</Mono>.
+                <p className="mb-2">Install the dependencies.</p>
+                <CopyCommand
+                  command={`npm i ${deps.join(" ")}`}
+                  size="compact"
+                  className="w-full"
+                />
               </li>
-            </ol>
+            )}
+            <li>
+              Paste the source from{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  cue("toggleOn");
+                  onOpenCode();
+                }}
+                className="cursor-pointer font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+              >
+                Code
+              </button>{" "}
+              into <Mono>components/ui/{file}</Mono>.
+            </li>
+          </ol>
         </div>
 
         <div
@@ -275,25 +299,25 @@ export function Inspector({
           aria-labelledby="doc-tab-Usage"
           hidden={tab !== "Usage"}
         >
-            <H2>Usage</H2>
-            <CodeFigure code={usage} />
-            {meta.customUsage && (
-              <>
-                <h3 className="mt-7 mb-3 text-[15px] font-semibold tracking-[-0.02em] text-foreground">
-                  Custom composition
-                </h3>
-                <CodeFigure code={meta.customUsage} />
-              </>
-            )}
-            {meta.guide.recipes.map((recipe) => (
-              <section key={recipe.title}>
-                <H3>{recipe.title}</H3>
-                <p className="mb-3 text-[13.5px]/relaxed text-text-secondary">
-                  {recipe.description}
-                </p>
-                <CodeFigure code={recipe.code} />
-              </section>
-            ))}
+          <H2>Usage</H2>
+          <CodeFigure code={usage} />
+          {meta.customUsage && (
+            <>
+              <h3 className="mt-7 mb-3 text-[15px] font-semibold tracking-[-0.02em] text-foreground">
+                Custom composition
+              </h3>
+              <CodeFigure code={meta.customUsage} />
+            </>
+          )}
+          {meta.guide.recipes.map((recipe) => (
+            <section key={recipe.title}>
+              <H3>{recipe.title}</H3>
+              <p className="mb-3 text-[13.5px]/relaxed text-text-secondary">
+                {recipe.description}
+              </p>
+              <CodeFigure code={recipe.code} />
+            </section>
+          ))}
         </div>
 
         <div
@@ -302,29 +326,32 @@ export function Inspector({
           aria-labelledby="doc-tab-Props"
           hidden={tab !== "Props"}
         >
-            <H2>
-              Every <span className="accent-word">prop</span>
-            </H2>
-            <div className="overflow-hidden rounded-xl border border-border">
-              {meta.props.map((p, i) => (
-                <div key={p.name} className={cn("px-4 py-3", i > 0 && "border-t border-border")}>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <code className="font-mono text-[13px] font-medium text-foreground">
-                      {p.name}
-                    </code>
-                    <code className="max-w-40 truncate font-mono text-[12.5px] text-text-secondary">
-                      {p.default && p.default !== "-" ? p.default : "-"}
-                    </code>
-                  </div>
-                  <code className="mt-1 block font-mono text-[12px] wrap-break-word text-text-muted">
-                    {p.type}
+          <H2>
+            Every <span className="accent-word">prop</span>
+          </H2>
+          <div className="overflow-hidden rounded-xl border border-border">
+            {meta.props.map((p, i) => (
+              <div
+                key={p.name}
+                className={cn("px-4 py-3", i > 0 && "border-t border-border")}
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <code className="font-mono text-[13px] font-medium text-foreground">
+                    {p.name}
                   </code>
-                  <p className="mt-1.5 text-[13.5px]/relaxed text-text-secondary">
-                    {p.description}
-                  </p>
+                  <code className="max-w-40 truncate font-mono text-[12.5px] text-text-secondary">
+                    {p.default && p.default !== "-" ? p.default : "-"}
+                  </code>
                 </div>
-              ))}
-            </div>
+                <code className="mt-1 block font-mono text-[12px] wrap-break-word text-text-muted">
+                  {p.type}
+                </code>
+                <p className="mt-1.5 text-[13.5px]/relaxed text-text-secondary">
+                  {p.description}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div
@@ -333,80 +360,94 @@ export function Inspector({
           aria-labelledby="doc-tab-Guide"
           hidden={tab !== "Guide"}
         >
-            <H2>
-              How to <span className="accent-word">use</span> it
-            </H2>
-            <p className="text-[14px]/relaxed text-text-secondary">{meta.guide.demo}</p>
+          <H2>
+            How to <span className="accent-word">use</span> it
+          </H2>
+          <p className="text-[14px]/relaxed text-text-secondary">
+            {meta.guide.demo}
+          </p>
 
-            <H3>When to use it</H3>
-            <Bullets items={meta.guide.whenToUse} />
+          <H3>When to use it</H3>
+          <Bullets items={meta.guide.whenToUse} />
 
-            <H3>When to reach for something else</H3>
-            <Bullets items={meta.guide.whenNotToUse} />
+          <H3>When to reach for something else</H3>
+          <Bullets items={meta.guide.whenNotToUse} />
 
-            <H3>Keyboard</H3>
-            <dl className="overflow-hidden rounded-xl border border-border">
-              {meta.guide.keyboard.map(([keys, action], i) => (
-                <div key={keys} className={cn("px-4 py-3", i > 0 && "border-t border-border")}>
-                  <dt className="font-mono text-[12.5px] font-medium text-foreground">{keys}</dt>
-                  <dd className="mt-1 text-[13.5px]/relaxed text-text-secondary">{action}</dd>
-                </div>
-              ))}
-            </dl>
-
-            <H3>Accessibility</H3>
-            <Bullets items={meta.guide.accessibility} />
-
-            <H3>Theming</H3>
-            <Bullets items={meta.guide.theming} />
-
-            <H3>Edge cases</H3>
-            <Bullets items={meta.guide.edgeCases} />
-
-            <H3>Troubleshooting</H3>
-            <div className="flex flex-col gap-4">
-              {meta.guide.troubleshooting.map((t) => (
-                <div key={t.question}>
-                  <h4 className="text-[13.5px] font-medium text-foreground">{t.question}</h4>
-                  <p className="mt-1 text-[13.5px]/relaxed text-text-secondary">{t.answer}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-4 text-[13.5px]/relaxed text-text-secondary">
-              Stuck on something else?{" "}
-              <a
-                href={DISCORD_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+          <H3>Keyboard</H3>
+          <dl className="overflow-hidden rounded-xl border border-border">
+            {meta.guide.keyboard.map(([keys, action], i) => (
+              <div
+                key={keys}
+                className={cn("px-4 py-3", i > 0 && "border-t border-border")}
               >
-                Ask in the Discord
-              </a>
-              .
-            </p>
+                <dt className="font-mono text-[12.5px] font-medium text-foreground">
+                  {keys}
+                </dt>
+                <dd className="mt-1 text-[13.5px]/relaxed text-text-secondary">
+                  {action}
+                </dd>
+              </div>
+            ))}
+          </dl>
 
-            <p className="mt-8 text-[13px]/relaxed text-text-muted">
-              Some of these designs take cues from interfaces we&apos;ve admired around the
-              web. If one started as your idea and you&apos;d like credit, message us on{" "}
-              <a
-                href="https://x.com/devignerui"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
-              >
-                X @devignerui
-              </a>{" "}
-              or in the{" "}
-              <a
-                href={DISCORD_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
-              >
-                Discord
-              </a>{" "}
-              and we&apos;ll add it.
-            </p>
+          <H3>Accessibility</H3>
+          <Bullets items={meta.guide.accessibility} />
+
+          <H3>Theming</H3>
+          <Bullets items={meta.guide.theming} />
+
+          <H3>Edge cases</H3>
+          <Bullets items={meta.guide.edgeCases} />
+
+          <H3>Troubleshooting</H3>
+          <div className="flex flex-col gap-4">
+            {meta.guide.troubleshooting.map((t) => (
+              <div key={t.question}>
+                <h4 className="text-[13.5px] font-medium text-foreground">
+                  {t.question}
+                </h4>
+                <p className="mt-1 text-[13.5px]/relaxed text-text-secondary">
+                  {t.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-[13.5px]/relaxed text-text-secondary">
+            Stuck on something else?{" "}
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+            >
+              Ask in the Discord
+            </a>
+            .
+          </p>
+
+          <p className="mt-8 text-[13px]/relaxed text-text-muted">
+            Some of these designs take cues from interfaces we&apos;ve admired
+            around the web. If one started as your idea and you&apos;d like
+            credit, message us on{" "}
+            <a
+              href="https://x.com/devignerui"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+            >
+              X @devignerui
+            </a>{" "}
+            or in the{" "}
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+            >
+              Discord
+            </a>{" "}
+            and we&apos;ll add it.
+          </p>
         </div>
       </div>
     </div>

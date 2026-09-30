@@ -270,21 +270,26 @@ function Spotlight({
         rx.set(0);
         ry.set(0);
       }}
-      className="group grid h-full items-center gap-6 p-8 sm:grid-cols-[260px_1fr]"
+      className="group grid h-full items-center gap-6 py-6 pr-8 pl-6 sm:grid-cols-[auto_1fr]"
     >
       {/* The component straight on the card, no frame around it. The shot
           carries transparent room for its shadow (about 16px at this size),
-          pulled back out so the card's side gutters match. */}
-      <div className="-mx-4 grid place-items-center perspective-[600px] sm:mr-0">
+          pulled back out on every side so it sits close to the card's edge.
+          A soft brand halo behind it lifts it off the ground. */}
+      <div className="relative -m-4 grid place-items-center perspective-[600px]">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-6 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--brand)_14%,transparent),transparent)] opacity-70 transition-opacity duration-300 ease-out group-hover:opacity-100"
+        />
         <motion.img
           src={entry.shot}
           alt=""
           loading="lazy"
           style={{ rotateX: rx, rotateY: ry }}
-          className="max-h-52 w-full object-contain drop-shadow-[0_18px_24px_oklch(0%_0_0/0.45)]"
+          className="relative h-64 w-auto max-w-full object-contain drop-shadow-[0_18px_24px_oklch(0%_0_0/0.45)]"
         />
       </div>
-      <div>
+      <div className="min-w-0">
         <Eyebrow>
           <span className="inline-flex items-center gap-2 text-brand">
             <Pulse />
@@ -292,10 +297,10 @@ function Spotlight({
           </span>
           · v{version}
         </Eyebrow>
-        <h3 className="mt-2.5 text-[22px] font-semibold tracking-[-0.03em] text-foreground">
+        <h3 className="mt-3 text-[22px]/tight font-semibold tracking-[-0.03em] text-foreground">
           {entry.name}
         </h3>
-        <p className="mt-1.5 text-[14px]/[1.55] text-pretty text-text-secondary">
+        <p className="mt-1.5 line-clamp-2 text-[14px]/[1.55] text-pretty text-text-secondary">
           {entry.description}
         </p>
         {/* A quiet pill, the Explore icons button's sibling: on hover the
