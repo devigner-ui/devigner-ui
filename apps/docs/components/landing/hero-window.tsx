@@ -542,7 +542,11 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
               <div className="flex max-w-full items-center gap-1 rounded-2xl bg-background-100/90 p-0.5 border border-border/60 backdrop-blur-xl">
                 <button
                   type="button"
-                  aria-label={max ? "Restore the board" : "Maximize the selected component"}
+                  aria-label={
+                    max
+                      ? "Restore the board"
+                      : "Maximize the selected component"
+                  }
                   aria-pressed={max}
                   title={max ? "Restore" : "Maximize"}
                   onClick={() => setMax((m) => !m)}

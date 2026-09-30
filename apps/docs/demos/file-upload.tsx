@@ -35,7 +35,8 @@ let uploads = 0;
 /** A fake upload with uneven steps like a real network. */
 function fakeUpload({ seconds, failEvery }: UploaderConfig) {
   return (file: File, { onProgress, signal }: FileUploaderContext) => {
-    const fails = failEvery > 0 && ++uploads % failEvery === 0 && !sent.has(file);
+    const fails =
+      failEvery > 0 && ++uploads % failEvery === 0 && !sent.has(file);
     // A tick is 110ms; the mean step covers the file in `seconds`.
     const step = 0.11 / Math.max(seconds, 0.5);
     return new Promise<void>((resolve, reject) => {
@@ -102,14 +103,17 @@ export default function FileUploadDemo({
     const dt = new DataTransfer();
     sampleFiles().forEach((f) => dt.items.add(f));
     zone.dispatchEvent(
-      new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }),
+      new DragEvent("drop", {
+        dataTransfer: dt,
+        bubbles: true,
+        cancelable: true,
+      }),
     );
   }, [seed]);
 
   return (
     <div ref={box} className="w-md max-w-full">
       <FileUploader
-        // A new seed starts from an empty list.
         key={seed}
         upload={fakeUpload(config)}
         accept={ACCEPT}

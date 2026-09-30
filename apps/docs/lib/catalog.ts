@@ -12,7 +12,7 @@ export type { CatalogEntry } from "./catalog-query";
 export const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://ui.devigner.cc";
 
 /** The hero's default component. Set by hand, not the newest. */
-export const FEATURED: ComponentSlug = "menu-dock";
+export const FEATURED: ComponentSlug = "slider";
 
 /** Which component each "Every state" cell runs. The keyboard cell is always
  *  the details page's Menu Dock (its search panel and nested menus are what

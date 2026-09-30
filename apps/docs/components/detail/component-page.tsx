@@ -208,7 +208,13 @@ const HINT_WARM = 300;
  *  without the tooltip unmounting in between. */
 const HINT_GRACE = 80;
 /** Dock ids without the press/release knock. */
-const QUIET_PRESS = new Set(["components", "prompt", "theme", "settings", "more"]);
+const QUIET_PRESS = new Set([
+  "components",
+  "prompt",
+  "theme",
+  "settings",
+  "more",
+]);
 
 const MotionSpinner = motion.create(IconSpinner);
 
@@ -328,7 +334,9 @@ function SideArrow({
       aria-hidden={hidden}
       tabIndex={hidden ? -1 : undefined}
       onClick={onGo}
-      onPointerEnter={(e) => e.pointerType === "mouse" && onHint(e.currentTarget)}
+      onPointerEnter={(e) =>
+        e.pointerType === "mouse" && onHint(e.currentTarget)
+      }
       onPointerLeave={() => onUnhint()}
       onPointerDown={() => {
         play("tap");
@@ -345,13 +353,15 @@ function SideArrow({
           ? { duration: 0 }
           : {
               ...SPRING_PRESS,
-              // Back only once the panel has folded into the dock, so they
-              // never show under a shell that is still shrinking past them.
-              opacity: { duration: 0.16, ease: EASE_OUT, delay: hidden ? 0 : 0.22 },
+              opacity: {
+                duration: 0.16,
+                ease: EASE_OUT,
+                delay: hidden ? 0 : 0.22,
+              },
             }
       }
       className={cn(
-        "absolute top-1/2 z-20 grid h-14 w-18 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-foreground outline-none transition-colors duration-200 ease-out hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-ring [&_svg]:size-6",
+        "absolute top-1/2 z-20 grid size-14 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-foreground outline-none transition-colors duration-200 ease-out hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-ring [&_svg]:size-6",
         dir === "Previous" ? "left-3 sm:left-5" : "right-3 sm:right-5",
         hidden && "pointer-events-none",
       )}
@@ -681,7 +691,8 @@ function PromptPreview({ prompt, props }: { prompt: string; props: number }) {
     if (line.startsWith("```")) {
       const shell = line === "```sh";
       const code: string[] = [];
-      while (++i < lines.length && !lines[i].startsWith("```")) code.push(lines[i]);
+      while (++i < lines.length && !lines[i].startsWith("```"))
+        code.push(lines[i]);
       out.push(
         <pre
           key={i}
@@ -729,15 +740,22 @@ function PromptPreview({ prompt, props }: { prompt: string; props: number }) {
       // A prop: its name, then description, default and options lines.
       const name = line.slice(4).replace(/`/g, "");
       const desc = lines[i + 1] ?? "";
-      const def = (lines[i + 2] ?? "").match(/Default: `?([^`*(]+)/)?.[1]?.trim();
+      const def = (lines[i + 2] ?? "")
+        .match(/Default: `?([^`*(]+)/)?.[1]
+        ?.trim();
       const opts = (lines[i + 3] ?? "")
         .replace(/^- Other options: /, "")
         .replace(/`/g, "");
       i += 3;
       out.push(
-        <div key={i} className="border-t border-dashed border-foreground/10 py-1.75">
+        <div
+          key={i}
+          className="border-t border-dashed border-foreground/10 py-1.75"
+        >
           <div className="flex items-baseline gap-2">
-            <code className="font-mono text-[11px] font-medium text-foreground">{name}</code>
+            <code className="font-mono text-[11px] font-medium text-foreground">
+              {name}
+            </code>
             <span className="rounded-full bg-brand/12 px-1.75 font-mono text-[10px] font-medium whitespace-nowrap text-brand">
               {def && !def.startsWith("none") ? def : "none"}
             </span>
@@ -765,7 +783,10 @@ function PromptPreview({ prompt, props }: { prompt: string; props: number }) {
     if (line.startsWith("- ")) {
       out.push(
         <p key={i} className="relative mt-0.5 pl-3 text-pretty">
-          <span aria-hidden className="absolute top-[0.6em] left-0.5 size-1 rounded-full bg-text-muted/60" />
+          <span
+            aria-hidden
+            className="absolute top-[0.6em] left-0.5 size-1 rounded-full bg-text-muted/60"
+          />
           <Inline text={line.slice(2)} />
         </p>,
       );
@@ -795,9 +816,15 @@ const CHIP =
 function FadeRule({ children }: { children: React.ReactNode }) {
   return (
     <div className="mt-1 flex items-center gap-3 px-2">
-      <span aria-hidden className="h-px flex-1 bg-linear-to-r from-transparent to-border" />
+      <span
+        aria-hidden
+        className="h-px flex-1 bg-linear-to-r from-transparent to-border"
+      />
       <span className="text-[11px] text-text-muted">{children}</span>
-      <span aria-hidden className="h-px flex-1 bg-linear-to-l from-transparent to-border" />
+      <span
+        aria-hidden
+        className="h-px flex-1 bg-linear-to-l from-transparent to-border"
+      />
     </div>
   );
 }
@@ -842,7 +869,7 @@ function PromptPanel({
     <div className="relative flex w-84 max-w-full flex-col gap-2.5 px-1 pb-1">
       <kbd
         aria-hidden
-        className={cn(KBD, "pointer-events-none absolute -top-8.5 right-3")}
+        className={cn(KBD, "pointer-events-none absolute -top-8 right-3")}
       >
         esc
       </kbd>
@@ -874,79 +901,80 @@ function PromptPanel({
           {/* The drop shadow lives out here: the page below clips itself
               (for the blur), which would clip its own shadow too. */}
           <div className="h-full origin-bottom rotate-x-5 rounded-2xl shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_28px_-12px_rgb(0_0_0/0.22)] transition-transform duration-700 ease-out group-hover/stack:-translate-y-0.5 group-hover/stack:rotate-x-0 dark:shadow-[0_1px_2px_rgb(0_0_0/0.35),0_14px_32px_-12px_rgb(0_0_0/0.7)]">
-          <div
-            className={cn(
-              "relative isolate h-full overflow-hidden rounded-2xl text-text-secondary shadow-[inset_0_1px_0_white] [clip-path:inset(0_round_var(--radius-2xl))] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]",
-              SHEET_BG,
-            )}
-          >
             <div
-              aria-label="Prompt preview"
-              tabIndex={0}
-              // isolate: keeps the sticky step headings' z-10 inside the
-              // scroller, so the blur and Copy below still paint over them.
-              className="isolate h-full overflow-y-auto no-scrollbar overscroll-contain px-4.5 pt-3.5 pb-24 text-[11.5px]/[1.6] outline-none!"
+              className={cn(
+                "relative isolate h-full overflow-hidden rounded-2xl text-text-secondary shadow-[inset_0_1px_0_white] [clip-path:inset(0_round_var(--radius-2xl))] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]",
+                SHEET_BG,
+              )}
             >
-              <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.06em] text-text-muted uppercase">
-                <span>
-                  prompt.md &middot; {(prompt.length / 1000).toFixed(1)}k chars
-                </span>
-                <motion.span
-                  animate={{ scale: copied && !reduce ? 1.08 : 1 }}
-                  transition={SPRING_SWAP}
-                  className={cn(
-                    "-rotate-4 rounded-md border px-1.5 transition-colors duration-200 ease-out",
-                    copied
-                      ? "border-success/45 text-success"
-                      : "border-brand/40 text-brand",
-                  )}
-                >
-                  {copied ? "copied" : slug}
-                </motion.span>
+              <div
+                aria-label="Prompt preview"
+                tabIndex={0}
+                // isolate: keeps the sticky step headings' z-10 inside the
+                // scroller, so the blur and Copy below still paint over them.
+                className="isolate h-full overflow-y-auto no-scrollbar overscroll-contain px-4.5 pt-3.5 pb-24 text-[11.5px]/[1.6] outline-none!"
+              >
+                <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.06em] text-text-muted uppercase">
+                  <span>
+                    prompt.md &middot; {(prompt.length / 1000).toFixed(1)}k
+                    chars
+                  </span>
+                  <motion.span
+                    animate={{ scale: copied && !reduce ? 1.08 : 1 }}
+                    transition={SPRING_SWAP}
+                    className={cn(
+                      "-rotate-4 rounded-md border px-1.5 transition-colors duration-200 ease-out",
+                      copied
+                        ? "border-success/45 text-success"
+                        : "border-brand/40 text-brand",
+                    )}
+                  >
+                    {copied ? "copied" : slug}
+                  </motion.span>
+                </div>
+                <p className="mt-3 mb-1 text-base/tight font-semibold tracking-tight text-foreground">
+                  Add {name} to my app
+                </p>
+                <PromptPreview prompt={prompt} props={props} />
               </div>
-              <p className="mt-3 mb-1 text-base/tight font-semibold tracking-tight text-foreground">
-                Add {name} to my app
-              </p>
-              <PromptPreview prompt={prompt} props={props} />
-            </div>
 
-            {/* The page's foot dissolves under Copy: the hero window's
+              {/* The page's foot dissolves under Copy: the hero window's
                 progressive blur, with a thin frost of the sheet's own
                 colour so it reads as glass the text sits behind. */}
-            <ProgressiveBlur className="pointer-events-none absolute inset-x-0 bottom-0 h-30" />
-            <div
-              aria-hidden
-              className={cn(
-                "pointer-events-none absolute inset-x-0 bottom-0 h-30 bg-linear-to-t to-transparent opacity-60",
-                SHEET_FROM,
-              )}
-            />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-3 pb-3">
-              <button
-                type="button"
-                onClick={copy}
-                className="pointer-events-auto flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground text-[13px] font-medium text-background shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_8px_20px_-8px_rgb(0_0_0/0.35),0_1px_3px_rgb(0_0_0/0.12)] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_10px_24px_-8px_rgb(0_0_0/0.55),0_2px_6px_rgb(0_0_0/0.2)] transition-transform duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98]"
-              >
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.span
-                    key={copied ? "done" : "copy"}
-                    initial={reduce ? false : { scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={reduce ? undefined : { scale: 0.5, opacity: 0 }}
-                    transition={SPRING_SWAP}
-                    className="grid place-items-center"
-                  >
-                    {copied ? (
-                      <IconCheck aria-hidden className="size-4" />
-                    ) : (
-                      <IconCopy aria-hidden className="size-4" />
-                    )}
-                  </motion.span>
-                </AnimatePresence>
-                {copied ? "Copied to clipboard" : "Copy prompt"}
-              </button>
+              <ProgressiveBlur className="pointer-events-none absolute inset-x-0 bottom-0 h-30" />
+              <div
+                aria-hidden
+                className={cn(
+                  "pointer-events-none absolute inset-x-0 bottom-0 h-30 bg-linear-to-t to-transparent opacity-60",
+                  SHEET_FROM,
+                )}
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 px-3 pb-3">
+                <button
+                  type="button"
+                  onClick={copy}
+                  className="pointer-events-auto flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground text-[13px] font-medium text-background shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_8px_20px_-8px_rgb(0_0_0/0.35),0_1px_3px_rgb(0_0_0/0.12)] dark:shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_10px_24px_-8px_rgb(0_0_0/0.55),0_2px_6px_rgb(0_0_0/0.2)] transition-transform duration-200 ease-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98]"
+                >
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={copied ? "done" : "copy"}
+                      initial={reduce ? false : { scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={reduce ? undefined : { scale: 0.5, opacity: 0 }}
+                      transition={SPRING_SWAP}
+                      className="grid place-items-center"
+                    >
+                      {copied ? (
+                        <IconCheck aria-hidden className="size-4" />
+                      ) : (
+                        <IconCopy aria-hidden className="size-4" />
+                      )}
+                    </motion.span>
+                  </AnimatePresence>
+                  {copied ? "Copied to clipboard" : "Copy prompt"}
+                </button>
+              </div>
             </div>
-          </div>
           </div>
         </motion.div>
       </div>
@@ -975,7 +1003,9 @@ function PromptPanel({
               <LogoV0 className="h-4.5 w-6 text-foreground" />
             ) : (
               <>
-                {TARGET_LOGOS[t.name]({ className: "size-4 shrink-0 text-foreground" })}
+                {TARGET_LOGOS[t.name]({
+                  className: "size-4 shrink-0 text-foreground",
+                })}
                 {t.name}
               </>
             )}
@@ -1288,7 +1318,10 @@ export function ComponentPage({
   // it grows out of. Only read while closed: open, the dock is the panel.
   const [dockWidth, setDockWidth] = useState<number>();
   useEffect(() => {
-    const el = dock.current?.firstElementChild as HTMLElement | null | undefined;
+    const el = dock.current?.firstElementChild as
+      | HTMLElement
+      | null
+      | undefined;
     if (!el || panelOpen) return;
     const ro = new ResizeObserver(() => setDockWidth(el.offsetWidth));
     ro.observe(el);
@@ -1332,34 +1365,34 @@ export function ComponentPage({
     />
   );
   const themeItem: MenuDockItem = {
-      id: "theme",
-      label: "Toggle theme",
-      icon: (
-        <>
-          {sep}
-          <span
-            className="group grid place-items-center"
-            data-dark={theme === "dark"}
-          >
-            <ThemeIcon />
-          </span>
-        </>
-      ),
-      onSelect: () => {
-        cue("toggleOn");
-        // The dock's own button, so the "T" shortcut ripples from it too.
-        const rect = path.length
-          ? undefined
-          : dockRows()[
-              items.findIndex((i) => i.id === "theme")
-            ]?.getBoundingClientRect();
-        toggleTheme(
-          rect && {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2,
-          },
-        );
-      },
+    id: "theme",
+    label: "Toggle theme",
+    icon: (
+      <>
+        {sep}
+        <span
+          className="group grid place-items-center"
+          data-dark={theme === "dark"}
+        >
+          <ThemeIcon />
+        </span>
+      </>
+    ),
+    onSelect: () => {
+      cue("toggleOn");
+      // The dock's own button, so the "T" shortcut ripples from it too.
+      const rect = path.length
+        ? undefined
+        : dockRows()[
+            items.findIndex((i) => i.id === "theme")
+          ]?.getBoundingClientRect();
+      toggleTheme(
+        rect && {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        },
+      );
+    },
   };
   // Sound and Share: in the dock on wider screens, one level down behind a
   // single row at the end on a phone.
@@ -1439,7 +1472,14 @@ export function ComponentPage({
       id: "prompt",
       label: "Prompt",
       icon: <IconMagicStick3 strokeWidth={2} />,
-      content: <PromptPanel prompt={prompt} props={meta.props.length} name={meta.name} slug={slug} />,
+      content: (
+        <PromptPanel
+          prompt={prompt}
+          props={meta.props.length}
+          name={meta.name}
+          slug={slug}
+        />
+      ),
     },
     themeItem,
     ...(isPhone ? [] : utility),
@@ -1505,13 +1545,32 @@ export function ComponentPage({
   // for the letter shortcuts.
   const actions = items.flatMap((i) => [i, ...(i.items ?? [])]);
   // Read by the key listener without rebinding it on every render.
-  const live = useRef({ path, docsOpen, going, go, items, actions, reset, hasSettings });
-  live.current = { path, docsOpen, going, go, items, actions, reset, hasSettings };
+  const live = useRef({
+    path,
+    docsOpen,
+    going,
+    go,
+    items,
+    actions,
+    reset,
+    hasSettings,
+  });
+  live.current = {
+    path,
+    docsOpen,
+    going,
+    go,
+    items,
+    actions,
+    reset,
+    hasSettings,
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const { path, docsOpen, items, actions, reset, hasSettings } = live.current;
+      const { path, docsOpen, items, actions, reset, hasSettings } =
+        live.current;
       const typing = isTyping(e.target);
 
       if (e.key === "/" && !typing) {
@@ -1645,54 +1704,57 @@ export function ComponentPage({
             onUnhint={hideHint}
           />
 
-          <div ref={bar} className="absolute inset-x-0 bottom-5 z-20 mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center">
-          {/* min-w-0 lets the dock give way on a narrow screen; its row then
+          <div
+            ref={bar}
+            className="absolute inset-x-0 bottom-5 z-20 mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center"
+          >
+            {/* min-w-0 lets the dock give way on a narrow screen; its row then
               scrolls sideways instead. */}
-          <div ref={dock} className="min-w-0">
-            <MenuDock
-              items={items}
-              path={path}
-              // The closed shell stops at the page gutter; open, a panel may
-              // use the full width.
-              classNames={{
-                shell: panelOpen ? undefined : "max-w-[calc(100vw-2rem)]",
-              }}
-              onNavigate={setPath}
-              label="Preview actions"
-              layoutId="detail-dock"
-              // A cover over each row's whole tap target reports hover for
-              // the tooltip; its empty title keeps the row's native one from
-              // stacking on top. Rows showing their label need no tooltip.
-              // Buttons with a sound of their own (a panel's swell, the theme
-              // cue) skip the press knock rather than stack on it.
-              renderIcon={({ item, defaultIcon }) => {
-                const knocks = !QUIET_PRESS.has(item.id!);
-                return (
-                  <>
-                    {defaultIcon}
-                    <span
-                      aria-hidden
-                      title=""
-                      className="absolute inset-0 z-20 rounded-full"
-                      onPointerEnter={(e) =>
-                        e.pointerType === "mouse" &&
-                        !item.showLabel &&
-                        showHint(item.id!, e.currentTarget)
-                      }
-                      onPointerLeave={() => hideHint()}
-                      onPointerDown={() => {
-                        if (knocks) play("tap");
-                        hideHint(true);
-                      }}
-                    />
-                  </>
-                );
-              }}
-              // Room either side of the separator before Theme: the dock's
-              // 4px gap plus this 8px, with the line centred in the 12px.
-              className="[&_[data-dock-row]:has(.dock-sep)]:ml-2"
-            />
-          </div>
+            <div ref={dock} className="min-w-0">
+              <MenuDock
+                items={items}
+                path={path}
+                // The closed shell stops at the page gutter; open, a panel may
+                // use the full width.
+                classNames={{
+                  shell: panelOpen ? undefined : "max-w-[calc(100vw-2rem)]",
+                }}
+                onNavigate={setPath}
+                label="Preview actions"
+                layoutId="detail-dock"
+                // A cover over each row's whole tap target reports hover for
+                // the tooltip; its empty title keeps the row's native one from
+                // stacking on top. Rows showing their label need no tooltip.
+                // Buttons with a sound of their own (a panel's swell, the theme
+                // cue) skip the press knock rather than stack on it.
+                renderIcon={({ item, defaultIcon }) => {
+                  const knocks = !QUIET_PRESS.has(item.id!);
+                  return (
+                    <>
+                      {defaultIcon}
+                      <span
+                        aria-hidden
+                        title=""
+                        className="absolute inset-0 z-20 rounded-full"
+                        onPointerEnter={(e) =>
+                          e.pointerType === "mouse" &&
+                          !item.showLabel &&
+                          showHint(item.id!, e.currentTarget)
+                        }
+                        onPointerLeave={() => hideHint()}
+                        onPointerDown={() => {
+                          if (knocks) play("tap");
+                          hideHint(true);
+                        }}
+                      />
+                    </>
+                  );
+                }}
+                // Room either side of the separator before Theme: the dock's
+                // 4px gap plus this 8px, with the line centred in the 12px.
+                className="[&_[data-dock-row]:has(.dock-sep)]:ml-2"
+              />
+            </div>
           </div>
         </div>
 
