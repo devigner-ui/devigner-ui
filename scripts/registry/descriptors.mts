@@ -356,6 +356,49 @@ export const descriptors = [
     },
   },
   {
+    slug: "liquid-glass",
+    name: "Liquid Glass",
+    description:
+      "An iOS 27 style glass menu whose rim bends the page behind it: a pill that swells into a squircle panel of rows and melts back once you pick one.",
+    addedAt: "2026-09-30",
+    stageAlign: "center",
+    tryIt: "open the menu, then use the arrow keys",
+    category: "primitives",
+    variants: ["Default", "Controlled"],
+    sourceFile: "packages/ui/src/components/liquid-glass.tsx",
+    dependencies: ["cn", "motion", "react", "devignerui"],
+    transformations: [
+      "Rewrites ../lib/hooks/use-reduced-motion to devignerui/hooks.",
+      "Rewrites ../lib/easing to devignerui/motion.",
+      "Rewrites controllable-state to devignerui/hooks.",
+    ],
+    props: [
+      [
+        "items",
+        "{ id, label, icon?, disabled? }[]",
+        "-",
+        "Rows of the panel, in order.",
+      ],
+      ["onSelect", "(id: string) => void", "-", "Fires with the picked row's id, then the panel melts back."],
+      ["open", "boolean", "-", "Controlled open state."],
+      ["defaultOpen", "boolean", "false", "Initial open state."],
+      ["onOpenChange", "function", "-", "Fires when the panel opens or closes."],
+      ["label", "string", "Menu", "Text on the closed pill, and the menu's accessible name."],
+      [
+        "transparency",
+        "number",
+        "0.05",
+        "Glass tint from 0 (ultra clear) to 1 (fully tinted).",
+      ],
+      ["disabled", "boolean", "false", "Disables interaction."],
+    ],
+    examples: {
+      standard: "<GlassMenu items={items} onSelect={go} />",
+      custom:
+        '<GlassMenu label="Shapes" items={items} open={open} onOpenChange={setOpen} onSelect={pick} transparency={0.6} />',
+    },
+  },
+  {
     slug: "file-upload",
     name: "File Upload",
     description:

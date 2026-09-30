@@ -1,3 +1,4 @@
+import { importName } from "./import-name";
 import type { ComponentData, PropDef } from "./registry";
 
 /** The choices a prop's type spells out: a string union's literals, or
@@ -59,7 +60,7 @@ ${meta.props.map(propBlock).join("\n\n")}
 Start from this example and change it to match my answers:
 
 \`\`\`tsx
-import { ${meta.name.replace(/\s+/g, "")} } from "@/${file.replace(/\.tsx$/, "")}";
+import { ${importName(meta)} } from "@/${file.replace(/\.tsx$/, "")}";
 
 ${meta.usage}
 \`\`\`

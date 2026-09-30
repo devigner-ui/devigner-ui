@@ -21,4 +21,5 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   "goo-switch": dynamic(() => import("./goo-switch"), { ssr: false, loading }),
   "file-upload": dynamic(() => import("./file-upload"), { ssr: false, loading }),
   "slider": dynamic(() => import("./slider"), { ssr: false, loading }),
+  "liquid-glass": dynamic(() => import("./liquid-glass"), { ssr: false, loading }),
 };

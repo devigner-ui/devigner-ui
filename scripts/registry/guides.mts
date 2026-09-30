@@ -625,6 +625,110 @@ export function WifiSetting() {
       TOKENS_MISSING,
     ],
   },
+  "liquid-glass": {
+    demo:
+      "The live demo is a GlassMenu over a dot field: a Menu pill that swells out from its center into a squircle glass panel of four rows, its text zooming out of the way while the rows zoom in from a little larger and blurred. Pick a row, press Escape or press outside and it melts back into the pill. Pressing the pill swells it slightly and it wobbles back when let go. In Chrome and Edge the rim bends whatever sits behind it.",
+    whenToUse: [
+      "A small set of actions or destinations that should stay out of the way until asked for, such as a view switcher or a shape picker.",
+      "Floating controls over media, maps or artwork, where the Liquid Glass look matches the surroundings.",
+    ],
+    whenNotToUse: [
+      "Long lists or anything that needs search or scrolling. The panel grows to fit every row; use a combobox or a command menu.",
+      "Dense toolbars with many menus side by side: each one is its own glass surface with a backdrop filter, which costs GPU time.",
+    ],
+    keyboard: [
+      ["Enter / Space", "On the pill, opens the panel and moves focus to the first row. On a row, picks it and closes the panel."],
+      ["Arrow Down / Arrow Up", "Moves between rows, wrapping at the ends."],
+      ["Home / End", "Jumps to the first or last row."],
+      ["Escape", "Closes the panel and returns focus to the pill."],
+      ["Tab", "Closes the panel."],
+    ],
+    accessibility: [
+      "The pill is a button with aria-haspopup=\"menu\" and aria-expanded; the panel is role=\"menu\" named by label, each row a role=\"menuitem\" button.",
+      "Focus moves to the first enabled row on open and back to the pill on close, so it never drops to the page body.",
+      "The closed panel is inert, so its rows are never tabbed to. Disabled rows are skipped by the arrow keys.",
+      "Under prefers-reduced-transparency the glass turns fully tinted and the lens is switched off, the way iOS handles Reduce Transparency.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The glass tint mixes var(--background) in by transparency, from 0 (ultra clear, 3%) to 1 (fully tinted, 85%). Even clear glass softens the backdrop slightly; the blur builds up toward the tinted end.",
+      "Rows use text-foreground, with a var(--foreground) wash on hover and focus. Hovering the closed pill lights it faintly from inside and pressing lights it brightly, in white light, in both themes.",
+      "The rim has a crisp specular line and a soft inner glow, brightest at the top left and bottom right, plus a faint var(--foreground) line at 8% just outside. The specular light and the drop shadow are white and black light, the same in both themes. In Chromium the rim also splits a thin rainbow, like real glass.",
+      "The closed pill has gently squircle ends and the open panel firms up into squircle corners as it grows. Browsers with CSS corner-shape draw the focus rings and row highlights with the same curve; others keep them round.",
+      "Pass className to place the wrapper.",
+    ],
+    edgeCases: [
+      "The panel grows out of the pill's center, as far each way, and floats over its surroundings without moving them. Over the clear glass anything underneath shows through the rows, so leave it free space all around or raise transparency.",
+      "The pill fits its label and the panel fits its widest row; both are re-measured when fonts load or the content changes.",
+      "The lens that bends the page behind the rim only renders in Chromium browsers (Chrome, Edge, Arc, Opera). Safari and Firefox show the same frosted glass without the bend.",
+      "The lens needs something behind it. On a flat background the glass looks frosted either way; place it over images, stripes or text to see it.",
+      "An ancestor with filter, opacity below 1 or a mask cuts the glass off from the page behind it, so the lens and blur only see content inside that ancestor.",
+      "Setting disabled while open closes the panel.",
+    ],
+    recipes: [
+      {
+        title: "Shape picker",
+        description: "onSelect gets the row's id, then the panel melts back.",
+        code: `import { GlassMenu } from "@/components/ui/liquid-glass";
+import { IconDiamond, IconRecord, IconStop } from "@devigner-ui/icons";
+
+export function ShapeMenu({ pick }: { pick: (id: string) => void }) {
+  return (
+    <GlassMenu
+      label="Shapes"
+      onSelect={pick}
+      items={[
+        { id: "circle", label: "Circle", icon: <IconRecord className="size-6" /> },
+        { id: "square", label: "Square", icon: <IconStop className="size-6" /> },
+        { id: "diamond", label: "Diamond", icon: <IconDiamond className="size-6" /> },
+      ]}
+    />
+  );
+}`,
+      },
+      {
+        title: "Controlled",
+        description: "Keep the open state in React, for example to close the menu from elsewhere.",
+        code: `import { useState } from "react";
+import { GlassMenu } from "@/components/ui/liquid-glass";
+
+export function ViewMenu({ items, show }: {
+  items: { id: string; label: string }[];
+  show: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <GlassMenu
+      label="View"
+      items={items}
+      open={open}
+      onOpenChange={setOpen}
+      onSelect={show}
+      transparency={0.6}
+    />
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The rim does not bend anything.",
+        answer:
+          "The lens only renders in Chromium browsers, and only when there is visible detail behind the glass. Also check that no ancestor has filter, opacity below 1 or a mask, which cuts the glass off from the page behind it.",
+      },
+      {
+        question: "The glass looks solid.",
+        answer:
+          "Lower transparency. If it stays solid, the system Reduce Transparency setting is on, which forces the tinted look.",
+      },
+      {
+        question: "The open panel covers content I need.",
+        answer:
+          "The panel floats and grows from the pill's center in every direction. Place the pill where there is room around it, or raise transparency so what is underneath doesn't show through.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
   "file-upload": {
     demo:
       "The live demo is an upload panel with fake uploads. Drag files over it and a badge with the file type and count follows the cursor; drop them and each card fades in as its row opens, then they upload two at a time. Remove one and it fades out as its row closes. Hover a card to pause it. Every third upload fails once, so Retry has something to do. A file over 25 MB or of the wrong type turns the dropzone red instead.",

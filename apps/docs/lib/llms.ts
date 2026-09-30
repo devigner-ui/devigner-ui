@@ -5,6 +5,7 @@
 
 import { FAQS } from "@/components/landing/faq";
 import { SITE_URL, getCatalog, type CatalogEntry } from "./catalog";
+import { importName } from "./import-name";
 import { components } from "./registry";
 
 export const REQUIREMENTS = "React 18 or 19, Tailwind CSS v4";
@@ -47,7 +48,7 @@ ${list(g.whenNotToUse)}
 ${h(1)} Usage
 
 \`\`\`tsx
-import { ${meta.name.replaceAll(" ", "")} } from "@/components/ui/${meta.slug}";
+import { ${importName(meta)} } from "@/components/ui/${meta.slug}";
 
 ${meta.usage}
 \`\`\`

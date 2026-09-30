@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { HighlighterCore } from "shiki/core";
 
 /**
@@ -33,46 +33,88 @@ function loadHighlighter() {
   return loading;
 }
 
-let ready: HighlighterCore | null = null;
+/**
+ * Highlighted HTML by source. A whole component file takes a long, blocking
+ * moment to highlight; done on mount, it stalls whatever opens the block (the
+ * code drawer's slide), so it is done once, ahead of time where possible.
+ */
+const cache = new Map<string, string>();
+
+function highlight(h: HighlighterCore, code: string) {
+  let html = cache.get(code);
+  if (html === undefined) {
+    html = h
+      .codeToHtml(code, {
+        lang: "tsx",
+        themes: { light: "github-light", dark: "github-dark" },
+        defaultColor: "light",
+      })
+      // shiki joins line spans with a literal "\n"; with white-space: pre-wrap
+      // that renders as an extra blank row, so strip it (line breaks come
+      // from .line being display: block instead).
+      .replace(/\n(?=<span class="line)/g, "");
+    cache.set(code, html);
+  }
+  return html;
+}
+
+/** Runs `fn` when the main thread is idle, so it never lands mid-animation. */
+export function whenIdle(fn: () => void) {
+  if (typeof requestIdleCallback === "function") {
+    const id = requestIdleCallback(fn, { timeout: 1500 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(fn, 200);
+  return () => clearTimeout(id);
+}
+
+/** Highlights `code` in the background so a CodeBlock showing it later opens
+ *  with its colors already there. Returns a cancel. */
+export function prewarmCode(code: string) {
+  if (cache.has(code)) return () => {};
+  let cancel = () => {};
+  let alive = true;
+  loadHighlighter()
+    .then((h) => {
+      if (alive) cancel = whenIdle(() => highlight(h, code));
+    })
+    .catch(() => {});
+  return () => {
+    alive = false;
+    cancel();
+  };
+}
 
 /**
- * Colorized tsx. Highlighting is synchronous once the shared highlighter is
- * loaded, so a new `code` never shows the previous block's colors. Until then
- * it prints the same text in the same box, so nothing shifts when the colors
- * land. It wraps long lines instead of scrolling on the x-axis and grows to its
- * content - scrolling and any height cap belong to whatever container it sits in.
+ * Colorized tsx. Until the colors are ready it prints the same text in the
+ * same box, so nothing shifts when they land, and a block not highlighted
+ * ahead of time is colored once the thread is idle rather than during the
+ * frame it mounts in. It wraps long lines instead of scrolling on the x-axis
+ * and grows to its content - scrolling and any height cap belong to whatever
+ * container it sits in.
  */
 export function CodeBlock({ code }: { code: string }) {
-  const [highlighter, setHighlighter] = useState(ready);
+  const [html, setHtml] = useState(() => cache.get(code));
 
   useEffect(() => {
-    if (highlighter) return;
+    const cached = cache.get(code);
+    setHtml(cached);
+    if (cached !== undefined) return;
     let alive = true;
+    let cancel = () => {};
     loadHighlighter()
       .then((h) => {
-        ready = h;
-        if (alive) setHighlighter(h);
+        if (!alive) return;
+        cancel = whenIdle(() => {
+          if (alive) setHtml(highlight(h, code));
+        });
       })
       .catch(() => {});
     return () => {
       alive = false;
+      cancel();
     };
-  }, [highlighter]);
-
-  const html = useMemo(
-    () =>
-      highlighter
-        ?.codeToHtml(code, {
-          lang: "tsx",
-          themes: { light: "github-light", dark: "github-dark" },
-          defaultColor: "light",
-        })
-        // shiki joins line spans with a literal "\n"; with white-space: pre-wrap
-        // that renders as an extra blank row, so strip it (line breaks come
-        // from .line being display: block instead).
-        .replace(/\n(?=<span class="line)/g, ""),
-    [highlighter, code],
-  );
+  }, [code]);
 
   return html ? (
     <div className="code-shiki" dangerouslySetInnerHTML={{ __html: html }} />

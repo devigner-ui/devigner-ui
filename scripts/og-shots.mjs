@@ -20,6 +20,17 @@ mkdirSync(outDir, { recursive: true });
 // Room around the crop for shadows and glows that spill past the demo's box.
 const PAD = 32;
 
+// Demos whose best shot is a state reached by pressing something: `press` is
+// clicked, and the crop grows to take in the box around `reveal`, which can
+// float past the demo's own box (a menu opening over its surroundings).
+const OPENED = {
+  "liquid-glass": {
+    press: 'button[aria-haspopup="menu"]',
+    // The rows' clip layer spans the glass panel itself.
+    reveal: '[role="menu"]',
+  },
+};
+
 const browser = await chromium.launch({ channel: "chrome" });
 const page = await browser.newPage({
   viewport: { width: 1440, height: 1000 },
@@ -56,8 +67,31 @@ for (const slug of slugs) {
   // LazyMount swaps the demo in, FitToStage refits to the bigger stage, then
   // the entrances settle.
   await page.waitForTimeout(1800);
+  const opened = OPENED[slug];
+  if (opened) {
+    await stage.locator(opened.press).first().click();
+    // The open morph settles, then the glass redraws for its resting shape.
+    await page.waitForTimeout(1800);
+  }
   await page.mouse.move(0, 0);
-  const box = await stage.locator(".w-max").first().boundingBox();
+  let box = await stage.locator(".w-max").first().boundingBox();
+  if (opened) {
+    const shown = await stage
+      .locator(opened.reveal)
+      .first()
+      .evaluate((el) => {
+        const r = el.parentElement.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+    const x0 = Math.min(box.x, shown.x);
+    const y0 = Math.min(box.y, shown.y);
+    box = {
+      x: x0,
+      y: y0,
+      width: Math.max(box.x + box.width, shown.x + shown.width) - x0,
+      height: Math.max(box.y + box.height, shown.y + shown.height) - y0,
+    };
+  }
   const x = Math.max(0, box.x - PAD);
   const y = Math.max(0, box.y - PAD);
   await page.screenshot({
@@ -65,6 +99,7 @@ for (const slug of slugs) {
     omitBackground: true,
     clip: { x, y, width: box.x + box.width + PAD - x, height: box.y + box.height + PAD - y },
   });
+  if (opened) await page.keyboard.press("Escape");
   await stage.evaluate((el) => el.classList.remove("og-solo"));
   console.log("wrote", slug);
 }

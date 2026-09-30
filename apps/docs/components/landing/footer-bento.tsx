@@ -46,7 +46,13 @@ import { Wordmark } from "./navbar";
 import { DISCORD_URL, LogoDiscord, LogoX } from "../brand-logos";
 import { LogoMark } from "../logo-mark";
 
-export type FooterComponent = { slug: string; name: string; isNew: boolean };
+export type FooterComponent = {
+  slug: string;
+  name: string;
+  isNew: boolean;
+  /** Its preview shot's URL, versioned by the image's content. */
+  shot: string;
+};
 
 const ICONS_URL = "https://icons.devigner.cc";
 const X_URL = "https://x.com/devignerui";
@@ -271,7 +277,7 @@ function Spotlight({
           pulled back out so the card's side gutters match. */}
       <div className="-mx-4 grid place-items-center perspective-[600px] sm:mr-0">
         <motion.img
-          src={`/components/${entry.slug}/preview`}
+          src={entry.shot}
           alt=""
           loading="lazy"
           style={{ rotateX: rx, rotateY: ry }}
@@ -361,7 +367,7 @@ function ComponentLinks({ items }: { items: FooterComponent[] }) {
           >
             <div className="stage-surface grid h-30 place-items-center overflow-hidden rounded-[10px]">
               <img
-                src={`/components/${peek.slug}/preview`}
+                src={peek.shot}
                 alt=""
                 className="max-h-[86%] max-w-[86%] object-contain"
               />

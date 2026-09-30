@@ -162,6 +162,8 @@
   --logo-dot: #365ee9;
   --emboss-lip: oklch(0% 0 0 / 0.6);
   --emboss-catch: oklch(95.5% 0.003 260 / 0.07);
+  --shell-fg-muted: #d4d4d4;
+  --shell-fg-faint: #8e8e8e;
 }
 
 /* ── 1 · Palette · the same in both themes ──────────────────────────────── */
@@ -170,6 +172,8 @@
   --terminal: oklch(16% 0.008 260);
   --terminal-foreground: oklch(92% 0.004 260);
   --terminal-muted: oklch(62% 0.01 260);
+  --shell-fg-muted: #333333;
+  --shell-fg-faint: #6d6d6d;
 }
 
 /* ── 2 · Roles ──────────────────────────────────────────────────────────────
@@ -318,6 +322,8 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);
+  --color-shell-fg-muted: var(--shell-fg-muted);
+  --color-shell-fg-faint: var(--shell-fg-faint);
 }
 
 /* tokens:end */
@@ -545,6 +551,11 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .sound-slash,
+  .sound-wave,
+  .sound-speaker {
+    transition: none;
+  }
 }
 
 /* In the components layer: above a theme scope's base-layer ground, below
@@ -588,6 +599,11 @@ html {
     background-image: radial-gradient(var(--border) 1px, transparent 1px);
     background-size: 16px 16px;
     mask: radial-gradient(70% 70% at 50% 50%, #000, transparent);
+  }
+  /* A vignette: the dots hold solid round the middle, then fall away well
+     before the edges, so the field fades out into the frame. */
+  .frame-vignette::before {
+    mask: radial-gradient(closest-side, #000 35%, transparent 100%);
   }
 
   /* The one emphasized word in a title. line-height 0 keeps the swash
@@ -734,4 +750,49 @@ html {
   background: linear-gradient(100deg, transparent 30%, oklch(100% 0 0 / 0.35), transparent 70%);
   transform: translateX(-120%);
   animation: footer-shine 3.6s var(--ease-out) infinite;
+}
+.sound-slash {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.02;
+  --slash-ms: 200ms;
+  transition: stroke-dashoffset var(--slash-ms) var(--ease-out);
+}
+[data-muted="true"] .sound-slash {
+  stroke-dashoffset: 0;
+  --slash-ms: 260ms;
+}
+.sound-wave {
+  transform-box: view-box;
+  transform-origin: 11px 12px;
+  transition:
+    opacity 130ms var(--ease-out) var(--wave-delay),
+    transform 130ms var(--ease-out) var(--wave-delay),
+    filter 130ms var(--ease-out) var(--wave-delay);
+}
+[data-muted="true"] .sound-wave {
+  opacity: 0;
+  transform: scale(0.25);
+  filter: blur(1px);
+}
+.sound-wave-inner {
+  --wave-delay: 45ms;
+}
+.sound-wave-outer {
+  --wave-delay: 20ms;
+}
+[data-muted="true"] .sound-wave-inner {
+  --wave-delay: 50ms;
+}
+[data-muted="true"] .sound-wave-outer {
+  --wave-delay: 75ms;
+}
+.sound-speaker {
+  --speaker-ms: 220ms;
+  --speaker-delay: 0ms;
+  transition: transform var(--speaker-ms) var(--ease-out) var(--speaker-delay);
+}
+[data-muted="true"] .sound-speaker {
+  transform: translateX(5.5px);
+  --speaker-ms: 260ms;
+  --speaker-delay: 80ms;
 }

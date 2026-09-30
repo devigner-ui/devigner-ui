@@ -6,6 +6,7 @@ import {
   ChartCard,
   DateRangePicker,
   DeleteButton,
+  GlassMenu,
   GooSwitch,
   Slider,
   InlineTimeEdit,
@@ -15,7 +16,15 @@ import {
 } from "devignerui";
 import { SPRING_PANEL } from "devignerui/motion";
 import { cn } from "cn";
-import { IconBell, IconMenuDots } from "@devigner-ui/icons";
+import {
+  IconBell,
+  IconChatRoundDots,
+  IconHeart,
+  IconHomeSmileAngle,
+  IconMenuDots,
+  IconSetting2,
+  IconStarCircle,
+} from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
 import FileUploadDemo, {
   ACCEPT,
@@ -199,6 +208,74 @@ ${props}
 }`;
 };
 
+/* ─── Liquid Glass ─── */
+
+const GLASS_DEFAULTS = {
+  transparency: 0.05,
+  disabled: false,
+};
+type GlassConfig = typeof GLASS_DEFAULTS;
+
+const GLASS_MENU = [
+  {
+    id: "feed",
+    label: "Feed",
+    icon: <IconHomeSmileAngle className="size-5" variant="Bulk" />,
+  },
+  {
+    id: "star",
+    label: "Star",
+    icon: <IconStarCircle className="size-5" variant="Bulk" />,
+  },
+  {
+    id: "messages",
+    label: "Messages",
+    icon: <IconChatRoundDots className="size-5" variant="Bulk" />,
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: <IconSetting2 className="size-5" variant="Bulk" />,
+  },
+];
+
+const glassUsage = (c: GlassConfig) => {
+  const props = [
+    "items={items}",
+    c.transparency !== GLASS_DEFAULTS.transparency
+      ? `transparency={${c.transparency}}`
+      : null,
+    c.disabled ? "disabled" : null,
+    "onSelect={(id) => console.log(id)}",
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { GlassMenu } from "@/components/ui/liquid-glass";
+import {
+  IconChatRoundDots,
+  IconHeart,
+  IconHomeSmileAngle,
+  IconSetting2,
+} from "@devigner-ui/icons";
+
+const items = [
+  { id: "feed", label: "Feed", icon: <IconHomeSmileAngle className="size-6" /> },
+  { id: "star", label: "Star", icon: <IconHeart className="size-6" /> },
+  { id: "messages", label: "Messages", icon: <IconChatRoundDots className="size-6" /> },
+  { id: "settings", label: "Settings", icon: <IconSetting2 className="size-6" /> },
+];
+
+export function Example() {
+  return (
+    <GlassMenu
+${props}
+    />
+  );
+}`;
+};
+
 /* ─── Slider ─── */
 
 const SLIDER_SIZES = ["sm", "md", "lg"] as const;
@@ -288,7 +365,11 @@ const CARD_HANDLERS: Record<FileUploadStatus, string[]> = {
   queued: ["onResume={start}", "onCancel={cancel}"],
   uploading: ["onPause={pause}", "onCancel={cancel}"],
   paused: ["onResume={resume}", "onCancel={cancel}"],
-  completed: ["onRemove={remove}", "onChange={replace}", "onDownload={download}"],
+  completed: [
+    "onRemove={remove}",
+    "onChange={replace}",
+    "onDownload={download}",
+  ],
   error: ["onRetry={retry}", "onCancel={cancel}"],
 };
 
@@ -381,7 +462,7 @@ function Switch({
       size="sm"
       checked={checked}
       onCheckedChange={(v) => {
-        cue("toggle");
+        cue(v ? "toggleOn" : "toggleOff");
         onChange(v);
       }}
       aria-label={label}
@@ -449,7 +530,7 @@ function Tabs<T extends string>({
           role="radio"
           aria-checked={value === side}
           onClick={() => {
-            if (side !== value) cue("toggle");
+            if (side !== value) cue("toggleOn");
             onChange(side);
           }}
           className={cn(
@@ -571,6 +652,10 @@ export interface Playground {
   /** A long panel (6+ controls): opens as wide as the dock, two columns.
    *  Shorter ones keep the narrow single column. */
   wide?: boolean;
+  /** Lays the catalog card's dot field behind the preview. */
+  dots?: boolean;
+  /** Fades the dot field out toward the stage's edges. */
+  vignette?: boolean;
 }
 
 export function usePlayground(slug: string, fallbackUsage: string): Playground {
@@ -580,6 +665,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
   const [gooCfg, setGooCfg] = useState<GooConfig>(GOO_DEFAULTS);
   const [sliderCfg, setSliderCfg] = useState<SliderConfig>(SLIDER_DEFAULTS);
+  const [glassCfg, setGlassCfg] = useState<GlassConfig>(GLASS_DEFAULTS);
   const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
   const [uploaderCfg, setUploaderCfg] =
     useState<UploaderConfig>(UPLOADER_DEFAULTS);
@@ -598,6 +684,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setTimeCfg(TIME_DEFAULTS);
     setGooCfg(GOO_DEFAULTS);
     setSliderCfg(SLIDER_DEFAULTS);
+    setGlassCfg(GLASS_DEFAULTS);
     setUploadMode("uploader");
     setUploaderCfg(UPLOADER_DEFAULTS);
     setSeed(0);
@@ -727,7 +814,13 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
           <div className={`${KNOB_GRID} gap-y-5 py-3`}>
             {knob("size", GOO_SIZES[gooCfg.size], 0, 2, 1)}
             {knob("inset", "of 32", 1, 10, 1)}
-            {knob("sling", gooCfg.sling >= 1 ? "never" : "of the stretch", 0.1, 1, 0.05)}
+            {knob(
+              "sling",
+              gooCfg.sling >= 1 ? "never" : "of the stretch",
+              0.1,
+              1,
+              0.05,
+            )}
             {knob("trail", "x the lag, 0 hides it", 0, 6, 0.2)}
           </div>
           <SettingsRows>
@@ -742,6 +835,46 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               <Switch
                 checked={gooCfg.disabled}
                 onChange={(v) => setGooCfg((c) => ({ ...c, disabled: v }))}
+                label="Disabled"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "liquid-glass") {
+    return {
+      reset,
+      dots: true,
+      vignette: true,
+      preview: (
+        <GlassMenu
+          items={GLASS_MENU}
+          transparency={glassCfg.transparency}
+          disabled={glassCfg.disabled}
+        />
+      ),
+      usage: glassUsage(glassCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+            <Knob
+              name="transparency"
+              hint="0 ultra clear, 1 tinted"
+              min={0}
+              max={1}
+              step={0.05}
+              value={glassCfg.transparency}
+              onChange={(v) => setGlassCfg((c) => ({ ...c, transparency: v }))}
+            />
+          </div>
+          <SettingsRows>
+            <SettingsRow label="Disabled">
+              <Switch
+                checked={glassCfg.disabled}
+                onChange={(v) => setGlassCfg((c) => ({ ...c, disabled: v }))}
                 label="Disabled"
               />
             </SettingsRow>
@@ -800,9 +933,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               onChange={(v) => setSliderCfg((c) => ({ ...c, size: v }))}
             />
           </SettingsRow>
-          <div className="py-3">
-            {knob("step", "of 100", 1, 25, 1)}
-          </div>
+          <div className="py-3">{knob("step", "of 100", 1, 25, 1)}</div>
           <SettingsRows>
             <SettingsRow label="Marks">
               <Switch
@@ -831,7 +962,8 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
                 onChange={(v) => setSliderCfg((c) => ({ ...c, inverted: v }))}
                 label="Inverted"
               />
-            </SettingsRow>            <SettingsRow label="Disabled">
+            </SettingsRow>{" "}
+            <SettingsRow label="Disabled">
               <Switch
                 checked={sliderCfg.disabled}
                 onChange={(v) => setSliderCfg((c) => ({ ...c, disabled: v }))}
@@ -999,7 +1131,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
                   <button
                     type="button"
                     onClick={() => {
-                      cue("toggle");
+                      cue("toggleOn");
                       // Never reused, so a load after Reset still drops.
                       setSeed(Date.now());
                     }}

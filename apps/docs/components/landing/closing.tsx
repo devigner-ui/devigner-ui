@@ -1,5 +1,8 @@
 // A server component: the footer reads the catalog and the package version at
 // build; the cards and the pressed wordmark are the client parts.
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import Link from "next/link";
 import { IconArrowRight, IconArrowUp } from "@devigner-ui/icons";
 import { CopyCommand } from "./copy-command";
@@ -10,6 +13,19 @@ import uiPackage from "../../../../packages/ui/package.json";
 // Evaluated at build for the static HTML; the browser agrees except across
 // a New Year, which suppressHydrationWarning covers.
 const YEAR = new Date().getFullYear();
+
+/** A component's preview shot, with a fingerprint of the PNG in the URL. The
+ *  route is cached for a day, so without it a fresh shot (a component whose
+ *  look changed) would sit behind the old one in browsers that saw it. */
+function shotUrl(slug: string) {
+  const url = `/components/${slug}/preview`;
+  try {
+    const png = readFileSync(join(process.cwd(), "assets", "og", `${slug}.png`));
+    return `${url}?v=${createHash("sha1").update(png).digest("hex").slice(0, 8)}`;
+  } catch {
+    return url;
+  }
+}
 
 /** The closing line before the footer: the hero's two actions again. */
 export function LastCall() {
@@ -76,6 +92,7 @@ export function SiteFooter() {
             name: e.name,
             isNew: e.isNew,
             description: e.description,
+            shot: shotUrl(e.slug),
           }))}
         />
       </div>

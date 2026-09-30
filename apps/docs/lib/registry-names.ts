@@ -34,6 +34,10 @@ export const componentNames: readonly { slug: string; name: string }[] = [
     "name": "Goo Switch"
   },
   {
+    "slug": "liquid-glass",
+    "name": "Liquid Glass"
+  },
+  {
     "slug": "file-upload",
     "name": "File Upload"
   },

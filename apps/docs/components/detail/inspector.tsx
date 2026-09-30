@@ -194,7 +194,7 @@ export function Inspector({
             aria-controls={`doc-panel-${t}`}
             tabIndex={tab === t ? 0 : -1}
             onClick={() => {
-              if (t !== tab) cue("toggle");
+              if (t !== tab) cue("toggleOn");
               setTab(t);
             }}
             onKeyDown={(e) => onTabKey(e, i)}
@@ -257,7 +257,7 @@ export function Inspector({
                 <button
                   type="button"
                   onClick={() => {
-                    cue("toggle");
+                    cue("toggleOn");
                     onOpenCode();
                   }}
                   className="cursor-pointer font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"

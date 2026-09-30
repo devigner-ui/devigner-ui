@@ -80,7 +80,7 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
   }, [params, pathname, router, request]);
 
   const close = useCallback(() => {
-    cue("droplet");
+    cue("close");
     setOpen(false);
   }, []);
   useModal(open, close, panel);

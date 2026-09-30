@@ -12,6 +12,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { MenuDock, type MenuDockItem } from "devignerui";
 import {
+  EASE_IN_OUT,
   EASE_OUT,
   SPRING_LAYOUT,
   SPRING_PANEL,
@@ -62,7 +63,7 @@ import {
   searchEntries,
   type CatalogEntry,
 } from "@/lib/catalog-query";
-import { CodeBlock } from "../code-block";
+import { CodeBlock, whenIdle } from "../code-block";
 import { ProgressiveBlur } from "../landing/hero-window";
 import { Wordmark } from "../landing/navbar";
 import { ThemeIcon, useTheme } from "../theme-provider";
@@ -237,7 +238,9 @@ function SettingsGlyph({ enter }: { enter: boolean }) {
   );
 }
 
-/** Prev / next glyph. */
+/** Prev / next glyph: one chevron. Now and then it nudges a few px the way
+ *  it points, then settles: a quiet hint of where it leads, never a loop
+ *  that begs for attention. */
 function ArrowGlyph({
   dir,
   busy,
@@ -248,18 +251,33 @@ function ArrowGlyph({
   busy: boolean;
 }) {
   const reduce = useReducedMotion();
-  const Icon = dir === "Previous" ? IconChevronLeft : IconChevronRight;
+  const back = dir === "Previous";
+  const Icon = back ? IconChevronLeft : IconChevronRight;
   const swap = reduce ? { duration: 0 } : SPRING_SWAP;
+  const chevron = (
+    <motion.span
+      className="grid place-items-center"
+      animate={reduce ? undefined : { x: [0, back ? -3 : 3, 0] }}
+      transition={{
+        duration: 1.4,
+        ease: EASE_IN_OUT,
+        repeat: Infinity,
+        repeatDelay: 1.6,
+      }}
+    >
+      <Icon strokeWidth={2.5} />
+    </motion.span>
+  );
   return (
     <>
       <span className="grid place-items-center">
         <motion.span
-          className="col-start-1 row-start-1 grid place-items-center"
+          className="col-start-1 row-start-1 flex items-center"
           initial={false}
           animate={{ opacity: busy ? 0 : 1, scale: busy && !reduce ? 0.5 : 1 }}
           transition={swap}
         >
-          <Icon strokeWidth={2} />
+          {chevron}
         </motion.span>
         <MotionSpinner
           aria-hidden
@@ -280,8 +298,8 @@ function ArrowGlyph({
   );
 }
 
-/** Prev / next as their own round buttons either side of the dock, the same
- *  height and surface as it. They step aside while a panel is open. */
+/** Prev / next, floating at the middle of the stage's left and right edges
+ *  with no surface of their own. They step aside while a panel is open. */
 function SideArrow({
   dir,
   name,
@@ -313,10 +331,9 @@ function SideArrow({
       onPointerEnter={(e) => e.pointerType === "mouse" && onHint(e.currentTarget)}
       onPointerLeave={() => onUnhint()}
       onPointerDown={() => {
-        play("press");
+        play("tap");
         onUnhint(true);
       }}
-      onPointerUp={() => play("release")}
       initial={false}
       animate={{
         opacity: hidden ? 0 : 1,
@@ -334,7 +351,8 @@ function SideArrow({
             }
       }
       className={cn(
-        "relative z-10 grid size-14 shrink-0 cursor-pointer place-items-center rounded-full bg-background text-muted-foreground smooth-shadow-ring-lg transition-colors duration-200 ease-out hover:text-foreground [&_svg]:size-5",
+        "absolute top-1/2 z-20 grid h-14 w-18 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-foreground outline-none transition-colors duration-200 ease-out hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-ring [&_svg]:size-6",
+        dir === "Previous" ? "left-3 sm:left-5" : "right-3 sm:right-5",
         hidden && "pointer-events-none",
       )}
     >
@@ -1186,6 +1204,11 @@ export function ComponentPage({
 
   const [docsOpen, setDocsOpen] = useState(false);
   const [sourceOpen, setSourceOpen] = useState(false);
+  // The code drawer's contents are built while the page is idle and kept,
+  // closed and clipped to nothing: a whole file of highlighted code is
+  // thousands of nodes, and building them on the click held the drawer back.
+  const [sourceBuilt, setSourceBuilt] = useState(false);
+  useEffect(() => whenIdle(() => setSourceBuilt(true)), []);
   const [previewKey, setPreviewKey] = useState(0);
   const [resetSpins, setResetSpins] = useState(0);
   const [path, setPath] = useState<number[]>([]);
@@ -1210,7 +1233,7 @@ export function ComponentPage({
       localStorage.setItem(SOUND_KEY, on ? "on" : "off");
     } catch {}
     // Turning it on answers with the sound it just allowed.
-    if (on) cue("toggle");
+    if (on) cue("toggleOn");
   };
   // A panel growing out of the dock swells in; folding back falls away.
   const panelOpen = path.length > 0;
@@ -1218,13 +1241,13 @@ export function ComponentPage({
   useEffect(() => {
     if (panelSeen.current === panelOpen) return;
     panelSeen.current = panelOpen;
-    cue(panelOpen ? "bloom" : "droplet");
+    cue(panelOpen ? "open" : "close");
   }, [panelOpen]);
   // ponytail: never reset by hand - the page is keyed by slug, so arriving
   // at the neighbour remounts it with this back at null.
   const [going, setGoing] = useState<"Previous" | "Next" | null>(null);
   const dock = useRef<HTMLDivElement>(null);
-  /** The arrows and the dock together. */
+  /** The dock's bar along the stage's bottom. */
   const bar = useRef<HTMLDivElement>(null);
   const prevArrow = useRef<HTMLButtonElement>(null);
   const nextArrow = useRef<HTMLButtonElement>(null);
@@ -1240,7 +1263,7 @@ export function ComponentPage({
       hintWarm.current = Infinity;
       setHint({ id, rect: el.getBoundingClientRect(), instant });
       // Only the first of a sweep: the instant ones would chatter.
-      if (!instant) play("whisper");
+      if (!instant) play("swoosh");
     };
     if (instant) open();
     else hintTimer.current = setTimeout(open, HINT_DELAY);
@@ -1295,7 +1318,7 @@ export function ComponentPage({
   };
 
   const reset = () => {
-    cue("pulse");
+    cue("notification");
     setResetSpins((n) => n + 1);
     setPreviewKey((k) => k + 1);
     playground.reset();
@@ -1323,7 +1346,7 @@ export function ComponentPage({
         </>
       ),
       onSelect: () => {
-        cue("toggle");
+        cue("toggleOn");
         // The dock's own button, so the "T" shortcut ripples from it too.
         const rect = path.length
           ? undefined
@@ -1396,7 +1419,6 @@ export function ComponentPage({
         </DockGlyph>
       ),
       onSelect: () => {
-        cue("toggle");
         setDocsOpen((v) => !v);
       },
     },
@@ -1410,7 +1432,6 @@ export function ComponentPage({
         </DockGlyph>
       ),
       onSelect: () => {
-        cue("toggle");
         setSourceOpen((v) => !v);
       },
     },
@@ -1536,7 +1557,11 @@ export function ComponentPage({
       const { path, go } = live.current;
       const at = document.activeElement;
       const free =
-        !at || at === document.body || !!bar.current?.contains(at);
+        !at ||
+        at === document.body ||
+        !!bar.current?.contains(at) ||
+        at === prevArrow.current ||
+        at === nextArrow.current;
       if (path.length || !free) return;
       e.preventDefault();
       e.stopPropagation();
@@ -1577,6 +1602,17 @@ export function ComponentPage({
       <StageGround />
       <main className="relative flex min-w-0 flex-1 flex-col">
         <div className="relative min-h-0 flex-1">
+          {/* The catalog card's dot field, for previews that want detail
+              behind them (glass has something to bend). */}
+          {playground.dots && (
+            <div
+              aria-hidden
+              className={cn(
+                "frame-dots pointer-events-none absolute inset-0",
+                playground.vignette && "frame-vignette",
+              )}
+            />
+          )}
           <div
             key={previewKey}
             className="absolute inset-0 flex items-center justify-center px-6"
@@ -1588,7 +1624,6 @@ export function ComponentPage({
             )}
           </div>
 
-          <div ref={bar} className="absolute inset-x-0 bottom-5 z-20 mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center gap-1.5 sm:gap-2">
           <SideArrow
             ref={prevArrow}
             dir="Previous"
@@ -1599,19 +1634,28 @@ export function ComponentPage({
             onHint={(el) => showHint("prev", el)}
             onUnhint={hideHint}
           />
-          {/* min-w-0 lets the dock give way to the arrows on a narrow
-              screen; its row then scrolls sideways instead. */}
+          <SideArrow
+            ref={nextArrow}
+            dir="Next"
+            name={next.name}
+            busy={going === "Next"}
+            hidden={panelOpen}
+            onGo={() => go("Next")}
+            onHint={(el) => showHint("next", el)}
+            onUnhint={hideHint}
+          />
+
+          <div ref={bar} className="absolute inset-x-0 bottom-5 z-20 mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center">
+          {/* min-w-0 lets the dock give way on a narrow screen; its row then
+              scrolls sideways instead. */}
           <div ref={dock} className="min-w-0">
             <MenuDock
               items={items}
               path={path}
-              // The closed shell stops short of the arrows (56px each, plus
-              // the gaps and the page gutter). Open,
-              // the arrows step aside and a panel may use the full width.
+              // The closed shell stops at the page gutter; open, a panel may
+              // use the full width.
               classNames={{
-                shell: panelOpen
-                  ? undefined
-                  : "max-w-[calc(100vw-2rem-124px)] sm:max-w-[calc(100vw-2rem-128px)]",
+                shell: panelOpen ? undefined : "max-w-[calc(100vw-2rem)]",
               }}
               onNavigate={setPath}
               label="Preview actions"
@@ -1637,10 +1681,9 @@ export function ComponentPage({
                       }
                       onPointerLeave={() => hideHint()}
                       onPointerDown={() => {
-                        if (knocks) play("press");
+                        if (knocks) play("tap");
                         hideHint(true);
                       }}
-                      onPointerUp={() => knocks && play("release")}
                     />
                   </>
                 );
@@ -1650,16 +1693,6 @@ export function ComponentPage({
               className="[&_[data-dock-row]:has(.dock-sep)]:ml-2"
             />
           </div>
-          <SideArrow
-            ref={nextArrow}
-            dir="Next"
-            name={next.name}
-            busy={going === "Next"}
-            hidden={panelOpen}
-            onGo={() => go("Next")}
-            onHint={(el) => showHint("next", el)}
-            onUnhint={hideHint}
-          />
           </div>
         </div>
 
@@ -1669,8 +1702,11 @@ export function ComponentPage({
           transition={panel}
           className="shrink-0 overflow-hidden"
           aria-hidden={!sourceOpen}
+          // Built ahead of time, so keep its buttons out of the tab order
+          // while it is closed.
+          inert={!sourceOpen}
         >
-          {sourceOpen && (
+          {(sourceOpen || sourceBuilt) && (
             // Fixed height, not h-full: the drawer clips it while it grows
             // instead of the code block re-laying out every frame.
             <div
@@ -1748,7 +1784,17 @@ export function ComponentPage({
               left: hint.rect.left + hint.rect.width / 2,
               top: hint.rect.top - 10,
             }}
-            className="pointer-events-none fixed z-50 origin-bottom -translate-x-1/2 -translate-y-full"
+            // Prev and next sit at the stage's edges, so their tooltips run
+            // inward from the arrow instead of centering on it and spilling
+            // off screen.
+            className={cn(
+              "pointer-events-none fixed z-50 -translate-y-full",
+              hint.id === "prev"
+                ? "origin-bottom-left -translate-x-6"
+                : hint.id === "next"
+                  ? "origin-bottom-right -translate-x-[calc(100%-1.5rem)]"
+                  : "origin-bottom -translate-x-1/2",
+            )}
           >
             <div className="relative flex h-7.5 items-center gap-1.5 rounded-[9px] bg-foreground px-2.5 text-[12.5px] font-medium whitespace-nowrap text-background shadow-elevated">
               {hint.id === "prev" || hint.id === "next" ? (
@@ -1766,7 +1812,16 @@ export function ComponentPage({
                   {DOCK_KEYS[hint.id]}
                 </kbd>
               )}
-              <span className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 rounded-[1px] bg-foreground" />
+              <span
+                className={cn(
+                  "absolute -bottom-1 size-2 rotate-45 rounded-[1px] bg-foreground",
+                  hint.id === "prev"
+                    ? "left-6 -translate-x-1/2"
+                    : hint.id === "next"
+                      ? "right-6 translate-x-1/2"
+                      : "left-1/2 -translate-x-1/2",
+                )}
+              />
             </div>
           </motion.div>
         )}

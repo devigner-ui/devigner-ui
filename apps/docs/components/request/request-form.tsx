@@ -388,7 +388,7 @@ export function RequestForm({
   const quietLookup = useRef(false);
   useEffect(() => {
     if (!handleActive || quietLookup.current) return;
-    if (handle.kind === "member") play("ready");
+    if (handle.kind === "member") play("notification");
     else if (handle.kind === "missing" || handle.kind === "unknown")
       play("error");
   }, [handle.kind, handleActive]);
@@ -440,7 +440,7 @@ export function RequestForm({
     });
   };
   const removeImage = (url: string) => {
-    cue("droplet");
+    cue("close");
     URL.revokeObjectURL(url);
     setImages((cur) => cur.filter((i) => i.url !== url));
   };
@@ -497,9 +497,6 @@ export function RequestForm({
     if (draftLink && !links.includes(draftLink) && links.length < MAX_LINKS)
       form.set("links", [...links, draftLink].join("\n"));
     setState({ kind: "sending" });
-    // Work starting that the person asked for: the rising, unresolved cue the
-    // success (or error) sound then answers. Plays for Enter as well as a click.
-    play("loading");
     const tooBig =
       "Screenshots are too large together. Remove one and try again.";
     try {
@@ -787,7 +784,7 @@ export function RequestForm({
                       <button
                         type="button"
                         onClick={() => {
-                          cue("droplet");
+                          cue("close");
                           setLinks((cur) => cur.filter((x) => x !== l));
                         }}
                         aria-label={`Remove ${l}`}

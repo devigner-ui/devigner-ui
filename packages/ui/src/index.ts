@@ -57,6 +57,11 @@ export {
   type GooSwitchClassNames,
 } from "./components/goo-switch";
 export {
+  GlassMenu,
+  type GlassMenuProps,
+  type GlassMenuItem,
+} from "./components/liquid-glass";
+export {
   Slider,
   type SliderProps,
   type SliderClassNames,

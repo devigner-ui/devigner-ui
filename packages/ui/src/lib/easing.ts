@@ -135,3 +135,34 @@ export const GSAP_MAGNET_RELEASE = {
   overwrite: "auto",
 } as const;
 
+/* ─── GSAP eases for Motion ─── */
+// GSAP's own ease math, ported line for line from gsap-core, so a Motion
+// tween traces exactly the curve of its GSAP twin. No overwrite needed:
+// animating a motion value stops whatever tween it was already running.
+
+/** GSAP's elastic.out(amplitude, period). */
+function elasticOut(amplitude: number, period: number) {
+  const p1 = amplitude >= 1 ? amplitude : 1;
+  let p2 = period / (amplitude < 1 ? amplitude : 1);
+  const p3 = (p2 / (2 * Math.PI)) * (Math.asin(1 / p1) || 0);
+  p2 = (2 * Math.PI) / p2;
+  return (p: number) =>
+    p === 1 ? 1 : p1 * 2 ** (-10 * p) * Math.sin((p - p3) * p2) + 1;
+}
+
+/** GSAP's power2.out, which is a cubic. */
+export const EASE_POWER2_OUT = (p: number) => 1 - (1 - p) ** 3;
+/** GSAP's elastic.out(1, 0.4). */
+export const EASE_ELASTIC_OUT = elasticOut(1, 0.4);
+
+/** GSAP_MAGNET as a Motion tween. */
+export const TWEEN_MAGNET = {
+  duration: 0.4,
+  ease: EASE_POWER2_OUT,
+} as const;
+
+/** GSAP_MAGNET_RELEASE as a Motion tween. */
+export const TWEEN_MAGNET_RELEASE = {
+  duration: 0.7,
+  ease: EASE_ELASTIC_OUT,
+} as const;
