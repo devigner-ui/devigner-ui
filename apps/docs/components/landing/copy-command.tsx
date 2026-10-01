@@ -6,6 +6,7 @@ import { IconCheck, IconCopy, IconTerminal } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { SPRING_SWAP } from "devignerui/motion";
 import { cue } from "@/lib/sound";
+import { trackCommandCopy } from "@/lib/analytics";
 
 /** A shell command you can copy. The command stays selectable text, so a
  *  blocked clipboard still leaves the user a way to take it. When the
@@ -37,6 +38,7 @@ export function CopyCommand({
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(command);
+      trackCommandCopy(command);
       cue("success");
       setCopied(true);
       clearTimeout(timer.current);

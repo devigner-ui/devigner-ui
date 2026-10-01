@@ -43,6 +43,7 @@ import {
 } from "@devigner-ui/icons";
 import { cn } from "cn";
 import type { ComponentData } from "@/lib/registry";
+import { trackEvent } from "@/lib/analytics";
 import { SOUND_KEY, cue, play, setEnabled } from "@/lib/sound";
 import { PROMPT_TARGETS, buildPrompt, openTarget } from "@/lib/prompt";
 import {
@@ -585,7 +586,7 @@ function ComponentsPanel({
 }
 
 /** The Code drawer's header: file, line count, Copy, Download. */
-function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
+function DrawerHeader({ code, fileName, slug }: { code: string; fileName: string; slug: string }) {
   const reduce = useReducedMotion();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -609,6 +610,7 @@ function DrawerHeader({ code, fileName }: { code: string; fileName: string }) {
     a.href = url;
     a.download = fileName;
     a.click();
+    trackEvent("component_code_download", { component_slug: slug, file_name: fileName });
     URL.revokeObjectURL(url);
   };
 
@@ -1226,6 +1228,9 @@ export function ComponentPage({
   request?: RequestCredit | null;
 }) {
   const slug = meta.slug;
+  useEffect(() => {
+    trackEvent("component_view", { component_slug: slug });
+  }, [slug]);
   const router = useRouter();
   const reduce = useReducedMotion();
   const isLg = useIsLg();
@@ -1775,7 +1780,7 @@ export function ComponentPage({
               style={{ height: DRAWER_H }}
               className="mx-3 flex flex-col overflow-hidden rounded-2xl bg-background-100"
             >
-              <DrawerHeader code={meta.code} fileName={`${slug}.tsx`} />
+              <DrawerHeader code={meta.code} fileName={`${slug}.tsx`} slug={slug} />
               <div className="code-scroll min-h-0 flex-1 overflow-y-auto">
                 <CodeBlock code={meta.code} />
               </div>

@@ -17,6 +17,7 @@ import { cn } from "cn";
 import { EASE_OUT, SPRING_LAYOUT, SPRING_PANEL } from "devignerui/motion";
 import type { CatalogEntry } from "@/lib/catalog-query";
 import { CopyCommand } from "./copy-command";
+import { trackCommandCopy } from "@/lib/analytics";
 import { useSelection } from "./selection";
 
 const TYPE_MS = 32;
@@ -80,6 +81,7 @@ function InlineCopy({ text }: { text: string }) {
       onClick={() =>
         navigator.clipboard.writeText(text).then(
           () => {
+            trackCommandCopy(text);
             setCopied(true);
             setTimeout(() => setCopied(false), 1600);
           },
