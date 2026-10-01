@@ -543,14 +543,21 @@ html {
 
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  html {
+    scroll-behavior: auto;
   }
+
+  /* These are decorative loops or entrances. Interactive controls keep their
+     state changes, then opt out through their own reduced-motion variants. */
+  .caret-blink,
+  .trace-pulse,
+  .rise,
+  .footer-aurora,
+  .footer-ping,
+  .footer-shine {
+    animation: none;
+  }
+
   .sound-slash,
   .sound-wave,
   .sound-speaker {
