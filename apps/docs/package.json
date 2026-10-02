@@ -2,6 +2,7 @@
   "name": "@devignerui/docs",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "node -e \"const fs=require('fs');if(fs.existsSync('.next'))fs.rmSync('.next',{recursive:true,force:true})\" && next dev --turbopack",
     "build": "next build",
