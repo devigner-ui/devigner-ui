@@ -10,6 +10,14 @@ export const componentNames: readonly { slug: string; name: string }[] = [
     "name": "Chart Card"
   },
   {
+    "slug": "copy-button",
+    "name": "Copy Button"
+  },
+  {
+    "slug": "contact-lens",
+    "name": "Contact Lens"
+  },
+  {
     "slug": "delete-button",
     "name": "Delete Button"
   },
@@ -44,5 +52,9 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "slider",
     "name": "Slider"
+  },
+  {
+    "slug": "nav-notch",
+    "name": "Nav Notch"
   }
 ];

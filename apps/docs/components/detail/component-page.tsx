@@ -21,6 +21,7 @@ import {
 } from "devignerui/motion";
 import {
   IconArrowLeft,
+  IconAdd,
   IconArrowRight,
   IconBook2,
   IconCheck,
@@ -399,6 +400,27 @@ function ComponentsPanel({
   };
   // A new query changes the list's height without a scroll event.
   useEffect(measure, [query]);
+  /** Held off until the panel has finished opening. The dock fades the level
+   *  in, and while any ancestor is below full opacity a backdrop filter only
+   *  sees what is inside that ancestor: light text over nothing, which blurs
+   *  into a bright halo, then snaps to the real blur the moment the fade
+   *  ends. So wait until every ancestor is fully opaque, whatever the dock's
+   *  timing, and only then fade the blur in. */
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    let frame = 0;
+    const check = () => {
+      for (let el = list.current?.parentElement; el; el = el.parentElement) {
+        if (parseFloat(getComputedStyle(el).opacity) < 1) {
+          frame = requestAnimationFrame(check);
+          return;
+        }
+      }
+      setSettled(true);
+    };
+    frame = requestAnimationFrame(check);
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // The dock focuses the field when it opens the panel itself; opening from
   // "/" drives the dock's path from outside, so focus is taken here too.
@@ -467,16 +489,30 @@ function ComponentsPanel({
             : "/requests?new"
         }
         onClick={onGo}
-        className="group mb-1 flex h-10 items-center gap-2 px-3 text-[13px] text-text-secondary transition-colors duration-200 ease-out hover:text-foreground"
+        className="group mb-1.5 flex items-center gap-2.5 rounded-xl px-2 py-1.5 pr-3 outline-none! transition-colors duration-200 ease-out hover:bg-surface focus-visible:bg-surface"
       >
-        {groups.length === 0 && query.trim() ? (
-          <span className="truncate">Request &ldquo;{query.trim()}&rdquo;</span>
-        ) : (
-          "Request a component"
-        )}
+        {/* A brand tile marks this as the one action in a list of links. */}
+        <span
+          aria-hidden
+          className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand/12 text-brand shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_22%,transparent)]"
+        >
+          <IconAdd className="size-3.5" />
+        </span>
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-[13px] leading-tight font-medium text-foreground">
+            {groups.length === 0 && query.trim() ? (
+              <>Request &ldquo;{query.trim()}&rdquo;</>
+            ) : (
+              "Request a component"
+            )}
+          </span>
+          <span className="truncate text-[11px] leading-tight text-text-muted">
+            Can&rsquo;t find it? Ask for it.
+          </span>
+        </span>
         <IconArrowRight
           aria-hidden
-          className="ml-auto size-3.5 shrink-0 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+          className="ml-auto size-3.5 shrink-0 text-text-muted transition-[translate,color] duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-brand group-focus-visible:text-brand"
         />
       </Link>
       <label className="flex h-10 items-center gap-2.5 rounded-xl bg-surface px-3 text-[13.5px] text-text-muted transition-colors duration-200 ease-out focus-within:bg-surface-hover">
@@ -575,10 +611,8 @@ function ComponentsPanel({
           the panel's, 12px) so no sharp band of unblurred rows shows at the
           sides or underneath; the shell's rounded clip trims it. */}
         <ProgressiveBlur
-          className={cn(
-            "pointer-events-none absolute -inset-x-3 -bottom-3 h-13 transition-opacity duration-200 ease-out",
-            !more && "opacity-0",
-          )}
+          visible={settled && more}
+          className="pointer-events-none absolute -inset-x-3 -bottom-3 h-13"
         />
       </div>
     </div>
@@ -665,7 +699,7 @@ function Inline({ text }: { text: string }) {
           i % 2 ? (
             <code
               key={i}
-              className="rounded-[5px] bg-foreground/[0.06] px-1 py-px font-mono text-[10.5px] text-foreground"
+              className="rounded-[5px] bg-foreground/6 px-1 py-px font-mono text-[10.5px] text-foreground"
             >
               {part}
             </code>
@@ -774,7 +808,7 @@ function PromptPreview({ prompt, props }: { prompt: string; props: number }) {
     if (word) {
       out.push(
         <p key={i} className="mt-1 flex items-baseline gap-2">
-          <kbd className="rounded-md border border-foreground/10 bg-foreground/[0.04] px-1.5 font-mono text-[10px] text-text-secondary">
+          <kbd className="rounded-md border border-foreground/10 bg-foreground/4 px-1.5 font-mono text-[10px] text-text-secondary">
             {word[1]}
           </kbd>
           <span className="text-text-muted">{word[2]}</span>

@@ -57,7 +57,7 @@ function Card({ entry }: { entry: CatalogEntry }) {
         >
           <FitToStage
             align={entry.stageAlign}
-            className="transition-transform duration-300 ease-out group-hover:-translate-y-1"
+            className="transition-transform duration-300 ease-out"
           >
             <Demo />
           </FitToStage>

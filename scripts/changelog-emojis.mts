@@ -15,8 +15,12 @@ const root = resolve(import.meta.dirname, "..");
 // React and the icons are the docs app's dependencies, not the root's.
 const require = createRequire(resolve(root, "apps/docs/package.json"));
 // Loosely typed: the root has no React types, and this only renders icons.
-const { createElement } = require("react") as { createElement: (type: unknown, props: object) => unknown };
-const { renderToStaticMarkup } = require("react-dom/server") as { renderToStaticMarkup: (el: unknown) => string };
+const { createElement } = require("react") as {
+  createElement: (type: unknown, props: object) => unknown;
+};
+const { renderToStaticMarkup } = require("react-dom/server") as {
+  renderToStaticMarkup: (el: unknown) => string;
+};
 const icons = require("@devigner-ui/icons") as Record<string, unknown>;
 
 // Brand marks the icon set doesn't have. Copied from LogoDiscord and LogoX in
@@ -48,14 +52,23 @@ mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome" });
 const page = await browser.newPage({ viewport: { width: 128, height: 128 } });
 for (const [name, [icon, color]] of Object.entries(EMOJIS)) {
-  if (!icon.startsWith("<") && !icons[icon]) throw new Error(`No ${icon} in @devigner-ui/icons.`);
+  if (!icon.startsWith("<") && !icons[icon])
+    throw new Error(`No ${icon} in @devigner-ui/icons.`);
   const svg = icon.startsWith("<")
     ? icon
-    : renderToStaticMarkup(createElement(icons[icon], { variant: "Bulk", width: 128, height: 128 }));
+    : renderToStaticMarkup(
+        createElement(icons[icon], {
+          variant: "Bulk",
+          width: 128,
+          height: 128,
+        }),
+      );
   await page.setContent(
     `<body style="margin:0;background:transparent;color:${color}">${svg}</body>`,
   );
-  await page.locator("svg").screenshot({ path: resolve(out, `${name}.png`), omitBackground: true });
+  await page
+    .locator("svg")
+    .screenshot({ path: resolve(out, `${name}.png`), omitBackground: true });
   console.log(`docs/changelog-emojis/${name}.png`);
 }
 await browser.close();

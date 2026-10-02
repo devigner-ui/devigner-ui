@@ -31,6 +31,17 @@ const OPENED = {
   },
 };
 
+// Demos whose best shot is a hover state: the pointer rests on `hover` while
+// the shot is taken.
+const HOVERED = {
+  // The globe lights devigner.cc under its Website pill.
+  "contact-lens": {
+    hover: 'button[aria-label^="Copy website"]',
+    // The pill floats above the line, outside the demo's own box.
+    reveal: "span[aria-hidden].absolute",
+  },
+};
+
 const browser = await chromium.launch({ channel: "chrome" });
 const page = await browser.newPage({
   viewport: { width: 1440, height: 1000 },
@@ -73,8 +84,26 @@ for (const slug of slugs) {
     // The open morph settles, then the glass redraws for its resting shape.
     await page.waitForTimeout(1800);
   }
-  await page.mouse.move(0, 0);
+  const hovered = HOVERED[slug];
+  if (hovered) {
+    await stage.locator(hovered.hover).first().hover();
+    // The lift and the pill settle.
+    await page.waitForTimeout(800);
+  } else {
+    await page.mouse.move(0, 0);
+  }
   let box = await stage.locator(".w-max").first().boundingBox();
+  if (hovered) {
+    const shown = await stage.locator(hovered.reveal).first().boundingBox();
+    const x0 = Math.min(box.x, shown.x);
+    const y0 = Math.min(box.y, shown.y);
+    box = {
+      x: x0,
+      y: y0,
+      width: Math.max(box.x + box.width, shown.x + shown.width) - x0,
+      height: Math.max(box.y + box.height, shown.y + shown.height) - y0,
+    };
+  }
   if (opened) {
     const shown = await stage
       .locator(opened.reveal)

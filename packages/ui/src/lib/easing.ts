@@ -71,6 +71,17 @@ export const SPRING_RETRACT = {
   damping: 34,
 } as const;
 
+/** An indicator travelling a long way across a row (the current-item mark
+ *  sliding between notches). Softer than SPRING_LAYOUT so a far jump reads as
+ *  a journey rather than a teleport; critically damped, so it lands without
+ *  bouncing. */
+export const SPRING_TRAVEL = {
+  type: "spring",
+  stiffness: 120,
+  damping: 22,
+  mass: 1,
+} as const;
+
 /** Tracking the pointer with a shape (a range band chasing the hovered day).
  *  A tween, not a spring: it follows many targets a second, and momentum
  *  would overshoot each one. Short enough that it never trails the cursor. */

@@ -13,6 +13,8 @@ const loading = () =>
 export const demos: Record<ComponentSlug, ComponentType> = {
   "magnetic-button": dynamic(() => import("./magnetic-button"), { ssr: false, loading }),
   "chart-card": dynamic(() => import("./chart-card"), { ssr: false, loading }),
+  "contact-lens": dynamic(() => import("./contact-lens"), { ssr: false, loading }),
+  "copy-button": dynamic(() => import("./copy-button"), { ssr: false, loading }),
   "delete-button": dynamic(() => import("./delete-button"), { ssr: false, loading }),
   timeline: dynamic(() => import("./timeline"), { ssr: false, loading }),
   "menu-dock": dynamic(() => import("./menu-dock"), { ssr: false, loading }),
@@ -22,4 +24,5 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   "file-upload": dynamic(() => import("./file-upload"), { ssr: false, loading }),
   "slider": dynamic(() => import("./slider"), { ssr: false, loading }),
   "liquid-glass": dynamic(() => import("./liquid-glass"), { ssr: false, loading }),
+  "nav-notch": dynamic(() => import("./nav-notch"), { ssr: false, loading }),
 };

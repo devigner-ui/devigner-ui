@@ -4,6 +4,8 @@ import { useCallback, useState } from "react";
 import { motion } from "motion/react";
 import {
   ChartCard,
+  ContactLens,
+  CopyButton,
   DateRangePicker,
   DeleteButton,
   GlassMenu,
@@ -11,6 +13,7 @@ import {
   Slider,
   InlineTimeEdit,
   MagneticButton,
+  NavNotch,
   Timeline,
   type FileUploadStatus,
 } from "devignerui";
@@ -26,6 +29,8 @@ import {
   IconStarCircle,
 } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
+import { NAV_NOTCH_ITEMS } from "../../demos/nav-notch";
+import { CONTACT_LENS_ITEMS } from "../../demos/contact-lens";
 import FileUploadDemo, {
   ACCEPT,
   CARD_DEFAULTS,
@@ -95,6 +100,54 @@ export function Example() {
 }`;
 
 /* ─── Delete Button ─── */
+
+/* ─── Copy Button ─── */
+
+const COPY_SIZES = ["sm", "md", "lg"] as const;
+const COPY_DEFAULTS = {
+  size: "md" as (typeof COPY_SIZES)[number],
+  iconOnly: false,
+  async: false,
+  fail: false,
+  resetAfter: 1000,
+};
+type CopyConfig = typeof COPY_DEFAULTS;
+
+const copyValue = (c: CopyConfig) =>
+  c.fail
+    ? () => Promise.reject(new Error("Copy failed"))
+    : c.async
+      ? () =>
+          new Promise<string>((r) =>
+            setTimeout(() => r("pnpm add devignerui"), 900),
+          )
+      : "pnpm add devignerui";
+
+const copyUsage = (c: CopyConfig) => {
+  const props = [
+    c.fail
+      ? 'value={() => Promise.reject(new Error("Copy failed"))}'
+      : c.async
+        ? 'value={() => fetch("/api/command").then((r) => r.text())}'
+        : 'value="pnpm add devignerui"',
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.iconOnly ? "iconOnly" : null,
+    c.resetAfter !== 1000 ? `resetAfter={${c.resetAfter}}` : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { CopyButton } from "@/components/ui/copy-button";
+
+export function Example() {
+  return (
+    <CopyButton
+${props}
+    />
+  );
+}`;
+};
 
 const DELETE_DEFAULTS = {
   side: "right" as "left" | "right",
@@ -215,6 +268,55 @@ const GLASS_DEFAULTS = {
   disabled: false,
 };
 type GlassConfig = typeof GLASS_DEFAULTS;
+
+type NotchConfig = { vertical: boolean; left: boolean };
+const NOTCH_DEFAULTS: NotchConfig = { vertical: false, left: false };
+
+const notchUsage = (c: NotchConfig) => {
+  const props = [
+    "items={items}",
+    'defaultValue="Link 5"',
+    c.vertical ? 'orientation="vertical"' : null,
+    c.vertical && c.left ? 'side="left"' : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { NavNotch } from "@/components/ui/nav-notch";
+
+const items = Array.from({ length: 10 }, (_, i) => ({ label: \`Link \${i + 1}\` }));
+
+export function Example() {
+  return (
+    <NavNotch
+${props}
+    />
+  );
+}`;
+};
+
+const LENS_DEFAULTS = { resetAfter: 1200 };
+type LensConfig = typeof LENS_DEFAULTS;
+
+const lensUsage = (
+  c: LensConfig,
+) => `import { IconGlobal, IconSms, IconUser } from "@devigner-ui/icons";
+import { ContactLens } from "@/components/ui/contact-lens";
+
+const items = [
+  { label: "Email", icon: <IconSms /> },
+  { label: "Website", icon: <IconGlobal />, text: "devigner.cc", copy: "https://devigner.cc" },
+  { label: "Name", icon: <IconUser />, text: "hello" },
+];
+
+export function Example() {
+  return <ContactLens value="hello@devigner.cc" items={items}${
+    c.resetAfter === LENS_DEFAULTS.resetAfter
+      ? ""
+      : ` resetAfter={${c.resetAfter}}`
+  } />;
+}`;
 
 const GLASS_MENU = [
   {
@@ -662,10 +764,13 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [cfg, setCfg] = useState<MagneticConfig>(MAGNETIC_DEFAULTS);
   const [showField, setShowField] = useState(true);
   const [deleteCfg, setDeleteCfg] = useState<DeleteConfig>(DELETE_DEFAULTS);
+  const [copyCfg, setCopyCfg] = useState<CopyConfig>(COPY_DEFAULTS);
   const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
   const [gooCfg, setGooCfg] = useState<GooConfig>(GOO_DEFAULTS);
   const [sliderCfg, setSliderCfg] = useState<SliderConfig>(SLIDER_DEFAULTS);
   const [glassCfg, setGlassCfg] = useState<GlassConfig>(GLASS_DEFAULTS);
+  const [notchCfg, setNotchCfg] = useState<NotchConfig>(NOTCH_DEFAULTS);
+  const [lensCfg, setLensCfg] = useState<LensConfig>(LENS_DEFAULTS);
   const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
   const [uploaderCfg, setUploaderCfg] =
     useState<UploaderConfig>(UPLOADER_DEFAULTS);
@@ -685,6 +790,9 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setGooCfg(GOO_DEFAULTS);
     setSliderCfg(SLIDER_DEFAULTS);
     setGlassCfg(GLASS_DEFAULTS);
+    setNotchCfg(NOTCH_DEFAULTS);
+    setLensCfg(LENS_DEFAULTS);
+    setCopyCfg(COPY_DEFAULTS);
     setUploadMode("uploader");
     setUploaderCfg(UPLOADER_DEFAULTS);
     setSeed(0);
@@ -721,6 +829,70 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               />
             </SettingsRow>
           </div>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "copy-button") {
+    const patch = (next: Partial<CopyConfig>) =>
+      setCopyCfg((c) => ({ ...c, ...next }));
+    return {
+      reset,
+      preview: (
+        <CopyButton
+          value={copyValue(copyCfg)}
+          size={copyCfg.size}
+          iconOnly={copyCfg.iconOnly}
+          resetAfter={copyCfg.resetAfter}
+        />
+      ),
+      usage: copyUsage(copyCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <SettingsRow label="Size">
+            <Tabs
+              id="copy-size-tab"
+              label="Size"
+              options={COPY_SIZES}
+              value={copyCfg.size}
+              onChange={(v) => patch({ size: v })}
+            />
+          </SettingsRow>
+          <div className="py-3">
+            <Knob
+              name="resetAfter"
+              hint="ms, 0 keeps the state"
+              min={0}
+              max={4000}
+              step={200}
+              value={copyCfg.resetAfter}
+              onChange={(v) => patch({ resetAfter: v })}
+            />
+          </div>
+          <SettingsRows>
+            <SettingsRow label="Icon only">
+              <Switch
+                checked={copyCfg.iconOnly}
+                onChange={(v) => patch({ iconOnly: v })}
+                label="Icon only"
+              />
+            </SettingsRow>
+            <SettingsRow label="Async value">
+              <Switch
+                checked={copyCfg.async}
+                onChange={(v) => patch({ async: v, fail: false })}
+                label="Async value"
+              />
+            </SettingsRow>
+            <SettingsRow label="Simulate failure">
+              <Switch
+                checked={copyCfg.fail}
+                onChange={(v) => patch({ fail: v, async: false })}
+                label="Simulate failure"
+              />
+            </SettingsRow>
+          </SettingsRows>
         </div>
       ),
     };
@@ -839,6 +1011,70 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               />
             </SettingsRow>
           </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "nav-notch") {
+    return {
+      reset,
+      preview: (
+        <NavNotch
+          items={NAV_NOTCH_ITEMS}
+          defaultValue="Link 5"
+          orientation={notchCfg.vertical ? "vertical" : "horizontal"}
+          side={notchCfg.left ? "left" : "right"}
+        />
+      ),
+      usage: notchUsage(notchCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <SettingsRows>
+            <SettingsRow label="Vertical">
+              <Switch
+                checked={notchCfg.vertical}
+                onChange={(v) => setNotchCfg((c) => ({ ...c, vertical: v }))}
+                label="Vertical"
+              />
+            </SettingsRow>
+            <SettingsRow label="Chip on the left">
+              <Switch
+                checked={notchCfg.left}
+                onChange={(v) => setNotchCfg((c) => ({ ...c, left: v }))}
+                label="Chip on the left"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "contact-lens") {
+    return {
+      reset,
+      preview: (
+        <ContactLens
+          value="hello@devigner.cc"
+          items={CONTACT_LENS_ITEMS}
+          resetAfter={lensCfg.resetAfter}
+        />
+      ),
+      usage: lensUsage(lensCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+            <Knob
+              name="resetAfter"
+              hint="ms the Copied pill holds"
+              min={400}
+              max={4000}
+              step={100}
+              value={lensCfg.resetAfter}
+              onChange={(v) => setLensCfg({ resetAfter: v })}
+            />
+          </div>
         </div>
       ),
     };

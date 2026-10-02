@@ -14,6 +14,18 @@ export {
   type ChartCardTooltipRenderProps,
 } from "./components/chart-card";
 export {
+  ContactLens,
+  type ContactLensProps,
+  type ContactLensItem,
+  type ContactLensClassNames,
+} from "./components/contact-lens";
+export {
+  CopyButton,
+  type CopyButtonProps,
+  type CopyButtonStatus,
+  type CopyButtonSize,
+} from "./components/copy-button";
+export {
   DeleteButton,
   type DeleteButtonProps,
   type DeleteButtonStatus,
@@ -83,3 +95,9 @@ export {
   type FileUploaderContext,
   type FileUploaderClassNames,
 } from "./components/file-upload";
+export {
+  NavNotch,
+  type NavNotchProps,
+  type NavNotchItem,
+  type NavNotchClassNames,
+} from "./components/nav-notch";

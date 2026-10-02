@@ -175,6 +175,177 @@ export function SalesCard() {
     ],
   },
 
+  "contact-lens": {
+    demo:
+      "The live demo is hello@devigner.cc in dim text over a mail, a globe and a user icon. Hover the mail icon and the whole address lifts and lights with an Email pill under it; the globe lights devigner.cc under a Website pill, the user icon lights hello under a Name pill. Click an icon to copy that part.",
+    whenToUse: [
+      "A contact block on a portfolio or studio site where one line carries the name, the domain and the email.",
+      "Any short string made of parts people might want to copy one at a time.",
+    ],
+    whenNotToUse: [
+      "Contact details people need to read at a glance. The line rests dimmed; use plain text.",
+      "Long or multi-line text. The parts are lit inside one line.",
+    ],
+    keyboard: [
+      ["Tab", "Moves between the icons; the focused icon lights its part like a hover."],
+      ["Enter / Space", "Copies the focused icon's part, or follows its link."],
+    ],
+    accessibility: [
+      "Each icon is a real button named Copy <label>: <text>, or a link named <label>: <text> when it has href, with a visible focus ring.",
+      "A polite live region announces each copy.",
+      "Honors prefers-reduced-motion and an ancestor <MotionConfig reducedMotion=\"always\">: parts and pills fade without lifting or blurring.",
+    ],
+    theming: [
+      "Text and icons are text-foreground at 35% opacity at rest and full when lit; the pill is bg-foreground with text-background, so it flips with the theme.",
+      "Everything is sized in em from the root's text-4xl. Pass a text size in className to scale the whole thing.",
+      "classNames targets text (every piece), lit (pieces while lit), pill and icon.",
+    ],
+    edgeCases: [
+      "text must appear in value; the first match is lit. Leave it out to light the whole line. The pill sits below the whole line and above a part unless the item sets pill.",
+      "An item with href is a link: a click follows it and calls onSelect, with no copy.",
+      "copy falls back to text, then to value.",
+      "Copying uses navigator.clipboard, which needs https or localhost. A failed copy calls onError and leaves the pill unchanged.",
+      "With active passed, hover and focus only call onActiveChange; the lit item changes when you update active.",
+    ],
+    recipes: [
+      {
+        title: "Studio contact",
+        description: "Email, website and name from one address.",
+        code: `import { IconGlobal, IconSms, IconUser } from "@devigner-ui/icons";
+import { ContactLens } from "@/components/ui/contact-lens";
+
+const items = [
+  { label: "Email", icon: <IconSms /> },
+  { label: "Website", icon: <IconGlobal />, text: "devigner.cc", copy: "https://devigner.cc" },
+  { label: "Name", icon: <IconUser />, text: "hello" },
+];
+
+export function Contact() {
+  return <ContactLens value="hello@devigner.cc" items={items} />;
+}`,
+      },
+      {
+        title: "Links instead of copy",
+        description: "Email opens the mail app, the website opens in a tab.",
+        code: `import { IconGlobal, IconSms } from "@devigner-ui/icons";
+import { ContactLens } from "@/components/ui/contact-lens";
+
+const items = [
+  { label: "Email", icon: <IconSms />, href: "mailto:hello@devigner.cc" },
+  { label: "Website", icon: <IconGlobal />, text: "devigner.cc", href: "https://devigner.cc" },
+];
+
+export function ContactLinks() {
+  return <ContactLens value="hello@devigner.cc" items={items} />;
+}`,
+      },
+      {
+        title: "Light a part from outside",
+        description: "Control the lit item, for example from a button elsewhere on the page.",
+        code: `import { useState } from "react";
+import { IconSms, IconUser } from "@devigner-ui/icons";
+import { ContactLens } from "@/components/ui/contact-lens";
+
+const items = [
+  { label: "Email", icon: <IconSms /> },
+  { label: "Name", icon: <IconUser />, text: "hello" },
+];
+
+export function Highlighted() {
+  const [active, setActive] = useState<string | null>(null);
+  return (
+    <div>
+      <button type="button" onClick={() => setActive("Email")}>Show email</button>
+      <ContactLens value="hello@devigner.cc" items={items} active={active} onActiveChange={setActive} />
+    </div>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [TOKENS_MISSING],
+  },
+
+  "copy-button": {
+    demo:
+      "The live demo is a black Copy pill. Click it and the text goes to your clipboard, the pill turns green, the icon blurs into a check and the label retypes itself to Copied, then it settles back after a second.",
+    whenToUse: [
+      "Copying a command, token, link or code snippet where the user needs to know the copy landed.",
+      "Any spot that already has a primary action style and needs a single compact copy control.",
+    ],
+    whenNotToUse: [
+      "Icon-only copy affordances inside dense code blocks. A plain icon button takes less room.",
+      "Copying data that needs a format choice (CSV or JSON). Use a menu for that.",
+    ],
+    keyboard: [["Enter / Space", "Copies the value. Ignored while an async value is still resolving."]],
+    accessibility: [
+      "A real button element with visible focus.",
+      "Its accessible name follows the state (label, pendingLabel, copiedLabel, errorLabel), and a polite live region announces every state but idle.",
+      "aria-busy is set while an async value resolves, and data-status mirrors the state for styling.",
+      "With iconOnly the text is hidden but label stays the accessible name.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "Rests on bg-foreground with text-background, so it inverts with the theme. Copied uses bg-green-700 and error bg-red-600, both with white text.",
+      "data-status (idle, pending, copied, error) is on the button, so className can target a state, for example data-[status=copied]:bg-emerald-600.",
+      "size sets the height, padding, text and icon size: sm 36px, md 44px, lg 52px.",
+      "label, copiedLabel, pendingLabel and errorLabel set both the visible text and the accessible name, for translation.",
+    ],
+    edgeCases: [
+      "The default copy uses navigator.clipboard, which needs a secure context (https or localhost). Any failure, in value or in copy, shows the error state and calls onError.",
+      "If value returns a promise, the button shows a spinner until it resolves. Clicks during that time are ignored.",
+      "Letters the two labels share stay put; only the differing ones swap, so similar labels animate best.",
+      "Clicking again while Copied copies again and restarts the resetAfter hold. resetAfter 0 keeps the copied or error state until status changes.",
+      "Pass status to drive the look yourself, for example to show Copied after a keyboard shortcut copies.",
+    ],
+    recipes: [
+      {
+        title: "Copy an install command",
+        description: "Pass the text and log the result.",
+        code: `import { CopyButton } from "@/components/ui/copy-button";
+
+export function InstallCommand() {
+  return (
+    <CopyButton
+      value="pnpm add devignerui"
+      onCopy={(text) => console.log("copied", text)}
+      onError={(error) => console.error(error)}
+    />
+  );
+}`,
+      },
+      {
+        title: "Copy a link created on the server",
+        description: "Return a promise from value and the button waits on it with a spinner.",
+        code: `import { CopyButton } from "@/components/ui/copy-button";
+
+export function ShareLink({ id }: { id: string }) {
+  return (
+    <CopyButton
+      label="Copy link"
+      copiedLabel="Link copied"
+      value={() => fetch(\`/api/share/\${id}\`).then((r) => r.text())}
+    />
+  );
+}`,
+      },
+      {
+        title: "Icon-only button in a code block",
+        description: "Small and square, with the label kept for screen readers.",
+        code: `import { CopyButton } from "@/components/ui/copy-button";
+
+export function CodeCopy({ code }: { code: string }) {
+  return <CopyButton value={code} iconOnly size="sm" label="Copy code" />;
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "Nothing is copied and I get an error.",
+        answer:
+          "navigator.clipboard only works on https or localhost and after a user gesture. Serve the page securely and pass onError to show a message.",
+      },
+    ],
+  },
   "delete-button": {
     demo:
       "The live demo is a trash tile. Press it and the lid swings open while Confirm and Keep buttons slide out. Confirm starts a short fake request, so you see the spinner and then a tick before it resets.",
@@ -191,10 +362,10 @@ export function SalesCard() {
       ["Escape", "Cancels while the confirmation is open and returns focus to the tile."],
     ],
     accessibility: [
-      "Focus moves to Keep when the confirmation opens, so an accidental Enter does not delete.",
-      "The tile has aria-expanded and aria-controls pointing at the confirmation, and aria-busy while a promise runs.",
-      "Pending and done states are announced through a polite live region using pendingLabel and doneLabel (\"Deleting\", \"Deleted\" by default).",
-      "Focus is moved back to the tile when the confirmation closes, so it never drops to the page body.",
+      "A real button element with visible focus.",
+      "Its accessible name follows the state (label, pendingLabel, copiedLabel, errorLabel), and a polite live region announces every state but idle.",
+      "aria-busy is set while an async value resolves, and data-status mirrors the state for styling.",
+      "With iconOnly the text is hidden but label stays the accessible name.",
       REDUCED_MOTION,
     ],
     theming: [
@@ -943,6 +1114,67 @@ export function VolumeForm() {
       {
         question: "The thumb doesn't look frosted.",
         answer: "The blur comes from backdrop-filter. An ancestor with opacity, filter or mask limits what it can blur, so keep those off the slider's parents.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "nav-notch": {
+    demo:
+      "The live demo is a bar of ten notches with Link 5 current. Move the pointer along it and a lens glides with it: the notch underneath opens into a chip with its label and the two notches either side grow taller and brighter. Leave the bar and the lens fades out, leaving the current link as the one bright notch.",
+    whenToUse: [
+      "A compact section or page switcher where the labels can stay hidden until someone looks for them, such as a portfolio, a slide deck or a long one-page site.",
+      "A secondary navigation bar with a handful to a dozen links of similar weight.",
+    ],
+    whenNotToUse: [
+      "Primary navigation people need to scan at a glance. The labels are hidden until hovered or focused; use visible tabs or links.",
+      "Long lists of links. Past fifteen or so notches the bar gets wide and the targets thin; use a menu or a sidebar.",
+    ],
+    keyboard: [
+      ["Tab", "Moves focus into the bar, onto the current link, and out again."],
+      ["Arrow Left / Arrow Right", "Moves between notches; Arrow Up and Arrow Down do the same."],
+      ["Home / End", "Jumps to the first or last notch."],
+      ["Enter", "Follows the link, or picks the item when it has no href."],
+    ],
+    accessibility: [
+      "Renders a nav landmark named by label, with a list of real links (or buttons for items without href).",
+      "Labels stay in the DOM while hidden, so screen readers read every link name.",
+      "The current item carries aria-current=\"page\".",
+      "The bar is a single tab stop with the arrow keys moving inside it, and the focused notch opens just like a hovered one, with a visible focus ring.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The track is var(--foreground) mixed 9% into var(--background) with a lit top rim, a shaded bottom lip and a hairline edge; notches and the chip are var(--foreground) with var(--background) text and a soft bevel. Every shade is a mix of var(--foreground) or var(--background), so it flips with the theme.",
+      "classNames targets track, notch and label. Put placement classes in className.",
+    ],
+    edgeCases: [
+      "The notch hit areas touch each other, so the pointer is always over exactly one notch and moving across the gaps never flickers.",
+      "With orientation=\"vertical\" the notches stack in a column and the open chip pops out of the track toward side (right by default), overlapping whatever sits beside the bar. Leave room on that side.",
+      "The current item only changes color: its notch is drawn at full strength and never opens into a chip on its own.",
+      "Two items with the same label need an id each, since value falls back to label.",
+      "A click sets the current item before onSelect runs; with value passed, the bar only changes when you update it.",
+    ],
+    recipes: [
+      {
+        title: "Section switcher",
+        description: "Keeps the current section in React state.",
+        code: `import { useState } from "react";
+import { NavNotch } from "@/components/ui/nav-notch";
+
+const items = ["Intro", "Work", "About", "Contact"].map((label) => ({
+  label,
+  href: \`#\${label.toLowerCase()}\`,
+}));
+
+export function Sections() {
+  const [section, setSection] = useState<string | null>("Intro");
+  return <NavNotch items={items} value={section} onValueChange={setSection} label="Sections" />;
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "No notch is highlighted when the page loads.",
+        answer: "Pass defaultValue (or value) with the id or label of the current item. Without it every notch rests at the same strength.",
       },
       TOKENS_MISSING,
     ],

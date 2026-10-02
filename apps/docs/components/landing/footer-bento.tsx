@@ -270,7 +270,9 @@ function Spotlight({
         rx.set(0);
         ry.set(0);
       }}
-      className="group grid h-full items-center gap-6 py-6 pr-8 pl-6 sm:grid-cols-[auto_1fr]"
+      // The shot gets a bounded share of the card, so a wide one shrinks to
+      // fit instead of squeezing the text into a sliver.
+      className="group grid h-full items-center gap-6 py-6 pr-8 pl-6 sm:grid-cols-[minmax(0,1.15fr)_minmax(13rem,1fr)]"
     >
       {/* The component straight on the card, no frame around it. The shot
           carries transparent room for its shadow (about 16px at this size),
@@ -286,7 +288,7 @@ function Spotlight({
           alt=""
           loading="lazy"
           style={{ rotateX: rx, rotateY: ry }}
-          className="relative h-64 w-auto max-w-full object-contain drop-shadow-[0_18px_24px_oklch(0%_0_0/0.45)]"
+          className="relative max-h-64 w-full object-contain drop-shadow-[0_18px_24px_oklch(0%_0_0/0.45)]"
         />
       </div>
       <div className="min-w-0">
@@ -484,7 +486,10 @@ export function FooterBento({
   /** Newest first. */
   components: (FooterComponent & { description: string })[];
 }) {
-  const newest = components[0];
+  // ponytail: pinned by hand while Copy Button and Contact Lens share a date
+  // (the tie would pick Contact Lens by name). Drop it to follow the newest.
+  const newest =
+    components.find((c) => c.slug === "copy-button") ?? components[0];
   return (
     <div className="grid gap-3.5 lg:grid-cols-[1.05fr_1fr]">
       <Card index={0} className="flex flex-col p-9 lg:row-span-2 lg:min-h-115">

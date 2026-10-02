@@ -37,6 +37,7 @@ string forms are too weak).
   - `SPRING_MOUSE` - cursor-follow physics (magnetic, tilt, dock)
   - `SPRING_GOO` - liquid/viscous entrances (the notch droplet)
   - `SPRING_RETRACT` - over-damped exits that must not bounce
+  - `SPRING_TRAVEL` - an indicator travelling far across a row (the nav-notch current mark)
   - `EASE_OUT` / `EASE_IN_OUT` / `EASE_DRAWER` - tween easings; `EASE_OUT_CSS` for inline styles
   - `EASE_OVERSHOOT` - a tween that lands past the target and settles (the theme toggle)
 - **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`,
@@ -158,6 +159,12 @@ shows a preview of the component, taken from `apps/docs/assets/og/<slug>.png`.
 Adding or finishing a component follows `docs/new-component.md` step by step: Part 1
 until every box in "The component is final when" is checked and the user agrees, then
 Part 2 to publish. Don't skip steps and don't start publishing early.
+
+**Every component gets a live preview on its page.** Whenever a component is added,
+add its `slug === "<slug>"` branch to `usePlayground` in
+`apps/docs/components/detail/playgrounds.tsx` in the same change: the preview, a Usage
+snippet that follows the knobs, a Settings panel when it has props worth tuning, and its
+defaults in `reset`. Never leave a component on the fallback.
 
 ## IMPORTANT
 

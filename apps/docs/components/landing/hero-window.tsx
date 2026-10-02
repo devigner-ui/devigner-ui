@@ -56,10 +56,17 @@ const BLUR_STEPS = [1, 2, 4, 8, 16];
 export function ProgressiveBlur({
   className,
   toward = "bottom",
+  visible = true,
 }: {
   className?: string;
   /** The edge the blur ramps up toward. */
   toward?: "top" | "bottom";
+  /** Fades the blur in and out. Each layer fades its own opacity, never a
+   *  wrapper's: an ancestor below full opacity cuts a backdrop filter off
+   *  from the page behind it, so the blur vanishes for the whole fade and
+   *  then pops in at the end. The blur radius stays fixed; ramping it
+   *  instead flashed a bright halo around text mid-way. */
+  visible?: boolean;
 }) {
   return (
     <div aria-hidden className={className}>
@@ -67,13 +74,15 @@ export function ProgressiveBlur({
         const from = (i / BLUR_STEPS.length) * 100;
         const to = ((i + 1) / BLUR_STEPS.length) * 100;
         const mask = `linear-gradient(to ${toward}, transparent ${from}%, #000 ${to}%)`;
+        const filter = `blur(${px}px) saturate(1.1)`;
         return (
           <div
             key={px}
-            className="absolute inset-0"
+            className="absolute inset-0 transition-opacity duration-300 ease-out motion-reduce:transition-none"
             style={{
-              backdropFilter: `blur(${px}px) saturate(1.1)`,
-              WebkitBackdropFilter: `blur(${px}px) saturate(1.1)`,
+              backdropFilter: filter,
+              WebkitBackdropFilter: filter,
+              opacity: visible ? 1 : 0,
               maskImage: mask,
               WebkitMaskImage: mask,
             }}
