@@ -52,7 +52,8 @@
   "dependencies": {
     "@devigner-ui/icons": "3.3.0",
     "cn": "^0.3.0",
-    "commander": "^15.0.0"
+    "commander": "^15.0.0",
+    "thinking-orbs": "^0.3.2"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

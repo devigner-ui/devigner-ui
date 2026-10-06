@@ -25,4 +25,8 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   "slider": dynamic(() => import("./slider"), { ssr: false, loading }),
   "liquid-glass": dynamic(() => import("./liquid-glass"), { ssr: false, loading }),
   "nav-notch": dynamic(() => import("./nav-notch"), { ssr: false, loading }),
+  "kpi-chart": dynamic(() => import("./kpi-chart"), { ssr: false, loading }),
+  badge: dynamic(() => import("./badge"), { ssr: false, loading }),
+  "image-generation": dynamic(() => import("./image-generation"), { ssr: false, loading }),
+  "stardust-slider": dynamic(() => import("./stardust-slider"), { ssr: false, loading }),
 };

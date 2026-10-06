@@ -42,6 +42,12 @@ const HOVERED = {
   },
 };
 
+// Demos that play through states on their own: extra ms to wait for the best
+// one (Image Generation late in its run, refining or complete).
+const SETTLE = {
+  "image-generation": 5000,
+};
+
 const browser = await chromium.launch({ channel: "chrome" });
 const page = await browser.newPage({
   viewport: { width: 1440, height: 1000 },
@@ -77,7 +83,7 @@ for (const slug of slugs) {
   await stage.evaluate((el) => el.classList.add("og-solo"));
   // LazyMount swaps the demo in, FitToStage refits to the bigger stage, then
   // the entrances settle.
-  await page.waitForTimeout(1800);
+  await page.waitForTimeout(1800 + (SETTLE[slug] ?? 0));
   const opened = OPENED[slug];
   if (opened) {
     await stage.locator(opened.press).first().click();

@@ -204,7 +204,11 @@ function setInputFiles(input: HTMLInputElement | null, files: File[]) {
 /* ─── File card ─── */
 
 export type FileUploadStatus =
-  "queued" | "uploading" | "paused" | "completed" | "error";
+  | "queued"
+  | "uploading"
+  | "paused"
+  | "completed"
+  | "error";
 
 const LABELS: Record<FileUploadStatus, string> = {
   queued: "Queued",
@@ -654,7 +658,10 @@ export function FileUpload({
 /* ─── Dropzone ─── */
 
 export type FileRejectionReason =
-  "file-too-large" | "file-invalid-type" | "too-many-files" | "custom";
+  | "file-too-large"
+  | "file-invalid-type"
+  | "too-many-files"
+  | "custom";
 
 /** Your own check, run after type and size. Return a message to reject the
  *  file (reason "custom"), or nothing to let it through. `accepted` holds
@@ -1551,8 +1558,7 @@ export function FileUploader({
               // Full stays live: a drop or click explains the limit instead
               // of a greyed-out zone that silently ignores it.
               blocked={
-                full &&
-                `You can add up to ${full}. Remove one to add another`
+                full && `You can add up to ${full}. Remove one to add another`
               }
               disabled={disabled}
               label={label}

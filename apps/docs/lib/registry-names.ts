@@ -56,5 +56,21 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "nav-notch",
     "name": "Nav Notch"
+  },
+  {
+    "slug": "kpi-chart",
+    "name": "KPI Chart"
+  },
+  {
+    "slug": "badge",
+    "name": "Badge"
+  },
+  {
+    "slug": "image-generation",
+    "name": "Image Generation"
+  },
+  {
+    "slug": "stardust-slider",
+    "name": "Stardust Slider"
   }
 ];

@@ -82,6 +82,33 @@ export const SPRING_TRAVEL = {
   mass: 1,
 } as const;
 
+/** Canvas particle physics, in frame units: each 60fps frame a dot gains
+ *  `stiffness` of the distance to its home as velocity, then keeps `damping`
+ *  of that velocity (raised to the frame count, so a dropped frame loses the
+ *  same energy as the two it replaced). Not a Motion transition: it is read
+ *  by hand-written requestAnimationFrame loops (the Image Generation swarm). */
+export const SPRING_SWARM = {
+  stiffness: 0.05,
+  damping: 0.84,
+} as const;
+
+/** A canvas lens drifting on its own, in frame units: it cruises at `speed`
+ *  of the frame's short side per 60fps frame and turns `steer` of the way
+ *  toward its heading each frame, so a new goal bends the path instead of
+ *  snapping it (the Image Generation halftone while generating). */
+export const SPRING_WANDER = {
+  speed: 0.006,
+  steer: 0.035,
+} as const;
+
+/** Dust drifting inside a fill, in frame units: a mote moves up to `speed`
+ *  px per 60fps frame and its glow pulses by `twinkle` radians per frame
+ *  (the Stardust Slider). Constant drift, no target, so no spring. */
+export const DRIFT_DUST = {
+  speed: 0.12,
+  twinkle: 0.035,
+} as const;
+
 /** Tracking the pointer with a shape (a range band chasing the hovered day).
  *  A tween, not a spring: it follows many targets a second, and momentum
  *  would overshoot each one. Short enough that it never trails the cursor. */

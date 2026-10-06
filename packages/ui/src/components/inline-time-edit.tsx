@@ -14,7 +14,14 @@ import {
 import { useControllableState } from "../lib/hooks/use-controllable-state";
 
 const RADIUS = 10;
-const SHADOW = "smooth-shadow-ring-sm";
+/** Nav Notch's track groove: a lit rim, a shaded lip and a hairline border.
+ *  The tiles take its fill too (in `tile`). */
+const SHADOW = [
+  "inset 0 1px 0 color-mix(in oklab, var(--foreground) 10%, transparent)",
+  "inset 0 -2px 3px color-mix(in oklab, var(--background) 45%, transparent)",
+  "inset 0 0 0 1px color-mix(in oklab, var(--foreground) 6%, transparent)",
+  "0 1px 2px color-mix(in oklab, var(--background) 60%, transparent)",
+].join(", ");
 /** Written out in full so Tailwind can see them. */
 const RING_VISIBLE =
   "has-[button:focus-visible]:outline-2 has-[button:focus-visible]:outline-offset-2 has-[button:focus-visible]:outline-ring";
@@ -186,7 +193,7 @@ export function InlineTimeEdit({
   const focusRing = keyboard ? RING_FOCUS : RING_VISIBLE;
   const fade = { duration: reduced ? 0 : 0.2, ease: EASE_OUT };
   const tile = cn(
-    "relative flex h-10 shrink-0 items-center bg-muted text-sm",
+    "relative flex h-10 shrink-0 items-center bg-[color-mix(in_oklab,var(--foreground)_9%,var(--background))] text-sm",
     classNames?.tile,
   );
   // Each tile carries its own shadow, shown only while the tiles stand apart.
@@ -198,10 +205,8 @@ export function InlineTimeEdit({
       initial={false}
       animate={{ opacity: open ? 1 : 0 }}
       transition={fade}
-      className={cn(
-        "pointer-events-none absolute inset-0 rounded-[inherit]",
-        SHADOW,
-      )}
+      style={{ boxShadow: SHADOW }}
+      className="pointer-events-none absolute inset-0 rounded-[inherit]"
     />
   );
 
@@ -394,8 +399,10 @@ export function InlineTimeEdit({
         transition={{ layout: SPRING_LAYOUT, opacity: fade }}
         initial={false}
         animate={{ opacity: open ? 0 : 1 }}
-        style={{ borderRadius: RADIUS }}
-        className={cn("pointer-events-none absolute inset-0", SHADOW)}
+        style={{ borderRadius: RADIUS, boxShadow: SHADOW }}
+        // Above the tiles: the shadow is mostly inset, and their fills would
+        // otherwise paint over it.
+        className="pointer-events-none absolute inset-0 z-10"
       />
       {field("start", hoursRef, h, "h", hoursLabel, hourUnit)}
       {field("middle", minutesRef, shownM, "m", minutesLabel, minuteUnit)}

@@ -10,12 +10,17 @@ import {
   DeleteButton,
   GlassMenu,
   GooSwitch,
+  ImageGeneration,
   Slider,
+  StardustSlider,
   InlineTimeEdit,
+  KpiChart,
   MagneticButton,
   NavNotch,
+  Badge,
   Timeline,
   type FileUploadStatus,
+  type ImageGenerationStatus,
 } from "devignerui";
 import { SPRING_PANEL } from "devignerui/motion";
 import { cn } from "cn";
@@ -27,9 +32,18 @@ import {
   IconMenuDots,
   IconSetting2,
   IconStarCircle,
+  IconTickCircle,
 } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
 import { NAV_NOTCH_ITEMS } from "../../demos/nav-notch";
+import { KPI_FALLING, KPI_REVENUE } from "../../demos/kpi-chart";
+import BadgeDemo from "../../demos/badge";
+import {
+  IMAGE_GENERATION_PROMPT,
+  IMAGE_GENERATION_FOCUS,
+  IMAGE_GENERATION_SRC,
+  useGenerationRun,
+} from "../../demos/image-generation";
 import { CONTACT_LENS_ITEMS } from "../../demos/contact-lens";
 import FileUploadDemo, {
   ACCEPT,
@@ -296,6 +310,169 @@ ${props}
 }`;
 };
 
+/* ─── Badge ─── */
+
+const BADGE_TONES = [
+  "neutral",
+  "success",
+  "warning",
+  "danger",
+  "info",
+] as const;
+const BADGE_SIZES = ["sm", "md", "lg"] as const;
+const BADGE_DEFAULTS = {
+  tone: "success" as (typeof BADGE_TONES)[number],
+  size: "md" as (typeof BADGE_SIZES)[number],
+  icon: true,
+  count: false,
+  dashed: false,
+  removable: false,
+};
+type BadgeConfig = typeof BADGE_DEFAULTS;
+
+const badgeUsage = (c: BadgeConfig) => {
+  const props = [
+    c.tone !== "neutral" ? `tone="${c.tone}"` : null,
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.icon ? "icon={<IconTickCircle />}" : null,
+    c.count ? "count={3}" : null,
+    c.dashed ? "dashed" : null,
+    c.removable ? "onRemove={() => setShown(false)}" : null,
+  ].filter(Boolean);
+  // Short badges stay on one line; longer ones get a prop per line.
+  const badge =
+    props.length > 2
+      ? `(
+    <Badge
+${props.map((p) => `      ${p}`).join("\n")}
+    >
+      Approved
+    </Badge>
+  )`
+      : `<Badge${props.length ? " " + props.join(" ") : ""}>Approved</Badge>`;
+  const state = [
+    c.removable ? "  const [shown, setShown] = useState(true);" : null,
+    c.removable ? "  if (!shown) return null;" : null,
+  ].filter(Boolean);
+  const imports = [
+    state.length ? 'import { useState } from "react";' : null,
+    c.icon ? 'import { IconTickCircle } from "@devigner-ui/icons";' : null,
+    'import { Badge } from "@/components/ui/badge";',
+  ].filter(Boolean);
+  return `${imports.join("\n")}
+
+export function Example() {
+${state.length ? state.join("\n") + "\n" : ""}  return ${badge};
+}`;
+};
+
+/* ─── KPI Chart ─── */
+
+/** "none" leaves currency off; the rest are ISO codes the locale places. */
+const KPI_CURRENCIES = ["none", "USD", "EUR", "SEK", "XOF"] as const;
+const KPI_LOCALES = ["en-US", "de-DE", "fr-FR", "ja-JP"] as const;
+
+const KPI_DEFAULTS = {
+  defaultIndex: 4,
+  currency: "none" as (typeof KPI_CURRENCIES)[number],
+  locale: "en-US" as (typeof KPI_LOCALES)[number],
+  falling: false,
+};
+type KpiConfig = typeof KPI_DEFAULTS;
+
+const kpiUsage = (c: KpiConfig) => {
+  const props = [
+    "data={revenue}",
+    'label="Monthly revenue"',
+    c.defaultIndex !== KPI_DEFAULTS.defaultIndex
+      ? `defaultIndex={${c.defaultIndex}}`
+      : null,
+    c.currency !== "none" ? `currency="${c.currency}"` : null,
+    c.locale !== KPI_DEFAULTS.locale ? `locale="${c.locale}"` : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  const rows = (c.falling ? KPI_FALLING : KPI_REVENUE)
+    .map((p) => `  { label: "${p.label}", value: ${p.value} },`)
+    .join("\n");
+
+  return `import { KpiChart } from "@/components/ui/kpi-chart";
+
+const revenue = [
+${rows}
+];
+
+export function Example() {
+  return (
+    <KpiChart
+${props}
+    />
+  );
+}`;
+};
+
+/* ─── Image Generation ─── */
+
+const GEN_STATUSES = [
+  "auto",
+  "queued",
+  "generating",
+  "refining",
+  "complete",
+  "error",
+] as const;
+
+/** Each ratio with a preview width that keeps the tall ones from towering
+ *  over the stage. */
+const GEN_RATIOS = {
+  "1:1": { width: "w-72" },
+  "4:5": { width: "w-64" },
+  "3:4": { width: "w-60" },
+  "9:16": { width: "w-48" },
+  "16:9": { width: "w-md" },
+} as const;
+type GenRatio = keyof typeof GEN_RATIOS;
+const GEN_RATIO_KEYS = Object.keys(GEN_RATIOS) as GenRatio[];
+const genAspect = (r: GenRatio) => r.replace(":", " / ");
+
+const GEN_DEFAULTS = {
+  status: "auto" as (typeof GEN_STATUSES)[number],
+  ratio: "1:1" as GenRatio,
+  interactive: true,
+  showStatus: true,
+  download: true,
+};
+type GenConfig = typeof GEN_DEFAULTS;
+
+const genUsage = (c: GenConfig) => {
+  const props = [
+    c.status === "auto" ? "status={status}" : `status="${c.status}"`,
+    "src={url}",
+    `prompt="${IMAGE_GENERATION_PROMPT}"`,
+    c.ratio === "1:1" ? null : `aspectRatio="${genAspect(c.ratio)}"`,
+    `focus={{ x: ${IMAGE_GENERATION_FOCUS.x}, y: ${IMAGE_GENERATION_FOCUS.y} }}`,
+    c.interactive ? null : "interactive={false}",
+    c.showStatus ? null : "showStatus={false}",
+    c.status === "error" ? "onRetry={retry}" : null,
+    c.download ? 'download="rooftop.jpg"' : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { ImageGeneration } from "@/components/ui/image-generation";
+
+export function Example() {
+  return (
+    <ImageGeneration
+${props}
+    />
+  );
+}`;
+};
+
 const LENS_DEFAULTS = { resetAfter: 1200 };
 type LensConfig = typeof LENS_DEFAULTS;
 
@@ -416,6 +593,70 @@ export function Example() {
   const [value, setValue] = useState(40);
   return (
     <Slider
+${props}
+    />
+  );
+}`;
+};
+
+/* ─── Stardust Slider ─── */
+
+const DUST_COLORS = {
+  blue: "#365ee9",
+  violet: "#8b2be2",
+  emerald: "#10b981",
+  rose: "#f43f5e",
+} as const;
+const DUST_COLOR_NAMES = ["blue", "violet", "emerald", "rose"] as const;
+const DUST_SIZES = ["sm", "md", "lg"] as const;
+/** Labelled marks for the detent demo, pulled onto while dragging. */
+const DUST_DETENTS = [
+  { value: 25, label: "25" },
+  { value: 50, label: "ATM" },
+  { value: 75, label: "75" },
+];
+const DUST_DEFAULTS = {
+  color: "blue" as (typeof DUST_COLOR_NAMES)[number],
+  size: "md" as (typeof DUST_SIZES)[number],
+  step: 1,
+  marks: true,
+  detents: false,
+  vertical: false,
+  bare: false,
+  rtl: false,
+  disabled: false,
+};
+type DustConfig = typeof DUST_DEFAULTS;
+
+const dustUsage = (c: DustConfig) => {
+  const props = [
+    c.bare ? 'aria-label="Strike"' : 'label="Select strike:"',
+    "value={value}",
+    "onValueChange={setValue}",
+    c.color !== "blue" ? `color="${DUST_COLORS[c.color]}"` : null,
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.step !== 1 ? `step={${c.step}}` : null,
+    c.detents
+      ? 'snap="marks"\n      marks={[\n        { value: 25, label: "25" },\n        { value: 50, label: "ATM" },\n        { value: 75, label: "75" },\n      ]}'
+      : c.marks
+        ? null
+        : "marks={[]}",
+    c.vertical ? 'orientation="vertical"' : null,
+    c.bare ? 'variant="bare"' : null,
+    c.rtl && !c.vertical ? 'dir="rtl"' : null,
+    c.disabled ? "disabled" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { useState } from "react";
+import { StardustSlider } from "@/components/ui/stardust-slider";
+
+export function Example() {
+  const [value, setValue] = useState(28);
+  return (
+    <StardustSlider
 ${props}
     />
   );
@@ -554,15 +795,18 @@ function Switch({
   checked,
   onChange,
   label,
+  disabled,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <GooSwitch
       size="sm"
       checked={checked}
+      disabled={disabled}
       onCheckedChange={(v) => {
         cue(v ? "toggleOn" : "toggleOff");
         onChange(v);
@@ -611,6 +855,8 @@ function Tabs<T extends string>({
   onChange,
   label,
   id,
+  fill = false,
+  wrap = false,
 }: {
   value: T;
   options: readonly T[];
@@ -618,12 +864,24 @@ function Tabs<T extends string>({
   label: string;
   /** Shared-layout id for the sliding pill, unique per tab group. */
   id: string;
+  /** Spans the row and splits it evenly, for a group too wide to sit beside
+   *  a label (five tones). */
+  fill?: boolean;
+  /** Two rows of three on a narrow panel, one row of six on a full-width
+   *  one, for a group too wide even to fill a row (six statuses). */
+  wrap?: boolean;
 }) {
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex rounded-full border border-border bg-surface/60 p-0.5"
+      className={cn(
+        "border border-border bg-surface/60 p-0.5",
+        wrap
+          ? "grid w-full grid-cols-3 gap-0.5 rounded-2xl @md:grid-cols-6"
+          : "rounded-full",
+        !wrap && (fill ? "flex w-full" : "inline-flex"),
+      )}
     >
       {options.map((side) => (
         <button
@@ -636,7 +894,10 @@ function Tabs<T extends string>({
             onChange(side);
           }}
           className={cn(
-            "relative cursor-pointer rounded-full px-3 py-1 font-mono text-[11px] transition-colors",
+            "relative cursor-pointer py-1 font-mono text-[11px] transition-colors",
+            wrap ? "rounded-[14px] px-2 py-1.5" : "rounded-full",
+            // Grows from its own width, so the gaps match and long labels get room.
+            !wrap && (fill ? "flex-auto px-1.5 text-[10px]" : "px-3"),
             value === side ? "text-foreground" : "text-text-muted",
           )}
         >
@@ -644,7 +905,10 @@ function Tabs<T extends string>({
             <motion.span
               layoutId={id}
               transition={SPRING_PANEL}
-              className="absolute inset-0 rounded-full bg-background shadow-elevated"
+              className={cn(
+                "absolute inset-0 bg-background shadow-elevated",
+                wrap ? "rounded-[14px]" : "rounded-full",
+              )}
             />
           )}
           <span className="relative">{side}</span>
@@ -768,9 +1032,17 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [timeCfg, setTimeCfg] = useState<TimeConfig>(TIME_DEFAULTS);
   const [gooCfg, setGooCfg] = useState<GooConfig>(GOO_DEFAULTS);
   const [sliderCfg, setSliderCfg] = useState<SliderConfig>(SLIDER_DEFAULTS);
+  const [dustCfg, setDustCfg] = useState<DustConfig>(DUST_DEFAULTS);
   const [glassCfg, setGlassCfg] = useState<GlassConfig>(GLASS_DEFAULTS);
   const [notchCfg, setNotchCfg] = useState<NotchConfig>(NOTCH_DEFAULTS);
   const [lensCfg, setLensCfg] = useState<LensConfig>(LENS_DEFAULTS);
+  const [kpiCfg, setKpiCfg] = useState<KpiConfig>(KPI_DEFAULTS);
+  const [badgeCfg, setBadgeCfg] = useState<BadgeConfig>(BADGE_DEFAULTS);
+  const [badgeRun, setBadgeRun] = useState(0);
+  const [genCfg, setGenCfg] = useState<GenConfig>(GEN_DEFAULTS);
+  const genRun = useGenerationRun(
+    slug === "image-generation" && genCfg.status === "auto",
+  );
   const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
   const [uploaderCfg, setUploaderCfg] =
     useState<UploaderConfig>(UPLOADER_DEFAULTS);
@@ -789,9 +1061,13 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setTimeCfg(TIME_DEFAULTS);
     setGooCfg(GOO_DEFAULTS);
     setSliderCfg(SLIDER_DEFAULTS);
+    setDustCfg(DUST_DEFAULTS);
     setGlassCfg(GLASS_DEFAULTS);
     setNotchCfg(NOTCH_DEFAULTS);
     setLensCfg(LENS_DEFAULTS);
+    setKpiCfg(KPI_DEFAULTS);
+    setBadgeCfg(BADGE_DEFAULTS);
+    setGenCfg(GEN_DEFAULTS);
     setCopyCfg(COPY_DEFAULTS);
     setUploadMode("uploader");
     setUploaderCfg(UPLOADER_DEFAULTS);
@@ -1051,6 +1327,220 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     };
   }
 
+  if (slug === "badge") {
+    const flag = (
+      key: "icon" | "count" | "dashed" | "removable",
+      label: string,
+    ) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={badgeCfg[key]}
+          onChange={(v) => setBadgeCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: (
+        <div className="flex flex-col items-center gap-6">
+          {/* The badge the settings tune, above every kind of badge. */}
+          {/* Removing folds it away; a new key brings it straight back. */}
+          <Badge
+            key={badgeRun}
+            tone={badgeCfg.tone}
+            size={badgeCfg.size}
+            icon={badgeCfg.icon ? <IconTickCircle variant="Bold" /> : undefined}
+            count={badgeCfg.count ? 3 : undefined}
+            dashed={badgeCfg.dashed}
+            onRemove={
+              badgeCfg.removable ? () => setBadgeRun((n) => n + 1) : undefined
+            }
+          >
+            Approved
+          </Badge>
+          <div aria-hidden className="h-px w-40 bg-border" />
+          <BadgeDemo />
+        </div>
+      ),
+      usage: badgeUsage(badgeCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className="flex flex-col gap-2 py-3">
+            <span className="text-[13px] font-medium text-foreground">
+              Tone
+            </span>
+            <Tabs
+              id="badge-tone-tab"
+              label="Tone"
+              fill
+              options={BADGE_TONES}
+              value={badgeCfg.tone}
+              onChange={(v) => setBadgeCfg((c) => ({ ...c, tone: v }))}
+            />
+          </div>
+          <SettingsRow label="Size">
+            <Tabs
+              id="badge-size-tab"
+              label="Size"
+              options={BADGE_SIZES}
+              value={badgeCfg.size}
+              onChange={(v) => setBadgeCfg((c) => ({ ...c, size: v }))}
+            />
+          </SettingsRow>
+          <SettingsRows>
+            {flag("icon", "Icon")}
+            {flag("count", "Count")}
+            {flag("dashed", "Dashed")}
+            {flag("removable", "Removable")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "image-generation") {
+    const status: ImageGenerationStatus =
+      genCfg.status === "auto" ? genRun : genCfg.status;
+    const flag = (key: "interactive" | "showStatus" | "download", label: string) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={genCfg[key]}
+          onChange={(v) => setGenCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: (
+        <ImageGeneration
+          status={status}
+          src={IMAGE_GENERATION_SRC}
+          prompt={IMAGE_GENERATION_PROMPT}
+          focus={IMAGE_GENERATION_FOCUS}
+          aspectRatio={genAspect(genCfg.ratio)}
+          interactive={genCfg.interactive}
+          showStatus={genCfg.showStatus}
+          download={genCfg.download ? "rooftop.jpg" : undefined}
+          onRetry={() => setGenCfg((c) => ({ ...c, status: "auto" }))}
+          className={cn(GEN_RATIOS[genCfg.ratio].width, "max-w-full")}
+        />
+      ),
+      usage: genUsage(genCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className="flex flex-col gap-2.5 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[13px] font-medium text-foreground">
+                Status
+              </span>
+              {/* Auto cycles on its own; name the stage it is on. */}
+              {genCfg.status === "auto" && (
+                <span className="font-mono text-[11px] text-text-muted">
+                  {genRun}
+                </span>
+              )}
+            </div>
+            <Tabs
+              id="gen-status-tab"
+              label="Status"
+              wrap
+              options={GEN_STATUSES}
+              value={genCfg.status}
+              onChange={(v) => setGenCfg((c) => ({ ...c, status: v }))}
+            />
+          </div>
+          <div className="flex flex-col gap-2.5 py-3">
+            <span className="text-[13px] font-medium text-foreground">
+              Aspect ratio
+            </span>
+            <Tabs
+              id="gen-ratio-tab"
+              label="Aspect ratio"
+              fill
+              options={GEN_RATIO_KEYS}
+              value={genCfg.ratio}
+              onChange={(v) => setGenCfg((c) => ({ ...c, ratio: v }))}
+            />
+          </div>
+          <SettingsRows>
+            {flag("interactive", "Interactive")}
+            {flag("showStatus", "Status line")}
+            {flag("download", "Download")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "kpi-chart") {
+    return {
+      reset,
+      preview: (
+        <KpiChart
+          data={kpiCfg.falling ? KPI_FALLING : KPI_REVENUE}
+          label="Monthly revenue"
+          defaultIndex={kpiCfg.defaultIndex}
+          currency={kpiCfg.currency === "none" ? undefined : kpiCfg.currency}
+          locale={kpiCfg.locale}
+          className="w-lg max-w-full"
+        />
+      ),
+      usage: kpiUsage(kpiCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className="py-3">
+            <Knob
+              name="defaultIndex"
+              hint={KPI_REVENUE[kpiCfg.defaultIndex]?.label ?? ""}
+              min={0}
+              max={KPI_REVENUE.length - 1}
+              step={1}
+              value={kpiCfg.defaultIndex}
+              onChange={(v) => setKpiCfg((c) => ({ ...c, defaultIndex: v }))}
+            />
+          </div>
+          <div className="flex flex-col gap-2.5 py-3">
+            <span className="text-[13px] font-medium text-foreground">
+              Currency
+            </span>
+            <Tabs
+              id="kpi-currency-tab"
+              label="Currency"
+              fill
+              options={KPI_CURRENCIES}
+              value={kpiCfg.currency}
+              onChange={(v) => setKpiCfg((c) => ({ ...c, currency: v }))}
+            />
+          </div>
+          <div className="flex flex-col gap-2.5 py-3">
+            <span className="text-[13px] font-medium text-foreground">
+              Locale
+            </span>
+            <Tabs
+              id="kpi-locale-tab"
+              label="Locale"
+              fill
+              options={KPI_LOCALES}
+              value={kpiCfg.locale}
+              onChange={(v) => setKpiCfg((c) => ({ ...c, locale: v }))}
+            />
+          </div>
+          <SettingsRows>
+            <SettingsRow label="Peak and drop">
+              <Switch
+                checked={kpiCfg.falling}
+                onChange={(v) => setKpiCfg((c) => ({ ...c, falling: v }))}
+                label="Peak and drop"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
   if (slug === "contact-lens") {
     return {
       reset,
@@ -1203,6 +1693,125 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               <Switch
                 checked={sliderCfg.disabled}
                 onChange={(v) => setSliderCfg((c) => ({ ...c, disabled: v }))}
+                label="Disabled"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "stardust-slider") {
+    return {
+      reset,
+      wide: true,
+      preview: (
+        <StardustSlider
+          // Remount on orientation, so the fill doesn't glide across axes.
+          key={dustCfg.vertical ? "v" : "h"}
+          label="Select strike:"
+          aria-label={dustCfg.bare ? "Strike" : undefined}
+          defaultValue={28}
+          color={DUST_COLORS[dustCfg.color]}
+          size={dustCfg.size}
+          step={dustCfg.step}
+          snap={dustCfg.detents ? "marks" : false}
+          marks={dustCfg.detents ? DUST_DETENTS : dustCfg.marks ? undefined : []}
+          orientation={dustCfg.vertical ? "vertical" : "horizontal"}
+          variant={dustCfg.bare ? "bare" : "card"}
+          dir={dustCfg.rtl ? "rtl" : "ltr"}
+          disabled={dustCfg.disabled}
+          onValueChange={tick}
+        />
+      ),
+      usage: dustUsage(dustCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className={KNOB_GRID}>
+            <div className="flex flex-col gap-2.5 py-3">
+              <span className="text-[13px] font-medium text-foreground">
+                Color
+              </span>
+              <Tabs
+                id="dust-color-tab"
+                label="Color"
+                fill
+                options={DUST_COLOR_NAMES}
+                value={dustCfg.color}
+                onChange={(v) => setDustCfg((c) => ({ ...c, color: v }))}
+              />
+            </div>
+            <div className="flex flex-col gap-2.5 py-3">
+              <span className="text-[13px] font-medium text-foreground">
+                Size
+              </span>
+              <Tabs
+                id="dust-size-tab"
+                label="Size"
+                fill
+                options={DUST_SIZES}
+                value={dustCfg.size}
+                onChange={(v) => setDustCfg((c) => ({ ...c, size: v }))}
+              />
+            </div>
+          </div>
+          <div className="py-3">
+            <Knob
+              name="step"
+              hint="of 100"
+              min={1}
+              max={25}
+              step={1}
+              value={dustCfg.step}
+              onChange={(v) => setDustCfg((c) => ({ ...c, step: v }))}
+            />
+          </div>
+          <SettingsRows>
+            <SettingsRow label="Marks">
+              <Switch
+                checked={dustCfg.marks}
+                onChange={(v) => setDustCfg((c) => ({ ...c, marks: v }))}
+                label="Marks"
+              />
+            </SettingsRow>
+            <SettingsRow label="Detents">
+              <Switch
+                checked={dustCfg.detents}
+                onChange={(v) => setDustCfg((c) => ({ ...c, detents: v }))}
+                label="Detents"
+              />
+            </SettingsRow>
+            <SettingsRow label="Vertical">
+              <Switch
+                checked={dustCfg.vertical}
+                onChange={(v) =>
+                  setDustCfg((c) => ({ ...c, vertical: v, rtl: v ? false : c.rtl }))
+                }
+                label="Vertical"
+              />
+            </SettingsRow>
+            <SettingsRow label="Bare">
+              <Switch
+                checked={dustCfg.bare}
+                onChange={(v) => setDustCfg((c) => ({ ...c, bare: v }))}
+                label="Bare"
+              />
+            </SettingsRow>
+            <SettingsRow label="Right to left">
+              {/* Vertical has no left or right: the switch turns off and
+                  locks while it is on. */}
+              <Switch
+                checked={dustCfg.rtl && !dustCfg.vertical}
+                onChange={(v) => setDustCfg((c) => ({ ...c, rtl: v }))}
+                label="Right to left"
+                disabled={dustCfg.vertical}
+              />
+            </SettingsRow>
+            <SettingsRow label="Disabled">
+              <Switch
+                checked={dustCfg.disabled}
+                onChange={(v) => setDustCfg((c) => ({ ...c, disabled: v }))}
                 label="Disabled"
               />
             </SettingsRow>

@@ -92,10 +92,17 @@ const descriptors = readFileSync(
   "utf8",
 );
 const names = new Map(
-  [...descriptors.matchAll(/slug: "([^"]+)",\s*name: "([^"]+)"/g)].map((m) => [
-    m[1],
-    m[2],
-  ]),
+  // request:publish puts requestId between slug and name.
+  [
+    ...descriptors.matchAll(
+      /slug: "([^"]+)",\s*(?:requestId: "[^"]*",\s*)?name: "([^"]+)"/g,
+    ),
+  ].map((m) => [m[1], m[2]]),
+);
+const requestIds = new Map(
+  [...descriptors.matchAll(/slug: "([^"]+)",\s*requestId: "([^"]+)"/g)].map(
+    (m) => [m[1], m[2]],
+  ),
 );
 
 const lines = readFileSync(resolve(root, file), "utf8").trim().split(/\r?\n/);
@@ -225,6 +232,34 @@ async function fromServer() {
   };
 }
 const server = discord ? await fromServer() : undefined;
+
+/** Who asked for each requested component, from the Contact field of the
+ *  request post ("<@id> (@username)"), the same one request:publish reads.
+ *  Left out when the post can't be read or has no Contact. */
+const requesters = new Map<string, { id: string; username: string }>();
+if (token)
+  await Promise.all(
+    parts.map(async (e) => {
+      const post = requestIds.get(e.slug!);
+      if (!post || e.label !== "NEW") return;
+      const res = await fetch(`${API}/channels/${post}/messages/${post}`, {
+        headers: { Authorization: `Bot ${token}` },
+      });
+      const starter = res.ok
+        ? ((await res.json()) as {
+            embeds?: { fields?: { name: string; value: string }[] }[];
+          })
+        : undefined;
+      const m = starter?.embeds?.[0]?.fields
+        ?.find((f) => f.name === "Contact")
+        ?.value.match(/<@(\d+)>(?:\s*\(@([^)]+)\))?/);
+      if (m) requesters.set(e.slug!, { id: m[1], username: m[2] ?? m[1] });
+      else
+        console.warn(
+          `Couldn't read who requested ${e.slug}${res.ok ? "" : ` (Discord ${res.status})`}; posting without the credit.`,
+        );
+    }),
+  );
 
 // NEW and UPDATED cards show their demo as a looping GIF, recorded now and
 // sent with the post: Discord keeps its own copy, so the files are deleted
@@ -366,6 +401,9 @@ const components: Component[] = [
       e.label === "UPDATED" && "-# WHAT CHANGED",
       // The summary in a quote bar, so it reads as the card's lede.
       `> ${e.text}`,
+      // A mention renders as the member's name; the preview shows the username.
+      requesters.has(e.slug!) &&
+        `-# Requested by ${discord ? `<@${requesters.get(e.slug!)!.id}>` : `@${requesters.get(e.slug!)!.username}`}`,
       shown.length > 0 && "",
       shown.length > 0 && "**Highlights**",
       ...shown.map((f) => `- ${f}`),
@@ -530,8 +568,13 @@ payload.set(
   JSON.stringify({
     flags: IS_COMPONENTS_V2,
     components,
-    // Only the Changelog role may be pinged, never @everyone.
-    allowed_mentions: { parse: [], roles: role ? [role] : [] },
+    // Only the Changelog role and, on the real post, the requesters may be
+    // pinged, never @everyone.
+    allowed_mentions: {
+      parse: [],
+      roles: role ? [role] : [],
+      users: test ? [] : [...requesters.values()].map((r) => r.id),
+    },
     attachments: [
       { id: 0, filename: "logo.png" },
       ...[...gifs].map((slug, i) => ({ id: i + 1, filename: `${slug}.gif` })),
@@ -542,7 +585,9 @@ payload.set("files[0]", new Blob([logo], { type: "image/png" }), "logo.png");
 [...gifs].forEach((slug, i) =>
   payload.set(
     `files[${i + 1}]`,
-    new Blob([readFileSync(join(gifDir, `${slug}.gif`))], { type: "image/gif" }),
+    new Blob([readFileSync(join(gifDir, `${slug}.gif`))], {
+      type: "image/gif",
+    }),
     `${slug}.gif`,
   ),
 );

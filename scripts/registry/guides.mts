@@ -1179,4 +1179,435 @@ export function Sections() {
       TOKENS_MISSING,
     ],
   },
+  "kpi-chart": {
+    demo:
+      "The live demo is five months of revenue, Jul to Nov. The line draws itself in from Jul with a dot riding its tip, with a soft fill under it, while a card pops up at the top centre reading Monthly revenue, +320% with a trend chip, and 21K in Nov. Hover the chart and a small ring marks the nearest month; click and the dot glides along the curve to it, the card's digits roll to the new change while the sign and % hold still, and the line and fill past that month fade back.",
+    whenToUse: [
+      "A hero or dashboard tile that tells one growth story, such as revenue, signups or users over a few months.",
+      "Short series of about 3 to 12 points where the change since the start is the headline.",
+    ],
+    whenNotToUse: [
+      "Exact reading of values, several series or a real value axis. The y axis only marks a few round values; use a charting library.",
+      "Comparing separate categories. Use Chart Card, whose bars each stand alone.",
+    ],
+    keyboard: [
+      ["Tab", "Focuses the chart."],
+      ["Arrow Left / Arrow Right", "Moves the dot to the previous or next point, the same as a click; Arrow Down and Arrow Up do the same."],
+      ["Home / End", "Jumps to the first or last point."],
+    ],
+    accessibility: [
+      "The plot is one focusable element with role=\"slider\", named by label, with aria-valuetext reading the focused point, for example \"Nov: 21K, +320%\".",
+      "Axis labels, the dot and the card are aria-hidden because the slider already speaks the focused point.",
+      "Hovering with a mouse only marks a point; the dot, the card and the spoken value change on a click, a tap, a touch drag along the line or an arrow key, and stay there after the pointer or focus leaves.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The accent is the text color of the chart slot: the line, the dot, its halo and the focused month all use currentColor. It defaults to text-primary; pass classNames.chart=\"text-orange-500\" for another accent.",
+      "The card is bg-background with a soft shadow ring and foreground text, so it stays neutral whatever the accent. Its trend chip uses the accent for a rise and the destructive token for a drop. Extra classes go through classNames.tooltip.",
+      "The fill under the line is the accent at 16% fading to clear at the bottom, and shares the line's faded start.",
+      "The base is bg-background; under a .dark ancestor it is var(--foreground) mixed 9% into var(--background), the same tone as the Nav Notch track.",
+      "Gridlines use stroke-border and fade out toward their top and bottom; idle labels use text-muted-foreground.",
+    ],
+    edgeCases: [
+      "The card shows the change since the first point, rounded to a whole percent, with the focused value and label under it (21K in Nov). When the first value is 0 it shows the formatted value instead of a percentage.",
+      "A point above the first value gets a rising trend chip, a point below it a falling one in the destructive color, and the first point or an equal value fades the chip out while keeping its space. The arrow animates only when the trend changes (none to rising, rising to falling): it turns and slides in along the way it points; moving between two points with the same trend leaves it still.",
+      "The y axis uses round steps (1, 2, 2.5 or 5 times a power of ten), starts on a step at or below the lowest value and ends at the highest value, so the top of the line sits near the top of the chart and the top tick can be just below it.",
+      "The curve is monotone: it never dips below or rises above the points it joins, so growth data never shows a fake dip.",
+      "Points are spaced evenly whatever their labels say; the chart has no time axis.",
+      "Past 8 points, only every nth label and gridline is drawn, counted back from the last so the newest point is always named. The focused point always shows its label, and thinned labels too close to it are hidden.",
+      "The trend chip follows the rounded figure, so a change that rounds to 0% shows no arrow.",
+      "A series where every value is the same draws a flat line across the middle.",
+      "The card stays fixed at the top centre of the chart while the dot travels; only its figures change. When the dot passes under it, the card fades to a quarter so the dot stays visible.",
+      "The card keeps one width for the whole series: it makes room for the longest figure and value line across every point, so picking another point never resizes it.",
+      "The y axis column is at least 3rem wide, so short labels never move it; a label longer than that widens the column instead of spilling past it.",
+      "The blank right of the plot mirrors the blank left of the y labels (the column minus the widest label), so the chart sits balanced in the card. When the tick text changes length with a new formatValue, that right blank eases to the new size.",
+      "currency takes an ISO 4217 code (USD, EUR, SEK, XOF). An invalid code throws, the same as Intl.NumberFormat.",
+      "The locale decides where the symbol goes and how it is spaced: $20K in en-US, 20K € in de-DE, F CFA 20K for XOF in en-US. The digits still come from formatValue.",
+      "On the y axis the symbol shows once, above the ticks, as the axis unit; the ticks stay plain numbers.",
+      "From 1000% the change reads in thousands: +1K%, +1.1K%, then whole thousands from +10K%.",
+      "Only the digits roll, one wheel per place, keyed from the right so the ones digit stays put when the figure gains a digit. The sign, %, separators and any letters from formatValue (the K in 21K) hold still.",
+    ],
+    recipes: [
+      {
+        title: "Currency and a custom accent",
+        description: "Show US dollars and color the line with a palette color.",
+        code: `import { KpiChart } from "@/components/ui/kpi-chart";
+
+const revenue = [
+  { label: "Aug", value: 5000 },
+  { label: "Sept", value: 8400 },
+  { label: "Oct", value: 13100 },
+  { label: "Nov", value: 21000 },
+];
+
+export function RevenueChart() {
+  return (
+    <KpiChart
+      data={revenue}
+      label="Monthly revenue"
+      currency="USD"
+      classNames={{ chart: "text-orange-500" }}
+    />
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The card shows a value instead of a percentage.",
+        answer: "The first point's value is 0, where a change in percent has no meaning. Start the series at a non-zero value.",
+      },
+      {
+        question: "The line is black or gray instead of colored.",
+        answer: "The accent follows the primary token, which many themes set to near black. Pass a text color in classNames.chart.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  badge: {
+    demo:
+      "The live demo shows every kind of badge in rows: statuses (Approved, In Progress, a dashed Not applicable, Failed, Waiting for approval, Submitted, Pending, Archived), three removable file badges with counts (Folders 4, Files 12, Images 36) that fold away when removed while the rest slide over, then come back with a restore button, a person with an avatar and a country with its flag, and presence badges (Online and Offline with a haloed dot, Do not disturb).",
+    whenToUse: [
+      "Showing the state of a row in a table or list, such as Approved, Pending or Failed.",
+      "Active filters or picked values that the user can remove one by one.",
+      "Small labels for a person, a country or presence next to a name, or a link to a topic with href.",
+    ],
+    whenNotToUse: [
+      "A main action such as Save or Delete. Use a button; a clickable badge reads as a label first.",
+      "A toggle between filters. Use a switch or a segmented control, which expose pressed or checked state.",
+      "Long text. The label never wraps; it is cut with an ellipsis when the badge runs out of room.",
+    ],
+    keyboard: [
+      ["Tab", "Focuses the badge when it has href or onClick, then its remove button when it has onRemove. A plain badge is not focusable."],
+      ["Enter / Space", "Follows the link, clicks the badge, or clicks the focused remove button. Space does not follow a link."],
+    ],
+    accessibility: [
+      "A plain badge is a <span>, so screen readers read its label as text in the flow.",
+      "With href the label is an <a>; with onClick it is a <button type=\"button\">. Its hit area covers the whole pill, and the pill shows the focus outline.",
+      "The icon and media are aria-hidden: the label carries the meaning, so color is never the only signal. The count is read after the label.",
+      "The remove button is a real <button type=\"button\"> named \"Remove\" plus the label's text through aria-labelledby, whatever the children are, or removeLabel when set. It shows a focus outline in the ring color.",
+      "After a remove, focus moves to the next badge's remove button or action in the same parent, or the previous one when it was the last, so keyboard users keep their place and screen readers announce where they landed.",
+      "A label cut with an ellipsis shows its full text as a tooltip on hover.",
+      "Under reduced motion a removed badge goes at once, with no fold.",
+    ],
+    theming: [
+      "Each tone is only a text color: neutral is text-foreground and danger text-destructive; success is Tailwind emerald-700 (emerald-400 in dark), warning amber-700 (amber-400 in dark) and info blue-700 (blue-400 in dark), since shadcn/ui has no success, warning or info token and primary is near black in most themes. Those shades keep the text at 4.5:1 or better on the badge's tint in each theme.",
+      "The fill is that color at 8% and the outline at 15% (30% dashed), both from currentColor, so a text-* class in className gives a new tone, for example className=\"text-violet-600\". Hover on a clickable badge adds a little more fill.",
+      "Because the fill comes from the text color, a tone built on a theme token follows the theme with no dark: class. A palette color needs a dark: shade, as success and warning have, to keep its contrast.",
+      "The focus outline uses the ring token.",
+    ],
+    edgeCases: [
+      "Sizes are sm (24px), md (28px, the default) and lg (32px); text, icons, media and the close button scale with them.",
+      "media is fitted to a circle of 16, 20 or 24px by size, as far from the rim as from the top and bottom. Whatever is passed fills it, an img or an Avatar component with its own size class alike. In icon, svg icons without a size-* class are drawn 14, 16 or 18px; anything with its own size-* class keeps it, like a small presence dot.",
+      "The badge never wraps its label. Inside a narrow parent the label is cut with an ellipsis, and the icon, count and remove button stay whole.",
+      "Removing folds the badge to nothing, the gap after it included, so its neighbours in a flex or grid row slide over; then onRemove is called. Take the badge out of your state there. A badge still mounted a moment later, say after a cancelled confirm or a failed request, unfolds again.",
+      "The fold closes the gap using the parent's column-gap, so it assumes a flex or grid parent; elsewhere it folds without closing a gap.",
+      "With href the label renders as an a, or as linkAs (Next's Link, say) for client-side navigation; target and rel go to it.",
+    ],
+    recipes: [
+      {
+        title: "Removable filters",
+        description: "A row of filters the user clears one by one.",
+        code: `import { useState } from "react";
+import { IconFolder } from "@devigner-ui/icons";
+import { Badge } from "@/components/ui/badge";
+
+export function Filters() {
+  const [filters, setFilters] = useState(["Folders", "Files", "Images"]);
+  return (
+    <div className="flex flex-wrap gap-2">
+      {filters.map((f) => (
+        <Badge
+          key={f}
+          icon={<IconFolder />}
+          onRemove={() => setFilters((all) => all.filter((x) => x !== f))}
+        >
+          {f}
+        </Badge>
+      ))}
+    </div>
+  );
+}`,
+      },
+      {
+        title: "Person with an avatar",
+        description: "Any image or avatar in the media slot is drawn round and sized to the badge.",
+        code: `import { Badge } from "@/components/ui/badge";
+
+export function Assignee({ name, avatar }: { name: string; avatar: string }) {
+  return <Badge media={<img src={avatar} alt="" />}>{name}</Badge>;
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The badge folds away but leaves an empty spot.",
+        answer: "The badge folds first, then onRemove is called. Take the badge out of the list you render in that callback; a badge left mounted unfolds again a moment later.",
+      },
+      {
+        question: "My color class does not change the badge.",
+        answer: "Pass a text color (text-violet-600), not a background: the fill and outline are drawn from the text color.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "image-generation": {
+    demo:
+      "The live demo plays one generation on a loop: a still grid of tiny dots fills the frame, faint while queued and full strength while generating, then the dots grow and take on the colors of the picture while refining, and finally grow into each other and fade as the sharp image comes in. Move the mouse over the grid and the dots around it swell and part a little; click to send a small ripple through them.",
+    whenToUse: [
+      "The result slot of an AI image tool, from the moment the request is sent until the image arrives.",
+      "Any long job that ends in a picture, such as a render, an upscale or a thumbnail being made on the server.",
+      "Progress reported in a few steps (queued, generating, refining) rather than as a percentage.",
+    ],
+    whenNotToUse: [
+      "A plain image that is only loading over the network. Use a skeleton or the browser's own lazy loading.",
+      "Showing an exact percentage or time left. The swarm shows the stage, not how far along it is.",
+      "Long grids of many results at once. Frames share one animation loop and one theme watcher, but each still draws its own canvas; a few on screen are fine, dozens moving together are not.",
+    ],
+    keyboard: [
+      ["Tab", "Focuses the Try again button when status is \"error\" and onRetry is set, or the download button when status is \"complete\" and download is set. The frame itself is not focusable."],
+      ["Enter / Space", "Presses Try again or download."],
+    ],
+    accessibility: [
+      "The frame has role=\"img\" and is named by label, or by the status text and prompt (\"Generating image: Glass spheres...\").",
+      "The root has aria-busy while the status is queued, generating or refining.",
+      "A visually hidden aria-live=\"polite\" region holds the status text, so each new status is read out once, even with showStatus off. The visible status line is aria-hidden so it isn't read twice.",
+      "The canvas, the media layer and the status icon are aria-hidden. The status is always written out in text, so neither color nor motion is the only signal.",
+      "Try again is a real <button type=\"button\"> with a focus ring in the ring color. It appears without taking focus, so a failure never pulls a keyboard user away from where they are; the live region announces it.",
+      "Download is an icon-only <button type=\"button\"> over the frame's top-right corner, named by downloadLabel (\"Download\") with the same text as a tooltip and the same focus ring. It sits outside the role=\"img\" frame so screen readers reach it, and also appears without taking focus.",
+      "A prompt cut with an ellipsis shows in full as a tooltip on hover.",
+      REDUCED_MOTION + " Under reduced motion the dots jump straight to each state's size and color, the pointer neither swells nor moves them, a click sends no ripple and the status icon stands still.",
+    ],
+    theming: [
+      "The frame is bg-muted with rounded-xl corners; extra classes go through classNames.frame.",
+      "The dots are drawn in the canvas's text color: the foreground token, or the destructive token when status is \"error\". They are read again whenever the class or data-theme attribute of <html> or the system color scheme changes, so a theme switch recolors them without a reload.",
+      "The status mark sits in a 36px cell with no background: a 32px thinking orb while the job is in progress, a tick when complete, and an alert in the destructive color on error.",
+      "While refining, each dot takes the color of the image under it, rounded to 4 bits a channel.",
+      "The status line is text-foreground, text-destructive on error; extra classes go through classNames.status.",
+    ],
+    edgeCases: [
+      "The dots sit on a hex grid that fills the frame, 12px apart, so a bigger frame has more of them.",
+      "The canvas follows the frame's size; a resize, or moving the window to a screen with another pixel ratio, lays the dots out again where the current state wants them.",
+      "The animation stops by itself once every dot has settled, and pauses while the frame is scrolled out of view.",
+      "Coloring the dots needs to read the image's pixels. For an image from another domain, set crossOrigin=\"anonymous\" and serve it with CORS headers (Access-Control-Allow-Origin); without them the dots stay one color and the image still shows when complete. The img of src uses the same mode, so the image is downloaded once.",
+      "Colors are read only once the image has loaded, so the dots never flash black on the way. Transparent parts of an image leave their dots in the ink color.",
+      "children replace the img of src as the visible media, so a Next Image works. The dots only take image colors when tintSrc or src is set as well; a small tintSrc thumbnail saves downloading the full image just for its colors. children that render nothing, such as {ready && <Image />} before it is ready, count as no media.",
+      "Once the image is in progress no longer (complete or error), the dots stop catching the pointer, so a right-click, long-press or drag reaches the finished image.",
+      "With no src and no children, complete leaves the tiny dots in place instead of fading them, since there is nothing to show under them.",
+      "On error a small ripple runs out from the middle, then the dots settle back and dim to 45%. The image, if any, shows faintly and blurred, scaled a touch so the blur keeps clear of the frame's edges.",
+      "If the pointer is over the frame when the status leaves the in-progress states, the swell around it lets go instead of staying where the cursor was.",
+      "The grid never moves on its own; only the pointer moves dots off their places. A mouse or pen swells the dots within about a quarter of the frame's shorter side and gently parts the closest ones; a finger scrolls the page as usual. A click or tap sends a small ripple. None of this works once the status is complete or error.",
+      "Download fetches src and saves it under the download name, so it works for an image on another domain only when that domain sends CORS headers (Access-Control-Allow-Origin). Without them the image opens in a new tab instead, where it can be saved by hand. It needs src; with only children there is nothing to save, so the button stays hidden.",
+      "The frame is max-w-xs (320px) wide by default and its height follows aspectRatio. Pass a max-w-* or w-* class in className for another size.",
+    ],
+    recipes: [
+      {
+        title: "Wired to a generation request",
+        description: "Shows each stage the server reports, then the finished image, with a retry on failure.",
+        code: `import { useState } from "react";
+import {
+  ImageGeneration,
+  type ImageGenerationStatus,
+} from "@/components/ui/image-generation";
+
+export function Generator({ prompt }: { prompt: string }) {
+  const [status, setStatus] = useState<ImageGenerationStatus>("queued");
+  const [url, setUrl] = useState<string>();
+
+  async function run() {
+    setStatus("generating");
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+      });
+      const { image } = (await res.json()) as { image: string };
+      setUrl(image);
+      setStatus("refining");
+      setTimeout(() => setStatus("complete"), 1200);
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <button type="button" onClick={run}>
+        Generate
+      </button>
+      <ImageGeneration
+        status={status}
+        src={url}
+        prompt={prompt}
+        onRetry={run}
+      />
+    </div>
+  );
+}`,
+      },
+      {
+        title: "Wide frame",
+        description: "A 16:9 frame with no status line.",
+        code: `import { ImageGeneration } from "@/components/ui/image-generation";
+
+export function Banner({ src }: { src?: string }) {
+  return (
+    <ImageGeneration
+      status={src ? "complete" : "generating"}
+      src={src}
+      aspectRatio="16 / 9"
+      showStatus={false}
+      className="max-w-xl"
+    />
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The dots never take on the image's colors.",
+        answer: "The image is on another domain, so the browser won't let the canvas read its pixels unless it is served with Access-Control-Allow-Origin and crossOrigin=\"anonymous\" is set. Or serve it from your own domain. The dots also stay one color when only children is passed; set tintSrc or src too.",
+      },
+      {
+        question: "The frame is tiny or has no height.",
+        answer: "The height comes from aspectRatio and the width from the parent, up to max-w-xs. Inside a flex row with no width, give it a w-* class.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "stardust-slider": {
+    demo:
+      "The live demo is a card labelled Select strike: at 28%. Grab the handle and it brightens and grows; fling it right and it stretches with the speed while the blue fill glows with drifting dust, and the percentage rolls up digit by digit after it. Click the number to type one.",
+    whenToUse: [
+      "One headline value in a dashboard or trading style screen, such as a strike, a risk level or an allocation, where the control is the focus of the card.",
+      "A value with a few meaningful stops: snap=\"marks\" with labelled marks pulls the fill onto them like detents.",
+      "A tall fader, such as volume or a level meter, with orientation=\"vertical\", or the track alone inside your own layout with variant=\"bare\".",
+    ],
+    whenNotToUse: [
+      "Dense settings panels with many sliders: each one runs its own dust animation. Use Slider.",
+      "Picking a min and max. It has one handle; use a two-thumb range slider.",
+      "A value that is mostly typed. The readout accepts typing, but a number input is the better primary control.",
+    ],
+    keyboard: [
+      ["Tab", "Focuses the number when it is editable, then the track. The track draws a focus ring; the number turns into a field in place when clicked or activated with Enter."],
+      ["Arrow Up / Arrow Right", "Raises the value by one step, ten with Shift (Arrow Left raises it right-to-left)."],
+      ["Arrow Down / Arrow Left", "Lowers the value by one step, ten with Shift (Arrow Right lowers it right-to-left)."],
+      ["Page Up / Page Down", "Moves a tenth of the range (at least one step)."],
+      ["Home / End", "Jumps to min or max."],
+      ["Arrow Up / Arrow Down in the field", "Steps the typed number by one step, ten with Shift; the fill follows."],
+      ["Enter / Escape", "In the typed value field: commits it, or puts back the value it opened with, and returns focus to the track."],
+    ],
+    accessibility: [
+      "The track has role=\"slider\" with aria-valuemin, aria-valuemax, aria-valuenow, aria-orientation and aria-valuetext, the same text the readout shows (\"28%\", \"$110\").",
+      "label names the slider through aria-labelledby. Without a label, and always with variant=\"bare\", pass aria-label or aria-labelledby.",
+      "The rolling digits are hidden from screen readers; the editable number is a button named \"Type a value, now 28%\", and its field is named \"Type a value\".",
+      "Pressing the track moves focus to it, so the arrow keys work right after a drag. Its focus ring uses var(--ring). The number has no ring by design: it edits in place, as a borderless field the width of its text, with its text selected so typing replaces it.",
+      REDUCED_MOTION + " Under reduced motion the dust stays still, the readout changes without rolling and the fill jumps instead of gliding.",
+    ],
+    theming: [
+      "The card is var(--card) with var(--card-foreground) text and the label is var(--muted-foreground). The track is var(--foreground) mixed 9% into var(--background) with the same bevel as Nav Notch, so both follow dark mode. Marks are hairlines of var(--border) that fade out at both ends, like a divider; mark labels are var(--muted-foreground).",
+      "color sets the fill (#365ee9 by default). The fill fades it in from transparent at its start to full strength at its end, so a short fill still ends bright.",
+      "The dust is white. At min the fill shrinks to a slim neutral socket around the handle (var(--foreground) at 8%) with a var(--foreground) handle, and the color and dust fade in over the first 8% of the track, so an empty slider reads as empty. The handle is see-through white with a light backdrop blur.",
+      "Vertical cards stack the label, smaller, above the number, both centred over the track; mark labels hang beside the track with room kept on both sides, so the track stays centred. size picks a 44, 54 or 64px track, with a 320, 372 or 420px card and sm, base or lg text; everything inside scales with it. A w-* class in className changes the width, and a vertical track's length comes from an h-* class in classNames.track.",
+      "classNames targets label, value, track, fill, handle, mark and markLabel.",
+    ],
+    edgeCases: [
+      "Grabbing near the handle keeps the grab point, so it never jumps; pressing elsewhere on the track glides the fill there.",
+      "snap=\"marks\" pulls the fill onto a mark when the pointer comes within about 10px of one (scaled with size) and releases it past that; snap=\"steps\" moves it from stop to stop. Free, it follows the pointer on a soft spring.",
+      "The fill is revealed with a clip-path over a fixed layer and the handle moves on transforms, so a drag never changes layout. Its start follows the track's round end; its end keeps a tight corner and rounds into a half circle over the last 15% of the track.",
+      "The readout rolls like an odometer: the ones digit turns with the value, each higher digit turns only while the one below rolls over, and each column blurs a little with its speed. With Intl formatting, group separators (1,250) and the locale's decimal mark sit between the columns and a leading digit or separator unfolds as the value grows into it, so text around the number never jumps. Compact notation (1.2K) or a format function that changes the digits shows plain text.",
+      "Typed values are clamped to min and max and rounded to step; anything that isn't a number is ignored. Both a comma and a point work as the decimal mark.",
+      "scale=\"log\" needs min above 0 and otherwise falls back to linear. Arrow keys always move by step in values, so on a log scale a step is a short distance at the top and a long one at the bottom.",
+      "Right-to-left comes from dir, or from the page's direction when dir is unset. The track mirrors; the numbers still read left to right. Vertical ignores it.",
+      "The dust gathers toward the handle: half the motes drift in the last 20% of the fill around the handle, most of the rest along its middle and only a few in its dark first 30%, and a short fill shows fewer. It only animates while the slider is on screen.",
+      "Marks outside the range are skipped. Only one pointer drags at a time.",
+      "onValueChange fires on every move; save or fetch in onValueCommit, which fires once per release, per key press and per typed value.",
+      "With name set, a hidden input submits the value.",
+    ],
+    recipes: [
+      {
+        title: "Strike with detents",
+        description: "Strikes from 90 to 130 in dollars, pulled onto the labelled round numbers.",
+        code: `import { useState } from "react";
+import { StardustSlider } from "@/components/ui/stardust-slider";
+
+export function StrikePicker() {
+  const [strike, setStrike] = useState(110);
+  return (
+    <StardustSlider
+      label="Select strike:"
+      value={strike}
+      onValueChange={setStrike}
+      min={90}
+      max={130}
+      step={1}
+      snap="marks"
+      marks={[
+        { value: 100, label: "100" },
+        { value: 110, label: "ATM" },
+        { value: 120, label: "120" },
+      ]}
+      formatOptions={{ style: "currency", currency: "USD" }}
+    />
+  );
+}`,
+      },
+      {
+        title: "Vertical fader",
+        description: "A tall, small fader without the card, saved on release.",
+        code: `import { StardustSlider } from "@/components/ui/stardust-slider";
+
+export function Volume({ save }: { save: (value: number) => void }) {
+  return (
+    <StardustSlider
+      aria-label="Volume"
+      variant="bare"
+      orientation="vertical"
+      size="sm"
+      defaultValue={60}
+      color="#0ea5e9"
+      onValueCommit={save}
+      classNames={{ track: "h-72" }}
+    />
+  );
+}`,
+      },
+      {
+        title: "Budget on a log scale",
+        description: "From 100 to 1,000,000 in euros, German style, with room for the small amounts.",
+        code: `import { StardustSlider } from "@/components/ui/stardust-slider";
+
+export function Budget() {
+  return (
+    <StardustSlider
+      label="Budget"
+      min={100}
+      max={1000000}
+      step={100}
+      defaultValue={5000}
+      scale="log"
+      marks={[]}
+      locale="de-DE"
+      formatOptions={{ style: "currency", currency: "EUR" }}
+    />
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The fill shows no color.",
+        answer: "The fill uses color-mix() and clip-path, which need a 2023 or newer browser. Check that color is a valid CSS color.",
+      },
+      {
+        question: "The number doesn't match the value right away.",
+        answer: "That is the roll: the readout catches up with the value over about half a second. The value passed to onValueChange and read by screen readers is always current.",
+      },
+      {
+        question: "The number shows as plain text instead of rolling.",
+        answer: "The digits couldn't be found in the formatted text: compact notation (1.2K), a numbering system with other digits, or a format function that rounds or abbreviates. Use formatOptions with standard notation to keep the roll.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
 } satisfies Record<string, ComponentGuide>;

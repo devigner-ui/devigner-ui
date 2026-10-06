@@ -7,22 +7,27 @@ import {
   IconAdd,
   IconArrowRight,
   IconChevronDown,
+  IconClock,
+  IconCloseCircle2,
   IconLike,
   IconLink,
   IconMessage,
   IconSearchNormal,
+  IconSpinner,
+  IconTickCircle,
 } from "@devigner-ui/icons";
+import { Badge } from "devignerui";
 import { SPRING_LAYOUT } from "devignerui/motion";
 import { cn } from "cn";
 import type { RequestPost, Status } from "@/lib/requests";
 import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 
 /** Mirrors STATUSES / STATUS_LABEL in lib/requests.ts, which is server only. */
-const STATUS: { id: Status; label: string; dot: string; badge: string }[] = [
-  { id: "pending", label: "Pending", dot: "bg-text-muted", badge: "text-text-secondary" },
-  { id: "progress", label: "In progress", dot: "bg-brand", badge: "text-brand" },
-  { id: "published", label: "Published", dot: "bg-success", badge: "text-success" },
-  { id: "rejected", label: "Rejected", dot: "bg-destructive", badge: "text-destructive" },
+const STATUS: { id: Status; label: string; dot: string; badge: string; icon: React.ReactNode }[] = [
+  { id: "pending", label: "Pending", dot: "bg-text-muted", badge: "text-text-secondary", icon: <IconClock variant="Bold" /> },
+  { id: "progress", label: "In progress", dot: "bg-brand", badge: "text-brand", icon: <IconSpinner /> },
+  { id: "published", label: "Published", dot: "bg-success", badge: "text-success", icon: <IconTickCircle variant="Bold" /> },
+  { id: "rejected", label: "Rejected", dot: "bg-destructive", badge: "text-destructive", icon: <IconCloseCircle2 variant="Bold" /> },
 ];
 const statusOf = (id: Status) => STATUS.find((s) => s.id === id)!;
 
@@ -232,10 +237,9 @@ function Row({ post: p, open, onToggle }: { post: RequestPost; open: boolean; on
             <span className="mt-0.5 block truncate text-[13.5px] text-text-secondary">{p.details}</span>
           )}
           <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-text-muted">
-            <span className={cn("inline-flex items-center gap-1.5 font-medium", s.badge)}>
-              <span aria-hidden className={cn("size-1.5 rounded-full", s.dot)} />
+            <Badge size="sm" icon={s.icon} className={s.badge}>
               {s.label}
-            </span>
+            </Badge>
             <span>{date.format(p.createdAt)}</span>
             {p.replies > 0 && (
               <span className="inline-flex items-center gap-1">

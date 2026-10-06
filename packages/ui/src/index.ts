@@ -101,3 +101,28 @@ export {
   type NavNotchItem,
   type NavNotchClassNames,
 } from "./components/nav-notch";
+export {
+  KpiChart,
+  type KpiChartProps,
+  type KpiChartPoint,
+  type KpiChartClassNames,
+} from "./components/kpi-chart";
+export {
+  Badge,
+  type BadgeProps,
+  type BadgeSize,
+  type BadgeTone,
+} from "./components/badge";
+export {
+  ImageGeneration,
+  type ImageGenerationProps,
+  type ImageGenerationStatus,
+  type ImageGenerationClassNames,
+} from "./components/image-generation";
+export {
+  StardustSlider,
+  type StardustSliderProps,
+  type StardustSliderClassNames,
+  type StardustSliderMark,
+  type StardustSliderScale,
+} from "./components/stardust-slider";

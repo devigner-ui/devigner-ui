@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -620,7 +621,15 @@ function ComponentsPanel({
 }
 
 /** The Code drawer's header: file, line count, Copy, Download. */
-function DrawerHeader({ code, fileName, slug }: { code: string; fileName: string; slug: string }) {
+function DrawerHeader({
+  code,
+  fileName,
+  slug,
+}: {
+  code: string;
+  fileName: string;
+  slug: string;
+}) {
   const reduce = useReducedMotion();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -644,7 +653,10 @@ function DrawerHeader({ code, fileName, slug }: { code: string; fileName: string
     a.href = url;
     a.download = fileName;
     a.click();
-    trackEvent("component_code_download", { component_slug: slug, file_name: fileName });
+    trackEvent("component_code_download", {
+      component_slug: slug,
+      file_name: fileName,
+    });
     URL.revokeObjectURL(url);
   };
 
@@ -1331,8 +1343,6 @@ export function ComponentPage({
     const open = () => {
       hintWarm.current = Infinity;
       setHint({ id, rect: el.getBoundingClientRect(), instant });
-      // Only the first of a sweep: the instant ones would chatter.
-      if (!instant) play("swoosh");
     };
     if (instant) open();
     else hintTimer.current = setTimeout(open, HINT_DELAY);
@@ -1358,9 +1368,7 @@ export function ComponentPage({
   const [dockWidth, setDockWidth] = useState<number>();
   useEffect(() => {
     const el = dock.current?.firstElementChild as
-      | HTMLElement
-      | null
-      | undefined;
+      HTMLElement | null | undefined;
     if (!el || panelOpen) return;
     const ro = new ResizeObserver(() => setDockWidth(el.offsetWidth));
     ro.observe(el);
@@ -1674,6 +1682,45 @@ export function ComponentPage({
   }, [router]);
 
   const panel = reduce ? { duration: 0 } : SPRING_PANEL;
+
+  // An open dock panel (Settings above all, often tall) rises over the lower
+  // stage. When it would cover the preview, the preview moves up into the
+  // free space above it, shrinking if that space is too short, and goes back
+  // when the panel closes.
+  const stage = useRef<HTMLDivElement>(null);
+  const preview = useRef<HTMLDivElement>(null);
+  const [lift, setLift] = useState({ y: 0, scale: 1 });
+  useLayoutEffect(() => {
+    const s = stage.current;
+    const b = bar.current;
+    const p = preview.current;
+    if (!panelOpen || !s || !b || !p) {
+      setLift({ y: 0, scale: 1 });
+      return;
+    }
+    const EDGE = 16;
+    const measure = () => {
+      const content = p.firstElementChild as HTMLElement | null;
+      if (!content) return;
+      const S = s.clientHeight;
+      // The bar sits bottom-5 (20px); the free band runs from EDGE below the
+      // top to EDGE above the panel. offsetHeight ignores our transform.
+      const freeBottom = S - 20 - b.offsetHeight - EDGE;
+      const h = content.offsetHeight;
+      if (S / 2 + h / 2 <= freeBottom) return setLift({ y: 0, scale: 1 });
+      const room = Math.max(0, freeBottom - EDGE);
+      setLift({
+        y: (EDGE + freeBottom) / 2 - S / 2,
+        scale: Math.min(1, room / h),
+      });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(s);
+    ro.observe(b);
+    if (p.firstElementChild) ro.observe(p.firstElementChild);
+    return () => ro.disconnect();
+  }, [panelOpen, previewKey]);
   // Prev / next sit outside the dock, so they aren't items; their tooltip
   // builds its own label below.
   const hintItem =
@@ -1699,7 +1746,7 @@ export function ComponentPage({
       {/* Under the whole page, so the Docs panel floats on the stage too. */}
       <StageGround />
       <main className="relative flex min-w-0 flex-1 flex-col">
-        <div className="relative min-h-0 flex-1">
+        <div ref={stage} className="relative min-h-0 flex-1">
           {/* The catalog card's dot field, for previews that want detail
               behind them (glass has something to bend). */}
           {playground.dots && (
@@ -1711,8 +1758,12 @@ export function ComponentPage({
               )}
             />
           )}
-          <div
+          <motion.div
+            ref={preview}
             key={previewKey}
+            initial={false}
+            animate={lift}
+            transition={panel}
             className="absolute inset-0 flex items-center justify-center px-6"
           >
             {playground.preview ?? (
@@ -1720,7 +1771,7 @@ export function ComponentPage({
                 Preview coming soon for this component.
               </p>
             )}
-          </div>
+          </motion.div>
 
           <SideArrow
             ref={prevArrow}
@@ -1814,7 +1865,11 @@ export function ComponentPage({
               style={{ height: DRAWER_H }}
               className="mx-3 flex flex-col overflow-hidden rounded-2xl bg-background-100"
             >
-              <DrawerHeader code={meta.code} fileName={`${slug}.tsx`} slug={slug} />
+              <DrawerHeader
+                code={meta.code}
+                fileName={`${slug}.tsx`}
+                slug={slug}
+              />
               <div className="code-scroll min-h-0 flex-1 overflow-y-auto">
                 <CodeBlock code={meta.code} />
               </div>

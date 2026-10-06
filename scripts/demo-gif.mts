@@ -80,6 +80,38 @@ const STEPS: Record<string, Steps> = {
     await page.waitForTimeout(4800);
     await mark();
   },
+  "kpi-chart": async (stage, page, mark) => {
+    // Points are evenly spaced, so click along the plot by fraction.
+    const plot = await stage.getByRole("slider").first().boundingBox();
+    if (!plot) throw new Error("no plot");
+    for (const at of [0.5, 0.25, 1]) {
+      await page.mouse.click(plot.x + plot.width * at - (at === 1 ? 4 : 0), plot.y + plot.height * 0.6);
+      await page.waitForTimeout(1300);
+    }
+    await mark();
+  },
+  badge: async (stage, page, mark) => {
+    await stage.getByRole("button", { name: /^Remove Files/ }).click();
+    await page.waitForTimeout(1200);
+    await mark();
+    await stage.getByRole("button", { name: "Restore removed badges" }).click();
+    await page.waitForTimeout(1200);
+  },
+  "image-generation": async (stage, page, mark) => {
+    // The demo loops queued, generating, refining, complete on its own; the
+    // pointer swells the dots while it runs and a click sends a ripple.
+    const frame = await stage.getByRole("img").first().boundingBox();
+    if (!frame) throw new Error("no frame");
+    for (let i = 0; i <= 10; i++) {
+      await page.mouse.move(frame.x + frame.width * (0.2 + i * 0.06), frame.y + frame.height * (0.3 + i * 0.04));
+      await page.waitForTimeout(120);
+    }
+    await page.mouse.click(frame.x + frame.width * 0.6, frame.y + frame.height * 0.6);
+    await page.waitForTimeout(1000);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(6500);
+    await mark();
+  },
 };
 
 const union = (a: Box | null, b: Box | null): Box | null => {
