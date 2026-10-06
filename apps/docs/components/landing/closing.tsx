@@ -5,7 +5,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
 import { IconArrowRight, IconArrowUp } from "@devigner-ui/icons";
-import { CopyCommand } from "./copy-command";
 import { FooterBento } from "./footer-bento";
 import { PressedWordmark } from "./pressed-wordmark";
 import { getCatalog } from "@/lib/catalog";
@@ -27,40 +26,46 @@ function shotUrl(slug: string) {
   }
 }
 
-/** The closing line before the footer: the hero's two actions again. */
+/** The closing line before the footer, with the light of the footer's
+ *  horizon rising into it. */
 export function LastCall() {
   return (
     <section
       aria-labelledby="last-call-title"
-      className="border-t border-border py-24 sm:py-28"
+      className="relative isolate px-5 pt-36 pb-28 text-center sm:pt-44"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h2
-            id="last-call-title"
-            className="text-[clamp(2rem,3.6vw,2.875rem)] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground"
-          >
-            Start with one <span className="accent-word">component</span>.
-          </h2>
-          <p className="mt-4 max-w-xl text-[17px]/7 text-pretty text-text-secondary">
-            Pick any of them, run one command, and edit it like the rest of your
-            code.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <CopyCommand command="npx devignerui init" highlight="init" />
-          <Link
-            href="/components"
-            className="group inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand px-5 text-[14.5px] font-medium text-brand-foreground shadow-[inset_0_1px_0_var(--stage-light)] ring-1 ring-brand-hover transition-transform duration-200 ease-out active:scale-[0.97]"
-          >
-            Browse components
-            <IconArrowRight
-              aria-hidden
-              className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5"
-            />
-          </Link>
-        </div>
+      <h2
+        id="last-call-title"
+        className="mx-auto max-w-4xl text-[clamp(2.5rem,6vw,5rem)] leading-[0.98] font-semibold tracking-[-0.055em] text-balance text-foreground"
+      >
+        Start with one <span className="accent-word">component</span>.
+      </h2>
+      <p className="mx-auto mt-6 max-w-md text-[17px]/7 text-pretty text-text-secondary">
+        Pick any of them, run one command, and edit it like the rest of your
+        code.
+      </p>
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
+        <Link
+          href="/components"
+          className="group inline-flex h-12 items-center gap-2 rounded-full bg-brand px-6 text-[15px] font-medium text-brand-foreground shadow-[inset_0_1px_0_var(--stage-light)] ring-1 ring-brand-hover transition-transform duration-200 ease-out active:scale-[0.97]"
+        >
+          Browse components
+          <IconArrowRight
+            aria-hidden
+            className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+          />
+        </Link>
+        <Link
+          href="/requests?new"
+          className="text-[15px] font-medium text-text-secondary transition-colors duration-200 ease-out hover:text-foreground"
+        >
+          Or request one
+        </Link>
       </div>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-40 w-[min(1100px,92%)] -translate-x-1/2 bg-[radial-gradient(50%_100%_at_50%_100%,var(--glow),transparent)]"
+      />
     </section>
   );
 }

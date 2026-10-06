@@ -338,7 +338,8 @@ function ComponentLinks({ items }: { items: FooterComponent[] }) {
   return (
     <>
       <ul className="group/list mt-4 gap-6 min-[440px]:columns-2">
-        {items.map((c) => (
+        {/* The nine newest; Browse all closes the second column. */}
+        {items.slice(0, 9).map((c) => (
           <li key={c.slug}>
             <Link
               href={`/components/${c.slug}`}
@@ -359,6 +360,18 @@ function ComponentLinks({ items }: { items: FooterComponent[] }) {
             </Link>
           </li>
         ))}
+        <li>
+          <Link
+            href="/components"
+            className="group/all inline-flex h-8 items-center gap-1.5 text-[14px] font-medium whitespace-nowrap text-brand transition-colors duration-200 ease-out hover:text-foreground"
+          >
+            Browse all
+            <IconArrowRight
+              aria-hidden
+              className="size-3.5 transition-transform duration-300 ease-overshoot group-hover/all:translate-x-1"
+            />
+          </Link>
+        </li>
       </ul>
 
       <AnimatePresence>
@@ -392,7 +405,7 @@ function ComponentLinks({ items }: { items: FooterComponent[] }) {
   );
 }
 
-/** Devigner Icons: a tilted wall whose tiles light up near the pointer, with
+/** Devigner Icons: a wall, tilted at a fixed angle, whose tiles light up near the pointer, with
  *  a slow diagonal shimmer while nobody is on it. Padded and unmasked so a
  *  tile lifted toward the viewer never gets clipped. */
 function IconWall() {
@@ -432,20 +445,9 @@ function IconWall() {
       onPointerLeave={(e) => {
         setHovering(false);
         setLit(() => null);
-        e.currentTarget.style.removeProperty("--tx");
-        e.currentTarget.style.removeProperty("--ty");
       }}
       onPointerMove={(e) => {
         if (!live) return;
-        const r = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty(
-          "--ty",
-          `${((e.clientX - r.left) / r.width - 0.5) * -12}deg`,
-        );
-        e.currentTarget.style.setProperty(
-          "--tx",
-          `${((e.clientY - r.top) / r.height - 0.5) * 10}deg`,
-        );
         setLit((t) => {
           const b = t.getBoundingClientRect();
           const d = Math.hypot(
@@ -460,7 +462,7 @@ function IconWall() {
         ref={grid}
         // Six across on a phone (the last row of eight hides), so tiles
         // stay a readable size.
-        className="grid grid-cols-6 gap-2 transform-3d max-sm:[&>*:nth-child(n+19)]:hidden sm:grid-cols-8 transition-transform duration-700 ease-out transform-[rotateX(var(--tx,5deg))_rotateY(var(--ty,-7deg))]"
+        className="grid grid-cols-6 gap-2 transform-3d max-sm:[&>*:nth-child(n+19)]:hidden sm:grid-cols-8 transform-[rotateX(5deg)_rotateY(-7deg)]"
       >
         {WALL.map((Icon, i) => (
           <span
@@ -486,10 +488,10 @@ export function FooterBento({
   /** Newest first. */
   components: (FooterComponent & { description: string })[];
 }) {
-  // ponytail: pinned by hand while Copy Button and Contact Lens share a date
-  // (the tie would pick Contact Lens by name). Drop it to follow the newest.
+  // ponytail: pinned by hand to the 1.7.0 headline (kpi-chart shares its date
+  // with Badge and Image Generation). Drop it to follow the newest.
   const newest =
-    components.find((c) => c.slug === "copy-button") ?? components[0];
+    components.find((c) => c.slug === "kpi-chart") ?? components[0];
   return (
     <div className="grid gap-3.5 lg:grid-cols-[1.05fr_1fr]">
       <Card index={0} className="flex flex-col p-9 lg:row-span-2 lg:min-h-115">

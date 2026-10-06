@@ -1,6 +1,4 @@
-import { IconArrowRight } from "@devigner-ui/icons";
-import { FaqList } from "./faq-list";
-import { DISCORD_URL } from "../brand-logos";
+import { FaqReader } from "./faq-reader";
 
 /** One array feeds both the section and the FAQPage JSON-LD. */
 export const FAQS: { question: string; answer: string }[] = [
@@ -38,47 +36,8 @@ export const FAQS: { question: string; answer: string }[] = [
 
 export function Faq() {
   return (
-    <section aria-labelledby="faq-title" className="border-t border-border py-24 sm:py-32">
-      <div className="mx-auto max-w-195 px-5">
-        <h2
-          id="faq-title"
-          className="text-center text-[clamp(2rem,3.6vw,2.875rem)] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground"
-        >
-          Questions, before you <span className="accent-word">install</span>
-        </h2>
-        <p className="mx-auto mt-4 max-w-md text-center text-[17px]/7 text-pretty text-text-secondary">
-          Short answers to what people ask before they run the first command.
-        </p>
-        <FaqList items={FAQS} />
-        <p className="mt-7 text-center text-[14.5px] text-text-muted">
-          Still wondering about something?{" "}
-          <a
-            href="https://x.com/devignerui"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-1 font-medium text-foreground"
-          >
-            Ask @devignerui on X
-            <IconArrowRight
-              aria-hidden
-              className="size-3.5 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"
-            />
-          </a>{" "}
-          or{" "}
-          <a
-            href={DISCORD_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-1 font-medium text-foreground"
-          >
-            ask in the Discord
-            <IconArrowRight
-              aria-hidden
-              className="size-3.5 text-brand transition-transform duration-200 ease-out group-hover:translate-x-0.5"
-            />
-          </a>
-        </p>
-      </div>
+    <section aria-labelledby="faq-title" className="border-t border-border px-5 py-32 sm:py-40">
+      <FaqReader items={FAQS} />
     </section>
   );
 }
