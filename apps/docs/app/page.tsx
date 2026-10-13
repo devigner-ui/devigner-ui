@@ -9,14 +9,14 @@ import { States } from "../components/landing/states";
 import { Install } from "../components/landing/install";
 import { FAQS, Faq } from "../components/landing/faq";
 import { Pricing } from "../components/landing/pricing";
-import { LastCall, SiteFooter } from "../components/landing/closing";
+import { SiteFooter } from "../components/landing/closing";
 import { SelectionProvider } from "../components/landing/selection";
 import { RequestFab } from "../components/request/request-fab";
 
 // The hero's own words, so a search result reads like the page it opens.
 const TITLE = "Devigner UI: Beautifully Crafted Animated React Components";
 const DESCRIPTION =
-  "Animated, accessible React components you install as plain .tsx files. Free for Tailwind CSS, with keyboard support, reduced motion and dark mode built in.";
+  "Hand-tuned motion, accessible by default, and installed as a .tsx file you own. Free React components for Tailwind CSS.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -29,10 +29,6 @@ export default function HomePage() {
   const entries = getCatalog();
   const bySlug = (slug: string) =>
     entries.find((e) => e.slug === slug) ?? entries[0];
-  const bento = {
-    themes: bySlug(BENTO.themes),
-    motion: bySlug(BENTO.motion),
-  };
 
   return (
     <div className="min-h-dvh bg-background">
@@ -91,12 +87,11 @@ export default function HomePage() {
         <SelectionProvider initial={FEATURED}>
           <Hero entries={entries} />
           <WorksWith />
-          <States bento={bento} entries={entries} />
+          <States themes={bySlug(BENTO.themes)} motionEntry={bySlug(BENTO.motion)} entries={entries} />
           <Install entries={entries} />
         </SelectionProvider>
-        <Pricing />
+        <Pricing count={entries.length} />
         <Faq />
-        <LastCall />
       </main>
       <SiteFooter />
       <RequestFab />

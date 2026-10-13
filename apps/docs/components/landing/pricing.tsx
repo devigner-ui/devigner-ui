@@ -3,276 +3,229 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { IconCheck } from "@devigner-ui/icons";
+import { IconArrowRight, IconCheck } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { SPRING_LAYOUT, SPRING_SWAP } from "devignerui/motion";
 import { LogoX } from "../brand-logos";
 
-// ponytail: Pro is posted but not sold. The Creem checkout route
-// (/api/checkout) is untouched; wiring a plan back up is a POST of
-// { plan, billing } from a button here.
-const PLANS = {
-  monthly: {
-    label: "Monthly",
-    price: "$5.99",
-    was: "$9.99",
-    per: "a month",
-    sub: "Cancel whenever. Lifetime is one payment of $179.99.",
-    features: [
-      "Everything in Free",
-      "Every Pro component while you're subscribed",
-      "New Pro components as they ship",
-      "Priority support",
-    ],
-  },
-  lifetime: {
-    label: "Lifetime",
-    price: "$179.99",
-    was: "$299.99",
-    per: "once",
-    sub: "About two and a half years of Monthly, then it's paid for good.",
-    features: [
-      "Everything in Free",
-      "Every Pro component, including future ones",
-      "One payment, no renewal",
-    ],
-  },
+/* Pricing: a giant Free, with what free covers beside
+   it as a checklist, and Pro becomes a ticket: three stubs split by
+   perforations, the price rolling between monthly and lifetime, the launch
+   discount stamped on. Pro is posted, not sold, so the ticket's action is a
+   notification. */
+
+const PRO = {
+  monthly: { label: "Monthly", price: "$5.99", per: "a month", was: "$9.99", sub: "Cancel whenever." },
+  lifetime: { label: "Lifetime", price: "$179.99", per: "once", was: "$299.99", sub: "About two and a half years of Monthly." },
 } as const;
+type Plan = keyof typeof PRO;
 
 const FREE = [
   "Every component in the library",
   "Commercial use included",
   "Install with the CLI or copy the file",
-  "Light and dark themes out of the box",
+  "No account, no seat limits",
 ];
 
-type Plan = keyof typeof PLANS;
-
-// ponytail: one launch discount for both plans; per-plan if they ever differ.
-const LAUNCH_OFF = "40% off";
-
-/** A price: the dollar sign and cents sit smaller, so
- *  the whole number carries the weight. */
-function Price({ value }: { value: string }) {
-  const money = value.startsWith("$");
-  const [whole, cents] = (money ? value.slice(1) : value).split(".");
+/** A perforation between two stubs: dashes, with a notch bitten out of the
+ *  card's top and bottom edge. Each notch is a page-colored, bordered circle
+ *  centered on the card's outer edge and clipped to its inner half, so what
+ *  shows is the bite with the card's border running round it, and nothing
+ *  outside the card. The card must not clip it (overflow clips inside the
+ *  border, which would hide the bite's ends). Stacked on phones, just dashes. */
+function Perforation() {
+  const notch = "absolute left-1/2 hidden h-[13px] w-6 -translate-x-1/2 overflow-hidden md:block";
+  const circle = "absolute left-0 size-6 rounded-full border border-border bg-background";
   return (
-    <span className="inline-flex items-start leading-none font-bold tracking-[-0.045em] text-foreground tabular-nums">
-      {money && (
-        <span className="mt-2 mr-0.5 text-[30px] text-text-secondary">$</span>
-      )}
-      <span className="text-[72px]">{whole}</span>
-      {cents && <span className="mt-2 text-[30px]">.{cents}</span>}
-    </span>
+    <div aria-hidden className="relative mx-7 h-px border-t border-dashed border-border md:mx-0 md:h-auto md:w-px md:border-t-0 md:border-l">
+      <span className={cn(notch, "-top-px")}>
+        <span className={cn(circle, "-top-3")} />
+      </span>
+      <span className={cn(notch, "-bottom-px")}>
+        <span className={cn(circle, "-bottom-3")} />
+      </span>
+    </div>
   );
 }
 
-function Features({ items, pro }: { items: readonly string[]; pro?: boolean }) {
-  return (
-    <ul className="mt-7 space-y-3 border-t border-border pt-6">
-      {items.map((f) => (
-        <li
-          key={f}
-          className="flex items-start gap-3 text-[14.5px]/6 text-text-secondary"
-        >
-          <span
-            aria-hidden
-            className={cn(
-              "mt-0.5 grid size-5 shrink-0 place-items-center rounded-full",
-              pro
-                ? "bg-brand/20 text-brand"
-                : "bg-surface-hover text-foreground",
-            )}
-          >
-            <IconCheck className="size-3" />
-          </span>
-          {f}
-        </li>
-      ))}
-    </ul>
-  );
+/** Whole dollars as an odometer: the columns are right-aligned, so a digit
+ *  that stays the same holds still and only the ones that change roll, up
+ *  when the price rises and down when it falls. Columns the shorter price
+ *  doesn't use fold away. */
+function Odometer({ value, cols, dir }: { value: string; cols: number; dir: number }) {
+  const reduce = useReducedMotion();
+  const roll = {
+    enter: (d: number) => (reduce ? { opacity: 0 } : { opacity: 0, y: `${d * 70}%` }),
+    still: { opacity: 1, y: 0 },
+    leave: (d: number) => (reduce ? { opacity: 0 } : { opacity: 0, y: `${d * -70}%` }),
+  };
+  return value
+    .padStart(cols, " ")
+    .split("")
+    .map((c, i) => (
+      <motion.span
+        key={i}
+        initial={false}
+        animate={{ width: c === " " ? 0 : "auto" }}
+        transition={reduce ? { duration: 0 } : SPRING_SWAP}
+        className="relative inline-flex justify-end overflow-hidden"
+      >
+        <AnimatePresence mode="popLayout" initial={false} custom={dir}>
+          {c !== " " && (
+            <motion.span
+              key={c}
+              custom={dir}
+              variants={roll}
+              initial="enter"
+              animate="still"
+              exit="leave"
+              transition={reduce ? { duration: 0 } : { ...SPRING_SWAP, delay: (cols - 1 - i) * 0.04 }}
+            >
+              {c}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.span>
+    ));
 }
 
-function Badge({
-  live,
-  children,
-}: {
-  live?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border px-2.5 py-1 text-[12px] font-medium text-text-secondary">
-      <span
-        aria-hidden
-        className={cn(
-          "size-1.5 rounded-full",
-          live ? "bg-success" : "border border-text-secondary",
-        )}
-      />
-      {children}
-    </span>
-  );
-}
+const dollars = (price: string) => price.slice(1).split(".")[0];
 
-export function Pricing() {
+export function Pricing({ count }: { count: number }) {
   const reduce = useReducedMotion();
   const [plan, setPlan] = useState<Plan>("monthly");
-  const current = PLANS[plan];
-  const roll = (dir: number) =>
-    reduce ? { opacity: 0 } : { opacity: 0, y: `${dir * 40}%` };
+  const pro = PRO[plan];
+  const dir = plan === "lifetime" ? 1 : -1;
 
   return (
-    <section
-      id="pricing"
-      aria-labelledby="pricing-title"
-      className="scroll-mt-24 border-t border-border py-24 text-center sm:py-32"
-    >
-      <div className="mx-auto max-w-7xl px-5">
-        <h2
-          id="pricing-title"
-          className="text-[clamp(2rem,3.6vw,2.875rem)] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground"
-        >
-          Free today, and it stays <span className="accent-word">free</span>.
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-[17px]/7 text-pretty text-text-secondary">
-          Every component on the site is yours to use, commercial work included.
-          Pro will be a separate paid set, and nothing free moves behind it.
-        </p>
-
-        <div
-          role="group"
-          aria-label="Pro billing"
-          className="mt-8 inline-flex rounded-full border border-border bg-background-100 p-1"
-        >
-          {(Object.keys(PLANS) as Plan[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={plan === key}
-              onClick={() => setPlan(key)}
-              className={cn(
-                "relative cursor-pointer inline-flex h-9 items-center gap-1.5 rounded-full px-4.5 text-[13.5px] font-medium transition-colors duration-200 ease-out",
-                plan === key
-                  ? "text-background"
-                  : "text-text-muted hover:text-foreground",
-              )}
+    <section id="pricing" aria-labelledby="pricing-title" className="scroll-mt-24 overflow-hidden border-t border-border">
+      <div className="mx-auto max-w-7xl px-5 py-28 sm:py-36">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-7">
+            <p className="font-mono text-[12.5px] text-text-muted">
+              {count} components &middot; $0 &middot; forever
+            </p>
+            <h2
+              id="pricing-title"
+              className="mt-4 text-[clamp(6.5rem,19vw,17rem)] leading-[0.8] font-semibold tracking-[-0.08em] text-foreground"
             >
-              {plan === key && (
-                <motion.span
-                  aria-hidden
-                  layoutId="pricing-plan"
-                  transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
-                  className="absolute inset-0 rounded-full bg-foreground"
-                />
-              )}
-              <span className="relative">{PLANS[key].label}</span>
-              {key === "lifetime" && (
-                <span
-                  className={cn(
-                    "relative text-[11px] text-brand",
-                    plan === key && "text-blue-700",
-                  )}
-                >
-                  pay once
-                </span>
-              )}
-            </button>
-          ))}
+              {/* The period in the accent face too: Geist's square stop reads as a
+                block at this size. */}
+              <span className="accent-word">Free.</span>
+            </h2>
+          </div>
+          <div className="lg:col-span-5 lg:pb-4">
+            <p className="max-w-md text-[18px]/8 text-pretty text-text-secondary">
+              Every component on the site is yours, commercial work included. It stays that way.
+            </p>
+            <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {FREE.map((f) => (
+                <li key={f} className="flex items-center gap-3 text-[15px] text-foreground">
+                  <span aria-hidden className="grid size-5.5 shrink-0 place-items-center rounded-full bg-foreground text-background">
+                    <IconCheck className="size-3" />
+                  </span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link
+                href="/components"
+                className="group inline-flex h-12 items-center gap-2 rounded-full bg-brand px-6 text-[15px] font-medium text-brand-foreground shadow-[inset_0_1px_0_var(--stage-light)] ring-1 ring-brand-hover transition-transform duration-200 ease-out active:scale-[0.97]"
+              >
+                Take one
+                <IconArrowRight aria-hidden className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+              </Link>
+              <Link href="/requests?new" className="text-[15px] font-medium text-text-secondary transition-colors duration-200 ease-out hover:text-foreground">
+                Or request one
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <div className="mx-auto mt-11 grid max-w-230 grid-cols-1 gap-4 text-left md:grid-cols-2">
-          <div className="relative flex flex-col rounded-[26px] border border-border bg-linear-to-b from-background-100 to-background p-7 sm:p-8">
-            <span
-              aria-hidden
-              className="absolute inset-x-10 top-0 h-px bg-linear-to-r from-transparent via-foreground/15 to-transparent"
-            />
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-foreground">
-                Free
-              </h3>
-              <Badge live>Available now</Badge>
+        {/* The Pro ticket. */}
+        <div className="relative mt-20 grid rounded-[26px] border border-border bg-linear-to-b from-background-100 to-background md:grid-cols-[minmax(0,1.1fr)_auto_minmax(0,1fr)_auto_minmax(0,0.8fr)]">
+          <div className="p-7 sm:p-8">
+            <div className="flex items-center gap-3">
+              <h3 className="text-[22px] font-semibold tracking-[-0.03em] text-foreground">Pro</h3>
+              <span className="inline-flex items-center gap-2 rounded-full border border-border px-2.5 py-1 text-[12px] font-medium text-text-secondary">
+                <span aria-hidden className="size-1.5 rounded-full border border-text-secondary" />
+                Not on sale yet
+              </span>
             </div>
-            {/* Same height as Pro's launch line, so the two prices line up. */}
-            <p className="mt-6 flex h-6 items-center text-[12.5px] font-medium text-text-muted">
-              No sign-up needed
+            <p className="mt-3 max-w-xs text-[14.5px]/6 text-text-secondary">
+              A separate paid set, with new Pro components as they ship. Nothing free moves behind it.
             </p>
-            <p className="mt-2 flex h-18 items-end gap-2">
-              <Price value="FREE" />
-              <span className="pb-1 text-[15px] text-text-muted">forever</span>
-            </p>
-            <p className="mt-3 min-h-12 text-[14.5px]/6 text-text-secondary">
-              Everything on the site, with no account and no seat limits.
-            </p>
-            <Link
-              href="/components"
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-foreground text-[14.5px] font-medium text-background transition-transform duration-200 ease-out active:scale-[0.98]"
-            >
-              Browse components
-            </Link>
-            <Features items={FREE} />
           </div>
 
-          <div className="relative flex flex-col rounded-[26px] border border-brand/40 bg-[radial-gradient(90%_60%_at_100%_0%,var(--glow),transparent_60%)] bg-background-100 p-7 shadow-[0_30px_80px_-40px_var(--brand)] sm:p-8">
-            <span
-              aria-hidden
-              className="absolute inset-x-10 top-0 h-px bg-linear-to-r from-transparent via-brand to-transparent"
-            />
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="text-[17px] font-semibold tracking-[-0.02em] text-foreground">
-                Pro
-              </h3>
-              <Badge>Not on sale yet</Badge>
-            </div>
-            <div className="mt-6 flex h-6 items-center gap-2.5 overflow-hidden">
-              <span className="rounded-full bg-brand px-2 py-0.5 text-[11.5px]/4 font-semibold text-brand-foreground">
-                {LAUNCH_OFF}
-              </span>
-              <span className="text-[12.5px] font-medium text-text-muted">
-                Launch price, was
-              </span>
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.s
-                  key={plan}
-                  initial={roll(1)}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={roll(-1)}
-                  transition={SPRING_SWAP}
-                  className="text-[14px] font-semibold text-text-muted tabular-nums"
+          <Perforation />
+
+          <div className="relative p-7 sm:p-8">
+            <div role="group" aria-label="Pro billing" className="inline-flex rounded-full border border-border bg-background p-1">
+              {(Object.keys(PRO) as Plan[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={plan === k}
+                  onClick={() => setPlan(k)}
+                  className={cn(
+                    "relative h-8 cursor-pointer rounded-full px-4 text-[13px] font-medium transition-colors duration-200 ease-out",
+                    plan === k ? "text-background" : "text-text-muted hover:text-foreground",
+                  )}
                 >
-                  {current.was}
-                </motion.s>
-              </AnimatePresence>
+                  {plan === k && (
+                    <motion.span
+                      aria-hidden
+                      layoutId="d-ticket-plan"
+                      transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+                      className="absolute inset-0 rounded-full bg-foreground"
+                    />
+                  )}
+                  <span className="relative">{PRO[k].label}</span>
+                </button>
+              ))}
             </div>
-            <div className="mt-2 flex h-18 items-end overflow-hidden">
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.p
-                  key={plan}
-                  initial={roll(1)}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={roll(-1)}
-                  transition={SPRING_SWAP}
-                  className="flex items-end gap-2"
-                >
-                  <Price value={current.price} />
-                  <span className="pb-1 text-[15px] text-text-muted">
-                    {current.per}
-                  </span>
-                </motion.p>
-              </AnimatePresence>
+            <div className="mt-5 flex h-15 items-end gap-2.5 overflow-hidden">
+              <span className="sr-only">
+                {pro.price} {pro.per}, was {pro.was}
+              </span>
+              <span aria-hidden className="inline-flex items-start leading-none font-semibold tracking-tighter text-foreground tabular-nums">
+                <span className="mt-1.5 text-[24px] text-text-secondary">$</span>
+                <span className="inline-flex text-[56px]">
+                  <Odometer value={dollars(pro.price)} cols={3} dir={dir} />
+                </span>
+                <span className="mt-1.5 text-[24px]">.{pro.price.split(".")[1]}</span>
+              </span>
+              <span aria-hidden className="pb-1.5 text-[14px] text-text-muted">
+                {pro.per}, was{" "}
+                {/* Drawn strike: text-decoration doesn't reach the rolling
+                    digits, which are inline blocks. */}
+                <span className="relative inline-flex tabular-nums">
+                  $<Odometer value={dollars(pro.was)} cols={3} dir={dir} />.{pro.was.split(".")[1]}
+                  <span className="absolute inset-x-0 top-1/2 h-px bg-current" />
+                </span>
+              </span>
             </div>
-            <p className="mt-3 min-h-12 text-[14.5px]/6 text-text-secondary">
-              {current.sub}
-            </p>
+            <p className="mt-2 text-[13px] text-text-muted">{pro.sub}</p>
+            {/* The launch discount, stamped on at a slant. */}
+            <span className="absolute top-6 right-6 rotate-6 rounded-md border-2 border-brand px-2 py-0.5 font-mono text-[11px] font-semibold tracking-[0.06em] text-brand uppercase">
+              40% off
+            </span>
+          </div>
+
+          <Perforation />
+
+          <div className="flex flex-col justify-center gap-3 p-7 sm:p-8">
             <a
               href="https://x.com/devignerui"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand text-[14.5px] font-medium text-brand-foreground shadow-[0_10px_30px_-12px_var(--brand)] transition-[transform,filter] duration-200 ease-out hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[14.5px] font-medium text-background transition-transform duration-200 ease-out active:scale-[0.97]"
             >
               <LogoX className="size-3.5" />
               Get notified on X
             </a>
-            <Features items={current.features} pro />
+            <p className="text-center text-[12.5px] text-text-muted">Launch price for both plans.</p>
           </div>
         </div>
       </div>

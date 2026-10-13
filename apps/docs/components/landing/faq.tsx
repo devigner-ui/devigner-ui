@@ -35,9 +35,5 @@ export const FAQS: { question: string; answer: string }[] = [
 ];
 
 export function Faq() {
-  return (
-    <section aria-labelledby="faq-title" className="border-t border-border px-5 py-32 sm:py-40">
-      <FaqReader items={FAQS} />
-    </section>
-  );
+  return <FaqReader items={FAQS} />;
 }

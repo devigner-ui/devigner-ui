@@ -46,11 +46,11 @@ export function Hero({ entries }: { entries: CatalogEntry[] }) {
         </h1>
 
         <p
-          className="rise mx-auto mt-6 max-w-xl text-[17px]/7 text-pretty text-text-secondary sm:text-[18px]/7.5"
+          className="rise mx-auto mt-6 max-w-2xl text-[17px]/7 text-pretty text-text-secondary sm:text-[18px]/7.5"
           style={line(3)}
         >
-          Animated, accessible components you install as plain .tsx files. Free
-          for React and Tailwind CSS.
+          Hand-tuned motion, accessible by default, and installed as a .tsx file
+          you own.
         </p>
 
         <div

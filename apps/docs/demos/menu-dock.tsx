@@ -175,28 +175,14 @@ const MENU_DOCK_ITEMS: MenuDockItem[] = [
   },
 ];
 
-/** Index of the Search item, for opening the dock on its panel. */
-export const MENU_DOCK_SEARCH = [MENU_DOCK_ITEMS.findIndex((item) => item.id === "search")];
-
 /** The details page's dock, with `active` wired to the last leaf picked - without state the
- *  outline/solid swap has nothing to swap on. `initialPath` opens it on a
- *  level, which then behaves like any other: Escape or a click closes it. */
-export function MenuDockPreview({
-  className,
-  initialPath,
-}: {
-  className?: string;
-  initialPath?: number[];
-}) {
+ *  outline/solid swap has nothing to swap on. */
+export function MenuDockPreview({ className }: { className?: string }) {
   const [active, setActive] = useState("home");
-  const [path, setPath] = useState(initialPath ?? []);
 
   return (
     <MenuDock
       active={active}
-      // Controlled only when asked to open somewhere, so other callers keep
-      // the dock's own navigation.
-      {...(initialPath && { path, onNavigate: setPath })}
       items={MENU_DOCK_ITEMS.map((item) =>
         item.items ? item : { ...item, onSelect: () => setActive(item.id!) },
       )}
