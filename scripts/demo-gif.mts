@@ -112,6 +112,14 @@ const STEPS: Record<string, Steps> = {
     await page.waitForTimeout(6500);
     await mark();
   },
+  // The first button is a disabled month arrow: pick ranges instead.
+  "date-range-picker": async (stage, page, mark) => {
+    for (const preset of ["3 nights", "1 week"]) {
+      await stage.getByRole("button", { name: preset, exact: true }).click();
+      await page.waitForTimeout(1200);
+    }
+    await mark();
+  },
   // Radios with no button to press: click through the options.
   tabs: async (stage, page, mark) => {
     for (const label of ["list", "board", "grid"]) {
