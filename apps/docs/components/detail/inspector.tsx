@@ -10,6 +10,7 @@ import { CodeBlock } from "../code-block";
 import { CopyCommand } from "../landing/copy-command";
 import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 import { cue } from "@/lib/sound";
+import { NewBadge } from "../new-badge";
 
 const TABS = ["Install", "Usage", "Props", "Guide"] as const;
 type Tab = (typeof TABS)[number];
@@ -122,12 +123,14 @@ export function Inspector({
   meta,
   request,
   isNew,
+  isUpdated,
   usage,
   onOpenCode,
 }: {
   meta: ComponentData;
   request?: RequestCredit | null;
   isNew: boolean;
+  isUpdated: boolean;
   usage: string;
   onOpenCode: () => void;
 }) {
@@ -157,15 +160,13 @@ export function Inspector({
   };
 
   return (
-    <div className="flex flex-col pb-32 lg:pb-12">
+    <div className="flex min-h-full flex-col pb-32 lg:pb-12">
       <div className="flex items-center gap-3">
         <h1 className="text-[38px] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground">
           <Title name={meta.name} />
         </h1>
-        {isNew && (
-          <span className="shrink-0 rounded-full bg-brand/15 px-2 py-1 text-[11px] font-medium text-brand leading-none uppercase">
-            New
-          </span>
+        {(isNew || isUpdated) && (
+          <NewBadge size="lg" updated={!isNew} />
         )}
       </div>
       <p className="mt-3 text-[14.5px]/relaxed text-pretty text-text-secondary">
@@ -233,12 +234,15 @@ export function Inspector({
 
       {/* Every panel is in the page, inactive ones hidden, so search engines
           and AI crawlers read usage, props and notes, not just Install. */}
-      <div>
+      <div className="flex flex-1 flex-col">
+        {/* Grows to the panel's height so the credit note sits at its foot;
+            preflight's [hidden] rule still wins over flex. */}
         <div
           id="doc-panel-Install"
           role="tabpanel"
           aria-labelledby="doc-tab-Install"
           hidden={tab !== "Install"}
+          className="flex flex-1 flex-col"
         >
           <H2>
             Install it in <span className="accent-word">one</span> line
@@ -291,6 +295,30 @@ export function Inspector({
               into <Mono>components/ui/{file}</Mono>.
             </li>
           </ol>
+
+          <p className="mt-auto pt-8 text-[13px]/relaxed text-text-muted">
+            Some of these designs take cues from interfaces we&apos;ve admired
+            around the web. If one started as your idea and you&apos;d like
+            credit, message us on{" "}
+            <a
+              href="https://x.com/devignerui"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+            >
+              X @devignerui
+            </a>{" "}
+            or in the{" "}
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
+            >
+              Discord
+            </a>{" "}
+            and we&apos;ll add it.
+          </p>
         </div>
 
         <div
@@ -423,30 +451,6 @@ export function Inspector({
               Ask in the Discord
             </a>
             .
-          </p>
-
-          <p className="mt-8 text-[13px]/relaxed text-text-muted">
-            Some of these designs take cues from interfaces we&apos;ve admired
-            around the web. If one started as your idea and you&apos;d like
-            credit, message us on{" "}
-            <a
-              href="https://x.com/devignerui"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
-            >
-              X @devignerui
-            </a>{" "}
-            or in the{" "}
-            <a
-              href={DISCORD_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-foreground underline decoration-border-hover underline-offset-4 transition-colors duration-200 ease-out hover:decoration-foreground"
-            >
-              Discord
-            </a>{" "}
-            and we&apos;ll add it.
           </p>
         </div>
       </div>

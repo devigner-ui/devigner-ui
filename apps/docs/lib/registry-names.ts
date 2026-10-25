@@ -72,5 +72,17 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "stardust-slider",
     "name": "Stardust Slider"
+  },
+  {
+    "slug": "expand-tabs",
+    "name": "Expand Tabs"
+  },
+  {
+    "slug": "flip-button",
+    "name": "Flip Button"
+  },
+  {
+    "slug": "tabs",
+    "name": "Tabs"
   }
 ];

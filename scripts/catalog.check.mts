@@ -9,6 +9,7 @@ import {
   neighbors,
   isNew,
   searchEntries,
+  updatedDates,
   sortEntries,
 } from "../apps/docs/lib/catalog-query.ts";
 
@@ -57,6 +58,16 @@ assert.equal(isNew("2026-09-24", now), true);
 assert.equal(isNew("2026-09-11", now), true);
 assert.equal(isNew("2026-09-10", now), false);
 assert.equal(isNew("2025-01-01", now), false);
+
+// UPDATED lines keep each slug's latest date; site-wide lines and features don't count.
+assert.deepEqual(
+  [...updatedDates([
+    { name: "2026-09-29.md", text: "# T\n- UPDATED goo-switch: a.\n- UPDATED: site.\n  - **X:** y" },
+    { name: "2026-10-26-2.md", text: "- NEW tabs: b.\n- UPDATED goo-switch: c." },
+    { name: "README.txt", text: "- UPDATED slider: d." },
+  ])],
+  [["goo-switch", "2026-10-26"]],
+);
 
 // Line counting ignores one trailing newline, handles CRLF, and empty code.
 assert.equal(countLines("a\nb\nc\n"), 3);

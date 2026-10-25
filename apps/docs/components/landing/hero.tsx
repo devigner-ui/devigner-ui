@@ -4,10 +4,14 @@ import { IconArrowRight } from "@devigner-ui/icons";
 import type { CatalogEntry } from "@/lib/catalog-query";
 import { CopyCommand } from "./copy-command";
 import { HeroWindow } from "./hero-window";
+import { NewBadge } from "../new-badge";
 
 /** The entrance: each line rises on the CSS `rise` keyframes (so the server
  *  HTML animates before hydration), staggered by its --i. */
 const line = (i: number) => ({ "--i": i }) as CSSProperties;
+
+/** The hero window shows only the newest few; the rest live on /components. */
+export const HERO_COUNT = 6;
 
 export function Hero({ entries }: { entries: CatalogEntry[] }) {
   const newest = entries[0];
@@ -25,9 +29,7 @@ export function Hero({ entries }: { entries: CatalogEntry[] }) {
           className="rise group inline-flex h-8 items-center gap-2.5 rounded-full border border-border bg-background-100/60 pr-3 pl-1 text-[13px] text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground"
           style={line(0)}
         >
-          <span className="rounded-full bg-brand/15 px-2.5 text-[12px] font-medium text-brand">
-            New
-          </span>
+          <NewBadge />
           {newest.name}
           <IconArrowRight
             aria-hidden
@@ -72,7 +74,7 @@ export function Hero({ entries }: { entries: CatalogEntry[] }) {
       </div>
 
       <div className="rise relative mt-16 px-5 sm:mt-20" style={line(5)}>
-        <HeroWindow entries={entries} />
+        <HeroWindow entries={entries.slice(0, HERO_COUNT)} />
       </div>
     </section>
   );

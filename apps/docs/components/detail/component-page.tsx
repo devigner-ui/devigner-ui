@@ -11,6 +11,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { TextMorph } from "torph/react";
 import { MenuDock, type MenuDockItem } from "devignerui";
 import {
   EASE_IN_OUT,
@@ -32,9 +33,13 @@ import {
   IconChevronUp,
   IconCode,
   IconCopy,
-  IconDashboardGrid,
+  IconClose,
+  IconCursor,
+  IconHamburgerMenu,
   IconDownloadMinimalistic,
   IconMagicStick3,
+  IconMaximize,
+  IconMinimize,
   IconRestart,
   IconSearchNormal,
   IconSettings,
@@ -72,8 +77,11 @@ import { Wordmark } from "../landing/navbar";
 import { ThemeIcon, useTheme } from "../theme-provider";
 import { Inspector, type RequestCredit } from "./inspector";
 import { usePlayground } from "./playgrounds";
+import { NewBadge } from "../new-badge";
 
 const INSPECTOR_W = 460;
+/** The components sidebar on wide screens (w-56). */
+const SIDEBAR_W = 224;
 /** The dock shell's own padding either side, taken off the Settings content
  *  so the open panel comes out exactly as wide as the closed dock. */
 const SETTINGS_INSET = 16;
@@ -120,10 +128,10 @@ const KBD =
  *  as a keycap over its button. */
 const DOCK_KEYS: Record<string, React.ReactNode> = {
   prev: <IconArrowLeft className="size-3" />,
-  components: "/",
   docs: "D",
   source: "C",
   prompt: "P",
+  full: "F",
   theme: "T",
   sound: "M",
   settings: "S",
@@ -133,16 +141,35 @@ const DOCK_KEYS: Record<string, React.ReactNode> = {
 /* ─── Chrome ─── */
 
 /** The floating glass pill: wordmark, then the crumb. */
-function Pill({ name }: { name: string }) {
+function Pill({ name, onMenu }: { name: string; onMenu?: () => void }) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="flex h-12 items-center gap-3.5 rounded-full border border-border bg-background/72 px-4.5 whitespace-nowrap shadow-subtle backdrop-blur-xl"
+      className={cn(
+        "flex h-12 items-center gap-3.5 rounded-full border border-border bg-background/72 px-4.5 whitespace-nowrap shadow-subtle backdrop-blur-xl",
+        onMenu && "max-lg:gap-2.5 max-lg:pl-1.5",
+      )}
     >
-      <Link href="/" aria-label="Devigner UI home" className="rounded-md">
+      {onMenu && (
+        <button
+          type="button"
+          onClick={onMenu}
+          aria-label="Browse components"
+          aria-haspopup="dialog"
+          className="grid size-9 cursor-pointer place-items-center rounded-full bg-surface text-foreground transition-[background-color,scale] duration-200 ease-out hover:bg-surface-hover active:scale-[0.94] lg:hidden"
+        >
+          <IconHamburgerMenu strokeWidth={2} className="size-4.5" />
+        </button>
+      )}
+      {/* The sidebar carries the wordmark on wide screens. */}
+      <Link
+        href="/"
+        aria-label="Devigner UI home"
+        className="rounded-md lg:hidden"
+      >
         <Wordmark className="text-[19px]" />
       </Link>
-      <span aria-hidden className="h-4.5 w-px bg-border" />
+      <span aria-hidden className="h-4.5 w-px bg-border lg:hidden" />
       <span className="flex min-w-0 items-center gap-1.5 text-[13.5px] text-text-muted">
         <Link
           href="/components"
@@ -165,9 +192,28 @@ function Pill({ name }: { name: string }) {
   );
 }
 
+/** The sidebar's brand: the wordmark, then "UI" set in a small keycap. */
+function SidebarBrand() {
+  return (
+    <Link
+      href="/"
+      aria-label="Devigner UI home"
+      className="flex items-center gap-2.5 rounded-md"
+    >
+      <Wordmark className="text-[26px]" />
+      <span
+        aria-hidden
+        className="rounded-md bg-foreground/8 p-1.5 font-mono text-[11px] leading-none font-medium text-foreground"
+      >
+        UI
+      </span>
+    </Link>
+  );
+}
+
 /** The stage's ground: square, stage light from the top. */
 function StageGround() {
-  return <div aria-hidden className="frame-surface absolute inset-0" />;
+  return <div aria-hidden className="frame-surface stage-ground absolute inset-0" />;
 }
 
 /** A dock icon's own active pill - the row itself only tints text on
@@ -211,13 +257,7 @@ const HINT_WARM = 300;
  *  without the tooltip unmounting in between. */
 const HINT_GRACE = 80;
 /** Dock ids without the press/release knock. */
-const QUIET_PRESS = new Set([
-  "components",
-  "prompt",
-  "theme",
-  "settings",
-  "more",
-]);
+const QUIET_PRESS = new Set(["prompt", "theme", "settings", "more"]);
 
 const MotionSpinner = motion.create(IconSpinner);
 
@@ -225,6 +265,10 @@ const MotionSpinner = motion.create(IconSpinner);
  *  mounts a fresh dock, so this is how the next one knows Settings is new to
  *  it. null on a first visit, where nothing should animate in. */
 let lastHadSettings: boolean | null = null;
+
+/** Full screen (sidebar hidden), carried from page to page the same way, so
+ *  stepping through components with the arrows keeps it. */
+let lastFull = false;
 
 /** The Settings glyph. Arriving from a dock without it, it pops in while the
  *  shell glides wider; its own AnimatePresence, because the dock's one runs
@@ -374,16 +418,20 @@ function SideArrow({
   );
 }
 
-/** The Components panel the dock morphs into: search, then the grouped list
- *  in the hero window's order. */
+/** The components list: search, then the grouped list in the hero window's
+ *  order. The page's sidebar on wide screens, a dock panel below that. */
 function ComponentsPanel({
   entries,
   current,
   onGo,
+  sidebar = false,
 }: {
   entries: CatalogEntry[];
   current: string;
-  onGo: () => void;
+  onGo?: () => void;
+  /** Always on screen in the sidebar: the list fills its height, and opening
+   *  it neither takes focus nor shows the dock's Esc hint. */
+  sidebar?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [hovered, setHovered] = useState<string | null>(null);
@@ -393,48 +441,27 @@ function ComponentsPanel({
   const router = useRouter();
   const groups = groupByCategory(searchEntries(entries, query));
   const first = groups[0]?.items[0];
-  /** Whether rows are hidden below the list, for the bottom blur. */
-  const [more, setMore] = useState(false);
-  const measure = () => {
-    const box = list.current;
-    if (box) setMore(box.scrollTop + box.clientHeight < box.scrollHeight - 1);
-  };
-  // A new query changes the list's height without a scroll event.
-  useEffect(measure, [query]);
-  /** Held off until the panel has finished opening. The dock fades the level
-   *  in, and while any ancestor is below full opacity a backdrop filter only
-   *  sees what is inside that ancestor: light text over nothing, which blurs
-   *  into a bright halo, then snaps to the real blur the moment the fade
-   *  ends. So wait until every ancestor is fully opaque, whatever the dock's
-   *  timing, and only then fade the blur in. */
-  const [settled, setSettled] = useState(false);
-  useEffect(() => {
-    let frame = 0;
-    const check = () => {
-      for (let el = list.current?.parentElement; el; el = el.parentElement) {
-        if (parseFloat(getComputedStyle(el).opacity) < 1) {
-          frame = requestAnimationFrame(check);
-          return;
-        }
-      }
-      setSettled(true);
-    };
-    frame = requestAnimationFrame(check);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
+  // A search that found nothing carries over into the request.
+  const missing = groups.length === 0 ? query.trim() : "";
+  const requestHref = missing
+    ? `/requests?new&name=${encodeURIComponent(missing)}`
+    : "/requests";
+  const requestTitle = missing ? (
+    <>Request &ldquo;{missing}&rdquo;</>
+  ) : (
+    "Request a component"
+  );
   // The dock focuses the field when it opens the panel itself; opening from
   // "/" drives the dock's path from outside, so focus is taken here too.
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
-      input.current?.focus({ preventScroll: true });
+      if (!sidebar) input.current?.focus({ preventScroll: true });
       // Scrolled by hand: scrollIntoView would also scroll the dock's
       // clipped shell and shift the whole panel.
       const box = list.current;
       const row = box?.querySelector<HTMLElement>("[aria-current]");
       if (box && row && row.offsetTop + row.offsetHeight > box.clientHeight)
         box.scrollTop = row.offsetTop + row.offsetHeight - box.clientHeight + 8;
-      measure();
     });
     return () => cancelAnimationFrame(frame);
   }, []);
@@ -445,6 +472,8 @@ function ComponentsPanel({
     const onSlash = (e: KeyboardEvent) => {
       if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
       if (document.activeElement === input.current) return;
+      // The sidebar's field is hidden below lg; the dock takes "/" there.
+      if (!input.current?.offsetParent) return;
       e.preventDefault();
       input.current?.focus({ preventScroll: true });
     };
@@ -471,88 +500,124 @@ function ComponentsPanel({
 
   return (
     <div
-      className="relative flex w-72 flex-col px-1 pb-1"
+      className={cn(
+        "relative flex flex-col",
+        sidebar ? "min-h-0 flex-1" : "w-72 px-1 pb-1",
+      )}
       onKeyDown={onKeyDown}
     >
-      <kbd
-        aria-hidden
-        className={cn(KBD, "pointer-events-none absolute -top-8.5 right-3")}
-      >
-        esc
-      </kbd>
-
-      {/* Below the list, not in it: always in reach, and the arrow keys keep
-          walking components only. A search that found nothing carries over. */}
-      <Link
-        href={
-          groups.length === 0 && query.trim()
-            ? `/requests?new&name=${encodeURIComponent(query.trim())}`
-            : "/requests?new"
-        }
-        onClick={onGo}
-        className="group mb-1.5 flex items-center gap-2.5 rounded-xl px-2 py-1.5 pr-3 outline-none! transition-colors duration-200 ease-out hover:bg-surface focus-visible:bg-surface"
-      >
-        {/* A brand tile marks this as the one action in a list of links. */}
-        <span
+      {!sidebar && (
+        <kbd
           aria-hidden
-          className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand/12 text-brand shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_22%,transparent)]"
+          className={cn(KBD, "pointer-events-none absolute -top-8.5 right-3")}
         >
-          <IconAdd className="size-3.5" />
-        </span>
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate text-[13px] leading-tight font-medium text-foreground">
-            {groups.length === 0 && query.trim() ? (
-              <>Request &ldquo;{query.trim()}&rdquo;</>
-            ) : (
-              "Request a component"
-            )}
-          </span>
-          <span className="truncate text-[11px] leading-tight text-text-muted">
-            Can&rsquo;t find it? Ask for it.
-          </span>
-        </span>
-        <IconArrowRight
-          aria-hidden
-          className="ml-auto size-3.5 shrink-0 text-text-muted transition-[translate,color] duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-brand group-focus-visible:text-brand"
-        />
-      </Link>
-      <label className="flex h-10 items-center gap-2.5 rounded-xl bg-surface px-3 text-[13.5px] text-text-muted transition-colors duration-200 ease-out focus-within:bg-surface-hover">
-        <IconSearchNormal aria-hidden className="size-4 shrink-0" />
-        <input
-          ref={input}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && first) {
-              e.preventDefault();
-              onGo();
-              router.push(`/components/${first.slug}`);
-            }
-          }}
-          placeholder="Search components"
-          aria-label="Search components"
-          className="min-w-0 flex-1 bg-transparent text-foreground outline-none! placeholder:text-text-muted"
-        />
-        <kbd aria-hidden className={KBD}>
-          /
+          esc
         </kbd>
-      </label>
-      <div className="relative mt-1">
-        <div
+      )}
+
+      {/* Above the list in the dock, at the sidebar's foot as a card: always
+          in reach, and the arrow keys keep walking components only. */}
+      {!sidebar && (
+        <Link
+          href={requestHref}
+          onClick={onGo}
+          className="group mb-1.5 flex items-center gap-2.5 rounded-xl px-2 py-1.5 pr-3 outline-none! transition-colors duration-200 ease-out hover:bg-surface focus-visible:bg-surface"
+        >
+          {/* A brand tile marks this as the one action in a list of links. */}
+          <span
+            aria-hidden
+            className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand/12 text-brand shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_22%,transparent)]"
+          >
+            <IconAdd className="size-3.5" />
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate text-[13px] leading-tight font-medium text-foreground">
+              {requestTitle}
+            </span>
+            <span className="truncate text-[11px] leading-tight text-text-muted">
+              Can&rsquo;t find it? Ask for it.
+            </span>
+          </span>
+          <IconArrowRight
+            aria-hidden
+            className="ml-auto size-3.5 shrink-0 text-text-muted transition-[translate,color] duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-brand group-focus-visible:text-brand"
+          />
+        </Link>
+      )}
+      <div
+        className={cn(
+          sidebar &&
+            "rounded-[15px] bg-surface/60 p-0.75 transition-shadow duration-300 ease-out focus-within:shadow-[0_0_0_1px_var(--border-hover)]",
+        )}
+      >
+        <label
+          className={cn(
+            "flex items-center gap-2.5 rounded-xl text-text-muted transition-[background-color,color] duration-200 ease-out",
+            sidebar
+              ? "h-8.5 bg-background-100 pr-1.75 pl-2.25 text-[13px] focus-within:text-foreground"
+              : "h-10 bg-surface px-3 text-[13.5px] focus-within:bg-surface-hover",
+          )}
+        >
+          <IconSearchNormal aria-hidden className="size-4 shrink-0" />
+          <input
+            ref={input}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && first) {
+                e.preventDefault();
+                onGo?.();
+                router.push(`/components/${first.slug}`);
+              }
+            }}
+            placeholder="Search components"
+            aria-label="Search components"
+            className="min-w-0 flex-1 bg-transparent tracking-[-0.005em] text-foreground outline-none! placeholder:text-text-muted"
+          />
+          <kbd
+            aria-hidden
+            className={cn(
+              KBD,
+              sidebar &&
+                "border-0 bg-surface shadow-[inset_0_0_0_1px_var(--border)]",
+            )}
+          >
+            /
+          </kbd>
+        </label>
+      </div>
+      <div className={cn("relative mt-1", sidebar && "min-h-0 flex-1")}>
+        <motion.div
           ref={list}
-          onScroll={measure}
           onPointerLeave={() => setHovered(null)}
-          // Only the list scrolls; the search above it stays put. Capped by the
-          // viewport too, so the panel never grows up under the top pill.
-          className="relative max-h-[clamp(8rem,calc(100dvh-13rem),400px)] overflow-y-auto overscroll-contain"
+          // Only the list scrolls; the search above it stays put. In the dock
+          // it is capped by the viewport too, so the panel never grows up
+          // under the top pill. layoutScroll, so the hover pill is measured
+          // with the scroll offset (see MenuDock's `content`).
+          layoutScroll
+          className={cn(
+            "code-scroll relative overflow-y-auto overscroll-contain",
+            sidebar
+              ? "h-full px-0.5 pb-1"
+              : "max-h-[clamp(8rem,calc(100dvh-13rem),400px)]",
+          )}
         >
           {groups.map((g) => (
-            <div key={g.label} role="group" aria-label={g.label}>
-              <p className="mx-3 mt-4 mb-1.5 flex items-baseline justify-between text-[11.5px] font-medium text-text-muted">
+            <div
+              key={g.label}
+              role="group"
+              aria-label={g.label}
+              className={cn(sidebar && "flex flex-col gap-0.5")}
+            >
+              <p
+                className={cn(
+                  "mx-3 mb-1.5 flex items-baseline justify-between text-text-muted",
+                  sidebar
+                    ? "mt-5 font-mono text-[10px] tracking-[0.14em] uppercase"
+                    : "mt-4 text-[11.5px] font-medium",
+                )}
+              >
                 <span>{g.label}</span>
-                <span className="font-mono text-[10.5px] font-normal tabular-nums">
-                  {g.items.length}
-                </span>
               </p>
               {g.items.map((e) => {
                 const on = e.slug === current;
@@ -565,11 +630,13 @@ function ComponentsPanel({
                     onFocus={() => setHovered(e.slug)}
                     aria-current={on ? "page" : undefined}
                     className={cn(
-                      "relative flex h-9 items-center gap-3 rounded-xl pr-2 text-[13.5px] whitespace-nowrap outline-none! transition-colors duration-200 ease-out",
-                      // The current row's label clears its brand bar.
+                      "relative flex items-center gap-3 rounded-xl pr-2 pl-3 whitespace-nowrap outline-none! transition-colors duration-200 ease-out",
+                      sidebar ? "h-8.5 text-[13px]" : "h-9 text-[13.5px]",
                       on
-                        ? "bg-surface-hover pl-5 font-medium text-foreground"
-                        : "pl-3 text-text-secondary hover:text-foreground focus-visible:text-foreground",
+                        ? sidebar
+                          ? "bg-surface2 text-foreground"
+                          : "bg-surface-hover text-foreground"
+                        : "text-text-secondary hover:text-foreground focus-visible:text-foreground",
                     )}
                   >
                     {/* One highlight that glides between rows instead of each
@@ -581,19 +648,9 @@ function ComponentsPanel({
                         className="absolute inset-0 rounded-xl bg-surface"
                       />
                     )}
-                    {/* The current row carries a short brand bar on its edge,
-                      a nod to the ruler-tick sidebar this panel replaced. */}
-                    {on && (
-                      <span
-                        aria-hidden
-                        className="absolute top-1/2 left-1.5 h-4 w-0.75 -translate-y-1/2 rounded-full bg-brand shadow-[0_0_8px_var(--brand)]"
-                      />
-                    )}
                     <span className="relative truncate">{e.name}</span>
-                    {e.isNew && (
-                      <span className="relative ml-auto rounded-full bg-brand/12 px-1.75 text-[10.5px] font-medium text-brand leading-loose">
-                        New
-                      </span>
+                    {(e.isNew || e.isUpdated) && (
+                      <NewBadge size="sm" updated={!e.isNew} className="relative ml-auto" />
                     )}
                   </Link>
                 );
@@ -605,18 +662,177 @@ function ComponentsPanel({
               Nothing matches &ldquo;{query}&rdquo;
             </p>
           )}
-        </div>
-        {/* Blur the rows sliding under the bottom edge, only while there are
-          rows past it. Bottom only: the search field above already ends the
-          list cleanly. It bleeds out to the dock's own edges (its padding plus
-          the panel's, 12px) so no sharp band of unblurred rows shows at the
-          sides or underneath; the shell's rounded clip trims it. */}
-        <ProgressiveBlur
-          visible={settled && more}
-          className="pointer-events-none absolute -inset-x-3 -bottom-3 h-13"
-        />
+        </motion.div>
       </div>
+
+      {sidebar && (
+        <Link
+          href={requestHref}
+          onClick={onGo}
+          className="group relative mb-3 flex flex-col rounded-2xl bg-surface2 p-1.5 outline-none! transition-[box-shadow,scale] duration-300 ease-out focus-visible:shadow-[0_0_0_2px_color-mix(in_oklab,var(--brand)_45%,transparent)] active:scale-[0.985]"
+        >
+          {/* A small design canvas: a drafted component, selected, with your
+              cursor on its way to it. Smart guides run from the frame to the
+              canvas edges and a layer tag names it. Hover pulls the frame
+              open and the cursor in, and a light pass sweeps the canvas:
+              the request taking shape. */}
+          <span
+            aria-hidden
+            className="relative block h-24 overflow-hidden rounded-[10px] bg-background shadow-[inset_0_0_0_1px_var(--border),inset_0_2px_6px_oklch(0%_0_0/0.12)]"
+          >
+            <span className="absolute inset-0 bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-size-[8px_8px] opacity-50 mask-[radial-gradient(closest-side,#000,transparent)]" />
+            <span className="absolute inset-y-0 left-0 w-1/3 -translate-x-full skew-x-[-18deg] bg-linear-to-r from-transparent via-foreground/6 to-transparent transition-none group-hover:translate-x-[400%] group-hover:transition-transform group-hover:duration-1000 group-hover:ease-out motion-reduce:hidden" />
+            <span className="absolute top-1/2 left-1/2 size-24 -translate-1/2 rounded-full bg-foreground/6 opacity-50 blur-2xl transition-opacity duration-500 ease-out group-hover:opacity-100 group-focus-visible:opacity-100" />
+            <span className="absolute inset-x-7 top-8 bottom-6 border border-foreground/30 bg-foreground/2 transition-[inset] duration-500 ease-out group-hover:inset-x-4 group-hover:top-7 group-hover:bottom-4.5 group-focus-visible:inset-x-4 group-focus-visible:top-7 group-focus-visible:bottom-4.5">
+              {/* Smart guides off each edge, dashed, clipped by the canvas. */}
+              <span className="absolute -inset-x-40 -top-px h-px bg-[repeating-linear-gradient(90deg,var(--border-hover)_0_3px,transparent_3px_6px)] opacity-60" />
+              <span className="absolute -inset-x-40 -bottom-px h-px bg-[repeating-linear-gradient(90deg,var(--border-hover)_0_3px,transparent_3px_6px)] opacity-60" />
+              <span className="absolute -inset-y-40 -left-px w-px bg-[repeating-linear-gradient(180deg,var(--border-hover)_0_3px,transparent_3px_6px)] opacity-60" />
+              <span className="absolute -inset-y-40 -right-px w-px bg-[repeating-linear-gradient(180deg,var(--border-hover)_0_3px,transparent_3px_6px)] opacity-60" />
+              {/* The layer tag, sitting on the frame's top edge. */}
+              <span className="absolute -top-4.5 -left-px flex items-center gap-1 font-mono text-[9px] leading-3 tracking-[0.04em] text-foreground/45">
+                <span className="size-1 bg-foreground/45" />
+                your-component
+              </span>
+              {[
+                "-top-1 -left-1",
+                "-top-1 -right-1",
+                "-bottom-1 -left-1",
+                "-bottom-1 -right-1",
+              ].map((at) => (
+                <span
+                  key={at}
+                  className={cn(
+                    "absolute size-1.75 border border-foreground/40 bg-background",
+                    at,
+                  )}
+                />
+              ))}
+              <span className="absolute inset-0 flex items-center gap-2 px-2.5">
+                <span className="size-5 shrink-0 rounded-[5px] border border-dashed border-foreground/25" />
+                <span className="flex flex-1 flex-col gap-1">
+                  <span className="h-1.5 w-4/5 rounded-full bg-foreground/15" />
+                  <span className="h-1.5 w-1/2 rounded-full bg-foreground/8" />
+                </span>
+              </span>
+            </span>
+            <span className="absolute right-3 bottom-1.5 flex items-start transition-transform duration-500 ease-out group-hover:-translate-x-4 group-hover:-translate-y-2.5 group-focus-visible:-translate-x-4 group-focus-visible:-translate-y-2.5">
+              <IconCursor className="size-3.5 fill-brand text-brand" />
+              <span className="mt-3 -ml-0.5 rounded-full bg-brand px-1.5 text-[9.5px] leading-4 font-medium text-brand-foreground">
+                You
+              </span>
+            </span>
+          </span>
+          <span className="flex items-center gap-3 px-1.5 pt-3 pb-1">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13.5px] leading-[18px] font-medium tracking-[-0.01em] text-foreground">
+                {requestTitle}
+              </span>
+              <span className="mt-px block truncate text-[12px]/[16px] text-text-muted">
+                Can&rsquo;t find it? Ask for it.
+              </span>
+            </span>
+            <span
+              aria-hidden
+              className="grid size-7.5 shrink-0 place-items-center rounded-full bg-foreground text-background"
+            >
+              {/* The plus spins a quarter turn and lands just past it, then
+                  settles: a new thing being added. */}
+              <IconAdd
+                strokeWidth={2.25}
+                className="size-3.5 transition-transform duration-500 ease-overshoot group-hover:scale-115 group-hover:rotate-90 group-focus-visible:scale-115 group-focus-visible:rotate-90 motion-reduce:transition-none"
+              />
+            </span>
+          </span>
+        </Link>
+      )}
     </div>
+  );
+}
+
+/** The sidebar below lg: a floating sheet that slides in from the left over a
+ *  dimmed page. Swipe it left, tap outside or press Esc to put it away. */
+function SidebarSheet({
+  open,
+  onClose,
+  entries,
+  current,
+}: {
+  open: boolean;
+  onClose: () => void;
+  entries: CatalogEntry[];
+  current: string;
+}) {
+  const reduce = useReducedMotion();
+  const sheet = useRef<HTMLDivElement>(null);
+  // Focus moves into the sheet, and back to whatever opened it on close.
+  useEffect(() => {
+    if (!open) return;
+    const from = document.activeElement as HTMLElement | null;
+    sheet.current?.focus({ preventScroll: true });
+    return () => from?.focus({ preventScroll: true });
+  }, [open]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="scrim"
+            aria-hidden
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: EASE_OUT }}
+            className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[3px]"
+          />
+          <motion.div
+            key="sheet"
+            ref={sheet}
+            role="dialog"
+            aria-modal
+            aria-label="Components"
+            tabIndex={-1}
+            initial={reduce ? { opacity: 0 } : { x: "-105%" }}
+            animate={reduce ? { opacity: 1 } : { x: 0 }}
+            exit={reduce ? { opacity: 0 } : { x: "-105%" }}
+            transition={reduce ? { duration: 0.12 } : SPRING_PANEL}
+            drag={reduce ? false : "x"}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0.5, right: 0 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -72 || info.velocity.x < -400) onClose();
+            }}
+            className="fixed top-2 bottom-2 left-2 z-50 flex w-[min(17.5rem,calc(100vw-4rem))] touch-pan-y flex-col overflow-hidden rounded-[22px] border border-border bg-background px-3 pt-3.5 shadow-elevated outline-none"
+          >
+            {/* The stage light, so the sheet reads as lit from the same
+                place as the page behind it. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_80%_100%_at_50%_0%,var(--stage-light),transparent)]"
+            />
+            <div className="relative mb-3.5 flex items-center justify-between pl-2">
+              <SidebarBrand />
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="grid size-8 cursor-pointer place-items-center rounded-full bg-surface text-text-secondary transition-[background-color,color,scale] duration-200 ease-out hover:bg-surface-hover hover:text-foreground active:scale-[0.94]"
+              >
+                <IconClose strokeWidth={2} className="size-4" />
+              </button>
+            </div>
+            <ComponentsPanel
+              sidebar
+              entries={entries}
+              current={current}
+              onGo={onClose}
+            />
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -686,7 +902,7 @@ function DrawerHeader({
             )}
           </motion.span>
         </AnimatePresence>
-        {copied ? "Copied" : "Copy"}
+        <TextMorph ease={SPRING_SWAP}>{copied ? "Copied" : "Copy"}</TextMorph>
       </button>
       <button
         type="button"
@@ -1284,6 +1500,16 @@ export function ComponentPage({
   const { theme, toggleTheme } = useTheme();
 
   const [docsOpen, setDocsOpen] = useState(false);
+  /** The sidebar as a sheet, below lg. */
+  const [navOpen, setNavOpen] = useState(false);
+  /** The sidebar folded away on wide screens, the stage taking its room. */
+  const [full, setFull] = useState(() => lastFull);
+  useEffect(() => {
+    lastFull = full;
+  }, [full]);
+  // Prev / next show only where no sidebar lists the neighbours: in full
+  // screen, or below lg. ←/→ work either way.
+  const arrowsShown = full || !isLg;
   const [sourceOpen, setSourceOpen] = useState(false);
   // The code drawer's contents are built while the page is idle and kept,
   // closed and clipped to nothing: a whole file of highlighted code is
@@ -1475,20 +1701,7 @@ export function ComponentPage({
     },
   ];
 
-  const items: MenuDockItem[] = [
-    {
-      id: "components",
-      label: "Components",
-      showLabel: isLg,
-      icon: <IconDashboardGrid strokeWidth={2} />,
-      content: (
-        <ComponentsPanel
-          entries={entries}
-          current={slug}
-          onGo={() => setPath([])}
-        />
-      ),
-    },
+  const pageItems: MenuDockItem[] = [
     {
       id: "docs",
       label: "Docs",
@@ -1530,6 +1743,40 @@ export function ComponentPage({
     },
     themeItem,
     ...(isPhone ? [] : utility),
+  ];
+  // First in the dock: it changes the whole page, not the component.
+  const fullItems: MenuDockItem[] = isLg
+    ? [
+        {
+          id: "full",
+          label: full ? "Exit full screen" : "Full screen",
+          icon: (
+            <AnimatePresence initial={false} mode="popLayout">
+              <motion.span
+                key={full ? "on" : "off"}
+                initial={
+                  reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }
+                }
+                animate={{ opacity: 1, scale: 1 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
+                transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
+                className="grid place-items-center"
+              >
+                {full ? (
+                  <IconMinimize strokeWidth={2} className="size-4!" />
+                ) : (
+                  <IconMaximize strokeWidth={2} className="size-4!" />
+                )}
+              </motion.span>
+            </AnimatePresence>
+          ),
+          onSelect: () => setFull((v) => !v),
+        },
+      ]
+    : [];
+  const items: MenuDockItem[] = [
+    ...fullItems,
+    ...pageItems,
     ...(playground.settings
       ? [
           {
@@ -1538,21 +1785,36 @@ export function ComponentPage({
             icon: <SettingsGlyph enter={settingsIsNew} />,
             content: (
               <div
-                style={{
-                  width:
-                    playground.wide && dockWidth
-                      ? dockWidth - SETTINGS_INSET
-                      : undefined,
-                }}
+                // Never narrower than the dock it grows out of; a wide
+                // playground is exactly that wide, the rest grow from w-72.
+                // max-w-full and the shell's viewport cap bound it above.
+                style={
+                  dockWidth
+                    ? {
+                        minWidth: dockWidth - SETTINGS_INSET,
+                        width: playground.wide
+                          ? dockWidth - SETTINGS_INSET
+                          : undefined,
+                      }
+                    : undefined
+                }
                 // A container, so the rows inside go two across only when
                 // the panel is as wide as the full dock.
                 className="@container flex w-72 max-w-full flex-col"
               >
                 {/* Capped like the Components list: only the knobs scroll,
-                    Reset stays in reach below them. */}
-                <div className="code-scroll max-h-[clamp(8rem,calc(100dvh-13rem),400px)] overflow-y-auto overscroll-contain">
+                    Reset stays in reach below them. The standard scrollbar
+                    props are reset so Chrome falls back to code-scroll's
+                    ::-webkit-scrollbar thumb, without the arrow buttons the
+                    standard one draws on Windows. layoutScroll, so the tab
+                    pills are measured with the scroll offset (see MenuDock's
+                    `content`). */}
+                <motion.div
+                  layoutScroll
+                  className="code-scroll max-h-[clamp(8rem,calc(100dvh-13rem),400px)] overflow-y-auto overscroll-contain [scrollbar-color:auto]! scrollbar-auto!"
+                >
                   {playground.settings}
-                </div>
+                </motion.div>
                 <div className="fade-border mt-1 border-t px-3 pt-3">
                   <button
                     type="button"
@@ -1601,6 +1863,9 @@ export function ComponentPage({
     actions,
     reset,
     hasSettings,
+    navOpen,
+    isLg,
+    full,
   });
   live.current = {
     path,
@@ -1611,18 +1876,23 @@ export function ComponentPage({
     actions,
     reset,
     hasSettings,
+    navOpen,
+    isLg,
+    full,
   };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const { path, docsOpen, items, actions, reset, hasSettings } =
+      const { path, docsOpen, items, actions, reset, hasSettings, navOpen } =
         live.current;
       const typing = isTyping(e.target);
 
-      if (e.key === "/" && !typing) {
+      // On wide screens the sidebar's search answers "/" itself; below
+      // that it opens the sidebar sheet, whose search then takes it.
+      if (e.key === "/" && !typing && !live.current.isLg && !navOpen) {
         e.preventDefault();
-        setPath([items.findIndex((i) => i.id === "components")]);
+        setNavOpen(true);
         return;
       }
       // Reset lives in the Settings panel, but its key works from anywhere.
@@ -1639,7 +1909,7 @@ export function ComponentPage({
       const id = Object.keys(DOCK_KEYS).find(
         (k) => DOCK_KEYS[k] === e.key.toUpperCase(),
       );
-      if (id && id !== "components" && !typing && !e.defaultPrevented) {
+      if (id && !typing && !e.defaultPrevented) {
         const action = actions.find((i) => i.id === id);
         if (!action) return;
         e.preventDefault();
@@ -1648,8 +1918,10 @@ export function ComponentPage({
         return;
       }
       if (e.key === "Escape" && !typing) {
-        if (path.length) setPath([]);
+        if (navOpen) setNavOpen(false);
+        else if (path.length) setPath([]);
         else if (docsOpen) setDocsOpen(false);
+        else if (live.current.full) setFull(false);
       }
     };
     // ←/→ change component whenever nothing else owns them: nothing focused,
@@ -1736,6 +2008,7 @@ export function ComponentPage({
       meta={meta}
       request={request}
       isNew={entry?.isNew ?? false}
+      isUpdated={entry?.isUpdated ?? false}
       usage={playground.usage}
       onOpenCode={() => setSourceOpen(true)}
     />
@@ -1743,9 +2016,30 @@ export function ComponentPage({
 
   return (
     <div className="relative flex h-dvh overflow-hidden bg-background">
-      {/* Under the whole page, so the Docs panel floats on the stage too. */}
-      <StageGround />
-      <main className="relative flex min-w-0 flex-1 flex-col">
+      {/* The app shell on wide screens: the list on the page's ground, the
+          stage in a rounded box beside it. */}
+      {/* Folds to nothing in full screen; the aside keeps its width inside so
+          the list is clipped, not reflowed, while it goes. */}
+      <motion.div
+        initial={false}
+        animate={{ width: full ? 0 : SIDEBAR_W }}
+        transition={layout}
+        inert={full}
+        className="flex shrink-0 overflow-hidden max-lg:hidden"
+      >
+        <aside
+          aria-label="Components"
+          style={{ width: SIDEBAR_W }}
+          className="flex shrink-0 flex-col pt-5 pl-3"
+        >
+          <div className="mb-4.5 ml-2 self-start">
+            <SidebarBrand />
+          </div>
+          <ComponentsPanel sidebar entries={entries} current={slug} />
+        </aside>
+      </motion.div>
+      <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden lg:m-3 lg:rounded-2xl lg:border lg:border-border lg:shadow-subtle">
+        <StageGround />
         <div ref={stage} className="relative min-h-0 flex-1">
           {/* The catalog card's dot field, for previews that want detail
               behind them (glass has something to bend). */}
@@ -1761,6 +2055,8 @@ export function ComponentPage({
           <motion.div
             ref={preview}
             key={previewKey}
+            // scripts/demo-gif.mts records some demos from here.
+            data-gif-stage=""
             initial={false}
             animate={lift}
             transition={panel}
@@ -1778,7 +2074,7 @@ export function ComponentPage({
             dir="Previous"
             name={prev.name}
             busy={going === "Previous"}
-            hidden={panelOpen}
+            hidden={panelOpen || !arrowsShown}
             onGo={() => go("Previous")}
             onHint={(el) => showHint("prev", el)}
             onUnhint={hideHint}
@@ -1788,7 +2084,7 @@ export function ComponentPage({
             dir="Next"
             name={next.name}
             busy={going === "Next"}
-            hidden={panelOpen}
+            hidden={panelOpen || !arrowsShown}
             onGo={() => go("Next")}
             onHint={(el) => showHint("next", el)}
             onUnhint={hideHint}
@@ -1852,7 +2148,8 @@ export function ComponentPage({
           initial={false}
           animate={{ height: sourceOpen ? DRAWER_H + PANEL_GAP : 0 }}
           transition={panel}
-          className="shrink-0 overflow-hidden"
+          // relative: paints above the absolute StageGround behind it.
+          className="relative shrink-0 overflow-hidden"
           aria-hidden={!sourceOpen}
           // Built ahead of time, so keep its buttons out of the tab order
           // while it is closed.
@@ -1878,7 +2175,7 @@ export function ComponentPage({
         </motion.div>
 
         <div className="absolute top-3.5 left-1/2 z-30 -translate-x-1/2">
-          <Pill name={meta.name} />
+          <Pill name={meta.name} onMenu={() => setNavOpen(true)} />
         </div>
       </main>
 
@@ -1893,7 +2190,7 @@ export function ComponentPage({
             aria-label="Documentation"
             hidden={!docsOpen}
             style={{ width: INSPECTOR_W }}
-            className="code-scroll mt-3 h-[calc(100%-1.5rem)] overflow-y-auto rounded-2xl bg-background px-7 pt-7"
+            className="code-scroll mt-3 h-[calc(100%-1.5rem)] overflow-y-auto rounded-2xl border border-border bg-background-100 px-7 pt-7"
           >
             {inspector}
           </aside>
@@ -1915,12 +2212,26 @@ export function ComponentPage({
         </AnimatePresence>
       )}
 
+      {!isLg && (
+        <SidebarSheet
+          open={navOpen}
+          onClose={() => setNavOpen(false)}
+          entries={entries}
+          current={slug}
+        />
+      )}
+
       <DockKeycaps
-        ids={["prev", ...items.map((i) => i.id ?? ""), "next"]}
+        ids={
+          arrowsShown
+            ? ["prev", ...items.map((i) => i.id ?? ""), "next"]
+            : items.map((i) => i.id ?? "")
+        }
         rows={() =>
-          [prevArrow.current, ...dockRows(), nextArrow.current].filter(
-            (el): el is HTMLElement => !!el,
-          )
+          (arrowsShown
+            ? [prevArrow.current, ...dockRows(), nextArrow.current]
+            : dockRows()
+          ).filter((el): el is HTMLElement => !!el)
         }
         open={path.length > 0}
       />

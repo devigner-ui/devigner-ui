@@ -22,6 +22,8 @@ export interface CatalogEntry {
   lines: number;
   /** addedAt falls inside NEW_WINDOW_DAYS of the build date. */
   isNew: boolean;
+  /** Not new, but a changelog entry inside NEW_WINDOW_DAYS marks it UPDATED. */
+  isUpdated: boolean;
 }
 
 export type CatalogSort = "newest" | "az";
@@ -34,6 +36,20 @@ export function isNew(addedAt: string, now: Date) {
   const added = Date.parse(`${addedAt}T00:00:00Z`);
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   return today - added < NEW_WINDOW_DAYS * DAY_MS;
+}
+
+/** The latest date each component got an `- UPDATED slug:` line, from
+ *  changelog files named YYYY-MM-DD.md (or YYYY-MM-DD-2.md). */
+export function updatedDates(files: readonly { name: string; text: string }[]) {
+  const dates = new Map<string, string>();
+  for (const { name, text } of files) {
+    const date = /^(\d{4}-\d{2}-\d{2})(?:-\d+)?\.md$/.exec(name)?.[1];
+    if (!date) continue;
+    for (const [, slug] of text.matchAll(/^- UPDATED ([a-z0-9-]+):/gm)) {
+      if (date > (dates.get(slug) ?? "")) dates.set(slug, date);
+    }
+  }
+  return dates;
 }
 
 /** Newest first (ties by name), or A to Z. Returns a new array. */

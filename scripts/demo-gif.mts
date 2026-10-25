@@ -112,6 +112,33 @@ const STEPS: Record<string, Steps> = {
     await page.waitForTimeout(6500);
     await mark();
   },
+  // Recorded from its page in trigger mode (see PAGES): open the picker so it
+  // plays its opening, then pick a range.
+  "date-range-picker": async (stage, page, mark) => {
+    await stage.locator('button[aria-haspopup="dialog"]').click();
+    await page.waitForTimeout(1400);
+    await mark(stage.getByRole("dialog"));
+    await stage.getByRole("button", { name: "3 nights", exact: true }).click();
+    await page.waitForTimeout(1400);
+  },
+  // Radios with no button to press: click through the options.
+  tabs: async (stage, page, mark) => {
+    for (const label of ["list", "board", "grid"]) {
+      await stage.getByText(label, { exact: true }).click();
+      await page.waitForTimeout(900);
+    }
+    await mark();
+  },
+};
+
+/** Demos the catalog card can't show, recorded from their page's live preview
+ *  instead; `crop` is what the frame holds before the steps run. */
+const PAGES: Record<string, { crop: string; setup?: (stage: Locator) => Promise<void> }> = {
+  "date-range-picker": {
+    crop: 'button[aria-haspopup="dialog"]',
+    // The preview's Trigger tab, picked before recording starts.
+    setup: (stage) => stage.getByText("trigger", { exact: true }).click(),
+  },
 };
 
 const union = (a: Box | null, b: Box | null): Box | null => {
@@ -155,7 +182,8 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
       const page = await browser.newPage({ viewport: VIEW, colorScheme: "dark" });
       try {
         await page.addInitScript(() => localStorage.setItem("devignerui-theme", "dark"));
-        await page.goto(`${base}/components`, { waitUntil: "load" });
+        const own = PAGES[slug];
+        await page.goto(`${base}/components${own ? `/${slug}` : ""}`, { waitUntil: "load" });
         await page.addStyleTag({
           content: `
             html { zoom: ${ZOOM}; }
@@ -171,12 +199,19 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
             .gif-solo::before, .gif-solo > span { display: none !important; }
           `,
         });
-        const stage = page.locator(`article[aria-labelledby='card-${slug}'] .frame-surface`);
+        const stage = page.locator(
+          own ? "[data-gif-stage]" : `article[aria-labelledby='card-${slug}'] .frame-surface`,
+        );
         await stage.scrollIntoViewIfNeeded({ timeout: 5000 });
         await stage.evaluate((el) => el.classList.add("gif-solo"));
         await page.mouse.move(0, 0);
         // LazyMount swaps the demo in and FitToStage refits before recording.
         await page.waitForTimeout(1200);
+        if (own?.setup) {
+          await own.setup(stage);
+          await page.mouse.move(0, 0);
+          await page.waitForTimeout(700);
+        }
 
         const frames: { data: Buffer; timestamp: number }[] = [];
         await page.screencast.start({
@@ -186,7 +221,7 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
         });
         let crop = null as Box | null;
         const mark = async (extra?: Locator) => {
-          crop = union(crop, await stage.locator(".w-max").first().boundingBox());
+          crop = union(crop, await stage.locator(own?.crop ?? ".w-max").first().boundingBox());
           if (extra) crop = union(crop, await extra.boundingBox());
         };
         await page.waitForTimeout(600);

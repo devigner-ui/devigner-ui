@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { motion } from "motion/react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   ChartCard,
   ContactLens,
@@ -17,7 +17,12 @@ import {
   KpiChart,
   MagneticButton,
   NavNotch,
+  ExpandTabs,
+  FlipButton,
   Badge,
+  // The page keeps its own Tabs for the Settings panel (sounds, a wrapping
+  // grid); the library one is the preview.
+  Tabs as LibTabs,
   Timeline,
   type FileUploadStatus,
   type ImageGenerationStatus,
@@ -25,17 +30,24 @@ import {
 import { SPRING_PANEL } from "devignerui/motion";
 import { cn } from "cn";
 import {
+  IconAdd,
+  IconArrowRight,
   IconBell,
   IconChatRoundDots,
   IconHeart,
   IconHomeSmileAngle,
+  IconKanban,
+  IconLayoutGrid,
+  IconLayoutList,
   IconMenuDots,
   IconSetting2,
   IconStarCircle,
   IconTickCircle,
 } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
+import { DateRangePickerTrigger } from "../../demos/date-range-picker";
 import { NAV_NOTCH_ITEMS } from "../../demos/nav-notch";
+import { EXPAND_TABS_ITEMS } from "../../demos/expand-tabs";
 import { KPI_FALLING, KPI_REVENUE } from "../../demos/kpi-chart";
 import BadgeDemo from "../../demos/badge";
 import {
@@ -305,6 +317,138 @@ export function Example() {
   return (
     <NavNotch
 ${props}
+    />
+  );
+}`;
+};
+
+/* ─── Expand Tabs ─── */
+
+const TABS_DEFAULTS = { badge: true };
+type TabsConfig = typeof TABS_DEFAULTS;
+
+const tabsUsage = (c: TabsConfig) => `import {
+  IconBriefcase,
+  IconKeyboard,
+  IconProfile,
+  IconTerminalAlt,
+} from "@devigner-ui/icons";
+import { ExpandTabs } from "@/components/ui/expand-tabs";
+
+const items = [
+  { label: "Commands", icon: <IconTerminalAlt variant="Bulk" />${c.badge ? ', badge: "New"' : ""} },
+  { label: "About", icon: <IconProfile variant="Bulk" /> },
+  { label: "Portfolio", icon: <IconBriefcase variant="Bulk" /> },
+  { label: "Shortcuts", icon: <IconKeyboard variant="Bulk" /> },
+];
+
+export function Example() {
+  return <ExpandTabs items={items} />;
+}`;
+
+/* ─── Flip Button ─── */
+
+const FLIP_VARIANTS = [
+  "primary",
+  "secondary",
+  "outline",
+  "glass",
+  "inverse",
+  "ghost",
+] as const;
+const FLIP_SIZES = ["sm", "md", "lg", "xl"] as const;
+/** The badge icon, and with it how it moves: an arrow slides, a plus turns. */
+const FLIP_ICONS = ["arrow", "plus", "none"] as const;
+const FLIP_DIRECTIONS = ["up", "down"] as const;
+/** What rolls in (`flipLabel`): a copy of the label, or a second one. */
+const FLIP_BACKS = ["same", "Let's go"] as const;
+/** What rolls it (`flipped`): hover and focus, or a held state ("Copied")
+ *  that hover no longer touches. */
+const FLIP_TRIGGERS = ["hover", "state"] as const;
+const FLIP_DEFAULTS = {
+  variant: "primary" as (typeof FLIP_VARIANTS)[number],
+  size: "xl" as (typeof FLIP_SIZES)[number],
+  icon: "arrow" as (typeof FLIP_ICONS)[number],
+  direction: "up" as (typeof FLIP_DIRECTIONS)[number],
+  back: "same" as (typeof FLIP_BACKS)[number],
+  trigger: "hover" as (typeof FLIP_TRIGGERS)[number],
+  flipped: false,
+  loading: false,
+};
+type FlipConfig = typeof FLIP_DEFAULTS;
+
+const FLIP_ICON_JSX = { arrow: "<IconArrowRight />", plus: "<IconAdd />" };
+
+const flipUsage = (c: FlipConfig) => {
+  const props = [
+    c.variant !== "primary" ? `variant="${c.variant}"` : null,
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.icon !== "none" ? `iconRight={${FLIP_ICON_JSX[c.icon]}}` : null,
+    c.icon === "plus" ? 'iconMotion="rotate"' : null,
+    c.direction !== "up" ? `flipDirection="${c.direction}"` : null,
+    c.back !== "same" ? `flipLabel="${c.back}"` : null,
+    c.trigger === "state" ? `flipped={${c.flipped}}` : null,
+    c.loading ? "loading" : null,
+  ].filter(Boolean);
+  const icons = [
+    c.icon === "plus" ? "IconAdd" : null,
+    c.icon === "arrow" ? "IconArrowRight" : null,
+  ].filter(Boolean);
+  const imports = [
+    icons.length
+      ? `import { ${icons.join(", ")} } from "@devigner-ui/icons";`
+      : null,
+    'import { FlipButton } from "@/components/ui/flip-button";',
+  ].filter(Boolean);
+  const button =
+    props.length > 2
+      ? `(
+    <FlipButton
+${props.map((p) => `      ${p}`).join("\n")}
+    >
+      Get started
+    </FlipButton>
+  )`
+      : `<FlipButton${props.length ? " " + props.join(" ") : ""}>Get started</FlipButton>`;
+  return `${imports.join("\n")}
+
+export function Example() {
+  return ${button};
+}`;
+};
+
+/* ─── Tabs ─── */
+
+const SEG_SIZES = ["sm", "md", "lg"] as const;
+const SEG_DEFAULTS = {
+  size: "md" as (typeof SEG_SIZES)[number],
+  fill: false,
+  icons: true,
+  disabled: false,
+};
+type SegConfig = typeof SEG_DEFAULTS;
+
+const segUsage = (c: SegConfig) => {
+  const options = c.icons
+    ? `[
+        { value: "grid", icon: <IconLayoutGrid /> },
+        { value: "list", icon: <IconLayoutList /> },
+        { value: "board", icon: <IconKanban /> },
+      ]`
+    : `["grid", "list", "board"]`;
+  const props = [
+    'label="View"',
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.fill ? "fill" : null,
+    c.disabled ? "disabled" : null,
+    `options={${options}}`,
+  ].filter(Boolean);
+  return `${c.icons ? 'import { IconKanban, IconLayoutGrid, IconLayoutList } from "@devigner-ui/icons";\n' : ""}import { Tabs } from "@/components/ui/tabs";
+
+export function Example() {
+  return (
+    <Tabs
+${props.map((p) => `      ${p}`).join("\n")}
     />
   );
 }`;
@@ -663,6 +807,50 @@ ${props}
 }`;
 };
 
+/* ─── Date Range Picker ─── */
+
+const PICKER_MODES = ["inline", "trigger"] as const;
+type PickerMode = (typeof PICKER_MODES)[number];
+
+const pickerUsage = (mode: PickerMode) =>
+  mode === "inline"
+    ? `import { DateRangePicker } from "@/components/ui/date-range-picker";
+
+export function Example() {
+  return <DateRangePicker minDate={new Date()} />;
+}`
+    : `import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { SPRING_RETRACT } from "devignerui/motion";
+import {
+  DateRangePicker,
+  type DateRange,
+} from "@/components/ui/date-range-picker";
+
+export function Example() {
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState<DateRange | null>(null);
+  return (
+    <div className="relative">
+      <button aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        {range ? "Change dates" : "Add dates"}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="dialog"
+            exit={{ opacity: 0, scale: 0.96, y: -6 }}
+            transition={SPRING_RETRACT}
+            className="absolute top-12 origin-top"
+          >
+            <DateRangePicker appear value={range} onValueChange={setRange} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}`;
+
 /* ─── File Upload ─── */
 
 const UPLOAD_MODES = ["uploader", "card"] as const;
@@ -766,7 +954,8 @@ function Knob({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[13px] font-medium text-foreground">{name}</span>
+        {/* A prop name, not a label, so it reads as code beside the rows. */}
+        <span className="font-mono text-[12px] text-foreground">{name}</span>
         <span className="font-mono text-[12px] tabular-nums text-text-secondary">
           {/* Stepping by 0.05 lands on 0.35000000000000003 - round for display
               only, so the value handed to the component stays exact. */}
@@ -854,7 +1043,6 @@ function Tabs<T extends string>({
   options,
   onChange,
   label,
-  id,
   fill = false,
   wrap = false,
 }: {
@@ -862,8 +1050,6 @@ function Tabs<T extends string>({
   options: readonly T[];
   onChange: (value: T) => void;
   label: string;
-  /** Shared-layout id for the sliding pill, unique per tab group. */
-  id: string;
   /** Spans the row and splits it evenly, for a group too wide to sit beside
    *  a label (five tones). */
   fill?: boolean;
@@ -871,18 +1057,72 @@ function Tabs<T extends string>({
    *  one, for a group too wide even to fill a row (six statuses). */
   wrap?: boolean;
 }) {
+  // The pill is placed from the active button's offset inside this list, not
+  // with a layoutId: shared layout measures against the page, so a scrolling
+  // or resizing ancestor (the Settings panel) made every pill glide in from
+  // where it used to sit on screen. Offsets in here only move when the tabs
+  // themselves do. Glides on a new value, jumps on a resize.
+  const list = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const [pill, setPill] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    glide: boolean;
+  } | null>(null);
+  const placed = useRef(false);
+  useLayoutEffect(() => {
+    const el = list.current;
+    if (!el) return;
+    const place = (glide: boolean) => {
+      const on = el.querySelector<HTMLElement>('[aria-checked="true"]');
+      if (!on) return;
+      setPill({
+        x: on.offsetLeft,
+        y: on.offsetTop,
+        width: on.offsetWidth,
+        height: on.offsetHeight,
+        glide,
+      });
+    };
+    place(placed.current);
+    placed.current = true;
+    const ro = new ResizeObserver(() => place(false));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [value]);
+
   return (
     <div
+      ref={list}
       role="radiogroup"
       aria-label={label}
       className={cn(
-        "border border-border bg-surface/60 p-0.5",
+        "relative border border-border p-1",
         wrap
           ? "grid w-full grid-cols-3 gap-0.5 rounded-2xl @md:grid-cols-6"
           : "rounded-full",
         !wrap && (fill ? "flex w-full" : "inline-flex"),
       )}
     >
+      {pill && (
+        <motion.span
+          aria-hidden
+          initial={false}
+          animate={{
+            x: pill.x,
+            y: pill.y,
+            width: pill.width,
+            height: pill.height,
+          }}
+          transition={pill.glide && !reduce ? SPRING_PANEL : { duration: 0 }}
+          className={cn(
+            "absolute top-0 left-0 bg-surface2",
+            wrap ? "rounded-[11px]" : "rounded-full",
+          )}
+        />
+      )}
       {options.map((side) => (
         <button
           key={side}
@@ -894,23 +1134,15 @@ function Tabs<T extends string>({
             onChange(side);
           }}
           className={cn(
-            "relative cursor-pointer py-1 font-mono text-[11px] transition-colors",
-            wrap ? "rounded-[14px] px-2 py-1.5" : "rounded-full",
+            "relative cursor-pointer py-1 font-mono text-[12px] whitespace-nowrap transition-colors duration-150 ease-out",
+            wrap ? "rounded-[11px] px-2 py-1.5" : "rounded-full",
             // Grows from its own width, so the gaps match and long labels get room.
-            !wrap && (fill ? "flex-auto px-1.5 text-[10px]" : "px-3"),
-            value === side ? "text-foreground" : "text-text-muted",
+            !wrap && (fill ? "flex-auto px-1 text-[11px]" : "px-3"),
+            value === side
+              ? "text-foreground"
+              : "text-text-muted hover:text-text-secondary",
           )}
         >
-          {value === side && (
-            <motion.span
-              layoutId={id}
-              transition={SPRING_PANEL}
-              className={cn(
-                "absolute inset-0 bg-background shadow-elevated",
-                wrap ? "rounded-[14px]" : "rounded-full",
-              )}
-            />
-          )}
           <span className="relative">{side}</span>
         </button>
       ))}
@@ -1035,6 +1267,9 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [dustCfg, setDustCfg] = useState<DustConfig>(DUST_DEFAULTS);
   const [glassCfg, setGlassCfg] = useState<GlassConfig>(GLASS_DEFAULTS);
   const [notchCfg, setNotchCfg] = useState<NotchConfig>(NOTCH_DEFAULTS);
+  const [tabsCfg, setTabsCfg] = useState<TabsConfig>(TABS_DEFAULTS);
+  const [flipCfg, setFlipCfg] = useState<FlipConfig>(FLIP_DEFAULTS);
+  const [segCfg, setSegCfg] = useState<SegConfig>(SEG_DEFAULTS);
   const [lensCfg, setLensCfg] = useState<LensConfig>(LENS_DEFAULTS);
   const [kpiCfg, setKpiCfg] = useState<KpiConfig>(KPI_DEFAULTS);
   const [badgeCfg, setBadgeCfg] = useState<BadgeConfig>(BADGE_DEFAULTS);
@@ -1044,6 +1279,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     slug === "image-generation" && genCfg.status === "auto",
   );
   const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
+  const [pickerMode, setPickerMode] = useState<PickerMode>("inline");
   const [uploaderCfg, setUploaderCfg] =
     useState<UploaderConfig>(UPLOADER_DEFAULTS);
   const [seed, setSeed] = useState(0);
@@ -1064,12 +1300,16 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setDustCfg(DUST_DEFAULTS);
     setGlassCfg(GLASS_DEFAULTS);
     setNotchCfg(NOTCH_DEFAULTS);
+    setTabsCfg(TABS_DEFAULTS);
+    setFlipCfg(FLIP_DEFAULTS);
+    setSegCfg(SEG_DEFAULTS);
     setLensCfg(LENS_DEFAULTS);
     setKpiCfg(KPI_DEFAULTS);
     setBadgeCfg(BADGE_DEFAULTS);
     setGenCfg(GEN_DEFAULTS);
     setCopyCfg(COPY_DEFAULTS);
     setUploadMode("uploader");
+    setPickerMode("inline");
     setUploaderCfg(UPLOADER_DEFAULTS);
     setSeed(0);
     setCardCfg(CARD_DEFAULTS);
@@ -1128,7 +1368,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
         <div className="flex w-full flex-col fade-divide divide-y px-3">
           <SettingsRow label="Size">
             <Tabs
-              id="copy-size-tab"
               label="Size"
               options={COPY_SIZES}
               value={copyCfg.size}
@@ -1183,7 +1422,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
         <div className="flex w-full flex-col fade-divide divide-y px-3">
           <SettingsRow label="Actions">
             <Tabs
-              id="delete-side-tab"
               label="Actions position"
               options={["left", "right"] as const}
               value={deleteCfg.side}
@@ -1327,6 +1565,184 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     };
   }
 
+  if (slug === "expand-tabs") {
+    return {
+      reset,
+      preview: (
+        <ExpandTabs
+          items={EXPAND_TABS_ITEMS.map((item) =>
+            tabsCfg.badge ? item : { ...item, badge: undefined },
+          )}
+        />
+      ),
+      usage: tabsUsage(tabsCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <SettingsRows>
+            <SettingsRow label="Badge">
+              <Switch
+                checked={tabsCfg.badge}
+                onChange={(v) => setTabsCfg({ badge: v })}
+                label="Badge"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "flip-button") {
+    const icon =
+      flipCfg.icon === "arrow" ? (
+        <IconArrowRight strokeWidth={2} />
+      ) : flipCfg.icon === "plus" ? (
+        <IconAdd strokeWidth={2.5} />
+      ) : undefined;
+    return {
+      reset,
+      preview: (
+        <FlipButton
+          variant={flipCfg.variant}
+          size={flipCfg.size}
+          iconRight={icon}
+          iconMotion={flipCfg.icon === "plus" ? "rotate" : "slide"}
+          flipDirection={flipCfg.direction}
+          flipLabel={flipCfg.back === "same" ? undefined : flipCfg.back}
+          flipped={flipCfg.trigger === "state" ? flipCfg.flipped : undefined}
+          loading={flipCfg.loading}
+        >
+          Get started
+        </FlipButton>
+      ),
+      usage: flipUsage(flipCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <div className="flex flex-col gap-2 py-3">
+            <span className="text-[13px] font-medium text-foreground">
+              Variant
+            </span>
+            <Tabs
+              label="Variant"
+              wrap
+              options={FLIP_VARIANTS}
+              value={flipCfg.variant}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, variant: v }))}
+            />
+          </div>
+          <SettingsRow label="Size">
+            <Tabs
+              label="Size"
+              options={FLIP_SIZES}
+              value={flipCfg.size}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, size: v }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Icon">
+            <Tabs
+              label="Icon"
+              options={FLIP_ICONS}
+              value={flipCfg.icon}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, icon: v }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Direction">
+            <Tabs
+              label="Direction"
+              options={FLIP_DIRECTIONS}
+              value={flipCfg.direction}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, direction: v }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Back label">
+            <Tabs
+              label="Back label"
+              options={FLIP_BACKS}
+              value={flipCfg.back}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, back: v }))}
+            />
+          </SettingsRow>
+          <SettingsRow label="Flips on">
+            <Tabs
+              label="Flips on"
+              options={FLIP_TRIGGERS}
+              value={flipCfg.trigger}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, trigger: v }))}
+            />
+          </SettingsRow>
+          {flipCfg.trigger === "state" && (
+            <SettingsRow label="Flipped">
+              <Switch
+                checked={flipCfg.flipped}
+                onChange={(v) => setFlipCfg((c) => ({ ...c, flipped: v }))}
+                label="Flipped"
+              />
+            </SettingsRow>
+          )}
+          <SettingsRow label="Loading">
+            <Switch
+              checked={flipCfg.loading}
+              onChange={(v) => setFlipCfg((c) => ({ ...c, loading: v }))}
+              label="Loading"
+            />
+          </SettingsRow>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "tabs") {
+    const flag = (key: "fill" | "icons" | "disabled", label: string) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={segCfg[key]}
+          onChange={(v) => setSegCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: (
+        <div className={cn(segCfg.fill && "w-80")}>
+          <LibTabs
+            label="View"
+            size={segCfg.size}
+            fill={segCfg.fill}
+            disabled={segCfg.disabled}
+            options={
+              segCfg.icons
+                ? [
+                    { value: "grid", icon: <IconLayoutGrid strokeWidth={2} /> },
+                    { value: "list", icon: <IconLayoutList strokeWidth={2} /> },
+                    { value: "board", icon: <IconKanban strokeWidth={2} /> },
+                  ]
+                : ["grid", "list", "board"]
+            }
+          />
+        </div>
+      ),
+      usage: segUsage(segCfg),
+      settings: (
+        <div className="flex w-full flex-col fade-divide divide-y px-3">
+          <SettingsRow label="Size">
+            <Tabs
+              label="Size"
+              options={SEG_SIZES}
+              value={segCfg.size}
+              onChange={(v) => setSegCfg((c) => ({ ...c, size: v }))}
+            />
+          </SettingsRow>
+          <SettingsRows>
+            {flag("icons", "Icons")}
+            {flag("fill", "Fill")}
+            {flag("disabled", "Disabled")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
   if (slug === "badge") {
     const flag = (
       key: "icon" | "count" | "dashed" | "removable",
@@ -1371,7 +1787,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               Tone
             </span>
             <Tabs
-              id="badge-tone-tab"
               label="Tone"
               fill
               options={BADGE_TONES}
@@ -1381,7 +1796,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
           </div>
           <SettingsRow label="Size">
             <Tabs
-              id="badge-size-tab"
               label="Size"
               options={BADGE_SIZES}
               value={badgeCfg.size}
@@ -1402,7 +1816,10 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   if (slug === "image-generation") {
     const status: ImageGenerationStatus =
       genCfg.status === "auto" ? genRun : genCfg.status;
-    const flag = (key: "interactive" | "showStatus" | "download", label: string) => (
+    const flag = (
+      key: "interactive" | "showStatus" | "download",
+      label: string,
+    ) => (
       <SettingsRow label={label}>
         <Switch
           checked={genCfg[key]}
@@ -1443,7 +1860,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               )}
             </div>
             <Tabs
-              id="gen-status-tab"
               label="Status"
               wrap
               options={GEN_STATUSES}
@@ -1456,7 +1872,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               Aspect ratio
             </span>
             <Tabs
-              id="gen-ratio-tab"
               label="Aspect ratio"
               fill
               options={GEN_RATIO_KEYS}
@@ -1506,7 +1921,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               Currency
             </span>
             <Tabs
-              id="kpi-currency-tab"
               label="Currency"
               fill
               options={KPI_CURRENCIES}
@@ -1519,7 +1933,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               Locale
             </span>
             <Tabs
-              id="kpi-locale-tab"
               label="Locale"
               fill
               options={KPI_LOCALES}
@@ -1652,7 +2065,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
         <div className="flex w-full flex-col fade-divide divide-y px-3">
           <SettingsRow label="Size">
             <Tabs
-              id="slider-size-tab"
               label="Size"
               options={SLIDER_SIZES}
               value={sliderCfg.size}
@@ -1717,7 +2129,9 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
           size={dustCfg.size}
           step={dustCfg.step}
           snap={dustCfg.detents ? "marks" : false}
-          marks={dustCfg.detents ? DUST_DETENTS : dustCfg.marks ? undefined : []}
+          marks={
+            dustCfg.detents ? DUST_DETENTS : dustCfg.marks ? undefined : []
+          }
           orientation={dustCfg.vertical ? "vertical" : "horizontal"}
           variant={dustCfg.bare ? "bare" : "card"}
           dir={dustCfg.rtl ? "rtl" : "ltr"}
@@ -1734,7 +2148,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
                 Color
               </span>
               <Tabs
-                id="dust-color-tab"
                 label="Color"
                 fill
                 options={DUST_COLOR_NAMES}
@@ -1747,7 +2160,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
                 Size
               </span>
               <Tabs
-                id="dust-size-tab"
                 label="Size"
                 fill
                 options={DUST_SIZES}
@@ -1786,7 +2198,11 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               <Switch
                 checked={dustCfg.vertical}
                 onChange={(v) =>
-                  setDustCfg((c) => ({ ...c, vertical: v, rtl: v ? false : c.rtl }))
+                  setDustCfg((c) => ({
+                    ...c,
+                    vertical: v,
+                    rtl: v ? false : c.rtl,
+                  }))
                 }
                 label="Vertical"
               />
@@ -1866,6 +2282,33 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     };
   }
 
+  if (slug === "date-range-picker") {
+    return {
+      reset,
+      // A fixed height below the tabs, so neither the tabs nor the trigger
+      // move when the mode changes or the picker opens.
+      preview: (
+        <div className="flex h-[40rem] flex-col items-center gap-6">
+          <LibTabs
+            label="Preview"
+            size="sm"
+            options={PICKER_MODES}
+            value={pickerMode}
+            onValueChange={setPickerMode}
+          />
+          {pickerMode === "inline" ? (
+            // Past days are disabled, as in the reference recording.
+            <DateRangePicker minDate={new Date()} />
+          ) : (
+            <DateRangePickerTrigger />
+          )}
+        </div>
+      ),
+      usage: pickerUsage(pickerMode),
+      settings: undefined,
+    };
+  }
+
   if (slug === "file-upload") {
     const card = uploadMode === "card";
     const upKnob = (
@@ -1918,7 +2361,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
         <div className="flex w-full flex-col fade-divide divide-y px-3">
           <SettingsRow label="Preview">
             <Tabs
-              id="file-upload-mode-tab"
               label="Preview"
               options={UPLOAD_MODES}
               value={uploadMode}
@@ -2005,9 +2447,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       <Timeline steps={TIMELINE_STEPS} className="w-full max-w-md" />
     ) : slug === "menu-dock" ? (
       <MenuDockPreview />
-    ) : slug === "date-range-picker" ? (
-      // Past days are disabled, as in the reference recording.
-      <DateRangePicker minDate={new Date()} />
     ) : undefined;
 
   return { reset, preview, usage: fallbackUsage, settings: undefined };

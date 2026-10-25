@@ -15,6 +15,7 @@ import {
 import { demos } from "../../demos";
 import { FitToStage, LazyMount } from "../landing/canvas-frame";
 import { CopyCommand } from "../landing/copy-command";
+import { NewBadge } from "../new-badge";
 
 /* ─── Card ─── */
 
@@ -40,10 +41,8 @@ function Card({ entry }: { entry: CatalogEntry }) {
       />
 
       <div className="frame-surface frame-dots relative h-95 overflow-hidden">
-        {entry.isNew && (
-          <span className="absolute top-4 right-4 z-20 rounded-full bg-brand/10 px-2.5 font-mono text-[10.5px] font-medium tracking-[0.06em] text-brand uppercase leading-loose">
-            New
-          </span>
+        {(entry.isNew || entry.isUpdated) && (
+          <NewBadge updated={!entry.isNew} className="absolute top-4 right-4 z-20" />
         )}
         <LazyMount
           fallback={

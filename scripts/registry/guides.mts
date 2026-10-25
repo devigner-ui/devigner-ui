@@ -1610,4 +1610,258 @@ export function Budget() {
       TOKENS_MISSING,
     ],
   },
+  "expand-tabs": {
+    demo:
+      "The live demo is a row of four tiles: Commands (with a dot on its corner), About, Portfolio and Shortcuts. Move the pointer onto one and it widens, fills with the accent and its icon blurs out while the label blurs in; the tiles beside it slide over to make room. Leave and it closes back to a square. Click a tile and it becomes the selected tab: the dot shrinks off Commands and grows on it, and the tile keeps its resting look.",
+    whenToUse: [
+      "A compact icon bar where the names can wait until someone points at a tile, such as a portfolio header or a floating toolbar of a few sections.",
+      "Three to six links of similar weight, each with a recognizable icon.",
+    ],
+    whenNotToUse: [
+      "Primary navigation that has to be scanned at a glance or used mostly on touch screens. Labels show only on hover or keyboard focus; use visible tabs.",
+      "Many links. Each tile is 72px and opens wider, so a long row gets crowded; use a menu.",
+    ],
+    keyboard: [
+      ["Tab / Shift+Tab", "Moves between tiles; the focused tile opens and shows its label with a focus ring."],
+      ["Enter", "Selects the tile and follows the link, or runs onSelect when the item has no href. Space does the same on a button."],
+    ],
+    accessibility: [
+      "Renders a nav landmark named by label, with a list of real links (or buttons for items without href).",
+      "The label stays in the DOM while hidden, so every tile is named by its label; the icon is aria-hidden.",
+      "A badge is drawn as an aria-hidden dot, and its text is added to the tile's name for screen readers.",
+      "The selected tile carries aria-current (page on a link, true on a button). Keyboard focus also opens a tile; a click's focus does not. At rest the selection is shown by the dot alone, so a sighted user relies on that dot.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "A closed tile is bg-foreground/8 with text-foreground icons, so it follows the theme.",
+      "The open tile and the badge dot are filled with color (#2152ff by default) and the open tile's text is white in both themes. Pass a darker color if yours is light.",
+      "classNames targets tab, active, label and badge. Put placement classes in className.",
+    ],
+    edgeCases: [
+      "An open tile is as wide as its label plus 28px either side, and never narrower than the 72px square. The width is measured, so a font that loads late resizes it.",
+      "The row grows around the open tile, so the tiles beside it move; center the bar (or anchor its start) so it shifts the way you want.",
+      "Icons are sized 24px unless the svg has its own size-* class.",
+      "The badge dot is cut out of the tile with a 5px gap that shows whatever sits behind the bar, and the notch is rounded where it meets the tile's top and right edges. The cutout is sized for the 14px dot, so resizing the dot through classNames.badge leaves the gap off.",
+      "A tile opens when the pointer moves over it, not when the pointer enters it. Opening reflows the row and slides tiles under a still pointer; opening on enter would flip two tiles back and forth for as long as the pointer rests near their edge.",
+      "There is one dot: on the first item with a badge until a tab is selected, then on the selected tile. The badge text stays with its own item for screen readers.",
+      "value and defaultValue are indexes into items. With no selection (the default) the dot stays on the first badged item.",
+      "Items are keyed by href, then label, so two items with neither need distinct labels.",
+    ],
+    recipes: [
+      {
+        title: "Portfolio header",
+        description: "Four sections, one marked new.",
+        code: `import { IconCommand, IconHome, IconKeyboard, IconUser } from "@devigner-ui/icons";
+import { ExpandTabs } from "@/components/ui/expand-tabs";
+
+const items = [
+  { label: "Home", icon: <IconHome />, href: "#home" },
+  { label: "About", icon: <IconUser />, href: "#about" },
+  { label: "Shortcuts", icon: <IconCommand />, href: "#shortcuts", badge: "New" },
+  { label: "Contact", icon: <IconKeyboard />, href: "#contact" },
+];
+
+export function Header() {
+  return <ExpandTabs items={items} label="Sections" />;
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The tile does not open on a phone.",
+        answer: "There is no hover on touch screens, so a tap follows the link straight away. Pick visible tabs when most visitors are on touch.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "flip-button": {
+    demo:
+      "The live demo is a row of pill buttons, one per variant. Hover one and its label flips up as a copy rolls in from below, while the arrow in its badge slides out to the right as another slides in from the left, one frame behind the label.",
+    whenToUse: [
+      "Calls to action that should feel alive on hover without moving the layout, such as a hero, pricing or Explore all link.",
+      "A set of buttons that need one shared look across several roles: primary, secondary, outline, glass, inverse and ghost.",
+    ],
+    whenNotToUse: [
+      "Dense toolbars and table rows, where every hover would flip a label; use a plain button.",
+      "Destructive actions such as deleting data. There is no destructive variant; use Delete Button, which asks for confirmation.",
+    ],
+    keyboard: [
+      ["Tab", "Focuses the button and flips it like a hover; a 2px ring in the ring color is drawn outside it."],
+      ["Enter / Space", "Activates it, like any native button (Enter only when asChild renders a link)."],
+    ],
+    accessibility: [
+      "Renders a real <button type=\"button\">, or with asChild the element you pass, so the role is right and the label is the children.",
+      "The rolling copy is aria-hidden, so screen readers read the label once. With flipped the two swap, so the name is whichever label is showing.",
+      "A flipped label (Copied) changes the button's name but is not announced; pair it with a toast or a live region when the change matters.",
+      "Badge icons and the spinner are aria-hidden. Give an icon-only button an aria-label.",
+      "loading sets aria-busy and disables the button. With asChild, disabled and loading set aria-disabled and take the link out of the tab order.",
+      REDUCED_MOTION + " With reduced motion the label and icon stay still, and flipped swaps the label without the roll.",
+    ],
+    theming: [
+      "Every variant uses theme tokens (primary, secondary, foreground, background, surface, border, ring), so it follows light and dark on its own.",
+      "The label and the disc's icon share one curve, cubic-bezier(0.175, 0.885, 0.32, 1.275) (a slight overshoot that settles), set inline so no theme variable is needed; the press scale and color changes use ease-out over 200ms.",
+      "Set --flip-duration (450ms) to change the roll's length and --flip-stagger (16.67ms) to change how far the icon trails the label, from className or style.",
+      "Sizes own the geometry and variants own color, so a className with bg-* or text-* recolors any size.",
+    ],
+    edgeCases: [
+      "The label and flipLabel share one grid cell, so the button is as wide as the longer one and does not resize when it flips.",
+      "Any label flips, rich content included: it is rendered twice, so avoid ids or interactive elements inside it.",
+      "Passing flipped, even false, hands the flip to state: hover and focus stop flipping. Leave it undefined for hover.",
+      "In right-to-left layouts the badge icon slides the other way.",
+      "loading puts the spinner in the badge so the width holds; without a badge it takes the leading icon's place.",
+      "fullWidth pins the badge to the trailing edge, so a long label can run under it; keep labels short on narrow widths.",
+      "The disc's icon slides one 60Hz frame behind the label and turns two frames behind, in and out alike.",
+    ],
+    recipes: [
+      {
+        title: "Link with a turning plus",
+        description: "A link styled as an outline pill whose plus turns on hover. Next's Link works the same way.",
+        code: `import { IconAdd } from "@devigner-ui/icons";
+import { FlipButton } from "@/components/ui/flip-button";
+
+export function NewProject() {
+  return (
+    <FlipButton asChild variant="outline" iconRight={<IconAdd />} iconMotion="rotate">
+      <a href="/projects/new">New project</a>
+    </FlipButton>
+  );
+}`,
+      },
+      {
+        title: "Copy button that confirms",
+        description: "The label rolls to Copied for two seconds after a click. Hover does nothing while flipped is passed.",
+        code: `import * as React from "react";
+import { IconCopy } from "@devigner-ui/icons";
+import { FlipButton } from "@/components/ui/flip-button";
+
+export function CopyLink({ url }: { url: string }) {
+  const [copied, setCopied] = React.useState(false);
+  return (
+    <FlipButton
+      variant="outline"
+      iconRight={<IconCopy />}
+      flipLabel="Copied"
+      flipped={copied}
+      onClick={async () => {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+    >
+      Copy link
+    </FlipButton>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The label does not flip on hover.",
+        answer: "Check that flipped is not passed: any boolean, false included, hands the flip to state. Also check that reduced motion is off.",
+      },
+      {
+        question: "The flipped label shows below the button.",
+        answer: "The clip relies on the label being a single line. Keep the label short or give the button a width that fits it; whitespace-nowrap is already set.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  tabs: {
+    demo:
+      "The live demo is a group of three options, grid, list and board, in a hairline ring. Click one, or tab in and press an arrow key, and a soft pill slides behind it while its text brightens.",
+    whenToUse: [
+      "Picking one of two to six short values that change what is already on screen, such as a size, a view (grid or list) or a chart range.",
+      "Settings panels and toolbars, where every option should stay visible and one press should switch.",
+    ],
+    whenNotToUse: [
+      "Switching between different panels of content with their own headings; that is a tab list with tab panels, which this does not render.",
+      "More than about six options or long labels. The row gets wide and cannot wrap; use a select.",
+      "Turning one setting on or off; use a switch.",
+    ],
+    keyboard: [
+      ["Tab", "Moves focus into the group, onto the selected option, and out again. A 2px ring in the ring color is drawn around the focused option."],
+      ["Arrow keys", "Select and focus the previous or next option, wrapping at the ends and skipping disabled ones, as native radios do."],
+      ["Space", "Selects the focused option when none is selected yet."],
+    ],
+    accessibility: [
+      "Built on native radio inputs sharing one name inside a radiogroup named by label, so screen readers announce the group, each option and its position.",
+      "Each option is a label wrapping its visually hidden radio, so the whole pill is the click target.",
+      "Icons are aria-hidden. An icon-only option (label: null) takes its value as its accessible name, so make that value readable.",
+      "The selected option is marked by the pill and by brighter text, not by color alone.",
+      REDUCED_MOTION + " With reduced motion the pill jumps to the new option.",
+    ],
+    theming: [
+      "The ring is border-border, the sliding pill bg-accent, unselected text text-muted-foreground (text-foreground/80 on hover) and selected text text-foreground, so it follows light and dark on its own.",
+      "Options use the mono font. Pass font-sans (or any font) in classNames.option to change it.",
+      "classNames.indicator restyles the pill, such as a brand fill with a light classNames.option text color.",
+      "The pill glides on the shared layout spring and the text color changes over 150ms with ease-out.",
+    ],
+    edgeCases: [
+      "The pill is placed from the selected option's offset inside the group, so a scrolling container or an animating parent (a panel resizing, a sheet sliding in) never sends it gliding; only a new value does. A resize, such as a late font load, moves it without a glide.",
+      "With no enabled option and no value, nothing is selected and no pill is drawn.",
+      "A value that matches no option leaves the group with no pill.",
+      "Option values are the React keys, so they must be unique.",
+      "Without name, each group gets its own generated one, so two groups on a page never share arrow keys.",
+    ],
+    recipes: [
+      {
+        title: "Controlled view switch",
+        description: "Grid and list, icon only, driving a list's layout.",
+        code: `import * as React from "react";
+import { IconLayoutGrid, IconLayoutList } from "@devigner-ui/icons";
+import { Tabs } from "@/components/ui/tabs";
+
+export function ViewSwitch() {
+  const [view, setView] = React.useState<"grid" | "list">("grid");
+  return (
+    <Tabs
+      label="View"
+      value={view}
+      onValueChange={setView}
+      options={[
+        { value: "grid", label: null, icon: <IconLayoutGrid /> },
+        { value: "list", label: null, icon: <IconLayoutList /> },
+      ]}
+    />
+  );
+}`,
+      },
+      {
+        title: "Full-width plan picker in a form",
+        description: "Submits the chosen plan with the form; one plan is not available.",
+        code: `import { Tabs } from "@/components/ui/tabs";
+
+export function PlanField() {
+  return (
+    <form action="/checkout">
+      <Tabs
+        label="Plan"
+        name="plan"
+        size="lg"
+        fill
+        defaultValue="pro"
+        options={[
+          "free",
+          "pro",
+          { value: "team", label: "team (soon)", disabled: true },
+        ]}
+      />
+      <button type="submit">Continue</button>
+    </form>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The pill does not move when I click.",
+        answer: "With value passed the group is controlled: update it in onValueChange. Otherwise check that option values are unique.",
+      },
+      {
+        question: "Arrow keys move into another group.",
+        answer: "Two groups were given the same name. Leave name out unless the group sits in a form, and give each form field its own name.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
 } satisfies Record<string, ComponentGuide>;

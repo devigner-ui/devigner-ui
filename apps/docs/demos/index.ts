@@ -29,4 +29,7 @@ export const demos: Record<ComponentSlug, ComponentType> = {
   badge: dynamic(() => import("./badge"), { ssr: false, loading }),
   "image-generation": dynamic(() => import("./image-generation"), { ssr: false, loading }),
   "stardust-slider": dynamic(() => import("./stardust-slider"), { ssr: false, loading }),
+  "expand-tabs": dynamic(() => import("./expand-tabs"), { ssr: false, loading }),
+  "flip-button": dynamic(() => import("./flip-button"), { ssr: false, loading }),
+  tabs: dynamic(() => import("./tabs"), { ssr: false, loading }),
 };

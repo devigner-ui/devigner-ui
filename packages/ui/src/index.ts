@@ -126,3 +126,24 @@ export {
   type StardustSliderMark,
   type StardustSliderScale,
 } from "./components/stardust-slider";
+export {
+  ExpandTabs,
+  type ExpandTabsProps,
+  type ExpandTabsItem,
+  type ExpandTabsClassNames,
+} from "./components/expand-tabs";
+export {
+  FlipButton,
+  type FlipButtonProps,
+  type FlipButtonVariant,
+  type FlipButtonSize,
+  type FlipButtonIconMotion,
+} from "./components/flip-button";
+export {
+  Tabs,
+  type TabsProps,
+  type TabsOption,
+  type TabsSize,
+  type TabsValue,
+  type TabsClassNames,
+} from "./components/tabs";

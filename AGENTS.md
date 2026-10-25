@@ -43,6 +43,9 @@ string forms are too weak).
   - `DRIFT_DUST` - canvas motes drifting and twinkling in frame units (the stardust-slider fill)
   - `EASE_OUT` / `EASE_IN_OUT` / `EASE_DRAWER` - tween easings; `EASE_OUT_CSS` for inline styles
   - `EASE_OVERSHOOT` - a tween that lands past the target and settles (the theme toggle)
+  - `EASE_ROLL` / `EASE_ROLL_CSS` - slow off the mark, then a long glide in, no bounce
+  - `EASE_BACK` / `EASE_BACK_CSS` - a label and icon rolling over on hover, a slight overshoot that settles, 450ms (the flip-button)
+  - `TWEEN_SWAP_ENTER` / `TWEEN_SWAP_LEAVE` - hover slot swaps: the incoming slot visible from its first frame, the outgoing one quicker (expand-tabs)
 - **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`,
   `ease-overshoot`
   (defined as `--ease-*` in both `globals.css` files). Never `ease-[cubic-bezier(...)]`.

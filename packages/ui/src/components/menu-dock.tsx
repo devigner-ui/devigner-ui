@@ -78,7 +78,11 @@ export interface MenuDockItem extends MenuNode {
    *  given. The Back row above it carries the item's label, same as a menu.
    *  Content whose height changes on its own (results, a late load) wraps the
    *  changing part in `<motion.div layout="position">` so the surface resizes
-   *  with it instead of snapping. */
+   *  with it instead of snapping. A scroll area inside content is a
+   *  `<motion.div layoutScroll>`: the surface is a layout node, and Motion
+   *  measures any `layout` or `layoutId` element below it without the scroll
+   *  offset of a plain scroller, so a sliding pill in there glides in from
+   *  where it would sit unscrolled every time the surface resizes. */
   content?: React.ReactNode;
   href?: string;
   onSelect?: () => void;
@@ -533,6 +537,9 @@ export function MenuDock({
               animate="animate"
               exit="exit"
               layout="position"
+              // The closed row scrolls sideways when the items outgrow it, so
+              // Motion has to count that offset for anything laid out inside.
+              layoutScroll
               className={cn(
                 open
                   ? "flex min-w-60 flex-col gap-0.5"
