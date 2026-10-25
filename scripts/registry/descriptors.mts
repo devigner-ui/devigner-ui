@@ -276,6 +276,7 @@ export const descriptors = [
   },
   {
     slug: "date-range-picker",
+    requestId: "1563261435172098191",
     name: "Date Range Picker",
     description:
       "A calendar that shows the range before you commit to it, with presets.",
@@ -314,6 +315,12 @@ export const descriptors = [
       ["endLabel", "string", "Check-out", "End field label."],
       ["renderBadge", "function", "-", "Replaces the badge text."],
       ["onClear", "function", "-", "Fires when Clear is pressed."],
+      [
+        "appear",
+        "boolean",
+        "false",
+        "Plays the opening on mount, for a picker shown from a trigger.",
+      ],
       ["classNames", "DateRangePickerClassNames", "-", "Slot classes."],
       ["slotProps", "DateRangePickerSlotProps", "-", "Slot attributes."],
     ],

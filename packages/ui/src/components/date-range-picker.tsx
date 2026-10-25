@@ -5,12 +5,15 @@ import {
   AnimatePresence,
   LayoutGroup,
   motion,
+  type HTMLMotionProps,
   type Transition,
+  type Variants,
 } from "motion/react";
 import { cn } from "cn";
 import { IconChevronLeft, IconChevronRight } from "@devigner-ui/icons";
 import {
   SPRING_LAYOUT,
+  SPRING_PANEL,
   SPRING_PRESS,
   SPRING_SWAP,
   TWEEN_FOLLOW,
@@ -53,6 +56,23 @@ const HOVER_REACH = 0.75;
 const FILL_RADIUS = 17.5;
 
 const INSTANT = { duration: 0 } as const;
+
+/** The opening: the shell settles in like a panel, then its rows follow it
+ *  down from the header to the presets. */
+const APPEAR_SHELL: Variants = {
+  hidden: { opacity: 0, scale: 0.96, y: 8 },
+  shown: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { ...SPRING_PANEL, delayChildren: 0.04, staggerChildren: 0.03 },
+  },
+};
+
+const APPEAR_ROW: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  shown: { opacity: 1, y: 0, transition: SPRING_LAYOUT },
+};
 
 /** How long the badge sits on a new value before showing it, the way a
  *  tooltip waits before opening. Sweeping across days then reads as one
@@ -199,6 +219,9 @@ export interface DateRangePickerProps extends Omit<
    *  preview while a check-out is being picked. */
   renderBadge?: (range: DateRange | null) => React.ReactNode;
   onClear?: () => void;
+  /** Plays the opening on mount: the card settles in and its rows follow.
+   *  For a picker that opens from a trigger; inline ones just appear. */
+  appear?: boolean;
 
   classNames?: DateRangePickerClassNames;
   slotProps?: DateRangePickerSlotProps;
@@ -337,6 +360,7 @@ export function DateRangePicker({
   endLabel = "Check-out",
   renderBadge,
   onClear,
+  appear = false,
   classNames,
   slotProps,
   className,
@@ -610,17 +634,26 @@ export function DateRangePicker({
     maxDate !== undefined && monthTime >= startOfMonth(maxDate).getTime();
 
   return (
-    <div
-      {...slotProps?.root}
+    // ponytail: div props passed straight to motion.div; motion reads the
+    // drag and animation handlers its own way, so omit them from the props
+    // type if a consumer ever needs the DOM versions.
+    <motion.div
+      {...(slotProps?.root as HTMLMotionProps<"div">)}
       className={cn(
         "flex w-105 max-w-full flex-col rounded-[26px] bg-accent p-2.5 smooth-shadow-ring-lg",
         slotProps?.root?.className,
         className,
         classNames?.root,
       )}
-      {...rest}
+      {...(rest as HTMLMotionProps<"div">)}
+      variants={APPEAR_SHELL}
+      initial={appear && !reduced ? "hidden" : false}
+      animate="shown"
     >
-      <div className="flex h-11.25 items-center justify-between gap-3 px-3.75">
+      <motion.div
+        variants={APPEAR_ROW}
+        className="flex h-11.25 items-center justify-between gap-3 px-3.75"
+      >
         <div className="truncate text-[15px]/6 font-semibold tracking-[-0.01em] text-foreground">
           {title}
         </div>
@@ -649,11 +682,12 @@ export function DateRangePicker({
             </RollingText>
           </motion.span>
         </motion.div>
-      </div>
+      </motion.div>
 
       <div className="rounded-[18px] bg-background px-4.5 pt-4.5 pb-4 shadow-subtle">
         <LayoutGroup id={instanceId}>
-          <div
+          <motion.div
+            variants={APPEAR_ROW}
             className={cn(
               "grid grid-cols-2 border-b border-border pb-4",
               classNames?.header,
@@ -683,9 +717,12 @@ export function DateRangePicker({
                 onClick={pickCheckOut}
               />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center justify-between pt-3.75">
+          <motion.div
+            variants={APPEAR_ROW}
+            className="flex items-center justify-between pt-3.75"
+          >
             <div className="text-[16px]/6 font-bold tracking-[-0.01em] text-foreground">
               <RollingText id={monthTime} reduced={reduced}>
                 {formatMonthName(month)}{" "}
@@ -712,15 +749,16 @@ export function DateRangePicker({
                 <IconChevronRight className="size-4" strokeWidth={2.5} />
               </NavButton>
             </div>
-          </div>
+          </motion.div>
 
           <div
             role="grid"
             aria-label={formatMonthLabel(month)}
             className={cn("mt-5 select-none", classNames?.grid)}
           >
-            <div
+            <motion.div
               role="row"
+              variants={APPEAR_ROW}
               className="grid grid-cols-7 text-center text-[10px]/4 font-medium text-muted-foreground"
             >
               {WEEKDAYS.map(([short, full]) => (
@@ -728,12 +766,13 @@ export function DateRangePicker({
                   {short}
                 </div>
               ))}
-            </div>
+            </motion.div>
             <div className="mt-0.75">
               {weeks.map((week, wi) => (
-                <div
+                <motion.div
                   role="row"
                   key={wi}
+                  variants={APPEAR_ROW}
                   className="relative grid h-10 grid-cols-7"
                 >
                   <RowFill
@@ -801,14 +840,15 @@ export function DateRangePicker({
                       />
                     );
                   })}
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </LayoutGroup>
       </div>
 
-      <div
+      <motion.div
+        variants={APPEAR_ROW}
         className={cn(
           "flex items-center justify-between gap-2 px-3.5 pt-2.75 pb-1.5",
           classNames?.presets,
@@ -848,12 +888,12 @@ export function DateRangePicker({
         >
           Clear
         </button>
-      </div>
+      </motion.div>
 
       <div aria-live="polite" className="sr-only">
         {liveMessage}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

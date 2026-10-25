@@ -45,6 +45,7 @@ import {
   IconTickCircle,
 } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
+import { DateRangePickerTrigger } from "../../demos/date-range-picker";
 import { NAV_NOTCH_ITEMS } from "../../demos/nav-notch";
 import { EXPAND_TABS_ITEMS } from "../../demos/expand-tabs";
 import { KPI_FALLING, KPI_REVENUE } from "../../demos/kpi-chart";
@@ -806,6 +807,50 @@ ${props}
 }`;
 };
 
+/* ─── Date Range Picker ─── */
+
+const PICKER_MODES = ["inline", "trigger"] as const;
+type PickerMode = (typeof PICKER_MODES)[number];
+
+const pickerUsage = (mode: PickerMode) =>
+  mode === "inline"
+    ? `import { DateRangePicker } from "@/components/ui/date-range-picker";
+
+export function Example() {
+  return <DateRangePicker minDate={new Date()} />;
+}`
+    : `import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { SPRING_RETRACT } from "devignerui/motion";
+import {
+  DateRangePicker,
+  type DateRange,
+} from "@/components/ui/date-range-picker";
+
+export function Example() {
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState<DateRange | null>(null);
+  return (
+    <div className="relative">
+      <button aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        {range ? "Change dates" : "Add dates"}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="dialog"
+            exit={{ opacity: 0, scale: 0.96, y: -6 }}
+            transition={SPRING_RETRACT}
+            className="absolute top-12 origin-top"
+          >
+            <DateRangePicker appear value={range} onValueChange={setRange} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}`;
+
 /* ─── File Upload ─── */
 
 const UPLOAD_MODES = ["uploader", "card"] as const;
@@ -1234,6 +1279,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     slug === "image-generation" && genCfg.status === "auto",
   );
   const [uploadMode, setUploadMode] = useState<UploadMode>("uploader");
+  const [pickerMode, setPickerMode] = useState<PickerMode>("inline");
   const [uploaderCfg, setUploaderCfg] =
     useState<UploaderConfig>(UPLOADER_DEFAULTS);
   const [seed, setSeed] = useState(0);
@@ -1263,6 +1309,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setGenCfg(GEN_DEFAULTS);
     setCopyCfg(COPY_DEFAULTS);
     setUploadMode("uploader");
+    setPickerMode("inline");
     setUploaderCfg(UPLOADER_DEFAULTS);
     setSeed(0);
     setCardCfg(CARD_DEFAULTS);
@@ -2235,6 +2282,33 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     };
   }
 
+  if (slug === "date-range-picker") {
+    return {
+      reset,
+      // A fixed height below the tabs, so neither the tabs nor the trigger
+      // move when the mode changes or the picker opens.
+      preview: (
+        <div className="flex h-[40rem] flex-col items-center gap-6">
+          <LibTabs
+            label="Preview"
+            size="sm"
+            options={PICKER_MODES}
+            value={pickerMode}
+            onValueChange={setPickerMode}
+          />
+          {pickerMode === "inline" ? (
+            // Past days are disabled, as in the reference recording.
+            <DateRangePicker minDate={new Date()} />
+          ) : (
+            <DateRangePickerTrigger />
+          )}
+        </div>
+      ),
+      usage: pickerUsage(pickerMode),
+      settings: undefined,
+    };
+  }
+
   if (slug === "file-upload") {
     const card = uploadMode === "card";
     const upKnob = (
@@ -2373,9 +2447,6 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       <Timeline steps={TIMELINE_STEPS} className="w-full max-w-md" />
     ) : slug === "menu-dock" ? (
       <MenuDockPreview />
-    ) : slug === "date-range-picker" ? (
-      // Past days are disabled, as in the reference recording.
-      <DateRangePicker minDate={new Date()} />
     ) : undefined;
 
   return { reset, preview, usage: fallbackUsage, settings: undefined };
