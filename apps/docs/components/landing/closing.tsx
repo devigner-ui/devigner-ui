@@ -16,7 +16,9 @@ const YEAR = new Date().getFullYear();
 function shotUrl(slug: string) {
   const url = `/components/${slug}/preview`;
   try {
-    const png = readFileSync(join(process.cwd(), "assets", "og", `${slug}.png`));
+    const png = readFileSync(
+      join(process.cwd(), "assets", "og", `${slug}.png`),
+    );
     return `${url}?v=${createHash("sha1").update(png).digest("hex").slice(0, 8)}`;
   } catch {
     return url;
@@ -32,7 +34,9 @@ const LINKS = [
 
 export function SiteFooter() {
   const catalog = getCatalog();
-  const updated = new Date(`${catalog[0].addedAt}T00:00:00Z`).toLocaleDateString("en-US", {
+  const updated = new Date(
+    `${catalog[0].addedAt}T00:00:00Z`,
+  ).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
@@ -63,7 +67,11 @@ export function SiteFooter() {
           <span suppressHydrationWarning>Devigner &copy; {YEAR}</span>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
             {LINKS.map(([label, href]) => (
-              <Link key={href} href={href} className="transition-colors duration-200 ease-out hover:text-foreground">
+              <Link
+                key={href}
+                href={href}
+                className="transition-colors duration-200 ease-out hover:text-foreground"
+              >
                 {label}
               </Link>
             ))}

@@ -210,7 +210,7 @@ function Tab({
           }),
         }}
         className={cn(
-          "relative overflow-hidden rounded-[10px] bg-foreground/8 text-foreground",
+          "relative overflow-hidden rounded-[10px] bg-[color-mix(in_oklab,var(--foreground)_8%,var(--background))] text-foreground",
           classNames?.tab,
         )}
       >

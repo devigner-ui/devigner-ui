@@ -16,5 +16,6 @@ export const EXPAND_TABS_ITEMS = [
 ];
 
 export default function ExpandTabsDemo() {
-  return <ExpandTabs items={EXPAND_TABS_ITEMS} />;
+  // The stage's dot field shows through; the component itself ships solid.
+  return <ExpandTabs items={EXPAND_TABS_ITEMS} classNames={{ tab: "bg-foreground/8" }} />;
 }

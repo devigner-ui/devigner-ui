@@ -1572,6 +1572,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
           items={EXPAND_TABS_ITEMS.map((item) =>
             tabsCfg.badge ? item : { ...item, badge: undefined },
           )}
+          classNames={{ tab: "bg-foreground/8" }}
         />
       ),
       usage: tabsUsage(tabsCfg),

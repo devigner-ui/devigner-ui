@@ -678,13 +678,13 @@ html {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    padding: 1px;
+    padding: 2px;
     background: radial-gradient(
       380px circle at var(--mx) var(--my),
       color-mix(in oklab, var(--brand) 65%, transparent),
       var(--border) 50%
     );
-    /* Only the 1px padding ring shows: the content box is cut out. */
+    /* Only the 2px padding ring shows: the content box is cut out. */
     mask:
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);

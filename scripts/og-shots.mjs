@@ -48,6 +48,15 @@ const SETTLE = {
   "image-generation": 5000,
 };
 
+// Demos that tint the component for the stage: CSS put back while the shot is
+// taken, so the shot (also the footer spotlight) shows the shipped look.
+const RESTYLE = {
+  // The demo's see-through tabs, made solid again.
+  "expand-tabs": `.og-solo [class~="bg-foreground/8"] {
+    background-color: color-mix(in oklab, var(--foreground) 8%, var(--background)) !important;
+  }`,
+};
+
 const browser = await chromium.launch({ channel: "chrome" });
 const page = await browser.newPage({
   viewport: { width: 1440, height: 1000 },
@@ -81,6 +90,7 @@ for (const slug of slugs) {
   const stage = page.locator(`article[aria-labelledby='card-${slug}'] .frame-surface`);
   await stage.scrollIntoViewIfNeeded();
   await stage.evaluate((el) => el.classList.add("og-solo"));
+  const restyle = RESTYLE[slug] && (await page.addStyleTag({ content: RESTYLE[slug] }));
   // LazyMount swaps the demo in, FitToStage refits to the bigger stage, then
   // the entrances settle.
   await page.waitForTimeout(1800 + (SETTLE[slug] ?? 0));
@@ -136,6 +146,7 @@ for (const slug of slugs) {
   });
   if (opened) await page.keyboard.press("Escape");
   await stage.evaluate((el) => el.classList.remove("og-solo"));
+  if (restyle) await restyle.evaluate((el) => el.remove());
   console.log("wrote", slug);
 }
 
