@@ -42,4 +42,10 @@ pnpm-debug.log*
 /brag-output
 /brag-output
 /brag-output/composition
+/.turbo
+/.agents
 /.claude
+/.claude
+/.agents
+/apps/docs/demos
+/apps/docs/demos

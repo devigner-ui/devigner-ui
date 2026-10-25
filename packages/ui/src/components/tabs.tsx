@@ -13,6 +13,8 @@ export interface TabsOption<T extends string = string> {
    *  value the accessible name. */
   label?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Replaces icon while the option is selected, such as a filled drawing. */
+  activeIcon?: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -201,7 +203,7 @@ function TabsInner(
             />
             {o.icon && (
               <span aria-hidden className="relative flex">
-                {o.icon}
+                {(checked && o.activeIcon) || o.icon}
               </span>
             )}
             {!iconOnly && <span className="relative">{o.label ?? o.value}</span>}

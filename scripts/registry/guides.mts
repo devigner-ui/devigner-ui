@@ -1768,7 +1768,7 @@ export function CopyLink({ url }: { url: string }) {
   },
   tabs: {
     demo:
-      "The live demo is a group of three options, grid, list and board, in a hairline ring. Click one, or tab in and press an arrow key, and a soft pill slides behind it while its text brightens.",
+      "The live demo is a group of three options, Playlist, History and Settings, in a hairline ring. Click one, or tab in and press an arrow key, and a soft pill slides behind it while its text brightens.",
     whenToUse: [
       "Picking one of two to six short values that change what is already on screen, such as a size, a view (grid or list) or a chart range.",
       "Settings panels and toolbars, where every option should stay visible and one press should switch.",

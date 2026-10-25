@@ -123,7 +123,7 @@ const STEPS: Record<string, Steps> = {
   },
   // Radios with no button to press: click through the options.
   tabs: async (stage, page, mark) => {
-    for (const label of ["list", "board", "grid"]) {
+    for (const label of ["History", "Settings", "Playlist"]) {
       await stage.getByText(label, { exact: true }).click();
       await page.waitForTimeout(900);
     }

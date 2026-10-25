@@ -3,5 +3,5 @@
 import { Tabs } from "devignerui";
 
 export default function TabsDemo() {
-  return <Tabs label="View" size="lg" options={["grid", "list", "board"]} />;
+  return <Tabs label="Section" size="lg" options={["Playlist", "History", "Settings"]} />;
 }

@@ -35,11 +35,10 @@ import {
   IconBell,
   IconChatRoundDots,
   IconHeart,
+  IconClock,
   IconHomeSmileAngle,
-  IconKanban,
-  IconLayoutGrid,
-  IconLayoutList,
   IconMenuDots,
+  IconMusicLibrary2,
   IconSetting2,
   IconStarCircle,
   IconTickCircle,
@@ -421,7 +420,7 @@ export function Example() {
 
 const SEG_SIZES = ["sm", "md", "lg"] as const;
 const SEG_DEFAULTS = {
-  size: "md" as (typeof SEG_SIZES)[number],
+  size: "lg" as (typeof SEG_SIZES)[number],
   fill: false,
   icons: true,
   disabled: false,
@@ -431,19 +430,19 @@ type SegConfig = typeof SEG_DEFAULTS;
 const segUsage = (c: SegConfig) => {
   const options = c.icons
     ? `[
-        { value: "grid", icon: <IconLayoutGrid /> },
-        { value: "list", icon: <IconLayoutList /> },
-        { value: "board", icon: <IconKanban /> },
+        { value: "Playlist", icon: <IconMusicLibrary2 />, activeIcon: <IconMusicLibrary2 variant="Bulk" /> },
+        { value: "History", icon: <IconClock />, activeIcon: <IconClock variant="Bulk" /> },
+        { value: "Settings", icon: <IconSetting2 />, activeIcon: <IconSetting2 variant="Bulk" /> },
       ]`
-    : `["grid", "list", "board"]`;
+    : `["Playlist", "History", "Settings"]`;
   const props = [
-    'label="View"',
+    'label="Section"',
     c.size !== "md" ? `size="${c.size}"` : null,
     c.fill ? "fill" : null,
     c.disabled ? "disabled" : null,
     `options={${options}}`,
   ].filter(Boolean);
-  return `${c.icons ? 'import { IconKanban, IconLayoutGrid, IconLayoutList } from "@devigner-ui/icons";\n' : ""}import { Tabs } from "@/components/ui/tabs";
+  return `${c.icons ? 'import { IconClock, IconMusicLibrary2, IconSetting2 } from "@devigner-ui/icons";\n' : ""}import { Tabs } from "@/components/ui/tabs";
 
 export function Example() {
   return (
@@ -1706,18 +1705,24 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       preview: (
         <div className={cn(segCfg.fill && "w-80")}>
           <LibTabs
-            label="View"
+            label="Section"
             size={segCfg.size}
             fill={segCfg.fill}
             disabled={segCfg.disabled}
             options={
               segCfg.icons
-                ? [
-                    { value: "grid", icon: <IconLayoutGrid strokeWidth={2} /> },
-                    { value: "list", icon: <IconLayoutList strokeWidth={2} /> },
-                    { value: "board", icon: <IconKanban strokeWidth={2} /> },
-                  ]
-                : ["grid", "list", "board"]
+                ? (
+                    [
+                      ["Playlist", IconMusicLibrary2],
+                      ["History", IconClock],
+                      ["Settings", IconSetting2],
+                    ] as const
+                  ).map(([value, Icon]) => ({
+                    value,
+                    icon: <Icon strokeWidth={2} />,
+                    activeIcon: <Icon variant="Bulk" strokeWidth={2} />,
+                  }))
+                : ["Playlist", "History", "Settings"]
             }
           />
         </div>

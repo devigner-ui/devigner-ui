@@ -881,7 +881,7 @@ export const descriptors = [
       "Rewrites controllable-state to devignerui/hooks.",
     ],
     props: [
-      ["options", "(string | { value, label?, icon?, disabled? })[]", "-", "The choices, left to right. A string is its own value and label. An object can add an icon, a different label, or disabled; label: null shows the icon alone and uses value as its accessible name."],
+      ["options", "(string | { value, label?, icon?, activeIcon?, disabled? })[]", "-", "The choices, left to right. A string is its own value and label. An object can add an icon, an activeIcon shown in its place while selected (a filled drawing), a different label, or disabled; label: null shows the icon alone and uses value as its accessible name."],
       ["value", "string", "-", "Controlled value: the selected option's value. Pass with onValueChange."],
       ["defaultValue", "string", "the first enabled option", "Selected option on first render when uncontrolled."],
       ["onValueChange", "(value: string) => void", "-", "Called with the new value when an option is picked by click or arrow key."],
@@ -893,7 +893,7 @@ export const descriptors = [
       ["classNames", "TabsClassNames", "-", "Slot classes: option (each pill's label) and indicator (the sliding pill)."],
     ],
     examples: {
-      standard: '<Tabs label="View" options={["grid", "list", "board"]} />',
+      standard: '<Tabs label="Section" options={["Playlist", "History", "Settings"]} />',
       custom:
         '<Tabs label="Size" size="lg" fill options={["sm", "md", "lg"]} value={size} onValueChange={setSize} />',
     },
