@@ -112,6 +112,14 @@ const STEPS: Record<string, Steps> = {
     await page.waitForTimeout(6500);
     await mark();
   },
+  // Radios with no button to press: click through the options.
+  tabs: async (stage, page, mark) => {
+    for (const label of ["list", "board", "grid"]) {
+      await stage.getByText(label, { exact: true }).click();
+      await page.waitForTimeout(900);
+    }
+    await mark();
+  },
 };
 
 const union = (a: Box | null, b: Box | null): Box | null => {
