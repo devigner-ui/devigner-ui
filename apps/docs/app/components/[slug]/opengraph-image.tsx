@@ -37,6 +37,11 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 NEW
               </span>
             )}
+            {entry?.isUpdated && (
+              <span style={{ display: "flex", borderRadius: 999, border: `1px solid ${OG.lineStrong}`, color: OG.muted, padding: "2px 10px", fontSize: 14, letterSpacing: "0.06em" }}>
+                UPDATED
+              </span>
+            )}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", marginTop: 16, fontSize: name.length > 14 ? 74 : 84, fontWeight: 600, lineHeight: 1.04, letterSpacing: "-0.055em" }}>
             {words.length > 0 && <span>{words.join(" ")}&nbsp;</span>}

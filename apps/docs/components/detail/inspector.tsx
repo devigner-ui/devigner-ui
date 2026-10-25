@@ -123,12 +123,14 @@ export function Inspector({
   meta,
   request,
   isNew,
+  isUpdated,
   usage,
   onOpenCode,
 }: {
   meta: ComponentData;
   request?: RequestCredit | null;
   isNew: boolean;
+  isUpdated: boolean;
   usage: string;
   onOpenCode: () => void;
 }) {
@@ -163,8 +165,8 @@ export function Inspector({
         <h1 className="text-[38px] leading-[1.04] font-semibold tracking-tighter text-balance text-foreground">
           <Title name={meta.name} />
         </h1>
-        {isNew && (
-          <NewBadge size="lg" />
+        {(isNew || isUpdated) && (
+          <NewBadge size="lg" updated={!isNew} />
         )}
       </div>
       <p className="mt-3 text-[14.5px]/relaxed text-pretty text-text-secondary">

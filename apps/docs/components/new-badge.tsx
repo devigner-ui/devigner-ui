@@ -9,23 +9,27 @@ const SIZES = {
   lg: "h-6.5 px-2.5 text-[12.5px]",
 };
 
-/** The one New badge: a dark pill glowing blue at the rim (see `badge-new`). */
+/** The one New badge: a dark pill glowing blue at the rim (see `badge-new`).
+ *  `updated` turns it into the Updated badge, a dark pill with only a border (see `badge-updated`). */
 export function NewBadge({
   size = "md",
+  updated = false,
   className,
 }: {
   size?: keyof typeof SIZES;
+  updated?: boolean;
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        "badge-new inline-flex shrink-0 items-center rounded-full leading-none font-semibold tracking-[0.01em]",
+        "inline-flex shrink-0 items-center rounded-full leading-none font-semibold tracking-[0.01em]",
+        updated ? "badge-updated" : "badge-new",
         SIZES[size],
         className,
       )}
     >
-      New
+      {updated ? "Updated" : "New"}
     </span>
   );
 }

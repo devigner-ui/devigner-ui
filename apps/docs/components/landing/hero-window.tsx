@@ -451,8 +451,8 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                       />
                     )}
                     <span className="relative min-w-0 truncate">{e.name}</span>
-                    {e.isNew && (
-                      <NewBadge size="sm" className="relative ml-auto" />
+                    {(e.isNew || e.isUpdated) && (
+                      <NewBadge size="sm" updated={!e.isNew} className="relative ml-auto" />
                     )}
                   </button>
                 );

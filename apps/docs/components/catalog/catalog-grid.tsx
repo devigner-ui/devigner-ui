@@ -41,8 +41,8 @@ function Card({ entry }: { entry: CatalogEntry }) {
       />
 
       <div className="frame-surface frame-dots relative h-95 overflow-hidden">
-        {entry.isNew && (
-          <NewBadge className="absolute top-4 right-4 z-20" />
+        {(entry.isNew || entry.isUpdated) && (
+          <NewBadge updated={!entry.isNew} className="absolute top-4 right-4 z-20" />
         )}
         <LazyMount
           fallback={

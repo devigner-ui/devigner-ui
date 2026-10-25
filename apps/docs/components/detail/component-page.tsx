@@ -649,8 +649,8 @@ function ComponentsPanel({
                       />
                     )}
                     <span className="relative truncate">{e.name}</span>
-                    {e.isNew && (
-                      <NewBadge size="sm" className="relative ml-auto" />
+                    {(e.isNew || e.isUpdated) && (
+                      <NewBadge size="sm" updated={!e.isNew} className="relative ml-auto" />
                     )}
                   </Link>
                 );
@@ -2008,6 +2008,7 @@ export function ComponentPage({
       meta={meta}
       request={request}
       isNew={entry?.isNew ?? false}
+      isUpdated={entry?.isUpdated ?? false}
       usage={playground.usage}
       onOpenCode={() => setSourceOpen(true)}
     />
@@ -2054,6 +2055,8 @@ export function ComponentPage({
           <motion.div
             ref={preview}
             key={previewKey}
+            // scripts/demo-gif.mts records some demos from here.
+            data-gif-stage=""
             initial={false}
             animate={lift}
             transition={panel}
