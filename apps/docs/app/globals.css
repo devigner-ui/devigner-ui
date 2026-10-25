@@ -18,6 +18,18 @@
     border-image: linear-gradient(to right, transparent, var(--border), transparent) 1;
   }
 }
+/* The New badge: a near-black core, blue light soaking in from the whole
+   rim (no hard edge), and a periwinkle bloom pooled at the bottom. Glows are
+   in em, so every size is the same badge scaled. */
+@utility badge-new {
+  color: var(--badge-new-ink);
+  background:
+    radial-gradient(38% 30% at 50% 94%, var(--badge-new-bloom), transparent),
+    var(--badge-new-core);
+  box-shadow:
+    inset 0 0 0.4em 0.05em var(--badge-new-edge),
+    inset 0 0 1.2em 0.15em var(--badge-new-edge-soft);
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -104,6 +116,13 @@
   /* Type pressed into the page (the footer wordmark): lip above, catch below. */
   --emboss-lip: oklch(19% 0.03 260 / 0.14);
   --emboss-catch: oklch(100% 0 0 / 0.95);
+  /* The New badge: a near-black pill lit blue from its rim and periwinkle
+     from below, one look on both themes (the dark palette leaves these). */
+  --badge-new-core: oklch(13% 0.035 268);
+  --badge-new-edge: oklch(56% 0.19 266);
+  --badge-new-edge-soft: oklch(48% 0.17 266 / 0.55);
+  --badge-new-bloom: oklch(82% 0.12 282);
+  --badge-new-ink: oklch(93% 0.006 90);
 }
 
 /* ── 1 · Palette · dark (graphite ground + cool bone ink) ────────────────── */
@@ -321,8 +340,7 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);
-  --color-shell-fg-muted: var(--shell-fg-muted);
+  --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);  --color-shell-fg-muted: var(--shell-fg-muted);
   --color-shell-fg-faint: var(--shell-fg-faint);
 }
 
@@ -591,6 +609,11 @@ html {
         transparent 72%
       ),
       var(--frame-ground, var(--background-200));
+  }
+
+  /* The component page's stage: a step below the graphite in dark mode. */
+  .dark .stage-ground {
+    --frame-ground: oklch(16.5% 0.007 260);
   }
 
   /* A dot field over the frame, fading out toward its edges. The dotted

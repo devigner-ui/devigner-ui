@@ -10,6 +10,17 @@ export const EASE_DRAWER = [0.32, 0.72, 0, 1] as const;
 /** Lands a quarter past the target and settles back, a pop with no spring. */
 export const EASE_OVERSHOOT = [0, 0, 0, 1.25] as const;
 
+/** Slow off the mark, then a long glide in: a roll with no bounce. */
+export const EASE_ROLL = [0.625, 0.05, 0, 1] as const;
+/** CSS string form of EASE_ROLL for inline style transitions. */
+export const EASE_ROLL_CSS = "cubic-bezier(0.625, 0.05, 0, 1)";
+
+/** Quick out, runs about 10% past the target and settles back (easeOutBack):
+ *  a label and its icon rolling over on hover, 450ms (the Flip Button). */
+export const EASE_BACK = [0.175, 0.885, 0.32, 1.275] as const;
+/** CSS string form of EASE_BACK for inline style transitions. */
+export const EASE_BACK_CSS = "cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+
 /** CSS string form of EASE_OUT for inline style transitions. */
 export const EASE_OUT_CSS = "cubic-bezier(0.16, 1, 0.3, 1)";
 
@@ -114,6 +125,21 @@ export const DRIFT_DUST = {
  *  would overshoot each one. Short enough that it never trails the cursor. */
 export const TWEEN_FOLLOW = {
   duration: 0.18,
+  ease: EASE_OUT,
+} as const;
+
+/** The incoming slot of a swap on hover (a label or icon taking over).
+ *  EASE_OUT is at full speed on its first frame; a spring starts from rest,
+ *  so a pointer sweeping across a row leaves its tiles blank. */
+export const TWEEN_SWAP_ENTER = {
+  duration: 0.3,
+  ease: EASE_OUT,
+} as const;
+
+/** The outgoing slot of a swap (a label or icon making way). Quicker than
+ *  TWEEN_SWAP_ENTER bringing the other in, so the overlap stays short. */
+export const TWEEN_SWAP_LEAVE = {
+  duration: 0.12,
   ease: EASE_OUT,
 } as const;
 

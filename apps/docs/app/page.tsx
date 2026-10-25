@@ -3,7 +3,7 @@ import { BENTO, FEATURED, SITE_URL, getCatalog } from "@/lib/catalog";
 import { REQUIREMENTS } from "@/lib/llms";
 import { JsonLd } from "../components/json-ld";
 import { Navbar } from "../components/landing/navbar";
-import { Hero } from "../components/landing/hero";
+import { HERO_COUNT, Hero } from "../components/landing/hero";
 import { WorksWith } from "../components/landing/works-with";
 import { States } from "../components/landing/states";
 import { Install } from "../components/landing/install";
@@ -84,7 +84,13 @@ export default function HomePage() {
       />
       <Navbar />
       <main>
-        <SelectionProvider initial={FEATURED}>
+        <SelectionProvider
+          initial={
+            entries.slice(0, HERO_COUNT).some((e) => e.slug === FEATURED)
+              ? FEATURED
+              : entries[0].slug
+          }
+        >
           <Hero entries={entries} />
           <WorksWith />
           <States themes={bySlug(BENTO.themes)} motionEntry={bySlug(BENTO.motion)} entries={entries} />

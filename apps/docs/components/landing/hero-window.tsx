@@ -28,6 +28,7 @@ import { FitToStage, LazyMount, SelectionMarks } from "./canvas-frame";
 import { CopyCommand } from "./copy-command";
 import { LogoMark } from "../logo-mark";
 import { useSelection } from "./selection";
+import { NewBadge } from "../new-badge";
 
 // Frames sit on the board in rows of three, newest first.
 const FRAME_W = 360;
@@ -451,9 +452,7 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                     )}
                     <span className="relative min-w-0 truncate">{e.name}</span>
                     {e.isNew && (
-                      <span className="relative ml-auto shrink-0 rounded-full bg-brand/10 px-1.5 text-[10px]/4 font-medium text-brand">
-                        New
-                      </span>
+                      <NewBadge size="sm" className="relative ml-auto" />
                     )}
                   </button>
                 );
@@ -463,6 +462,13 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
                   No component called &ldquo;{query.trim()}&rdquo; yet.
                 </p>
               )}
+              <Link
+                href="/components"
+                className="flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] px-3 text-[13px] whitespace-nowrap text-text-muted transition-colors duration-200 ease-out outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand md:w-full"
+              >
+                All components
+                <IconArrowRight aria-hidden className="size-3.5" />
+              </Link>
             </div>
           </div>
 
