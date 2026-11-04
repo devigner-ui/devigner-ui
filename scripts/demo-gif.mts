@@ -212,6 +212,27 @@ const STEPS: Record<string, Steps> = {
       await page.waitForTimeout(700);
     }
   },
+  // Walk the tooltip across a few bars.
+  "chart-card": async (stage, page, mark) => {
+    for (const month of ["Apr", "Aug", "Feb", "Jun"]) {
+      const label = await stage.getByText(month, { exact: true }).first().boundingBox();
+      if (!label) throw new Error("no bars");
+      await page.mouse.click(label.x + label.width / 2, label.y - 60);
+      await page.waitForTimeout(800);
+    }
+    await mark();
+  },
+  // Open the Library panel, then fold it back into the dock.
+  "menu-dock": async (stage, page, mark) => {
+    await stage.getByRole("menuitem", { name: "Library" }).first().click();
+    await page.waitForTimeout(1200);
+    await mark(stage.locator('[class*="smooth-shadow-ring-lg"]').first());
+    await stage.getByRole("menuitem", { name: "Bookmarked" }).first().hover();
+    await page.waitForTimeout(600);
+    // A click outside folds it; Escape would leave a focus ring.
+    await page.mouse.click(4, 4);
+    await page.waitForTimeout(1100);
+  },
   // Radios with no button to press: click through the options.
   tabs: async (stage, page, mark) => {
     for (const label of ["History", "Settings", "Playlist"]) {

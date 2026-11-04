@@ -546,7 +546,7 @@ export function FooterBento({
   components: (FooterComponent & { description: string })[];
 }) {
   // ponytail: pinned by hand to the spotlighted component, as in the live footer.
-  const newest = components.find((c) => c.slug === "expand-tabs") ?? components[0];
+  const newest = components.find((c) => c.slug === "flick-cards-slider") ?? components[0];
   return (
     <div className="grid gap-3.5 lg:grid-cols-[1.2fr_1fr]">
       <Card index={0} className="flex flex-col p-8 sm:p-9">
