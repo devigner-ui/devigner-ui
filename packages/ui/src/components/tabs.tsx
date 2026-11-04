@@ -29,14 +29,13 @@ export type TabsSize = "sm" | "md" | "lg";
 type TabsOptions = readonly (string | TabsOption)[];
 
 /** The value type of an options list: each string, and each object's value. */
-export type TabsValue<O extends TabsOptions> =
-  O[number] extends infer E
-    ? E extends string
-      ? E
-      : E extends { value: infer V extends string }
-        ? V
-        : never
-    : never;
+export type TabsValue<O extends TabsOptions> = O[number] extends infer E
+  ? E extends string
+    ? E
+    : E extends { value: infer V extends string }
+      ? V
+      : never
+  : never;
 
 // Generic over the whole options list rather than a value type, so a mix of
 // strings and objects keeps every value, and value / defaultValue are checked
@@ -69,6 +68,9 @@ const SIZES = {
   md: "h-7 gap-1.5 px-3 text-[12px] [&_svg]:size-4",
   lg: "h-8 gap-2 px-4 text-[13px] [&_svg]:size-4",
 } as const;
+
+// A leading icon reads as padding of its own, so the left side gives some back.
+const ICON_PAD = { sm: "pl-2", md: "pl-2.5", lg: "pl-3" } as const;
 
 const toOption = (o: string | TabsOption): TabsOption =>
   typeof o === "string" ? { value: o } : o;
@@ -164,7 +166,7 @@ function TabsInner(
           }}
           transition={pill.glide && !reduced ? SPRING_LAYOUT : { duration: 0 }}
           className={cn(
-            "absolute top-0 left-0 rounded-full bg-accent",
+            "absolute top-0 left-0 rounded-full bg-foreground/8 dark:bg-accent",
             classNames?.indicator,
           )}
         />
@@ -180,8 +182,9 @@ function TabsInner(
             className={cn(
               "relative flex shrink-0 cursor-pointer items-center justify-center rounded-full font-mono whitespace-nowrap select-none",
               "transition-colors duration-150 ease-out",
-              "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-1 has-[:focus-visible]:outline-ring",
+              "has-focus-visible:outline-2 has-focus-visible:outline-offset-1 has-focus-visible:outline-ring",
               SIZES[size],
+              o.icon && ICON_PAD[size],
               iconOnly && "aspect-square px-0",
               fill && "flex-1",
               checked
@@ -206,7 +209,9 @@ function TabsInner(
                 {(checked && o.activeIcon) || o.icon}
               </span>
             )}
-            {!iconOnly && <span className="relative">{o.label ?? o.value}</span>}
+            {!iconOnly && (
+              <span className="relative">{o.label ?? o.value}</span>
+            )}
           </label>
         );
       })}

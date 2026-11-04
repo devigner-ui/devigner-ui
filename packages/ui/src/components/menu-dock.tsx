@@ -521,7 +521,7 @@ export function MenuDock({
             isContent ? undefined : open ? "vertical" : "horizontal"
           }
           className={cn(
-            "w-fit max-w-[calc(100vw-2rem)] overflow-hidden bg-background p-2 smooth-shadow-ring-lg",
+            "w-fit max-w-[calc(100vw-2rem)] overflow-hidden bg-background p-2 smooth-shadow-ring-lg [--smooth-ring-color:color-mix(in_oklab,var(--foreground)_5%,transparent)]",
             className,
             classNames?.shell,
           )}

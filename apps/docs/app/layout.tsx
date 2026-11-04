@@ -18,13 +18,13 @@ const geistMono = localFont({
 });
 
 // The accent face: one emphasized word in a title (.accent-word). OFL,
-// github.com/collletttivo/mazius-display.
-const mazius = localFont({
-  src: "../assets/fonts/MaziusDisplay-ExtraItalicBold.woff2",
-  weight: "700",
+// github.com/Instrument/instrument-serif.
+const instrumentSerif = localFont({
+  src: "../assets/fonts/instrument-serif-400-italic.ttf",
+  weight: "400",
   style: "italic",
   display: "swap",
-  variable: "--font-mazius",
+  variable: "--font-instrument-serif",
   preload: false,
 });
 
@@ -81,7 +81,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${geistMono.variable} ${mazius.variable}`}
+      className={`${GeistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
       suppressHydrationWarning
     >
       <head>

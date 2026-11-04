@@ -8,62 +8,23 @@ import { componentNames } from "@/lib/registry-names";
 import {
   IconArchive,
   IconArrowUpDown,
-  IconBook2,
+  IconBookPages,
   IconBrush,
-  IconComponent,
+  IconDiamondDivided,
   IconHeart,
   IconHistory,
-  IconHomeAngle2,
+  IconHomeAngleDoor,
   IconInbox,
   IconLamp,
   IconLibrary,
   IconLogout,
-  IconSearchNormal,
-  IconSettings,
+  IconMagnifierGap,
   IconUser,
 } from "@devigner-ui/icons";
 
+/** The catalog card shows the same dock as the details page. */
 export default function MenuDockDemo() {
-  const [active, setActive] = useState("home");
-  const pick = (id: string) => () => setActive(id);
-  return (
-    <MenuDock
-      active={active}
-      items={[
-        {
-          id: "home",
-          label: "Home",
-          icon: <IconHomeAngle2 strokeWidth={2} />,
-          activeIcon: <IconHomeAngle2 variant="Bold" />,
-          onSelect: pick("home"),
-        },
-        {
-          id: "search",
-          label: "Search",
-          icon: <IconSearchNormal strokeWidth={2} />,
-          activeIcon: <IconSearchNormal variant="Bold" />,
-          onSelect: pick("search"),
-        },
-        {
-          id: "saved",
-          label: "Saved",
-          icon: <IconHeart strokeWidth={2} />,
-          activeIcon: <IconHeart variant="Bold" />,
-          onSelect: pick("saved"),
-        },
-        {
-          id: "account",
-          label: "Account",
-          icon: <IconSettings strokeWidth={2} />,
-          items: [
-            { label: "Profile", icon: <IconUser /> },
-            { label: "Appearance", icon: <IconBrush /> },
-            { label: "Sign out", icon: <IconLogout />, destructive: true },
-          ],
-        },
-      ]}
-    />
-  );
+  return <MenuDockPreview />;
 }
 
 /** The MenuDock's search panel, passed to its Search item as `content`. It is
@@ -88,7 +49,7 @@ function MenuDockSearch() {
   return (
     <div className="flex w-72 flex-col gap-1">
       <div className="flex h-10 items-center gap-3 rounded-2xl bg-surface2 px-3">
-        <IconSearchNormal className="size-5 shrink-0 text-text-muted" />
+        <IconMagnifierGap className="size-5 shrink-0 text-text-muted" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -111,7 +72,7 @@ function MenuDockSearch() {
               href={`/components/${c.slug}`}
               className="flex h-10 items-center gap-3 rounded-2xl px-3 text-[15px] text-foreground transition-colors hover:bg-surface-hover"
             >
-              <IconComponent className="size-5 shrink-0 text-text-muted" />
+              <IconDiamondDivided className="size-5 shrink-0 text-text-muted" />
               <span className="flex-1 truncate">{c.name}</span>
             </Link>
           ))
@@ -127,14 +88,14 @@ const MENU_DOCK_ITEMS: MenuDockItem[] = [
   {
     id: "home",
     label: "Home",
-    icon: <IconHomeAngle2 strokeWidth={2} />,
-    activeIcon: <IconHomeAngle2 variant="Bold" />,
+    icon: <IconHomeAngleDoor strokeWidth={2} />,
+    activeIcon: <IconHomeAngleDoor variant="Bold" />,
   },
   {
     id: "search",
     label: "Search",
-    icon: <IconSearchNormal strokeWidth={2} />,
-    activeIcon: <IconSearchNormal variant="Bold" />,
+    icon: <IconMagnifierGap strokeWidth={2} />,
+    activeIcon: <IconMagnifierGap variant="Bold" />,
     content: <MenuDockSearch />,
   },
   {
@@ -150,14 +111,14 @@ const MENU_DOCK_ITEMS: MenuDockItem[] = [
     activeIcon: <IconLibrary variant="Bold" />,
     items: [
       { label: "Recently viewed", icon: <IconHistory /> },
-      { label: "Bookmarked", icon: <IconBook2 /> },
+      { label: "Bookmarked", icon: <IconBookPages /> },
       { label: "Downloads", icon: <IconArchive /> },
     ],
   },
   {
     id: "account",
     label: "Account",
-    icon: <IconArrowUpDown className="size-3.5!" strokeWidth={2} />,
+    icon: <IconArrowUpDown className="size-3.75!" strokeWidth={2} />,
     items: [
       {
         label: "Profile",

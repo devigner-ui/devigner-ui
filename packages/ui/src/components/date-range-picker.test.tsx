@@ -527,7 +527,7 @@ describe("DateRangePicker", () => {
 
   it("renders the default title and presets", () => {
     render(<DateRangePicker defaultMonth={new Date(2026, 8, 1)} />);
-    expect(screen.getByText("Trip Dates")).toBeTruthy();
+    expect(screen.getByText("Trip dates")).toBeTruthy();
     for (const label of ["Weekend", "3 nights", "1 week", "2 weeks", "Clear"]) {
       expect(screen.getByRole("button", { name: label })).toBeTruthy();
     }

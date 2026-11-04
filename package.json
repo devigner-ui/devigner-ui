@@ -30,6 +30,6 @@
   },
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
-    "@devigner-ui/icons": "3.3.0"
+    "@devigner-ui/icons": "3.5.0"
   }
 }

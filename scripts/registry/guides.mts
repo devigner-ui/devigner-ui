@@ -124,6 +124,7 @@ export function DocsLink() {
     ],
     theming: [
       "classNames targets the root, header, actions, chart, point, tooltip and labels slots, and slotProps passes attributes to them.",
+      "The header sits on a bg-accent base, its icon and buttons in bg-background circles; the figures and bars sit on a raised bg-background card with shadow-subtle, like the Date Range Picker.",
       "The open bar, its dot and the tooltip use primary; idle bars use bg-accent with a border-input top edge.",
       "renderTooltip replaces the tooltip content but keeps its position and motion; renderPoint adds content inside each bar.",
     ],
@@ -211,11 +212,11 @@ export function SalesCard() {
       {
         title: "Studio contact",
         description: "Email, website and name from one address.",
-        code: `import { IconGlobal, IconSms, IconUser } from "@devigner-ui/icons";
+        code: `import { IconGlobal, IconMail, IconUser } from "@devigner-ui/icons";
 import { ContactLens } from "@/components/ui/contact-lens";
 
 const items = [
-  { label: "Email", icon: <IconSms /> },
+  { label: "Email", icon: <IconMail /> },
   { label: "Website", icon: <IconGlobal />, text: "devigner.cc", copy: "https://devigner.cc" },
   { label: "Name", icon: <IconUser />, text: "hello" },
 ];
@@ -227,11 +228,11 @@ export function Contact() {
       {
         title: "Links instead of copy",
         description: "Email opens the mail app, the website opens in a tab.",
-        code: `import { IconGlobal, IconSms } from "@devigner-ui/icons";
+        code: `import { IconGlobal, IconMail } from "@devigner-ui/icons";
 import { ContactLens } from "@/components/ui/contact-lens";
 
 const items = [
-  { label: "Email", icon: <IconSms />, href: "mailto:hello@devigner.cc" },
+  { label: "Email", icon: <IconMail />, href: "mailto:hello@devigner.cc" },
   { label: "Website", icon: <IconGlobal />, text: "devigner.cc", href: "https://devigner.cc" },
 ];
 
@@ -243,11 +244,11 @@ export function ContactLinks() {
         title: "Light a part from outside",
         description: "Control the lit item, for example from a button elsewhere on the page.",
         code: `import { useState } from "react";
-import { IconSms, IconUser } from "@devigner-ui/icons";
+import { IconMail, IconUser } from "@devigner-ui/icons";
 import { ContactLens } from "@/components/ui/contact-lens";
 
 const items = [
-  { label: "Email", icon: <IconSms /> },
+  { label: "Email", icon: <IconMail /> },
   { label: "Name", icon: <IconUser />, text: "hello" },
 ];
 
@@ -500,7 +501,7 @@ export function Roadmap() {
       REDUCED_MOTION,
     ],
     theming: [
-      "className goes on the footprint wrapper that holds the dock's place in the layout; position the dock there. classNames.shell styles the surface that grows, whose shadow-elevated utility is a Devigner shadow token (define --shadow-elevated in your @theme or swap in shadow-lg).",
+      "className goes on the footprint wrapper that holds the dock's place in the layout; position the dock there. classNames.shell styles the surface that grows. Its shadow is smooth-shadow-ring-lg, a shadow utility from shadow-plugin, with its ring dropped to var(--foreground) at 5% so the edge is barely there; swap in shadow-lg if you don't use shadow-plugin.",
       "floating pins the dock to the bottom center of the viewport.",
       "destructive rows (such as Sign out) use the destructive color.",
       "Pass activeIcon next to icon to swap in a filled glyph for the active item, and renderIcon to wrap or replace any icon.",
@@ -552,7 +553,7 @@ export function AppDock({ signOut }: { signOut: () => void }) {
 
   "date-range-picker": {
     demo:
-      "The live demo is a Trip Dates calendar where days before today are disabled. Pick a check-in day, then move across the calendar to preview the range before you choose check-out; the badge counts the nights, and presets such as Weekend fill a range in one press.",
+      "The live demo is a Trip dates calendar where days before today are disabled. Pick a check-in day, then move across the calendar to preview the range before you choose check-out; the badge counts the nights, and presets such as Weekend fill a range in one press.",
     whenToUse: [
       "Booking and travel flows (check-in and check-out, nights), and any start and end date filter.",
       "Inline in a page or a popover you provide, when you want the range preview and presets.",
@@ -798,7 +799,7 @@ export function WifiSetting() {
   },
   "liquid-glass": {
     demo:
-      "The live demo is a GlassMenu over a dot field: a Menu pill that swells out from its center into a squircle glass panel of four rows, its text zooming out of the way while the rows zoom in from a little larger and blurred. Pick a row, press Escape or press outside and it melts back into the pill. Pressing the pill swells it slightly and it wobbles back when let go. In Chrome and Edge the rim bends whatever sits behind it.",
+      "The live demo is a GlassMenu over a dot field: a Menu pill that swells out from its center into a squircle glass panel of four rows, its text zooming out of the way while the rows zoom in from a little larger and blurred. Pick a row, press Escape or press outside and it melts back into the pill. Pressing the pill swells it slightly and it wobbles back when let go. In Chrome and Edge the rim bends whatever sits behind it. On the component page the preview opens on the shader glass over a night photo instead, with Settings to switch back to the page lens and to tune the tint and the blur.",
     whenToUse: [
       "A small set of actions or destinations that should stay out of the way until asked for, such as a view switcher or a shape picker.",
       "Floating controls over media, maps or artwork, where the Liquid Glass look matches the surroundings.",
@@ -823,10 +824,11 @@ export function WifiSetting() {
     ],
     theming: [
       "The glass tint mixes var(--background) in by transparency, from 0 (ultra clear, 3%) to 1 (fully tinted, 85%). Even clear glass softens the backdrop slightly; the blur builds up toward the tinted end.",
-      "Rows use text-foreground, with a var(--foreground) wash on hover and focus. Hovering the closed pill lights it faintly from inside and pressing lights it brightly, in white light, in both themes.",
+      "Rows use text-foreground, with a var(--foreground) wash on hover (15%) and focus (18%) that fades over 1s. Hovering the closed pill lights it faintly from inside and pressing lights it brightly, in white light, in both themes.",
       "The rim has a crisp specular line and a soft inner glow, brightest at the top left and bottom right, plus a faint var(--foreground) line at 8% just outside. The specular light and the drop shadow are white and black light, the same in both themes. In Chromium the rim also splits a thin rainbow, like real glass.",
       "The closed pill has gently squircle ends and the open panel firms up into squircle corners as it grows. Browsers with CSS corner-shape draw the focus rings and row highlights with the same curve; others keep them round.",
       "Pass className to place the wrapper.",
+      "With backdrop the glass is drawn by a WebGL shader over that image instead of the lens over the page: a 9 by 9 blur, a lens that magnifies toward the rounded rim, and a light along the top edge. It works in every browser with WebGL.",
     ],
     edgeCases: [
       "The panel grows out of the pill's center, as far each way, and floats over its surroundings without moving them. Over the clear glass anything underneath shows through the rows, so leave it free space all around or raise transparency.",
@@ -835,6 +837,7 @@ export function WifiSetting() {
       "The lens needs something behind it. On a flat background the glass looks frosted either way; place it over images, stripes or text to see it.",
       "An ancestor with filter, opacity below 1 or a mask cuts the glass off from the page behind it, so the lens and blur only see content inside that ancestor.",
       "Setting disabled while open closes the panel.",
+      "The shader glass can only bend an image, not the live page, so backdrop names one and the element it fills. Same origin images work as they are; others need CORS. Without WebGL, or before the image loads, the glass shows the image plainly.",
     ],
     recipes: [
       {
@@ -928,7 +931,7 @@ export function ViewMenu({ items, show }: {
     theming: [
       "Progress, the trail behind it, the choose link and the drag-over state use var(--primary). Paused, the fill turns var(--foreground) and the trail goes grey with a dashed edge.",
       "Errors use var(--destructive): a red dropzone, or a red-ringed card with Retry.",
-      "The panel is var(--card) on a var(--muted) shell that holds Cancel (var(--foreground) at 6%) and Submit (var(--primary)).",
+      "The panel is a raised var(--background) card with a soft shadow on a var(--accent) base, like the Date Range Picker; the base holds Cancel (var(--background)) and Submit (var(--primary)).",
       "Badges are colored by file family (archives amber, RAR violet, PDF red, design files orange, images blue, video pink, audio sky, documents indigo, sheets emerald, slides orange), each with its own glyph, and fall back to var(--primary). Image files show a thumbnail instead.",
       "Queued is Tailwind amber-600 and the completed tick emerald-500, since shadcn/ui has no warning or success token.",
       "classNames: FileUploader targets root, panel, header, dropzone, list and footer; FileDropzone targets root, icon, label and hint; FileUpload targets root, card, badge, name, status, track, fill and actions.",
@@ -1860,6 +1863,637 @@ export function PlanField() {
       {
         question: "Arrow keys move into another group.",
         answer: "Two groups were given the same name. Leave name out unless the group sits in a form, and give each form field its own name.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "command-palette": {
+    demo:
+      "The live demo is a palette with suggestions and settings. Type to filter every page at once, move with the arrow keys, and open Change theme to see the next page slide in with its name as a crumb in the field.",
+    whenToUse: [
+      "A Cmd+K or Ctrl+K launcher for an app or docs site: jump to pages, run actions, change settings.",
+      "Long command lists that benefit from search, grouped into sections, with deeper pages for choices like theme or language.",
+    ],
+    whenNotToUse: [
+      "Picking one value for a form field. Use a select or combobox, which keeps the choice visible in the field.",
+      "Primary navigation people need to see without typing. Use visible links or tabs.",
+    ],
+    keyboard: [
+      ["Up / Down arrows", "Move the highlight, skipping disabled rows, looping at the ends."],
+      ["Enter", "Runs the highlighted row, or opens its page."],
+      ["Backspace", "On an empty field, goes back one page."],
+      ["Escape", "Clears the search, then goes back a page. On the top page with an empty field it calls onEscape, so a dialog around the palette can close."],
+    ],
+    accessibility: [
+      "The field is a combobox controlling a listbox, and the highlighted row is announced through aria-activedescendant, so focus never leaves the field.",
+      "Sections are groups named by their heading, rows with a page carry aria-haspopup, and disabled rows carry aria-disabled.",
+      "An empty search is a status message that names the query.",
+      "The crumb in the field is a button named \"Back from <page>\" by default.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "classNames targets root, field, list, item, indicator and footer.",
+      "Colors come from shadcn tokens: the highlight is foreground at 4.5% (7% in dark), matches and the crumb are primary. Idle rows are muted-foreground and the active one foreground. The surface is var(--panel) when your app defines it and background otherwise, with a 4% foreground rim and a layered shadow. Key caps and icon tiles are inset wells on background/40.",
+      "messages replaces the placeholder, both empty states, the crumb's name, the hint labels and the default action word.",
+      "shortcut shows key caps at the end of a row. They are display only; bind the keys yourself.",
+      "The active row shows its action word in primary at the end (messages.run, Run, when the item sets none). A row with a shortcut keeps its keys instead.",
+      "Group headings and their actions are set in the mono font, rows at 13px; the icon darkens on the active row.",
+    ],
+    edgeCases: [
+      "A search covers the current page and every page under it. Results show the pages they sit in, and drop section headings so the best match comes first.",
+      "Choosing a row runs its onSelect, then the palette's onSelect, then returns to the top page with an empty field. Set resetOnSelect to false to stay put.",
+      "A row with both items and onSelect opens its page; onSelect is not called.",
+      "The search matches a row's description as well as its label and keywords.",
+      "The pointer lights the nearest row, so a heading or a gap between rows never drops the highlight. Each time the pointer enters the list, the highlight fades in under it rather than sliding over from the row the keys left it on.",
+      "A group action button keeps focus in the field when clicked, so the arrow keys still work after it runs.",
+      "The list scrolls past 384px, keeping the highlighted row in view without scrolling the page.",
+      "The palette is inline. Put it in your own dialog or popover to open it with Cmd+K, as in the recipe.",
+    ],
+    recipes: [
+      {
+        title: "Open it with Cmd+K",
+        description: "A native dialog that opens on Cmd+K or Ctrl+K, focuses the field and closes after a command runs.",
+        code: `import { useEffect, useRef } from "react";
+import { CommandPalette, type CommandPaletteItem } from "@/components/ui/command-palette";
+
+export function CommandMenu({ items }: { items: CommandPaletteItem[] }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        dialog.current?.showModal();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  return (
+    <dialog ref={dialog} className="m-auto bg-transparent p-0 backdrop:bg-black/40">
+      <CommandPalette items={items} autoFocus onSelect={() => dialog.current?.close()} />
+    </dialog>
+  );
+}`,
+      },
+      {
+        title: "Nested pages with groups and shortcuts",
+        description: "Rows sharing a group sit under one heading; a row with items opens a page.",
+        code: `import { CommandPalette, type CommandPaletteItem } from "@/components/ui/command-palette";
+
+const items: CommandPaletteItem[] = [
+  { label: "New file", group: "Files", shortcut: ["Ctrl", "N"], onSelect: () => console.log("new") },
+  { label: "Open recent", group: "Files", keywords: ["history"], onSelect: () => console.log("recent") },
+  {
+    label: "Change theme",
+    group: "Settings",
+    items: [
+      { label: "Light", onSelect: () => console.log("light") },
+      { label: "Dark", keywords: ["night"], onSelect: () => console.log("dark") },
+    ],
+  },
+];
+
+export function Example() {
+  return <CommandPalette items={items} />;
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "Escape closes my dialog while there is still text in the field.",
+        answer: "It shouldn't: the palette stops Escape while it has a search or a page to undo. If your dialog listens on window in the capture phase, listen in the bubble phase instead.",
+      },
+      {
+        question: "The palette goes back to the top after every choice.",
+        answer: "That is resetOnSelect, on by default. Pass resetOnSelect={false} to keep the page and search.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "dynamic-island": {
+    demo:
+      "The live demo starts on Music playing. Pick any of the ten views below it: going from one view to another, the island rests as the pill for a moment, then springs open into the next. Back to Idle, it snaps in with a liquid bounce. On the component page the views sit in the Settings panel and play through on their own, one every 3s, until you turn Auto-play off.",
+    whenToUse: [
+      "Live status that should stay in view without a toast stack: a timer, a recording, an upload, music playing.",
+      "A small, glanceable control surface that can briefly grow for an incoming event, such as a call or a delivery arriving.",
+    ],
+    whenNotToUse: [
+      "Messages people must read and dismiss, or errors. Use a toast or an inline message.",
+      "Several things happening at once. The island shows one view; queue them or pick the most important.",
+    ],
+    keyboard: [
+      ["Tab", "Moves to the buttons inside the current view, if it has any. The island itself takes no focus."],
+    ],
+    accessibility: [
+      "The island is a region named \"Live activity\" by default, and each view's label is announced in a polite live region when it opens.",
+      "Content stays in the DOM order of the page, so buttons inside a view are reachable by keyboard as normal.",
+      "The changing numbers inside a view, such as a countdown, are not announced every tick; only the label is.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The island is black with white text in both themes, like the cutout it grows from, with no border. Restyle it through classNames.island.",
+      "classNames.content styles the box around each view. It adds no padding: a view's content owns its padding and size, as the presets do.",
+      "The shape moves on springs fitted to iOS: SPRING_ISLAND_OPEN (bounce 0.2) opening a view, SPRING_ISLAND_POP (0.3) for one that lands harder, SPRING_ISLAND_REST (0.5) snapping back to the pill, each settling in about 0.8s. Content rises from 90% scale out of a 5px blur on the same spring.",
+      "The presets use the system colors iOS uses on the island (orange, red, green, blue as hex), not theme tokens, since the island is black in every theme.",
+    ],
+    edgeCases: [
+      "A view without width and height is measured from its content, so it grows and shrinks with it, such as a label that changes length.",
+      "The island rests at 100 by 28, never gets shorter than that, and its corners stop rounding at 32px so a tall view reads as a slab.",
+      "Changing view while a hop is resting cancels it and heads for the newest view, so fast clicks never queue.",
+      "Each preset keeps its own state (a countdown, a paused track) while it shows, and starts fresh the next time it opens. The timers stop when they reach zero.",
+      "IslandRing without silent flips between Ring and Silent every 2s, like the switch being toggled; pass silent to hold one. IslandAirdropMini without progress runs a transfer on its own and calls onDone a beat after it completes.",
+      "IslandAirdrop and IslandAirdropMini take count and noun (3 files by default; an s is added past one) and an avatar photo, falling back to the sender's initials. IslandScreenRecord's ring turns slowly once it settles, and holds still under reduced motion.",
+      "The island sizes itself from its content and moves between sizes as one layout transform, so the content squashes and stretches with the shape on the way and never relays the page out mid-move.",
+      "It never grows wider than the viewport minus 32px.",
+      "The island doesn't change view on its own. Set view from your own state, such as an upload finishing.",
+      "floating fixes it to the top center; only the island catches clicks, so the page under the empty band stays usable.",
+    ],
+    recipes: [
+      {
+        title: "Use the presets",
+        description: "Each preset is a content component sized like its iOS counterpart. Wire its buttons to your own state.",
+        code: `import { useState } from "react";
+import { SPRING_ISLAND_POP } from "devignerui/motion";
+import { DynamicIsland, IslandAirdrop, IslandMusic, IslandTimer } from "@/components/ui/dynamic-island";
+
+export function Activity() {
+  const [view, setView] = useState<string | null>("music");
+  const rest = () => setView(null);
+  return (
+    <DynamicIsland
+      view={view}
+      views={[
+        { id: "music", label: "Now playing", content: <IslandMusic title="Night Drive" artist="Lumen" /> },
+        { id: "timer", label: "Timer, 1 minute", content: <IslandTimer seconds={60} onClose={rest} />, transition: SPRING_ISLAND_POP },
+        { id: "airdrop", label: "AirDrop from Mira", content: <IslandAirdrop from="Mira" onDecline={rest} onAccept={rest} /> },
+      ]}
+    />
+  );
+}`,
+      },
+      {
+        title: "Show an upload, then rest",
+        description: "Grow into a progress view while a file uploads and go back to the pill when it finishes.",
+        code: `import { useState } from "react";
+import { DynamicIsland } from "@/components/ui/dynamic-island";
+
+export function UploadStatus({ start }: { start: (onProgress: (n: number) => void) => Promise<void> }) {
+  const [pct, setPct] = useState<number | null>(null);
+  const run = async () => {
+    setPct(0);
+    await start(setPct);
+    setPct(null);
+  };
+  return (
+    <div className="grid justify-items-center gap-4">
+      <DynamicIsland
+        view={pct === null ? null : "upload"}
+        views={[
+          {
+            id: "upload",
+            label: "Uploading",
+            content: <span className="font-mono text-sm tabular-nums">Uploading {pct}%</span>,
+          },
+        ]}
+      />
+      <button type="button" onClick={run}>Upload</button>
+    </div>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The island snaps to its new size instead of growing.",
+        answer: "Reduced motion is on, either in the OS or through an ancestor MotionConfig. That is intended; the island changes size at once.",
+      },
+      {
+        question: "My view is cut off.",
+        answer: "A fixed width or height smaller than the content clips it. Leave both out to fit the content, or make them larger.",
+      },
+      {
+        question: "Switching views waits half a second.",
+        answer: "That is the hop through the resting pill, as iOS does between two live activities. Pass hop={false} to morph straight from one view to the next.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "morphing-popover": {
+    demo:
+      "The live demo is an Add note pill on the dot field. Click it and the glass swells into a note form with Cancel and Save note; saving melts it back into the pill and shows Note saved underneath. On the component page the preview opens on the shader glass over a night photo, with Settings to switch back to the page lens.",
+    whenToUse: [
+      "A small task that belongs next to its trigger: add a note, rename, share, set a reminder.",
+      "Anywhere Liquid Glass is the look and a plain popover would break it.",
+    ],
+    whenNotToUse: [
+      "Long forms or anything that needs scrolling. Use a dialog or a page.",
+      "A list of actions. Use Liquid Glass's menu, which handles arrow keys between rows.",
+    ],
+    keyboard: [
+      ["Enter / Space", "Opens the panel from the pill and moves focus to its first field or button."],
+      ["Tab", "Moves through the panel. Tabbing out of it closes it."],
+      ["Escape", "Closes the panel and returns focus to the pill."],
+    ],
+    accessibility: [
+      "The pill is a button with aria-haspopup=\"dialog\" and aria-expanded; the panel is a non-modal dialog named by label.",
+      "Closed, the panel is inert, so nothing in it can be focused or read until it opens.",
+      "Closing with Escape or through close returns focus to the pill.",
+      "Under prefers-reduced-transparency the glass turns into a solid tint.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The glass is the same as Liquid Glass's: transparency runs from ultra clear (0) to fully tinted (1), and the tint is your background color.",
+      "Only Chromium bends the page through the rim; Safari and Firefox get frosted glass.",
+      "With backdrop the glass is drawn by the same WebGL shader as Liquid Glass's, over that image instead of the page, and it works in every browser with WebGL. blur sets how far it softens the image.",
+      "It swells open and melts back on TWEEN_GLASS_SOFT, a sampled spring about 6% past its size that settles in 1s.",
+      "classNames.trigger styles the pill's label and icon, and classNames.panel the box around the content, which pads 16px.",
+      "The panel's text uses foreground. Style the content inside it like any other markup.",
+    ],
+    edgeCases: [
+      "The pill fits its label and the panel fits its content, measured again whenever either changes size.",
+      "The panel swells out from the pill's center, as far each way, so leave room around the pill or place it where an overlap is fine.",
+      "A press anywhere outside closes the panel without moving focus.",
+      "disabled closes an open panel; enabling it again doesn't reopen it.",
+    ],
+    recipes: [
+      {
+        title: "A rename form that closes on save",
+        description: "Use the render prop to close the panel from the form's own buttons.",
+        code: `import { MorphingPopover } from "@/components/ui/morphing-popover";
+
+export function Rename({ name, onRename }: { name: string; onRename: (next: string) => void }) {
+  return (
+    <MorphingPopover label="Rename">
+      {(close) => (
+        <form
+          className="flex w-60 flex-col gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const next = new FormData(e.currentTarget).get("name");
+            if (typeof next === "string" && next.trim()) onRename(next.trim());
+            close();
+          }}
+        >
+          <input name="name" defaultValue={name} aria-label="Name" className="rounded-xl px-3 py-2" />
+          <button type="submit">Save</button>
+        </form>
+      )}
+    </MorphingPopover>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The glass looks frosted, not bent.",
+        answer: "Only Chromium renders the lens. Safari and Firefox get frosted glass by design, and so does anyone with reduced transparency on.",
+      },
+      {
+        question: "The panel is cut off.",
+        answer: "It grows past the pill's box on every side. Remove overflow-hidden from the pill's ancestors, or give the pill room.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "context-menu": {
+    demo:
+      "The live demo is a file card. Right-click it, or hold it on a touch screen, and the menu opens at that spot with Open, Rename, Duplicate, Copy link, a Move to submenu and Delete; a chosen action shows underneath.",
+    whenToUse: [
+      "Actions on an object people point at: files, rows, cards, canvas items.",
+      "Power-user shortcuts that also live somewhere visible, such as a toolbar or a row menu.",
+    ],
+    whenNotToUse: [
+      "The only way to reach an action. Right-click is hidden; give every action a visible route too.",
+      "A menu opened by clicking a button. Use a dropdown or Menu Dock instead.",
+    ],
+    keyboard: [
+      ["Shift+F10 / Menu key", "Opens the menu under the focused element, with the first row highlighted."],
+      ["Up / Down arrows", "Move between rows, skipping disabled ones, looping at the ends."],
+      ["Home / End", "First or last row."],
+      ["Right arrow / Enter", "Opens a submenu and moves into it."],
+      ["Left arrow", "Closes a submenu and goes back to the row that opened it."],
+      ["A letter", "Jumps to the next row starting with it."],
+      ["Escape", "Closes a submenu, then the menu, and gives focus back."],
+      ["Tab", "Closes the menu."],
+    ],
+    accessibility: [
+      "Each level is role=\"menu\" with menuitem rows and separator lines. Rows with a submenu carry aria-haspopup and aria-expanded.",
+      "Focus moves into the menu when it opens and returns to where it was when it closes after a choice or Escape.",
+      "Disabled rows are skipped by the keys and can't be clicked.",
+      "Make the area focusable (tabIndex={0} or a focusable child) so keyboard users can open it with Shift+F10.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "classNames.menu styles every surface, submenus included; classNames.item and classNames.indicator style the rows and the gliding highlight.",
+      "Colors come from shadcn tokens: the highlight is foreground at 4.5% (7% in dark), destructive rows use destructive. The surface is var(--panel) when your app defines it and background otherwise, with a 4% foreground rim and a layered shadow. Key caps are inset wells on background/40.",
+      "shortcut shows key caps at the end of a row. They are display only; bind the keys yourself.",
+    ],
+    edgeCases: [
+      "The menu renders in a portal on document.body with fixed positioning, so a clipping or scrolling parent never cuts it off.",
+      "Near the right or bottom edge it flips to the other side of the pointer, and it always keeps 8px from the screen's edge. Submenus flip left when there is no room on the right.",
+      "Scrolling, resizing, switching windows or a press outside closes it without moving focus.",
+      "A long press opens it on touch screens, including iOS, which never fires contextmenu. Moving the finger more than 10px cancels it.",
+      "An event handler on children that calls preventDefault on contextmenu stops the menu from opening.",
+    ],
+    recipes: [
+      {
+        title: "Row actions with a submenu",
+        description: "Separators group rows; a row with items opens a submenu.",
+        code: `import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
+
+export function FileRow({ name, onDelete }: { name: string; onDelete: () => void }) {
+  const items: ContextMenuEntry[] = [
+    { label: "Open", shortcut: ["Enter"], onSelect: () => console.log("open", name) },
+    {
+      label: "Move to",
+      items: [
+        { label: "Inbox", onSelect: () => console.log("inbox") },
+        { label: "Archive", onSelect: () => console.log("archive") },
+      ],
+    },
+    "separator",
+    { label: "Delete", destructive: true, onSelect: onDelete },
+  ];
+  return (
+    <ContextMenu items={items} label={\`Actions for \${name}\`}>
+      <div tabIndex={0} className="rounded-xl p-3">{name}</div>
+    </ContextMenu>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The browser's own menu still opens.",
+        answer: "Check that disabled is off and that nothing inside children calls preventDefault on contextmenu, which tells the menu someone else handled it.",
+      },
+      {
+        question: "Keyboard users can't open it.",
+        answer: "Shift+F10 works on the focused element, so the area needs something focusable: give it tabIndex={0} or put a button inside.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "rating": {
+    demo:
+      "The live demo is a large five-star rating at 3.5. Move across it and the fill follows the pointer in half stars; click to set it, and the number and its word update underneath.",
+    whenToUse: [
+      "Asking for a quick score: reviews, feedback after a task, rating a result.",
+      "Showing an average next to a product or item, with readOnly.",
+    ],
+    whenNotToUse: [
+      "Precise numbers or scales longer than about ten steps. Use a slider or a number field.",
+      "Yes or no feedback. Use two buttons, such as thumbs up and down.",
+    ],
+    keyboard: [
+      ["Right / Up arrows", "Raise the rating by one step."],
+      ["Left / Down arrows", "Lower it by one step."],
+      ["Home / End", "Set it to 0 or to the top."],
+      ["1 to 9", "Jump straight to that many stars."],
+    ],
+    accessibility: [
+      "The rating is one role=\"slider\" with aria-valuemin, aria-valuemax and aria-valuenow, and reads as \"3.5 out of 5\" by default (valueText).",
+      "Give it a name with aria-label or aria-labelledby, such as \"Rate this recipe\".",
+      "readOnly sets aria-readonly and disabled sets aria-disabled; neither takes input.",
+      "The stars themselves are hidden from screen readers; the slider carries the value.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The fill is warning and the empty stars are foreground at 12%. Change them through classNames.fill and classNames.empty, such as text-primary.",
+      "icon swaps the star for any shape drawn in currentColor: a heart, a flame, a dot.",
+      "size picks 20, 28 or 36px stars with the gaps to match.",
+      "The fill follows the pointer on SPRING_MOUSE and settles on SPRING_LAYOUT when you commit; the star you land on pops with SPRING_PRESS.",
+    ],
+    edgeCases: [
+      "Values snap to the step and the range, so 3.3 with step 0.5 shows 3.5, and anything over count shows count.",
+      "On touch, dragging across the stars previews and lifting your finger commits.",
+      "Without clearable there is no way to go back to 0 by pointer; Home on the keyboard still sets 0.",
+      "The fill grows from the left, also in right-to-left layouts.",
+    ],
+    recipes: [
+      {
+        title: "Ask for feedback and send it",
+        description: "A controlled rating that submits with a form under its name.",
+        code: `import { useState } from "react";
+import { Rating } from "@/components/ui/rating";
+
+export function Feedback({ send }: { send: (score: number) => void }) {
+  const [score, setScore] = useState(0);
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        send(score);
+      }}
+    >
+      <p id="rate-label">How was the checkout?</p>
+      <Rating aria-labelledby="rate-label" name="score" value={score} onValueChange={setScore} clearable />
+      <button type="submit" disabled={score === 0}>Send</button>
+    </form>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "I can't set half stars by clicking.",
+        answer: "Halves need step={0.5}. With the default step of 1 every click rounds up to a whole star.",
+      },
+      {
+        question: "The stars are invisible.",
+        answer: "They are colored with the warning and foreground tokens. Define them, or set your own colors through classNames.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "flick-cards-slider": {
+    demo:
+      "The live demo is a fan of five photo collections, Ember, Drift, Grain, Tide and Noir. Drag the front card sideways and the deck follows your pointer; let go past a short distance and the next card swings to the front with one overshoot while the others dim, and its View collection button fades in.",
+    whenToUse: [
+      "A small set of products, drops or campaigns, three to eight, where each one is a photo with a name and one call to action.",
+      "A hero or launch section that should invite a playful drag rather than a click on arrows.",
+    ],
+    whenNotToUse: [
+      "Long catalogs or anything people need to scan or compare: only the front card is readable. Use a grid.",
+      "Content that is mostly text. The cards are photos first, with a single large title over them.",
+    ],
+    keyboard: [
+      ["Tab", "Focuses the deck, then the front card's button."],
+      ["Left arrow", "Brings the card on the left to the front, looping past the first card."],
+      ["Right arrow", "Brings the card on the right to the front, looping past the last card."],
+    ],
+    accessibility: [
+      "The deck is a region with aria-roledescription=\"carousel\" and the label \"Cards\"; pass aria-label to name it, such as \"New arrivals\".",
+      "Each card is a group with aria-roledescription=\"slide\" and a label like \"2 of 5\". Only the front card is exposed: the others are aria-hidden and their buttons leave the tab order and take no clicks.",
+      "A polite live region reads the new front card, its title when the title is a string, after each flick or key press.",
+      "Give each item an alt when the photo carries meaning the title doesn't.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The deck's width is the front card's width (w-72 by default) and the card is always 2:3. The title, the button and the corner radius scale with that width through container query units, so className=\"w-96\" grows everything in proportion.",
+      "Cards one and two away from the front are dimmed by a layer of the background token at 27.5% and 52.5%. On a dark background they darken; on a light one they fade toward white.",
+      "The button uses background and foreground, the title is white over the photo. Change them through classNames.action and classNames.title.",
+      "The front card carries data-front, so classNames.card can style it alone, such as data-front:shadow-2xl.",
+      "Cards move on TWEEN_FLICK, GSAP's elastic.out(1.2, 1) over 0.6s; the dim layer and a leaving button use TWEEN_FLICK_FADE (0.2s) and the arriving button TWEEN_FLICK_REVEAL (0.7s).",
+    ],
+    edgeCases: [
+      "The side cards fan out about one card width past each edge of the deck. Leave room for them, or clip the section with overflow-hidden, or a narrow page scrolls sideways.",
+      "A full flick is two deck widths of drag; letting go past a tenth of that turns the deck, anything shorter springs back. Beyond one deck width the drag meets resistance.",
+      "The deck loops in both directions. With more than five items the cards three or more away from the front are hidden and slide in as they come round.",
+      "A press that moves less than 4px is a click, so the front card's button works under the drag. A drag that starts on the button never clicks it.",
+      "On touch the deck takes horizontal drags only, so the page still scrolls vertically over it.",
+    ],
+    recipes: [
+      {
+        title: "Product drop with links",
+        description: "Each card links to its product page; the deck is named for screen readers.",
+        code: `import { FlickCardsSlider, type FlickCardsSliderItem } from "@/components/ui/flick-cards-slider";
+
+const products: FlickCardsSliderItem[] = [
+  { image: "/drops/kr90.jpg", title: "KR90", action: { label: "Get this product", href: "/shop/kr90" } },
+  { image: "/drops/nv300.jpg", title: "NV300", action: { label: "Get this product", href: "/shop/nv300" } },
+  { image: "/drops/lx45.jpg", title: "LX45", action: { label: "Get this product", href: "/shop/lx45" } },
+];
+
+export function Drop() {
+  return (
+    <section className="grid place-items-center overflow-hidden py-24">
+      <FlickCardsSlider aria-label="New arrivals" items={products} className="w-80" />
+    </section>
+  );
+}`,
+      },
+      {
+        title: "Follow the front card",
+        description: "Control the index to show details for whichever card is in front.",
+        code: `import { useState } from "react";
+import { FlickCardsSlider, type FlickCardsSliderItem } from "@/components/ui/flick-cards-slider";
+
+export function Lookbook({ looks }: { looks: (FlickCardsSliderItem & { notes: string })[] }) {
+  const [index, setIndex] = useState(0);
+  return (
+    <div className="flex flex-col items-center gap-10 overflow-hidden py-16">
+      <FlickCardsSlider items={looks} index={index} onIndexChange={setIndex} />
+      <p className="text-sm text-muted-foreground">{looks[index]?.notes}</p>
+    </div>
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The page scrolls sideways on phones.",
+        answer:
+          "The side cards fan out past the deck's edges. Put the deck in a section with overflow-hidden, or make it narrower so the fan fits.",
+      },
+      {
+        question: "Dragging the deck selects text or drags the image instead.",
+        answer:
+          "The deck turns off text selection and native image dragging on its own cards. If you wrap it in something draggable, stop that wrapper from starting its own drag on pointerdown.",
+      },
+      TOKENS_MISSING,
+    ],
+  },
+  "menu-notch": {
+    demo:
+      "The live demo is a site menu: a pill with Menu and a sun button. Open it and the panel unfolds under the pill while the two lines cross into an X and Close blurs in letter by letter; run the pointer down the links and each one rolls up to a tinted copy, slow off the mark and then gliding in. The sun button switches the page between light and dark, its sun morphing into a moon.",
+    whenToUse: [
+      "A compact site or app menu that sits at the top of the page and opens over the content, with a handful of main links and a few secondary ones.",
+      "Landing pages and portfolios where the menu itself should feel crafted: the theme button comes with it.",
+    ],
+    whenNotToUse: [
+      "Deep navigation with nested levels or dozens of links. Use a sidebar or a full menu page.",
+      "Actions on a selection, such as Rename or Delete. Use Context Menu or Command Palette.",
+    ],
+    keyboard: [
+      ["Tab", "Moves through the toggle, the theme button, then every link while the menu is open."],
+      ["Enter / Space", "Opens or closes the menu from the toggle, and follows a focused link."],
+      ["Escape", "Closes the menu."],
+    ],
+    accessibility: [
+      "The menu is a nav landmark named \"Main\"; pass aria-label to rename it.",
+      "The toggle is a button with aria-expanded and aria-controls pointing at the panel, and is named by its current label (Menu or Close). The letters themselves are hidden from screen readers.",
+      "While closed the panel is inert and aria-hidden, so its links are out of the tab order.",
+      "Each group is a list labelled by its heading. Social links are named by their label, since they only show an icon.",
+      "A link rolls to its tinted copy on keyboard focus as well as on hover; the copy is aria-hidden.",
+      REDUCED_MOTION,
+    ],
+    theming: [
+      "The pill is foreground with background text, so it is dark on a light page and light on a dark one, and the panel is background. Section headings use muted-foreground and the divider is foreground at 8%.",
+      "Links and icons tint to primary on hover and focus, fading over 400ms on ease-tint. Change it through classNames.link, such as hover:text-destructive focus-visible:text-destructive.",
+      "Panel, pill and headings fade over 500ms when the theme changes (the pill on ease-out, the rest on ease-tint), so a theme switch crossfades the whole menu. A theme switch run inside a view transition replaces this with the transition's own animation.",
+      "The panel opens on SPRING_PILL, which also turns the icon; links roll over 600ms on EASE_ROLL, and the toggle's letters sharpen out of a 3px blur on TWEEN_LETTER, 50ms apart.",
+      "className sizes the menu: w-103.5 (414px) by default.",
+    ],
+    edgeCases: [
+      "The menu takes 78px of height in the layout; the panel opens over whatever is below it, so give it a positioned spot near the top of the page.",
+      "Clicking outside the menu or pressing Escape closes it.",
+      "Without onThemeChange the sun/moon button is not rendered. theme only picks the icon: switching your site's theme is up to onThemeChange.",
+      "Only sections with size \"lg\" get a divider below them.",
+    ],
+    recipes: [
+      {
+        title: "Site menu wired to a theme",
+        description: "Pass your theme state so the round button shows the right icon and switches it.",
+        code: `import { useState } from "react";
+import { MenuNotch, type MenuNotchSection, type MenuNotchTheme } from "@/components/ui/menu-notch";
+
+const sections: MenuNotchSection[] = [
+  {
+    label: "Menu",
+    size: "lg",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Resources", href: "/resources" },
+    ],
+  },
+  { label: "Legal", links: [{ label: "Privacy Policy", href: "/privacy" }, { label: "Terms & Conditions", href: "/terms" }] },
+];
+
+export function Header() {
+  const [theme, setTheme] = useState<MenuNotchTheme>("light");
+  return (
+    <header className={theme === "dark" ? "dark" : undefined}>
+      <MenuNotch sections={sections} theme={theme} onThemeChange={setTheme} />
+    </header>
+  );
+}`,
+      },
+      {
+        title: "Close the menu after navigating",
+        description: "Control open so a client-side navigation also folds the panel away.",
+        code: `import { useState } from "react";
+import { MenuNotch } from "@/components/ui/menu-notch";
+
+export function AppMenu({ go }: { go: (path: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const link = (label: string, path: string) => ({
+    label,
+    onSelect: () => {
+      go(path);
+      setOpen(false);
+    },
+  });
+  return (
+    <MenuNotch
+      open={open}
+      onOpenChange={setOpen}
+      sections={[{ label: "Menu", size: "lg", links: [link("Inbox", "/inbox"), link("Settings", "/settings")] }]}
+    />
+  );
+}`,
+      },
+    ],
+    troubleshooting: [
+      {
+        question: "The panel opens behind other content.",
+        answer:
+          "The panel is absolutely positioned with z-50 inside the menu. If a parent creates its own stacking context with a lower z-index, raise that parent, or the menu itself with className=\"z-50\".",
+      },
+      {
+        question: "The sun/moon button doesn't show.",
+        answer: "It only renders when onThemeChange is passed. Wire it to your theme state, and pass theme so it shows the right icon.",
       },
       TOKENS_MISSING,
     ],

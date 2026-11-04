@@ -84,5 +84,33 @@ export const componentNames: readonly { slug: string; name: string }[] = [
   {
     "slug": "tabs",
     "name": "Tabs"
+  },
+  {
+    "slug": "command-palette",
+    "name": "Command Palette"
+  },
+  {
+    "slug": "dynamic-island",
+    "name": "Dynamic Island"
+  },
+  {
+    "slug": "morphing-popover",
+    "name": "Morphing Popover"
+  },
+  {
+    "slug": "context-menu",
+    "name": "Context Menu"
+  },
+  {
+    "slug": "rating",
+    "name": "Rating"
+  },
+  {
+    "slug": "flick-cards-slider",
+    "name": "Flick Cards Slider"
+  },
+  {
+    "slug": "menu-notch",
+    "name": "Menu Notch"
   }
 ];

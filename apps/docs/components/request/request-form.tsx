@@ -321,7 +321,7 @@ export function RequestForm({
     details:
       details.trim().length < DETAILS_MIN
         ? details.trim()
-          ? `A little more, please: at least ${DETAILS_MIN} characters.`
+          ? `Add at least ${DETAILS_MIN} characters.`
           : "Tell us what it should do."
         : null,
     link:

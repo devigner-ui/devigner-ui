@@ -16,7 +16,8 @@ export function copyPasteSource(sourceFile: string) {
     .replaceAll('"../lib/hooks/use-hover-capable"', '"devignerui/hooks"')
     .replaceAll('"../lib/hooks/use-reduced-motion"', '"devignerui/hooks"')
     .replaceAll('"../lib/menu-path"', '"devignerui/menu-path"')
-    .replaceAll('"../lib/date-range"', '"devignerui/date-range"');
+    .replaceAll('"../lib/date-range"', '"devignerui/date-range"')
+    .replaceAll('"../lib/glass"', '"devignerui/glass"');
 }
 
 // tryIt, stageAlign and requestId are optional per descriptor; the as-const

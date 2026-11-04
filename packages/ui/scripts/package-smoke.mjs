@@ -68,12 +68,12 @@ import { createRequire } from "node:module";
 
 await import("devignerui");
 await import("devignerui/motion");
-await import("devignerui/hooks");await import("devignerui/menu-path");
+await import("devignerui/hooks");await import("devignerui/menu-path");await import("devignerui/glass");
 
 const require = createRequire(import.meta.url);
 require("devignerui");
 require("devignerui/motion");
-require("devignerui/hooks");require("devignerui/menu-path");
+require("devignerui/hooks");require("devignerui/menu-path");require("devignerui/glass");
 assert.ok(
   existsSync(require.resolve("devignerui/styles.css")),
   "stylesheet export did not resolve",

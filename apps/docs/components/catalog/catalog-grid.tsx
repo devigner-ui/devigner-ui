@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { IconArrowRight, IconSearchNormal } from "@devigner-ui/icons";
+import { IconArrowRight, IconMagnifierGap } from "@devigner-ui/icons";
 import { cn } from "cn";
 import {
   categoryCounts,
@@ -165,7 +165,7 @@ export function CatalogGrid({ entries }: { entries: CatalogEntry[] }) {
       <div className="sticky top-19 z-30 transition-transform duration-500 ease-drawer in-data-nav-hidden:-translate-y-16">
         <div className="flex flex-col gap-2 bg-background-100/85 p-1.5 border border-border backdrop-blur-xl lg:flex-row lg:items-center">
           <label className="flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-full border border-border bg-background px-4 ring-brand focus-within:ring-2 lg:max-w-xs">
-            <IconSearchNormal
+            <IconMagnifierGap
               aria-hidden
               className="size-4 shrink-0 text-text-muted"
             />

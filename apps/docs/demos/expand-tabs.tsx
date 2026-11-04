@@ -5,11 +5,11 @@ import {
   IconBriefcase,
   IconKeyboard,
   IconProfile,
-  IconTerminalAlt,
+  IconTerminalWide,
 } from "@devigner-ui/icons";
 
 export const EXPAND_TABS_ITEMS = [
-  { label: "Commands", icon: <IconTerminalAlt variant="Bulk" />, badge: "New" },
+  { label: "Commands", icon: <IconTerminalWide variant="Bulk" />, badge: "New" },
   { label: "About", icon: <IconProfile variant="Bulk" /> },
   { label: "Portfolio", icon: <IconBriefcase variant="Bulk" /> },
   { label: "Shortcuts", icon: <IconKeyboard variant="Bulk" /> },

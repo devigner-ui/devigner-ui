@@ -22,9 +22,9 @@ import {
   IconPenTool,
   IconPlay,
   IconPresentationGraph,
-  IconTickCircle,
-  IconTrashBinMinimalistic,
-  IconUploadMinimalistic,
+  IconCheckCircle,
+  IconTrashBinHandleLines,
+  IconUploadTray,
   IconVideo,
 } from "@devigner-ui/icons";
 import { useReducedMotionPreference } from "../lib/hooks/use-reduced-motion";
@@ -60,6 +60,83 @@ function formatBytes(bytes: number, unit = unitOf(bytes), fixed = false) {
   const text = fixed ? value.toFixed(1) : String(+value.toFixed(1));
   return `${text} ${UNITS[unit]}`;
 }
+
+const orFormat = new Intl.ListFormat("en", { type: "disjunction" });
+const orList = (items: string[]) => orFormat.format(items);
+
+const plural = new Intl.PluralRules("en-US");
+const fileCount = (n: number) =>
+  `${n} ${plural.select(n) === "one" ? "file" : "files"}`;
+
+/** Every built-in string of the card, the dropzone and the uploader.
+ *  Override any of them through `messages`. */
+export interface FileUploadMessages {
+  /** The status word on a card. */
+  status: Record<FileUploadStatus, string>;
+  /** Shown when an upload fails without a message of its own. */
+  uploadFailed: string;
+  /** After the uploaded bytes while a file is still going: " of 2.3 MB". */
+  total: (size: string) => string;
+  pause: string;
+  resume: string;
+  start: string;
+  cancel: string;
+  /** The trash button, and the close button of a failed file. */
+  remove: (name: string) => string;
+  progress: (name: string) => string;
+  /** Rejections. `types` comes from accept: ["ZIP", "PDF", "images"]. */
+  invalidType: (types: string[]) => string;
+  tooLarge: (maxSize: string) => string;
+  tooMany: (maxFiles: number) => string;
+  /** Follows the first reason when one drop has several rejections. */
+  leftOut: (count: number) => string;
+  /** The count on the file being dragged in. */
+  dragging: (count: number) => string;
+  duplicate: string;
+  /** A drop bigger than the room left in the uploader's list. */
+  room: (left: number) => string;
+  /** The uploader's list is full. */
+  full: (maxFiles: number) => string;
+  /** The dropzone hint while the uploader's list is full. */
+  fullHint: (maxFiles: number) => string;
+  close: string;
+}
+
+export const FILE_UPLOAD_MESSAGES: FileUploadMessages = {
+  status: {
+    queued: "Queued",
+    uploading: "Uploading",
+    paused: "Paused",
+    completed: "Completed",
+    error: "Failed",
+  },
+  uploadFailed: "Upload failed",
+  total: (size) => `\u00a0of ${size}`,
+  pause: "Pause upload",
+  resume: "Resume upload",
+  start: "Start upload",
+  cancel: "Cancel upload",
+  remove: (name) => `Remove ${name}`,
+  progress: (name) => `Uploading ${name}`,
+  invalidType: (types) =>
+    types.length
+      ? `Only ${orList(types)} are allowed`
+      : "This file type isn't allowed",
+  tooLarge: (maxSize) => `Choose a file under ${maxSize}`,
+  tooMany: (maxFiles) =>
+    maxFiles <= 0
+      ? "No more files can be added"
+      : `Up to ${fileCount(maxFiles)} at a time`,
+  leftOut: (count) => `${fileCount(count)} left out`,
+  dragging: fileCount,
+  duplicate: "Already in the list",
+  room: (left) =>
+    `Only ${left} more ${plural.select(left) === "one" ? "file" : "files"} can be added`,
+  full: (maxFiles) =>
+    `You can add up to ${fileCount(maxFiles)}. Remove one to add another`,
+  fullHint: (maxFiles) => `${maxFiles} of ${fileCount(maxFiles)} added.`,
+  close: "Close uploader",
+};
 
 /** Text that trades places with a blur. */
 const swap = {
@@ -210,14 +287,6 @@ export type FileUploadStatus =
   | "completed"
   | "error";
 
-const LABELS: Record<FileUploadStatus, string> = {
-  queued: "Queued",
-  uploading: "Uploading",
-  paused: "Paused",
-  completed: "Completed",
-  error: "Failed",
-};
-
 const TONES: Record<FileUploadStatus, string> = {
   queued: "text-amber-600 dark:text-amber-500",
   uploading: "text-primary",
@@ -271,6 +340,8 @@ export interface FileUploadProps extends Omit<
   changeLabel?: string;
   downloadLabel?: string;
   retryLabel?: string;
+  /** Replaces any built-in string; see FILE_UPLOAD_MESSAGES. */
+  messages?: Partial<FileUploadMessages>;
   classNames?: FileUploadClassNames;
 }
 
@@ -292,10 +363,12 @@ export function FileUpload({
   changeLabel = "Change",
   downloadLabel = "Download",
   retryLabel = "Retry",
+  messages,
   classNames,
   className,
   ...rest
 }: FileUploadProps) {
+  const m = { ...FILE_UPLOAD_MESSAGES, ...messages };
   const reduced = useReducedMotionPreference();
   const move = (t: Transition): Transition => (reduced ? { duration: 0 } : t);
   const tap = reduced ? undefined : { scale: 0.9 };
@@ -390,7 +463,7 @@ export function FileUpload({
                     className="flex shrink-0 items-center overflow-hidden"
                   >
                     {done ? (
-                      <IconTickCircle
+                      <IconCheckCircle
                         variant="Bold"
                         className="mr-1 size-4 text-emerald-500"
                       />
@@ -421,7 +494,7 @@ export function FileUpload({
                     transition={move(SPRING_SWAP)}
                     className={errored ? "truncate" : undefined}
                   >
-                    {errored ? (error ?? "Upload failed") : LABELS[status]}
+                    {errored ? (error ?? m.uploadFailed) : m.status[status]}
                   </motion.span>
                 </AnimatePresence>
               </span>
@@ -465,7 +538,7 @@ export function FileUpload({
                     transition={move(SPRING_SWAP)}
                     className="overflow-hidden"
                   >
-                    &nbsp;of {formatBytes(size)}
+                    {m.total(formatBytes(size))}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -481,10 +554,10 @@ export function FileUpload({
                   onClick={toggle}
                   aria-label={
                     status === "uploading"
-                      ? "Pause upload"
+                      ? m.pause
                       : paused
-                        ? "Resume upload"
-                        : "Start upload"
+                        ? m.resume
+                        : m.start
                   }
                   {...pop}
                   transition={move(SPRING_SWAP)}
@@ -537,7 +610,7 @@ export function FileUpload({
                       key="remove"
                       type="button"
                       onClick={onRemove}
-                      aria-label="Remove file"
+                      aria-label={m.remove(name)}
                       {...pop}
                       transition={move(SPRING_SWAP)}
                       whileTap={tap}
@@ -546,7 +619,7 @@ export function FileUpload({
                         "bg-destructive/10 text-destructive hover:bg-destructive/15",
                       )}
                     >
-                      <IconTrashBinMinimalistic
+                      <IconTrashBinHandleLines
                         variant="Bold"
                         className="size-3.5"
                       />
@@ -557,7 +630,7 @@ export function FileUpload({
                       key="cancel"
                       type="button"
                       onClick={onCancel}
-                      aria-label={errored ? "Dismiss" : "Cancel upload"}
+                      aria-label={errored ? m.remove(name) : m.cancel}
                       {...pop}
                       transition={move(SPRING_SWAP)}
                       whileTap={tap}
@@ -585,7 +658,7 @@ export function FileUpload({
             >
               <div
                 role="progressbar"
-                aria-label={`Uploading ${name}`}
+                aria-label={m.progress(name)}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={percent}
@@ -692,9 +765,6 @@ function acceptLabels(accept?: string) {
     });
 }
 
-const orFormat = new Intl.ListFormat("en", { type: "disjunction" });
-const orList = (items: string[]) => orFormat.format(items);
-
 /** Same rules as the input's accept attribute: extensions, exact MIME
  *  types and type/* wildcards. */
 function accepts(file: File, accept?: string) {
@@ -717,11 +787,13 @@ function validateFiles(
     maxSize,
     maxFiles,
     validate,
+    messages: m,
   }: {
     accept?: string;
     maxSize?: number;
     maxFiles?: number;
     validate?: FileValidator;
+    messages: FileUploadMessages;
   },
 ) {
   const accepted: File[] = [];
@@ -733,15 +805,13 @@ function validateFiles(
       rejected.push({
         file,
         reason: "file-invalid-type",
-        message: types.length
-          ? `Only ${orList(types)} are allowed`
-          : "This file type isn't allowed",
+        message: m.invalidType(types),
       });
     } else if (maxSize !== undefined && file.size > maxSize) {
       rejected.push({
         file,
         reason: "file-too-large",
-        message: `Over the ${formatBytes(maxSize)} limit`,
+        message: m.tooLarge(formatBytes(maxSize)),
       });
     } else if ((custom = validate?.(file, accepted))) {
       rejected.push({ file, reason: "custom", message: custom });
@@ -749,10 +819,7 @@ function validateFiles(
       rejected.push({
         file,
         reason: "too-many-files",
-        message:
-          maxFiles <= 0
-            ? "No more files can be added"
-            : `Up to ${maxFiles} ${maxFiles === 1 ? "file" : "files"} at a time`,
+        message: m.tooMany(maxFiles),
       });
     } else accepted.push(file);
   }
@@ -761,11 +828,11 @@ function validateFiles(
 
 /** One line for the dropzone. A lone file is named ("setup.exe: Only ZIP
  *  files are allowed."); several read as the first reason and a count. */
-function summarize(rejected: FileRejection[]) {
+function summarize(rejected: FileRejection[], m: FileUploadMessages) {
   const [first] = rejected;
   if (!first) return null;
   if (rejected.length === 1) return `${first.file.name}: ${first.message}.`;
-  return `${first.message}. ${rejected.length} files left out.`;
+  return `${first.message}. ${m.leftOut(rejected.length)}.`;
 }
 
 /** Best guess at a dragged file's type. Browsers hide names until the drop,
@@ -829,6 +896,8 @@ export interface FileDropzoneProps extends Omit<
   hint?: React.ReactNode;
   /** Form field name; accepted files are submitted under it. */
   name?: string;
+  /** Replaces any built-in string; see FILE_UPLOAD_MESSAGES. */
+  messages?: Partial<FileUploadMessages>;
   classNames?: FileDropzoneClassNames;
 }
 
@@ -848,11 +917,13 @@ export function FileDropzone({
   chooseLabel = "choose",
   hint,
   name,
+  messages,
   classNames,
   className,
   onPaste,
   ...rest
 }: FileDropzoneProps) {
+  const m = { ...FILE_UPLOAD_MESSAGES, ...messages };
   const reduced = useReducedMotionPreference();
   const move = (t: Transition): Transition => (reduced ? { duration: 0 } : t);
   const input = React.useRef<HTMLInputElement>(null);
@@ -909,8 +980,9 @@ export function FileDropzone({
           maxSize,
           maxFiles: multiple ? maxFiles : 1,
           validate,
+          messages: m,
         });
-    const message = blocked ? `${blocked}.` : summarize(result.rejected);
+    const message = blocked ? `${blocked}.` : summarize(result.rejected, m);
     if (message) refuse(message);
     else setOwnError(null);
     if (name) setInputFiles(input.current, result.accepted);
@@ -1124,7 +1196,7 @@ export function FileDropzone({
               )}
               <FileBadge ext={drag.ext} className="relative shadow-lg" />
               <span className="absolute top-8 left-14 rounded-xl bg-foreground px-3 py-1.5 text-sm font-medium whitespace-nowrap text-background shadow-lg">
-                {drag.count === 1 ? "1 file" : `${drag.count} files`}
+                {m.dragging(drag.count)}
               </span>
             </motion.div>
           </motion.div>
@@ -1206,6 +1278,9 @@ export interface FileUploaderProps
   onUploaded?: (file: File) => void;
   /** Adds a Download button to completed files. */
   onDownload?: (file: File) => void;
+  /** Replaces any built-in string of the uploader, its dropzone and its
+   *  cards; see FILE_UPLOAD_MESSAGES. */
+  messages?: Partial<FileUploadMessages>;
   classNames?: FileUploaderClassNames;
 }
 
@@ -1235,11 +1310,13 @@ const UploaderRow = React.memo(function UploaderRow({
   resumable,
   downloadable,
   actions,
+  messages,
 }: {
   item: FileUploaderItem;
   resumable: boolean;
   downloadable: boolean;
   actions: RowActions;
+  messages: FileUploadMessages;
 }) {
   const { start, stop, drop, patch, download } = actions;
   return (
@@ -1270,6 +1347,7 @@ const UploaderRow = React.memo(function UploaderRow({
       onCancel={() => drop(item.id)}
       onRemove={() => drop(item.id)}
       onDownload={downloadable ? () => download(item.file) : undefined}
+      messages={messages}
     />
   );
 });
@@ -1287,20 +1365,26 @@ export function FileUploader({
   label,
   chooseLabel,
   hint,
-  title = "Upload Files",
+  title = "Upload files",
   description = "Select the files you want to upload.",
   onClose,
   onCancel,
   onSubmit,
   cancelLabel = "Cancel",
-  submitLabel = "Submit Files",
+  submitLabel = "Submit files",
   onUploaded,
   onDownload,
+  messages,
   classNames,
   className,
   ...rest
 }: FileUploaderProps) {
   const reduced = useReducedMotionPreference();
+  // Memoized: the rows and the dropzone are memoized on it.
+  const m = React.useMemo(
+    () => ({ ...FILE_UPLOAD_MESSAGES, ...messages }),
+    [messages],
+  );
   const [items, setItems] = React.useState<FileUploaderItem[]>([]);
   // The list as of now, not the last render: two drops in one tick must
   // both see the first one's files when checking room and duplicates.
@@ -1361,10 +1445,8 @@ export function FileUploader({
           controllers.current.delete(item.id);
           patch(item.id, {
             status: "error",
-            error:
-              err instanceof Error && err.message
-                ? err.message
-                : "Upload failed",
+            // No message of its own: the card shows messages.uploadFailed.
+            error: err instanceof Error && err.message ? err.message : undefined,
           });
         });
     },
@@ -1429,13 +1511,13 @@ export function FileUploader({
         f.lastModified === file.lastModified;
       const list = itemsRef.current;
       if (list.some((i) => same(i.file)) || accepted.some(same))
-        return "Already in the list";
+        return m.duplicate;
       if (maxFiles === undefined) return;
       const room = maxFiles - list.length;
       if (accepted.length < room) return;
-      return `Only ${room} more ${room === 1 ? "file" : "files"} can be added`;
+      return m.room(room);
     },
-    [maxFiles],
+    [maxFiles, m],
   );
 
   const clear = () => {
@@ -1479,11 +1561,9 @@ export function FileUploader({
     };
   }, []);
 
-  /** "5 files" once the list is full, else undefined. */
+  /** maxFiles once the list is full, else undefined. */
   const full =
-    maxFiles !== undefined && items.length >= maxFiles
-      ? `${maxFiles} ${maxFiles === 1 ? "file" : "files"}`
-      : undefined;
+    maxFiles !== undefined && items.length >= maxFiles ? maxFiles : undefined;
   const completed = items.filter((i) => i.status === "completed");
   const busy = items.some(
     (i) => i.status === "uploading" || i.status === "queued",
@@ -1497,14 +1577,14 @@ export function FileUploader({
       role="group"
       aria-labelledby={title ? titleId : undefined}
       className={cn(
-        "relative w-full rounded-[28px] bg-muted p-1.5 shadow-[0_12px_40px_-16px_rgb(0_0_0/0.25)] ring-1 ring-border",
+        "relative w-full rounded-[34px] bg-accent p-2.5 smooth-shadow-ring-lg",
         className,
         classNames?.root,
       )}
     >
       <div
         className={cn(
-          "rounded-3xl bg-card text-card-foreground ring-1 ring-border",
+          "rounded-3xl bg-background text-foreground shadow-subtle",
           classNames?.panel,
         )}
       >
@@ -1516,7 +1596,7 @@ export function FileUploader({
             )}
           >
             <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-background shadow-[inset_0_-2px_0_rgb(0_0_0/0.05),0_1px_2px_rgb(0_0_0/0.06)] ring-1 ring-border">
-              <IconUploadMinimalistic className="size-5" strokeWidth={2} />
+              <IconUploadTray className="size-5" strokeWidth={2} />
             </div>
             <div className="min-w-0 flex-1 pt-0.5">
               {title && (
@@ -1537,7 +1617,7 @@ export function FileUploader({
               <motion.button
                 type="button"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={m.close}
                 whileTap={press}
                 transition={SPRING_PRESS}
                 className="grid size-8 shrink-0 place-items-center rounded-full outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
@@ -1557,13 +1637,12 @@ export function FileUploader({
               validate={validate}
               // Full stays live: a drop or click explains the limit instead
               // of a greyed-out zone that silently ignores it.
-              blocked={
-                full && `You can add up to ${full}. Remove one to add another`
-              }
+              blocked={full !== undefined ? m.full(full) : undefined}
               disabled={disabled}
               label={label}
               chooseLabel={chooseLabel}
-              hint={full ? `${maxFiles} of ${full} added.` : hint}
+              hint={full !== undefined ? m.fullHint(full) : hint}
+              messages={m}
               className={classNames?.dropzone}
               onFiles={onFiles}
             />
@@ -1630,6 +1709,7 @@ export function FileUploader({
                         resumable={resumable}
                         downloadable={!!onDownload}
                         actions={actions}
+                        messages={m}
                       />
                     </div>
                   </motion.li>
@@ -1641,7 +1721,7 @@ export function FileUploader({
       </div>
 
       {(onCancel || onSubmit) && (
-        <div className={cn("flex gap-2 pt-1.5", classNames?.footer)}>
+        <div className={cn("flex gap-2 pt-2.5", classNames?.footer)}>
           {onCancel && (
             <motion.button
               type="button"
@@ -1651,7 +1731,7 @@ export function FileUploader({
                 clear();
                 onCancel();
               }}
-              className="h-11 flex-1 rounded-3xl bg-foreground/6 text-sm font-semibold text-foreground outline-none hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-11 flex-1 rounded-3xl bg-background text-sm font-semibold text-foreground outline-none hover:bg-background/70 focus-visible:ring-2 focus-visible:ring-ring"
             >
               {cancelLabel}
             </motion.button>

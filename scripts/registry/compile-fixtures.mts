@@ -38,7 +38,7 @@ try {
     writeFileSync(resolve(fixture, "tsconfig.json"), JSON.stringify({
       compilerOptions: {
         target: "ES2022", module: "Preserve", moduleResolution: "bundler", jsx: "react-jsx", strict: true, noEmit: true, skipLibCheck: true, ignoreDeprecations: "6.0", baseUrl: "../..",
-        paths: { "devignerui/motion": ["src/motion.ts"], "devignerui/hooks": ["src/hooks.ts"], "devignerui/menu-path": ["src/menu-path.ts"], "devignerui/date-range": ["src/date-range.ts"] },
+        paths: { "devignerui/motion": ["src/motion.ts"], "devignerui/hooks": ["src/hooks.ts"], "devignerui/menu-path": ["src/menu-path.ts"], "devignerui/date-range": ["src/date-range.ts"], "devignerui/glass": ["src/glass.ts"] },
       },
       include: ["components/**/*.tsx"],
     }, null, 2));

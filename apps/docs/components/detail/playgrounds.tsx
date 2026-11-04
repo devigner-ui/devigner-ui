@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ChartCard,
@@ -34,16 +40,47 @@ import {
   IconArrowRight,
   IconBell,
   IconChatRoundDots,
-  IconHeart,
   IconClock,
   IconHomeSmileAngle,
-  IconMenuDots,
-  IconMusicLibrary2,
-  IconSetting2,
+  IconMore,
+  IconMusicLibraryQuaver,
+  IconSettingGear,
   IconStarCircle,
-  IconTickCircle,
+  IconCheckCircle,
 } from "@devigner-ui/icons";
 import { MenuDockPreview } from "../../demos/menu-dock";
+import CommandPaletteDemo, {
+  PALETTE_DEFAULTS,
+  type PaletteConfig,
+} from "../../demos/command-palette";
+import DynamicIslandDemo, {
+  ISLAND_LABELS,
+  type IslandView,
+} from "../../demos/dynamic-island";
+import { LiquidGlassShader } from "../../demos/liquid-glass";
+import MorphingPopoverDemo, {
+  POPOVER_DEFAULTS,
+  type PopoverConfig,
+} from "../../demos/morphing-popover";
+import ContextMenuDemo, {
+  CONTEXT_DEFAULTS,
+  type ContextConfig,
+} from "../../demos/context-menu";
+import RatingDemo, {
+  RATING_DEFAULTS,
+  RATING_SIZES,
+  type RatingConfig,
+} from "../../demos/rating";
+import FlickCardsSliderDemo, {
+  FLICK_CARDS_DEFAULTS,
+  FLICK_CARDS_SIZES,
+  FLICK_CARDS_WIDTH,
+  type FlickCardsConfig,
+} from "../../demos/flick-cards-slider";
+import MenuNotchDemo, {
+  MENU_NOTCH_DEFAULTS,
+  type MenuNotchConfig,
+} from "../../demos/menu-notch";
 import { DateRangePickerTrigger } from "../../demos/date-range-picker";
 import { NAV_NOTCH_ITEMS } from "../../demos/nav-notch";
 import { EXPAND_TABS_ITEMS } from "../../demos/expand-tabs";
@@ -55,7 +92,10 @@ import {
   IMAGE_GENERATION_SRC,
   useGenerationRun,
 } from "../../demos/image-generation";
-import { CONTACT_LENS_ITEMS } from "../../demos/contact-lens";
+import {
+  CONTACT_LENS_ITEMS,
+  ContactLensPreview,
+} from "../../demos/contact-lens";
 import FileUploadDemo, {
   ACCEPT,
   CARD_DEFAULTS,
@@ -286,10 +326,42 @@ ${props}
 }`;
 };
 
+/** The preview opens on the large deck; the catalog card keeps md. */
+const FLICK_PREVIEW_DEFAULTS: FlickCardsConfig = {
+  ...FLICK_CARDS_DEFAULTS,
+  size: "lg",
+};
+
+/** The island's views in rows laid out by hand, so the panel can hug its
+ *  widest row; Low battery gets a line of its own to keep that row short. */
+const ISLAND_ROWS: IslandView[][] = [
+  ["idle", "ring", "timer", "record"],
+  ["music", "airdrop", "airdropMini"],
+  ["call", "findMy", "screenRecord"],
+  ["lowBattery"],
+];
+/** The order the preview cycles through, resting pill left out. */
+const ISLAND_ORDER: IslandView[] = ISLAND_ROWS.flat().filter(
+  (v) => v !== "idle",
+);
+
+/** The preview opens on the shader glass, tinted enough to read over the
+ *  photo; the gallery card keeps the page lens. */
+const POPOVER_PREVIEW_DEFAULTS: PopoverConfig = {
+  ...POPOVER_DEFAULTS,
+  shader: true,
+  transparency: 0.3,
+};
+
 /* ─── Liquid Glass ─── */
 
+/** GlassMenu's own default, which the Usage snippet leaves out. */
+const GLASS_TRANSPARENCY = 0.05;
 const GLASS_DEFAULTS = {
-  transparency: 0.05,
+  // Tinted enough to keep the labels readable over the shader's photo.
+  transparency: 0.3,
+  shader: true,
+  blur: 4,
   disabled: false,
 };
 type GlassConfig = typeof GLASS_DEFAULTS;
@@ -323,6 +395,241 @@ ${props}
 
 /* ─── Expand Tabs ─── */
 
+const paletteUsage = (c: PaletteConfig) => {
+  const props = [
+    "items={items}",
+    c.hints ? null : "hints={false}",
+    c.resetOnSelect ? null : "resetOnSelect={false}",
+    "onSelect={(item) => console.log(item.label)}",
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { IconDiamondDivided, IconMoon, IconSunLongRays } from "@devigner-ui/icons";
+import {
+  CommandPalette,
+  type CommandPaletteItem,
+} from "@/components/ui/command-palette";
+
+const items: CommandPaletteItem[] = [
+  {
+    label: "Browse components",
+    group: "Suggestions",
+    icon: <IconDiamondDivided />,${c.shortcuts ? '\n    shortcut: ["G", "C"],' : ""}
+  },
+  {
+    label: "Change theme",
+    group: "Settings",
+    icon: <IconSunLongRays />,
+    items: [
+      { label: "Light", icon: <IconSunLongRays /> },
+      { label: "Dark", icon: <IconMoon />, keywords: ["night"] },
+    ],
+  },
+];
+
+export function Example() {
+  return (
+    <CommandPalette
+${props}
+    />
+  );
+}`;
+};
+
+const popoverUsage = (c: PopoverConfig) => {
+  const props = [
+    'label="Add note"',
+    c.icon ? "icon={<IconAddCircle />}" : null,
+    c.transparency !== POPOVER_DEFAULTS.transparency
+      ? `transparency={${c.transparency}}`
+      : null,
+    c.shader ? "backdrop={{ src: photo, area }}" : null,
+    c.shader && c.blur !== POPOVER_DEFAULTS.blur ? `blur={${c.blur}}` : null,
+    c.disabled ? "disabled" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `${c.icon ? 'import { IconAddCircle } from "@devigner-ui/icons";\n' : ""}import { MorphingPopover } from "@/components/ui/morphing-popover";
+
+${c.shader ? "// The shader bends this image; area is a ref to the element it fills.\n\n" : ""}export function Example() {
+  return (
+    <MorphingPopover
+${props}
+    >
+      {(close) => (
+        <form onSubmit={(e) => { e.preventDefault(); close(); }}>
+          <textarea aria-label="Note" />
+          <button type="button" onClick={close}>Cancel</button>
+          <button type="submit">Save note</button>
+        </form>
+      )}
+    </MorphingPopover>
+  );
+}`;
+};
+
+const contextUsage = (
+  c: ContextConfig,
+) => `${c.icons ? 'import { IconCopy, IconTrashBinHandleLines } from "@devigner-ui/icons";\n' : ""}import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
+
+const items: ContextMenuEntry[] = [
+  {
+    label: "Duplicate",${c.icons ? "\n    icon: <IconCopy />," : ""}${c.shortcuts ? '\n    shortcut: ["Ctrl", "D"],' : ""}
+    onSelect: () => console.log("duplicate"),
+  },
+  {
+    label: "Move to",
+    items: [{ label: "Inbox" }, { label: "Archive" }],
+  },
+  "separator",
+  {
+    label: "Delete",${c.icons ? "\n    icon: <IconTrashBinHandleLines />," : ""}
+    destructive: true,
+  },
+];
+
+export function Example() {
+  return (
+    <ContextMenu items={items} label="File actions"${c.disabled ? " disabled" : ""}>
+      <div tabIndex={0}>hero-final.fig</div>
+    </ContextMenu>
+  );
+}`;
+
+const ratingUsage = (c: RatingConfig) => {
+  const props = [
+    'aria-label="Rating"',
+    "value={value}",
+    "onValueChange={setValue}",
+    c.half ? "step={0.5}" : null,
+    c.size !== "md" ? `size="${c.size}"` : null,
+    c.clearable ? "clearable" : null,
+    c.readOnly ? "readOnly" : null,
+    c.disabled ? "disabled" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { useState } from "react";
+import { Rating } from "@/components/ui/rating";
+
+export function Example() {
+  const [value, setValue] = useState(${c.half ? "3.5" : "4"});
+  return (
+    <Rating
+${props}
+    />
+  );
+}`;
+};
+
+const flickCardsUsage = (c: FlickCardsConfig) => {
+  const item = (title: string) => {
+    const slug = title.toLowerCase();
+    const action = c.action
+      ? `, action: { label: "View collection", href: "/collections/${slug}" }`
+      : "";
+    return `  { image: "/collections/${slug}.jpg", title: "${title}"${action} },`;
+  };
+  const width = FLICK_CARDS_WIDTH[c.size];
+
+  return `import { FlickCardsSlider, type FlickCardsSliderItem } from "@/components/ui/flick-cards-slider";
+
+const collections: FlickCardsSliderItem[] = [
+${["Ember", "Drift", "Grain", "Tide", "Noir"].map(item).join("\n")}
+];
+
+export function Example() {
+  return <FlickCardsSlider aria-label="Collections" items={collections}${width === "w-72" ? "" : ` className="${width}"`} />;
+}`;
+};
+
+const menuNotchUsage = (c: MenuNotchConfig) => {
+  const props = [
+    "sections={sections}",
+    "socials={socials}",
+    c.open ? "defaultOpen" : null,
+    c.themeButton ? "theme={theme}" : null,
+    c.themeButton ? "onThemeChange={setTheme}" : null,
+  ]
+    .filter(Boolean)
+    .map((line) => `      ${line}`)
+    .join("\n");
+
+  return `import { useState } from "react";
+import { MenuNotch, type MenuNotchSection, type MenuNotchSocial, type MenuNotchTheme } from "@/components/ui/menu-notch";
+import { IconInstagram, IconYoutube } from "@devigner-ui/icons";
+
+const sections: MenuNotchSection[] = [
+  {
+    label: "Menu",
+    size: "lg",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Resources", href: "/resources" },
+      { label: "Our features", href: "/features" },
+    ],
+  },
+  {
+    label: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms & Conditions", href: "/terms" },
+    ],
+  },
+];
+
+const socials: MenuNotchSocial[] = [
+  { label: "Instagram", href: "https://instagram.com", icon: <IconInstagram /> },
+  { label: "YouTube", href: "https://youtube.com", icon: <IconYoutube /> },
+];
+
+export function Example() {${
+    c.themeButton
+      ? `
+  const [theme, setTheme] = useState<MenuNotchTheme>("light");`
+      : ""
+  }
+  return (
+    <MenuNotch
+${props}
+    />
+  );
+}`;
+};
+
+const ISLAND_USAGE = `import { useState } from "react";
+import { SPRING_ISLAND_POP } from "devignerui/motion";
+import {
+  DynamicIsland,
+  IslandMusic,
+  IslandRing,
+  IslandTimer,
+  type DynamicIslandView,
+} from "@/components/ui/dynamic-island";
+
+export function Example() {
+  const [view, setView] = useState<string | null>("music");
+  const views: DynamicIslandView[] = [
+    { id: "ring", label: "Silent mode on", content: <IslandRing />, transition: SPRING_ISLAND_POP },
+    { id: "timer", label: "Timer, 1 minute", content: <IslandTimer onClose={() => setView(null)} />, transition: SPRING_ISLAND_POP },
+    { id: "music", label: "Now playing Night Drive by Lumen", content: <IslandMusic /> },
+  ];
+  return (
+    <>
+      <DynamicIsland views={views} view={view} />
+      <button onClick={() => setView("timer")}>Timer</button>
+      <button onClick={() => setView(null)}>Rest</button>
+    </>
+  );
+}`;
+
 const TABS_DEFAULTS = { badge: true };
 type TabsConfig = typeof TABS_DEFAULTS;
 
@@ -330,12 +637,12 @@ const tabsUsage = (c: TabsConfig) => `import {
   IconBriefcase,
   IconKeyboard,
   IconProfile,
-  IconTerminalAlt,
+  IconTerminalWide,
 } from "@devigner-ui/icons";
 import { ExpandTabs } from "@/components/ui/expand-tabs";
 
 const items = [
-  { label: "Commands", icon: <IconTerminalAlt variant="Bulk" />${c.badge ? ', badge: "New"' : ""} },
+  { label: "Commands", icon: <IconTerminalWide variant="Bulk" />${c.badge ? ', badge: "New"' : ""} },
   { label: "About", icon: <IconProfile variant="Bulk" /> },
   { label: "Portfolio", icon: <IconBriefcase variant="Bulk" /> },
   { label: "Shortcuts", icon: <IconKeyboard variant="Bulk" /> },
@@ -430,9 +737,9 @@ type SegConfig = typeof SEG_DEFAULTS;
 const segUsage = (c: SegConfig) => {
   const options = c.icons
     ? `[
-        { value: "Playlist", icon: <IconMusicLibrary2 />, activeIcon: <IconMusicLibrary2 variant="Bulk" /> },
+        { value: "Playlist", icon: <IconMusicLibraryQuaver />, activeIcon: <IconMusicLibraryQuaver variant="Bulk" /> },
         { value: "History", icon: <IconClock />, activeIcon: <IconClock variant="Bulk" /> },
-        { value: "Settings", icon: <IconSetting2 />, activeIcon: <IconSetting2 variant="Bulk" /> },
+        { value: "Settings", icon: <IconSettingGear />, activeIcon: <IconSettingGear variant="Bulk" /> },
       ]`
     : `["Playlist", "History", "Settings"]`;
   const props = [
@@ -442,7 +749,7 @@ const segUsage = (c: SegConfig) => {
     c.disabled ? "disabled" : null,
     `options={${options}}`,
   ].filter(Boolean);
-  return `${c.icons ? 'import { IconClock, IconMusicLibrary2, IconSetting2 } from "@devigner-ui/icons";\n' : ""}import { Tabs } from "@/components/ui/tabs";
+  return `${c.icons ? 'import { IconClock, IconMusicLibraryQuaver, IconSettingGear } from "@devigner-ui/icons";\n' : ""}import { Tabs } from "@/components/ui/tabs";
 
 export function Example() {
   return (
@@ -477,7 +784,7 @@ const badgeUsage = (c: BadgeConfig) => {
   const props = [
     c.tone !== "neutral" ? `tone="${c.tone}"` : null,
     c.size !== "md" ? `size="${c.size}"` : null,
-    c.icon ? "icon={<IconTickCircle />}" : null,
+    c.icon ? "icon={<IconCheckCircle />}" : null,
     c.count ? "count={3}" : null,
     c.dashed ? "dashed" : null,
     c.removable ? "onRemove={() => setShown(false)}" : null,
@@ -499,7 +806,7 @@ ${props.map((p) => `      ${p}`).join("\n")}
   ].filter(Boolean);
   const imports = [
     state.length ? 'import { useState } from "react";' : null,
-    c.icon ? 'import { IconTickCircle } from "@devigner-ui/icons";' : null,
+    c.icon ? 'import { IconCheckCircle } from "@devigner-ui/icons";' : null,
     'import { Badge } from "@/components/ui/badge";',
   ].filter(Boolean);
   return `${imports.join("\n")}
@@ -621,11 +928,11 @@ type LensConfig = typeof LENS_DEFAULTS;
 
 const lensUsage = (
   c: LensConfig,
-) => `import { IconGlobal, IconSms, IconUser } from "@devigner-ui/icons";
+) => `import { IconGlobal, IconMail, IconUser } from "@devigner-ui/icons";
 import { ContactLens } from "@/components/ui/contact-lens";
 
 const items = [
-  { label: "Email", icon: <IconSms /> },
+  { label: "Email", icon: <IconMail /> },
   { label: "Website", icon: <IconGlobal />, text: "devigner.cc", copy: "https://devigner.cc" },
   { label: "Name", icon: <IconUser />, text: "hello" },
 ];
@@ -657,16 +964,18 @@ const GLASS_MENU = [
   {
     id: "settings",
     label: "Settings",
-    icon: <IconSetting2 className="size-5" variant="Bulk" />,
+    icon: <IconSettingGear className="size-5" variant="Bulk" />,
   },
 ];
 
 const glassUsage = (c: GlassConfig) => {
   const props = [
     "items={items}",
-    c.transparency !== GLASS_DEFAULTS.transparency
+    c.transparency !== GLASS_TRANSPARENCY
       ? `transparency={${c.transparency}}`
       : null,
+    c.shader ? "backdrop={{ src: photo, area }}" : null,
+    c.shader && c.blur !== GLASS_DEFAULTS.blur ? `blur={${c.blur}}` : null,
     c.disabled ? "disabled" : null,
     "onSelect={(id) => console.log(id)}",
   ]
@@ -674,27 +983,41 @@ const glassUsage = (c: GlassConfig) => {
     .map((line) => `      ${line}`)
     .join("\n");
 
-  return `import { GlassMenu } from "@/components/ui/liquid-glass";
+  return `${c.shader ? 'import { useRef } from "react";\n' : ""}import { GlassMenu } from "@/components/ui/liquid-glass";
 import {
   IconChatRoundDots,
   IconHeart,
   IconHomeSmileAngle,
-  IconSetting2,
+  IconSettingGear,
 } from "@devigner-ui/icons";
 
 const items = [
   { id: "feed", label: "Feed", icon: <IconHomeSmileAngle className="size-6" /> },
   { id: "star", label: "Star", icon: <IconHeart className="size-6" /> },
   { id: "messages", label: "Messages", icon: <IconChatRoundDots className="size-6" /> },
-  { id: "settings", label: "Settings", icon: <IconSetting2 className="size-6" /> },
+  { id: "settings", label: "Settings", icon: <IconSettingGear className="size-6" /> },
 ];
-
-export function Example() {
+${c.shader ? '\n// The image the shader bends. Same origin, or served with CORS.\nconst photo = "/night.jpg";\n' : ""}
+${
+  c.shader
+    ? `export function Example() {
+  const area = useRef<HTMLImageElement>(null);
+  return (
+    <div className="relative grid h-80 place-items-center">
+      <img ref={area} src={photo} alt="" className="absolute inset-0 size-full object-cover" />
+      <GlassMenu
+${props.replace(/^/gm, "  ")}
+      />
+    </div>
+  );
+}`
+    : `export function Example() {
   return (
     <GlassMenu
 ${props}
     />
   );
+}`
 }`;
 };
 
@@ -952,13 +1275,19 @@ function Knob({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="flex items-center justify-between gap-3">
         {/* A prop name, not a label, so it reads as code beside the rows. */}
-        <span className="font-mono text-[12px] text-foreground">{name}</span>
-        <span className="font-mono text-[12px] tabular-nums text-text-secondary">
-          {/* Stepping by 0.05 lands on 0.35000000000000003 - round for display
-              only, so the value handed to the component stays exact. */}
-          {+value.toFixed(2)} <span className="text-text-muted">{hint}</span>
+        <span className="font-mono text-[11.5px] text-text-secondary">
+          {name}
+        </span>
+        <span className="flex min-w-0 items-center gap-2 font-mono text-[11px] tabular-nums">
+          <span className="truncate text-text-muted">{hint}</span>
+          {/* The live value, read like an instrument's display. Stepping by
+              0.05 lands on 0.35000000000000003 - round for display only, so
+              the value handed to the component stays exact. */}
+          <span className="shrink-0 rounded-md border border-border bg-background/40 px-1.5 py-0.5 text-[11.5px] text-foreground shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_5%,transparent)]">
+            {+value.toFixed(2)}
+          </span>
         </span>
       </div>
       <RangeSlider
@@ -1013,8 +1342,10 @@ function SettingsRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
-      <span className="text-[13px] font-medium text-foreground">{label}</span>
+    <div className="flex min-h-12 items-center justify-between gap-3 py-2">
+      <span className="text-[12.5px] font-medium tracking-[-0.01em] text-text-secondary">
+        {label}
+      </span>
       {children}
     </div>
   );
@@ -1023,10 +1354,13 @@ function SettingsRow({
 /** Short rows (switches, tabs, buttons) two across once the panel is as
  *  wide as the full dock, one per line below that. Rows are ruled off like
  *  the panel's other sections: every one after the first, or after the
- *  first pair in two columns. */
+ *  first pair in two columns. The two cases are split by width rather than
+ *  one undoing the other, since an override of equal weight lost and left
+ *  the second column a pixel low. */
 function SettingsRows({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid fade-divide [&>*:nth-child(n+2)]:border-t @md:grid-cols-2 @md:gap-x-6 @md:[&>*:nth-child(2)]:border-t-0">
+    // Its rows carry the padding, not the grid, so their rules run edge to edge.
+    <div className="grid px-0! *:border-foreground/6 *:px-4 @max-md:[&>*:nth-child(n+2)]:border-t @md:grid-cols-2 @md:[&>*:nth-child(n+3)]:border-t">
       {children}
     </div>
   );
@@ -1098,10 +1432,9 @@ function Tabs<T extends string>({
       role="radiogroup"
       aria-label={label}
       className={cn(
-        "relative border border-border p-1",
-        wrap
-          ? "grid w-full grid-cols-3 gap-0.5 rounded-2xl @md:grid-cols-6"
-          : "rounded-full",
+        // A recessed track; the selected value sits raised in it.
+        "relative rounded-[10px] border border-border bg-background/40 p-0.5 shadow-[inset_0_1px_2px_oklch(0%_0_0/0.08)]",
+        wrap && "grid w-full grid-cols-3 gap-0.5 @md:grid-cols-6",
         !wrap && (fill ? "flex w-full" : "inline-flex"),
       )}
     >
@@ -1116,10 +1449,7 @@ function Tabs<T extends string>({
             height: pill.height,
           }}
           transition={pill.glide && !reduce ? SPRING_PANEL : { duration: 0 }}
-          className={cn(
-            "absolute top-0 left-0 bg-surface2",
-            wrap ? "rounded-[11px]" : "rounded-full",
-          )}
+          className="absolute top-0 left-0 rounded-lg border border-border bg-white dark:bg-foreground/7 shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_6%,transparent),0_1px_2px_oklch(0%_0_0/0.12)]"
         />
       )}
       {options.map((side) => (
@@ -1133,10 +1463,10 @@ function Tabs<T extends string>({
             onChange(side);
           }}
           className={cn(
-            "relative cursor-pointer py-1 font-mono text-[12px] whitespace-nowrap transition-colors duration-150 ease-out",
-            wrap ? "rounded-[11px] px-2 py-1.5" : "rounded-full",
+            "relative cursor-pointer rounded-lg py-1 font-mono text-[11.5px] whitespace-nowrap outline-none transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-brand/60",
+            wrap && "px-2 py-1.5",
             // Grows from its own width, so the gaps match and long labels get room.
-            !wrap && (fill ? "flex-auto px-1 text-[11px]" : "px-3"),
+            !wrap && (fill ? "flex-auto px-1 text-[11px]" : "px-2.5"),
             value === side
               ? "text-foreground"
               : "text-text-muted hover:text-text-secondary",
@@ -1175,7 +1505,7 @@ const CHART_CARD_ACTIONS = [
   {
     id: "more",
     label: "More options",
-    icon: <IconMenuDots aria-hidden className="size-6" variant="Bold" />,
+    icon: <IconMore aria-hidden className="size-6" variant="Bold" />,
     onSelect: () => {},
   },
 ];
@@ -1249,6 +1579,8 @@ export interface Playground {
   /** A long panel (6+ controls): opens as wide as the dock, two columns.
    *  Shorter ones keep the narrow single column. */
   wide?: boolean;
+  /** Sizes the panel to its content, for rows laid out by hand. */
+  fit?: boolean;
   /** Lays the catalog card's dot field behind the preview. */
   dots?: boolean;
   /** Fades the dot field out toward the stage's edges. */
@@ -1269,6 +1601,29 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
   const [tabsCfg, setTabsCfg] = useState<TabsConfig>(TABS_DEFAULTS);
   const [flipCfg, setFlipCfg] = useState<FlipConfig>(FLIP_DEFAULTS);
   const [segCfg, setSegCfg] = useState<SegConfig>(SEG_DEFAULTS);
+  const [paletteCfg, setPaletteCfg] = useState<PaletteConfig>(PALETTE_DEFAULTS);
+  const [popoverCfg, setPopoverCfg] = useState<PopoverConfig>(
+    POPOVER_PREVIEW_DEFAULTS,
+  );
+  const [contextCfg, setContextCfg] = useState<ContextConfig>(CONTEXT_DEFAULTS);
+  const [ratingCfg, setRatingCfg] = useState<RatingConfig>(RATING_DEFAULTS);
+  const [islandView, setIslandView] = useState<IslandView>("music");
+  const [islandAuto, setIslandAuto] = useState(true);
+  // The island preview walks its views on its own, 3s each; picking one
+  // restarts the count from there.
+  useEffect(() => {
+    if (slug !== "dynamic-island" || !islandAuto) return;
+    const t = setTimeout(() => {
+      const i = ISLAND_ORDER.indexOf(islandView);
+      setIslandView(ISLAND_ORDER[(i + 1) % ISLAND_ORDER.length]);
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [slug, islandAuto, islandView]);
+  const [flickCfg, setFlickCfg] = useState<FlickCardsConfig>(
+    FLICK_PREVIEW_DEFAULTS,
+  );
+  const [menuNotchCfg, setMenuNotchCfg] =
+    useState<MenuNotchConfig>(MENU_NOTCH_DEFAULTS);
   const [lensCfg, setLensCfg] = useState<LensConfig>(LENS_DEFAULTS);
   const [kpiCfg, setKpiCfg] = useState<KpiConfig>(KPI_DEFAULTS);
   const [badgeCfg, setBadgeCfg] = useState<BadgeConfig>(BADGE_DEFAULTS);
@@ -1302,6 +1657,14 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     setTabsCfg(TABS_DEFAULTS);
     setFlipCfg(FLIP_DEFAULTS);
     setSegCfg(SEG_DEFAULTS);
+    setPaletteCfg(PALETTE_DEFAULTS);
+    setPopoverCfg(POPOVER_PREVIEW_DEFAULTS);
+    setContextCfg(CONTEXT_DEFAULTS);
+    setRatingCfg(RATING_DEFAULTS);
+    setFlickCfg(FLICK_PREVIEW_DEFAULTS);
+    setIslandView("music");
+    setIslandAuto(true);
+    setMenuNotchCfg(MENU_NOTCH_DEFAULTS);
     setLensCfg(LENS_DEFAULTS);
     setKpiCfg(KPI_DEFAULTS);
     setBadgeCfg(BADGE_DEFAULTS);
@@ -1320,8 +1683,8 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       preview: <MagneticPlayground cfg={cfg} showField={showField} />,
       usage: magneticUsage(cfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y">
-          <div className={`${KNOB_GRID} gap-y-4 px-3 pb-3`}>
+        <div className="flex w-full flex-col divide-y divide-foreground/6">
+          <div className={`${KNOB_GRID} gap-y-4 px-4 py-3`}>
             {MAGNETIC_KNOBS.map((k) => (
               <Knob
                 key={k.key}
@@ -1335,7 +1698,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               />
             ))}
           </div>
-          <div className="px-3">
+          <div className="px-4">
             <SettingsRow label="Show field">
               <Switch
                 checked={showField}
@@ -1364,7 +1727,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: copyUsage(copyCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRow label="Size">
             <Tabs
               label="Size"
@@ -1418,7 +1781,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       preview: <DeleteButtonPlayground cfg={deleteCfg} />,
       usage: deleteUsage(deleteCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRow label="Actions">
             <Tabs
               label="Actions position"
@@ -1495,7 +1858,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: gooUsage(gooCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className={`${KNOB_GRID} gap-y-5 py-3`}>
             {knob("size", GOO_SIZES[gooCfg.size], 0, 2, 1)}
             {knob("inset", "of 32", 1, 10, 1)}
@@ -1542,7 +1905,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: notchUsage(notchCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRows>
             <SettingsRow label="Vertical">
               <Switch
@@ -1577,7 +1940,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: tabsUsage(tabsCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRows>
             <SettingsRow label="Badge">
               <Switch
@@ -1617,7 +1980,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: flipUsage(flipCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className="flex flex-col gap-2 py-3">
             <span className="text-[13px] font-medium text-foreground">
               Variant
@@ -1691,6 +2054,263 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     };
   }
 
+  if (slug === "rating") {
+    const flag = (
+      key: "half" | "clearable" | "readOnly" | "disabled",
+      label: string,
+    ) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={ratingCfg[key]}
+          onChange={(v) => setRatingCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: <RatingDemo {...ratingCfg} />,
+      usage: ratingUsage(ratingCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <SettingsRow label="Size">
+            <Tabs
+              label="Size"
+              options={RATING_SIZES}
+              value={ratingCfg.size}
+              onChange={(v) => setRatingCfg((c) => ({ ...c, size: v }))}
+            />
+          </SettingsRow>
+          <SettingsRows>
+            {flag("half", "Half steps")}
+            {flag("clearable", "Clearable")}
+            {flag("readOnly", "Read only")}
+            {flag("disabled", "Disabled")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "menu-notch") {
+    const flag = (key: keyof MenuNotchConfig, label: string) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={menuNotchCfg[key]}
+          onChange={(v) => setMenuNotchCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: <MenuNotchDemo {...menuNotchCfg} />,
+      usage: menuNotchUsage(menuNotchCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <SettingsRows>
+            {flag("open", "Start open")}
+            {flag("themeButton", "Theme button")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "flick-cards-slider") {
+    return {
+      reset,
+      preview: <FlickCardsSliderDemo {...flickCfg} />,
+      usage: flickCardsUsage(flickCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <SettingsRow label="Size">
+            <Tabs
+              label="Size"
+              options={FLICK_CARDS_SIZES}
+              value={flickCfg.size}
+              onChange={(v) => setFlickCfg((c) => ({ ...c, size: v }))}
+            />
+          </SettingsRow>
+          <SettingsRows>
+            <SettingsRow label="Button">
+              <Switch
+                checked={flickCfg.action}
+                onChange={(v) => setFlickCfg((c) => ({ ...c, action: v }))}
+                label="Button"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "context-menu") {
+    const flag = (key: keyof ContextConfig, label: string) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={contextCfg[key]}
+          onChange={(v) => setContextCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: <ContextMenuDemo {...contextCfg} />,
+      usage: contextUsage(contextCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <SettingsRows>
+            {flag("icons", "Icons")}
+            {flag("shortcuts", "Shortcuts")}
+            {flag("disabled", "Disabled")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "morphing-popover") {
+    const flag = (key: "icon" | "disabled" | "shader", label: string) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={popoverCfg[key]}
+          onChange={(v) => setPopoverCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      dots: true,
+      vignette: true,
+      preview: <MorphingPopoverDemo {...popoverCfg} />,
+      usage: popoverUsage(popoverCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+            <Knob
+              name="transparency"
+              hint="0 ultra clear, 1 tinted"
+              min={0}
+              max={1}
+              step={0.05}
+              value={popoverCfg.transparency}
+              onChange={(v) =>
+                setPopoverCfg((c) => ({ ...c, transparency: v }))
+              }
+            />
+          </div>
+          <SettingsRows>{flag("shader", "Shader")}</SettingsRows>
+          {popoverCfg.shader && (
+            <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+              <Knob
+                name="blur"
+                hint="shader blur, px"
+                min={0}
+                max={32}
+                step={1}
+                value={popoverCfg.blur}
+                onChange={(v) => setPopoverCfg((c) => ({ ...c, blur: v }))}
+              />
+            </div>
+          )}
+          <SettingsRows>
+            {flag("icon", "Icon")}
+            {flag("disabled", "Disabled")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "dynamic-island") {
+    return {
+      reset,
+      preview: (
+        <DynamicIslandDemo view={islandView} onViewChange={setIslandView} />
+      ),
+      usage: ISLAND_USAGE,
+      fit: true,
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <div className="flex flex-col gap-2 py-3">
+            <span className="text-[13px] font-medium text-foreground">
+              View
+            </span>
+            <div
+              role="radiogroup"
+              aria-label="View"
+              className="flex flex-col gap-1.5"
+            >
+              {ISLAND_ROWS.map((row) => (
+                <div key={row[0]} className="flex gap-1.5">
+                  {row.map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      role="radio"
+                      aria-checked={islandView === v}
+                      onClick={() => {
+                        if (v !== islandView) cue("toggleOn");
+                        setIslandView(v);
+                      }}
+                      className={cn(
+                        "h-7 cursor-pointer rounded-full border px-3 text-[12px] font-medium whitespace-nowrap outline-none transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-brand/60",
+                        islandView === v
+                          ? "border-transparent bg-foreground text-background"
+                          : "border-border bg-background/40 text-text-secondary hover:border-border-hover hover:text-foreground",
+                      )}
+                    >
+                      {ISLAND_LABELS[v]}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+          <SettingsRows>
+            <SettingsRow label="Auto-play">
+              <Switch
+                checked={islandAuto}
+                onChange={setIslandAuto}
+                label="Auto-play"
+              />
+            </SettingsRow>
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
+  if (slug === "command-palette") {
+    const flag = (key: keyof PaletteConfig, label: string) => (
+      <SettingsRow label={label}>
+        <Switch
+          checked={paletteCfg[key]}
+          onChange={(v) => setPaletteCfg((c) => ({ ...c, [key]: v }))}
+          label={label}
+        />
+      </SettingsRow>
+    );
+    return {
+      reset,
+      preview: <CommandPaletteDemo trigger {...paletteCfg} />,
+      usage: paletteUsage(paletteCfg),
+      settings: (
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
+          <SettingsRows>
+            {flag("hints", "Key hints")}
+            {flag("shortcuts", "Shortcuts")}
+            {flag("resetOnSelect", "Reset after a choice")}
+          </SettingsRows>
+        </div>
+      ),
+    };
+  }
+
   if (slug === "tabs") {
     const flag = (key: "fill" | "icons" | "disabled", label: string) => (
       <SettingsRow label={label}>
@@ -1714,9 +2334,9 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               segCfg.icons
                 ? (
                     [
-                      ["Playlist", IconMusicLibrary2],
+                      ["Playlist", IconMusicLibraryQuaver],
                       ["History", IconClock],
-                      ["Settings", IconSetting2],
+                      ["Settings", IconSettingGear],
                     ] as const
                   ).map(([value, Icon]) => ({
                     value,
@@ -1730,7 +2350,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: segUsage(segCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRow label="Size">
             <Tabs
               label="Size"
@@ -1772,7 +2392,9 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
             key={badgeRun}
             tone={badgeCfg.tone}
             size={badgeCfg.size}
-            icon={badgeCfg.icon ? <IconTickCircle variant="Bold" /> : undefined}
+            icon={
+              badgeCfg.icon ? <IconCheckCircle variant="Bold" /> : undefined
+            }
             count={badgeCfg.count ? 3 : undefined}
             dashed={badgeCfg.dashed}
             onRemove={
@@ -1787,7 +2409,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: badgeUsage(badgeCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className="flex flex-col gap-2 py-3">
             <span className="text-[13px] font-medium text-foreground">
               Tone
@@ -1852,7 +2474,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: genUsage(genCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className="flex flex-col gap-2.5 py-3">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[13px] font-medium text-foreground">
@@ -1910,7 +2532,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: kpiUsage(kpiCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className="py-3">
             <Knob
               name="defaultIndex"
@@ -1964,7 +2586,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
     return {
       reset,
       preview: (
-        <ContactLens
+        <ContactLensPreview
           value="hello@devigner.cc"
           items={CONTACT_LENS_ITEMS}
           resetAfter={lensCfg.resetAfter}
@@ -1972,7 +2594,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: lensUsage(lensCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className={`${KNOB_GRID} gap-y-5 py-3`}>
             <Knob
               name="resetAfter"
@@ -1994,7 +2616,14 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       reset,
       dots: true,
       vignette: true,
-      preview: (
+      preview: glassCfg.shader ? (
+        <LiquidGlassShader
+          items={GLASS_MENU}
+          transparency={glassCfg.transparency}
+          blur={glassCfg.blur}
+          disabled={glassCfg.disabled}
+        />
+      ) : (
         <GlassMenu
           items={GLASS_MENU}
           transparency={glassCfg.transparency}
@@ -2003,7 +2632,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: glassUsage(glassCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className={`${KNOB_GRID} gap-y-5 py-3`}>
             <Knob
               name="transparency"
@@ -2015,6 +2644,28 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
               onChange={(v) => setGlassCfg((c) => ({ ...c, transparency: v }))}
             />
           </div>
+          <SettingsRows>
+            <SettingsRow label="Shader">
+              <Switch
+                checked={glassCfg.shader}
+                onChange={(v) => setGlassCfg((c) => ({ ...c, shader: v }))}
+                label="Shader"
+              />
+            </SettingsRow>
+          </SettingsRows>
+          {glassCfg.shader && (
+            <div className={`${KNOB_GRID} gap-y-5 py-3`}>
+              <Knob
+                name="blur"
+                hint="shader blur, px"
+                min={0}
+                max={32}
+                step={1}
+                value={glassCfg.blur}
+                onChange={(v) => setGlassCfg((c) => ({ ...c, blur: v }))}
+              />
+            </div>
+          )}
           <SettingsRows>
             <SettingsRow label="Disabled">
               <Switch
@@ -2068,7 +2719,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: sliderUsage(sliderCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRow label="Size">
             <Tabs
               label="Size"
@@ -2147,7 +2798,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: dustUsage(dustCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className={KNOB_GRID}>
             <div className="flex flex-col gap-2.5 py-3">
               <span className="text-[13px] font-medium text-foreground">
@@ -2255,7 +2906,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: timeUsage(timeCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <div className="py-3">
             <Knob
               name="maxHours"
@@ -2294,7 +2945,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       // A fixed height below the tabs, so neither the tabs nor the trigger
       // move when the mode changes or the picker opens.
       preview: (
-        <div className="flex h-[40rem] flex-col items-center gap-6">
+        <div className="flex h-160 flex-col items-center gap-6">
           <LibTabs
             label="Preview"
             size="sm"
@@ -2364,7 +3015,7 @@ export function usePlayground(slug: string, fallbackUsage: string): Playground {
       ),
       usage: card ? cardUsage(cardCfg) : uploaderUsage(uploaderCfg),
       settings: (
-        <div className="flex w-full flex-col fade-divide divide-y px-3">
+        <div className="flex w-full flex-col divide-y divide-foreground/6 *:px-4">
           <SettingsRow label="Preview">
             <Tabs
               label="Preview"

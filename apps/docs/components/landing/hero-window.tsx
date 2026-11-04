@@ -15,7 +15,7 @@ import {
   IconMaximize,
   IconMinimize,
   IconMoon,
-  IconSearchNormal,
+  IconMagnifierGap,
   IconSun,
 } from "@devigner-ui/icons";
 import { cn } from "cn";
@@ -405,7 +405,7 @@ export function HeroWindow({ entries }: { entries: CatalogEntry[] }) {
           <div className="min-w-0 border-b border-border bg-background-100 md:border-r md:border-b-0">
             <div className="hidden p-2.5 md:block">
               <label className="flex h-8.5 items-center gap-2 rounded-[10px] border border-border bg-background px-2.5 text-[12.5px] focus-within:ring-2 focus-within:ring-brand">
-                <IconSearchNormal
+                <IconMagnifierGap
                   aria-hidden
                   className="size-3.5 shrink-0 text-text-muted"
                 />

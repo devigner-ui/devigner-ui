@@ -43,6 +43,44 @@ export {
   type TimelineStepRenderProps,
 } from "./components/timeline";
 export {
+  CommandPalette,
+  type CommandPaletteProps,
+  type CommandPaletteItem,
+  type CommandPaletteMessages,
+  type CommandPaletteClassNames,
+  type CommandPaletteGroupAction,
+} from "./components/command-palette";
+export {
+  DynamicIsland,
+  type DynamicIslandProps,
+  type DynamicIslandView,
+  type DynamicIslandClassNames,
+  IslandRing,
+  IslandTimer,
+  IslandRecord,
+  IslandMusic,
+  IslandAirdrop,
+  IslandAirdropMini,
+  IslandLowBattery,
+  IslandCall,
+  IslandFindMy,
+  IslandScreenRecord,
+  type IslandRingProps,
+  type IslandTimerProps,
+  type IslandMusicProps,
+  type IslandAirdropProps,
+  type IslandAirdropMiniProps,
+  type IslandLowBatteryProps,
+  type IslandFindMyProps,
+} from "./components/dynamic-island";
+export {
+  ContextMenu,
+  type ContextMenuProps,
+  type ContextMenuItem,
+  type ContextMenuEntry,
+  type ContextMenuClassNames,
+} from "./components/context-menu";
+export {
   MenuDock,
   type MenuDockProps,
   type MenuDockItem,
@@ -57,6 +95,7 @@ export {
   type DateRangePreset,
   type DateRangePickerClassNames,
   type DateRangePickerSlotProps,
+  type DateRangePickerMessages,
 } from "./components/date-range-picker";
 export {
   InlineTimeEdit,
@@ -69,10 +108,38 @@ export {
   type GooSwitchClassNames,
 } from "./components/goo-switch";
 export {
+  MorphingPopover,
+  type MorphingPopoverProps,
+  type MorphingPopoverClassNames,
+} from "./components/morphing-popover";
+export {
   GlassMenu,
   type GlassMenuProps,
   type GlassMenuItem,
+  type GlassBackdrop,
 } from "./components/liquid-glass";
+export {
+  Rating,
+  type RatingProps,
+  type RatingSize,
+  type RatingClassNames,
+} from "./components/rating";
+export {
+  MenuNotch,
+  type MenuNotchProps,
+  type MenuNotchLink,
+  type MenuNotchSection,
+  type MenuNotchSocial,
+  type MenuNotchTheme,
+  type MenuNotchClassNames,
+} from "./components/menu-notch";
+export {
+  FlickCardsSlider,
+  type FlickCardsSliderProps,
+  type FlickCardsSliderItem,
+  type FlickCardsSliderAction,
+  type FlickCardsSliderClassNames,
+} from "./components/flick-cards-slider";
 export {
   Slider,
   type SliderProps,
@@ -94,6 +161,7 @@ export {
   type FileUploaderItem,
   type FileUploaderContext,
   type FileUploaderClassNames,
+  type FileUploadMessages,
 } from "./components/file-upload";
 export {
   NavNotch,

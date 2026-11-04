@@ -2,7 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { defineConfig } from "tsup";
 
 export default defineConfig((options) => ({
-  entry: ["src/index.ts", "src/motion.ts", "src/hooks.ts", "src/menu-path.ts", "src/date-range.ts"],
+  entry: ["src/index.ts", "src/motion.ts", "src/hooks.ts", "src/menu-path.ts", "src/date-range.ts", "src/glass.ts"],
   format: ["esm", "cjs"],
   dts: true,
   splitting: false,
@@ -20,7 +20,7 @@ export default defineConfig((options) => ({
   // that hold hooks; the pure entries (motion, menu-path, date-range) stay
   // server-safe. Same line as the leading comment, so no line shifts.
   async onSuccess() {
-    for (const file of ["index.js", "index.cjs", "hooks.js", "hooks.cjs"]) {
+    for (const file of ["index.js", "index.cjs", "hooks.js", "hooks.cjs", "glass.js", "glass.cjs"]) {
       const path = `dist/${file}`;
       const code = await readFile(path, "utf8");
       if (!code.startsWith('"use client";')) await writeFile(path, `"use client";${code}`);

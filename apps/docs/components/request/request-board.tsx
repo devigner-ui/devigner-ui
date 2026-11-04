@@ -8,13 +8,13 @@ import {
   IconArrowRight,
   IconChevronDown,
   IconClock,
-  IconCloseCircle2,
+  IconCloseCircleLarge,
   IconLike,
   IconLink,
   IconMessage,
-  IconSearchNormal,
+  IconMagnifierGap,
   IconSpinner,
-  IconTickCircle,
+  IconCheckCircle,
 } from "@devigner-ui/icons";
 import { Badge } from "devignerui";
 import { SPRING_LAYOUT } from "devignerui/motion";
@@ -26,8 +26,8 @@ import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 const STATUS: { id: Status; label: string; dot: string; badge: string; icon: React.ReactNode }[] = [
   { id: "pending", label: "Pending", dot: "bg-text-muted", badge: "text-text-secondary", icon: <IconClock variant="Bold" /> },
   { id: "progress", label: "In progress", dot: "bg-brand", badge: "text-brand", icon: <IconSpinner /> },
-  { id: "published", label: "Published", dot: "bg-success", badge: "text-success", icon: <IconTickCircle variant="Bold" /> },
-  { id: "rejected", label: "Rejected", dot: "bg-destructive", badge: "text-destructive", icon: <IconCloseCircle2 variant="Bold" /> },
+  { id: "published", label: "Published", dot: "bg-success", badge: "text-success", icon: <IconCheckCircle variant="Bold" /> },
+  { id: "rejected", label: "Rejected", dot: "bg-destructive", badge: "text-destructive", icon: <IconCloseCircleLarge variant="Bold" /> },
 ];
 const statusOf = (id: Status) => STATUS.find((s) => s.id === id)!;
 
@@ -134,7 +134,7 @@ export function RequestBoard({
         </div>
         <div className="flex items-center gap-2">
           <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-background-100 px-3.5 text-text-muted transition-colors duration-150 ease-out focus-within:border-border-hover lg:w-52 lg:flex-none">
-            <IconSearchNormal aria-hidden className="size-3.5 shrink-0" />
+            <IconMagnifierGap aria-hidden className="size-3.5 shrink-0" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -402,7 +402,7 @@ function EmptyState({
           rows frame it without their lines running through the text. */}
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_55%_60%_at_center,var(--color-background-100)_55%,transparent)] px-6 text-center">
         <span className="grid size-11 place-items-center rounded-2xl border border-border bg-background text-text-secondary shadow-subtle">
-          {query ? <IconSearchNormal aria-hidden className="size-5" /> : <IconAdd aria-hidden className="size-5" />}
+          {query ? <IconMagnifierGap aria-hidden className="size-5" /> : <IconAdd aria-hidden className="size-5" />}
         </span>
         <p className="mt-4 text-[17px] font-semibold tracking-tight text-balance text-foreground">{title}</p>
         <p className="mt-1.5 max-w-sm text-[14px]/relaxed text-pretty text-text-secondary">{body}</p>

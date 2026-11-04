@@ -33,7 +33,7 @@ export default function CheckoutSuccess({
           </div>
 
           <h1 className="text-[clamp(1.8rem,4vw,2.5rem)] font-semibold leading-[1.15] tracking-[-0.03em] text-foreground">
-            Payment Successful!
+            Payment received
           </h1>
 
           <p className="mt-4 mx-auto max-w-sm text-[15px] leading-relaxed text-text-secondary">
@@ -46,13 +46,13 @@ export default function CheckoutSuccess({
               href="/"
               className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-7 text-sm font-medium text-background hover:opacity-90 active:scale-[0.98] transition-all duration-200"
             >
-              Go to Home
+              Go home
             </Link>
             <Link
               href="/components"
               className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-background/50 px-7 text-sm font-medium text-foreground hover:bg-surface transition-colors duration-200"
             >
-              Browse Components
+              Browse components
             </Link>
           </div>
         </div>

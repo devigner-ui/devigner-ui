@@ -39,7 +39,7 @@ const EMOJIS: Record<string, [string, string]> = {
   cl_new: ["IconMagicStar", "#22c55e"],
   cl_updated: ["IconRefreshCircle", "#5a94ff"],
   cl_fixed: ["IconBug", "#f59e0b"],
-  cl_removed: ["IconTrashBinMinimalistic", "#ef4444"],
+  cl_removed: ["IconTrashBinHandleLines", "#ef4444"],
   cl_site: ["IconGlobal", "#a78bfa"],
   cl_components: ["IconBox", "#5a94ff"],
   cl_request: ["IconChatRoundLine", "#5a94ff"],

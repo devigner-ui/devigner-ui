@@ -26,13 +26,13 @@ const bad = (error: string, status = 400) => NextResponse.json({ error }, { stat
 
 export async function POST(req: NextRequest) {
   const webhook = process.env.DISCORD_REQUESTS_WEBHOOK_URL;
-  if (!webhook) return bad("Requests are not set up yet.", 503);
+  if (!webhook) return bad("Requests are closed for now. Ask in our Discord instead.", 503);
 
   let form: FormData;
   try {
     form = await req.formData();
   } catch {
-    return bad("Invalid request.");
+    return bad("Couldn't read the form. Refresh the page and try again.");
   }
 
   // Honeypot: a field people never see. Bots fill it; pretend it worked.
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   const username = discordUsername(handle);
   if (!username) return bad("That isn't a valid Discord username.");
   if (name.length < 2) return bad("Give the component a name.");
-  if (details.length < 10) return bad("Tell us a bit about what it should do.");
+  if (details.length < 10) return bad("Tell us what it should do.");
 
   // One per line; anything that is not a plain web link is dropped.
   const links = clean(form.get("links"), MAX_LINKS * (LIMITS.link + 1))
@@ -57,8 +57,8 @@ export async function POST(req: NextRequest) {
   const images = form.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
   if (images.length > IMAGES.max) return bad(`Up to ${IMAGES.max} images.`);
   for (const f of images) {
-    if (!(IMAGES.types as readonly string[]).includes(f.type)) return bad("Images must be PNG, JPG, WebP or GIF.");
-    if (f.size > IMAGES.bytes) return bad("Each image must be under 3 MB.");
+    if (!(IMAGES.types as readonly string[]).includes(f.type)) return bad("Images must be PNG, JPG, WebP or GIF, under 3 MB each.");
+    if (f.size > IMAGES.bytes) return bad("Images must be PNG, JPG, WebP or GIF, under 3 MB each.");
   }
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

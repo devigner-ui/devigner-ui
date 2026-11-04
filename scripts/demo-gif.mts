@@ -121,6 +121,97 @@ const STEPS: Record<string, Steps> = {
     await stage.getByRole("button", { name: "3 nights", exact: true }).click();
     await page.waitForTimeout(1400);
   },
+  // Flick the front card away twice, then back with the arrow key.
+  "flick-cards-slider": async (stage, page, mark) => {
+    const front = await stage.locator(".w-max").first().boundingBox();
+    if (!front) throw new Error("no deck");
+    const cx = front.x + front.width / 2;
+    const cy = front.y + front.height / 2;
+    for (let i = 0; i < 2; i++) {
+      await page.mouse.move(cx, cy);
+      await page.mouse.down();
+      for (let s = 1; s <= 12; s++) {
+        await page.mouse.move(cx - s * 18, cy, { steps: 1 });
+        await page.waitForTimeout(16);
+      }
+      await page.mouse.up();
+      await page.waitForTimeout(1300);
+    }
+    await mark();
+  },
+  // Open the note, type into it and save, so it melts back to the pill.
+  "morphing-popover": async (stage, page, mark) => {
+    await stage.getByRole("button", { name: /Add note/ }).click();
+    await page.waitForTimeout(1300);
+    await mark(stage.locator("form").first());
+    await stage.locator("textarea").first().pressSequentially("Tighten the title", { delay: 45 });
+    await page.waitForTimeout(400);
+    await stage.getByRole("button", { name: "Save note" }).click();
+    await page.waitForTimeout(1500);
+  },
+  // Right-click the card, walk down to Move to and into its submenu, then
+  // pick Archive.
+  "context-menu": async (stage, page, mark) => {
+    const area = await stage.locator(".w-max").first().boundingBox();
+    if (!area) throw new Error("no card");
+    await page.mouse.click(area.x + area.width * 0.42, area.y + area.height * 0.4, { button: "right" });
+    await page.waitForTimeout(900);
+    const menu = page.getByRole("menu").first();
+    await mark(menu);
+    for (const label of ["Rename", "Copy link", "Move to"]) {
+      await menu.getByRole("menuitem", { name: label }).hover();
+      await page.waitForTimeout(380);
+    }
+    await page.waitForTimeout(700);
+    await mark(page.getByRole("menu").last());
+    await page.getByRole("menu").last().getByRole("menuitem", { name: "Archive" }).hover();
+    await page.waitForTimeout(400);
+    await page.getByRole("menu").last().getByRole("menuitem", { name: "Archive" }).click();
+    await page.waitForTimeout(1100);
+  },
+  // Step through a few views; the crop follows the island alone.
+  "dynamic-island": async (stage, page, mark) => {
+    const island = stage.locator('div[class*="min-w-25"]').first();
+    for (const view of ["Timer", "AirDrop", "Screen record", "Music"]) {
+      await stage.getByRole("button", { name: view, exact: true }).click();
+      await page.waitForTimeout(2000);
+      await mark(island);
+    }
+  },
+  // Hover down the rows, then search and open the theme page; Clear is left
+  // alone so the list never drops a group mid-recording.
+  "command-palette": async (stage, page, mark) => {
+    const rows = stage.getByRole("option");
+    for (const i of [0, 1, 2, 3]) {
+      await rows.nth(i).hover();
+      await page.waitForTimeout(320);
+    }
+    await page.mouse.move(0, 0);
+    const field = stage.getByRole("combobox").first();
+    await field.click();
+    await field.pressSequentially("theme", { delay: 70 });
+    await page.waitForTimeout(600);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(1100);
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(500);
+    await mark();
+  },
+  // The card opens on the panel: fold it into the pill, unfold it again and
+  // roll a link to its hover color.
+  "menu-notch": async (stage, page, mark) => {
+    await mark();
+    const toggle = stage.getByRole("button", { name: /^(Close|Menu)$/ }).first();
+    await toggle.click();
+    await page.waitForTimeout(1100);
+    await toggle.click();
+    await page.waitForTimeout(1200);
+    await mark();
+    for (const label of ["About", "Resources"]) {
+      await stage.getByText(label, { exact: true }).first().hover();
+      await page.waitForTimeout(700);
+    }
+  },
   // Radios with no button to press: click through the options.
   tabs: async (stage, page, mark) => {
     for (const label of ["History", "Settings", "Playlist"]) {
@@ -139,6 +230,16 @@ const PAGES: Record<string, { crop: string; setup?: (stage: Locator) => Promise<
     // The preview's Trigger tab, picked before recording starts.
     setup: (stage) => stage.getByText("trigger", { exact: true }).click(),
   },
+};
+
+/** Demos left at 1x: the context menu places itself from the pointer's
+ *  client position, which page zoom throws off, so it opened off screen. */
+const UNZOOMED = new Set(["context-menu"]);
+
+/** Catalog demos framed by one part instead of their whole box. */
+const CROP: Record<string, string> = {
+  // The island, not the row of view buttons under it.
+  "dynamic-island": 'div[class*="min-w-25"]',
 };
 
 const union = (a: Box | null, b: Box | null): Box | null => {
@@ -186,7 +287,7 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
         await page.goto(`${base}/components${own ? `/${slug}` : ""}`, { waitUntil: "load" });
         await page.addStyleTag({
           content: `
-            html { zoom: ${ZOOM}; }
+            html { zoom: ${UNZOOMED.has(slug) ? 1 : ZOOM}; }
             body { visibility: hidden; }
             .gif-solo {
               visibility: visible;
@@ -197,6 +298,9 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
               background: none !important;
             }
             .gif-solo::before, .gif-solo > span { display: none !important; }
+            /* Menus portalled out of the stage still show. */
+            [role="menu"], [role="menu"] * { visibility: visible; }
+            [role="menu"] { z-index: 2147483647 !important; }
           `,
         });
         const stage = page.locator(
@@ -221,7 +325,7 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
         });
         let crop = null as Box | null;
         const mark = async (extra?: Locator) => {
-          crop = union(crop, await stage.locator(own?.crop ?? ".w-max").first().boundingBox());
+          crop = union(crop, await stage.locator(own?.crop ?? CROP[slug] ?? ".w-max").first().boundingBox());
           if (extra) crop = union(crop, await extra.boundingBox());
         };
         await page.waitForTimeout(600);

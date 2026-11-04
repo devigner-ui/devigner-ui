@@ -6,6 +6,10 @@
    packages/ui never gets generated and the component renders unstyled. */
 @source "../../../packages/ui/src";
 
+/* The root .gitignore lists apps/docs/demos, and auto-detection skips
+   ignored paths, so classes used only in a demo need this. */
+@source "../demos";
+
 /* Hairline dividers that fade out at both ends, like the "or send it
    straight to" rule. fade-border paints an element's own border that way;
    fade-divide does it for the borders divide-* and border-t put on its
@@ -72,6 +76,9 @@
   --surface: oklch(95.8% 0.004 260);
   --surface2: oklch(93.4% 0.005 260);
   --surface-hover: oklch(92.6% 0.006 260);
+  /* A floating panel over the canvas (the Settings panel): white here, the
+     current sidebar link's ground in dark. */
+  --panel: oklch(100% 0 0);
 
   /* --foreground carried as alpha - keep the three in step when retuning ink. */
   --border: oklch(19% 0.012 260 / 0.1);
@@ -143,6 +150,7 @@
 
   --surface: oklch(18.2% 0.007 260);
   --surface2: oklch(22% 0.008 260);
+  --panel: oklch(22% 0.008 260);
   --surface-hover: oklch(22.6% 0.009 260);
 
   --border: oklch(95.5% 0.003 260 / 0.09);
@@ -323,9 +331,9 @@
   --color-ring: var(--ring);
   --radius: 0.625rem;
 
-  /* Typography - Geist for titles and body, Mazius Display for one accent
+  /* Typography - Geist for titles and body, Instrument Serif for one accent
      word per title. The logo is SVG outlines (wordmark-glyphs.ts). */
-  --font-accent: var(--font-mazius), Georgia, serif;
+  --font-accent: var(--font-instrument-serif), Georgia, serif;
   --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "ui-monospace", "SFMono-Regular", "Roboto Mono",
@@ -352,7 +360,8 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);  --color-shell-fg-muted: var(--shell-fg-muted);
+  --ease-overshoot: cubic-bezier(0, 0, 0, 1.25);
+  --ease-tint: cubic-bezier(0, 0, 0.58, 1);  --color-shell-fg-muted: var(--shell-fg-muted);
   --color-shell-fg-faint: var(--shell-fg-faint);
 }
 
@@ -509,6 +518,33 @@ html {
   display: block;
 }
 
+/* ─── Floating settings panel ───
+   White in light mode and the sidebar's current-link ground in dark (the
+   --panel token), a faint rim and a long soft shadow lifting it off the
+   stage. Dragging drops the shadow and firms up the
+   rim, in neutral. */
+.hud-panel {
+  background: var(--panel);
+  border: 1px solid color-mix(in oklab, var(--foreground) 4%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent),
+    0 1px 2px oklch(19% 0.03 260 / 0.06),
+    0 18px 44px -18px oklch(19% 0.03 260 / 0.22);
+  transition:
+    box-shadow 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out),
+    border-radius 0.3s var(--ease-out);
+}
+.dark .hud-panel {
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent),
+    0 1px 2px oklch(0% 0 0 / 0.4),
+    0 22px 52px -18px oklch(0% 0 0 / 0.7);
+}
+.hud-panel[data-dragging] {
+  border-color: var(--border-hover);
+  box-shadow: none;
+}
 /* ─── Scrollbars ─── */
 .code-scroll {
   scrollbar-width: thin;
@@ -653,7 +689,7 @@ html {
   .accent-word {
     font-family: var(--font-accent);
     font-style: italic;
-    font-weight: 700;
+    font-weight: 400;
     font-size: 1.1em;
     line-height: 0;
     letter-spacing: -0.01em;

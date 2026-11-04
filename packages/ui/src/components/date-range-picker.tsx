@@ -36,16 +36,6 @@ import {
   type MonthGridDay,
 } from "../lib/date-range";
 
-const WEEKDAYS = [
-  ["M", "Monday"],
-  ["T", "Tuesday"],
-  ["W", "Wednesday"],
-  ["T", "Thursday"],
-  ["F", "Friday"],
-  ["S", "Saturday"],
-  ["S", "Sunday"],
-] as const;
-
 // How far into the hovered day a preview band reaches, in columns from the
 // day's near edge: just past a two-digit number and still inside the hover
 // circle, so the band's end is never seen and the two read as one shape.
@@ -104,20 +94,59 @@ function useLazyValue<T>(
   return key === shown.key || delay <= 0 ? { key, value } : shown;
 }
 
-const formatMonthName = (date: Date) =>
-  date.toLocaleDateString("en-US", { month: "long" });
+const MONTH_NAME = { month: "long" } as const;
+const MONTH_LABEL = { month: "long", year: "numeric" } as const;
+const SHORT_DATE = { month: "short", day: "numeric" } as const;
+const FULL_DATE = { month: "long", day: "numeric" } as const;
 
-const formatMonthLabel = (date: Date) =>
-  date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+/** Narrow and long weekday names, Monday first. January 1, 2024 was a
+ *  Monday. */
+const weekdaysOf = (locale: string) =>
+  Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(2024, 0, 1 + i);
+    return [
+      day.toLocaleDateString(locale, { weekday: "narrow" }),
+      day.toLocaleDateString(locale, { weekday: "long" }),
+    ] as const;
+  });
 
-const formatShortDate = (date: Date) =>
-  date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const plural = new Intl.PluralRules("en-US");
 
-const formatFullDate = (date: Date) =>
-  date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+/** Every built-in string. Override any of them through `messages`. */
+export interface DateRangePickerMessages {
+  /** A field with no date yet. */
+  emptyDate: string;
+  /** The badge before a range is picked. */
+  emptyRange: string;
+  /** The badge while the second day is being picked. */
+  pickEnd: (endLabel: string) => string;
+  nights: (count: number) => string;
+  /** Announced once a range is set. Dates arrive formatted in `locale`,
+   *  nights already through `nights`. */
+  selected: (range: {
+    startLabel: string;
+    endLabel: string;
+    start: string;
+    end: string;
+    nights: string;
+  }) => string;
+  previousMonth: string;
+  nextMonth: string;
+  clear: string;
+}
 
-const formatNights = (nights: number) =>
-  `${nights} ${nights === 1 ? "night" : "nights"}`;
+export const DATE_RANGE_PICKER_MESSAGES: DateRangePickerMessages = {
+  emptyDate: "Add date",
+  emptyRange: "Add dates",
+  pickEnd: (endLabel) => `Pick ${endLabel.toLowerCase()}`,
+  nights: (count) =>
+    `${count} ${plural.select(count) === "one" ? "night" : "nights"}`,
+  selected: ({ startLabel, endLabel, start, end, nights }) =>
+    `${startLabel} ${start}, ${endLabel.toLowerCase()} ${end}, ${nights}`,
+  previousMonth: "Previous month",
+  nextMonth: "Next month",
+  clear: "Clear",
+};
 
 /** First non-disabled day of the month containing `monthAnchor`, or null if
  *  every day in that month is disabled. Used both for the roving-tabindex
@@ -215,6 +244,10 @@ export interface DateRangePickerProps extends Omit<
   presets?: DateRangePreset[];
   startLabel?: string;
   endLabel?: string;
+  /** Locale for dates and weekday names, such as "de-DE". */
+  locale?: string;
+  /** Replaces any built-in string; see DATE_RANGE_PICKER_MESSAGES. */
+  messages?: Partial<DateRangePickerMessages>;
   /** Replaces the badge text. Receives the committed range, or the hover
    *  preview while a check-out is being picked. */
   renderBadge?: (range: DateRange | null) => React.ReactNode;
@@ -291,6 +324,8 @@ function NavButton({
 function Field({
   label,
   date,
+  locale,
+  emptyLabel,
   active,
   underlineId,
   reduced,
@@ -299,6 +334,8 @@ function Field({
 }: {
   label: string;
   date: Date | null;
+  locale: string;
+  emptyLabel: string;
   active: boolean;
   underlineId: string;
   reduced: boolean;
@@ -329,7 +366,7 @@ function Field({
             : "font-normal text-muted-foreground",
         )}
       >
-        {date ? formatShortDate(date) : "Add date"}
+        {date ? date.toLocaleDateString(locale, SHORT_DATE) : emptyLabel}
       </RollingText>
       <span className="mt-1.75 block h-0.5 w-9">
         {active && (
@@ -354,10 +391,12 @@ export function DateRangePicker({
   minDate,
   maxDate,
   isDateDisabled,
-  title = "Trip Dates",
+  title = "Trip dates",
   presets = DEFAULT_DATE_RANGE_PRESETS,
   startLabel = "Check-in",
   endLabel = "Check-out",
+  locale = "en-US",
+  messages,
   renderBadge,
   onClear,
   appear = false,
@@ -385,6 +424,10 @@ export function DateRangePicker({
     },
     [minDate, maxDate, isDateDisabled],
   );
+
+  const m = { ...DATE_RANGE_PICKER_MESSAGES, ...messages };
+  const weekdays = React.useMemo(() => weekdaysOf(locale), [locale]);
+  const fullDate = (date: Date) => date.toLocaleDateString(locale, FULL_DATE);
 
   const [pendingStart, setPendingStart] = React.useState<Date | null>(null);
   const [hoverDate, setHoverDate] = React.useState<Date | null>(null);
@@ -484,7 +527,13 @@ export function DateRangePicker({
   };
 
   const liveMessage = value
-    ? `${startLabel} ${formatFullDate(value.start)}, ${endLabel.toLowerCase()} ${formatFullDate(value.end)}, ${formatNights(nightsBetween(value.start, value.end))}`
+    ? m.selected({
+        startLabel,
+        endLabel,
+        start: fullDate(value.start),
+        end: fullDate(value.end),
+        nights: m.nights(nightsBetween(value.start, value.end)),
+      })
     : "";
 
   /** A preset's range from `anchor`, normalized to local days, ordered, and
@@ -590,10 +639,10 @@ export function DateRangePicker({
   const badgeText = renderBadge
     ? renderBadge(badgeRange)
     : badgeRange
-      ? formatNights(nightsBetween(badgeRange.start, badgeRange.end))
+      ? m.nights(nightsBetween(badgeRange.start, badgeRange.end))
       : pendingStart
-        ? `Pick ${endLabel.toLowerCase()}`
-        : "Add dates";
+        ? m.pickEnd(endLabel)
+        : m.emptyRange;
   const badgeKey = badgeRange
     ? `range-${nightsBetween(badgeRange.start, badgeRange.end)}`
     : pendingStart
@@ -696,6 +745,8 @@ export function DateRangePicker({
             <Field
               label={startLabel}
               date={headerStart}
+              locale={locale}
+              emptyLabel={m.emptyDate}
               active={!pendingStart}
               underlineId="underline"
               reduced={reduced}
@@ -710,6 +761,8 @@ export function DateRangePicker({
               <Field
                 label={endLabel}
                 date={headerEnd}
+                locale={locale}
+                emptyLabel={m.emptyDate}
                 active={!!pendingStart}
                 underlineId="underline"
                 reduced={reduced}
@@ -725,7 +778,7 @@ export function DateRangePicker({
           >
             <div className="text-[16px]/6 font-bold tracking-[-0.01em] text-foreground">
               <RollingText id={monthTime} reduced={reduced}>
-                {formatMonthName(month)}{" "}
+                {month.toLocaleDateString(locale, MONTH_NAME)}{" "}
                 <span className="text-muted-foreground">
                   {month.getFullYear()}
                 </span>
@@ -733,7 +786,7 @@ export function DateRangePicker({
             </div>
             <div className="flex items-center gap-0.5">
               <NavButton
-                label="Previous month"
+                label={m.previousMonth}
                 reduced={reduced}
                 disabled={atMinMonth}
                 onClick={() => setMonth((m) => addMonths(m, -1))}
@@ -741,7 +794,7 @@ export function DateRangePicker({
                 <IconChevronLeft className="size-4" strokeWidth={2.5} />
               </NavButton>
               <NavButton
-                label="Next month"
+                label={m.nextMonth}
                 reduced={reduced}
                 disabled={atMaxMonth}
                 onClick={() => setMonth((m) => addMonths(m, 1))}
@@ -753,7 +806,7 @@ export function DateRangePicker({
 
           <div
             role="grid"
-            aria-label={formatMonthLabel(month)}
+            aria-label={month.toLocaleDateString(locale, MONTH_LABEL)}
             className={cn("mt-5 select-none", classNames?.grid)}
           >
             <motion.div
@@ -761,7 +814,7 @@ export function DateRangePicker({
               variants={APPEAR_ROW}
               className="grid grid-cols-7 text-center text-[10px]/4 font-medium text-muted-foreground"
             >
-              {WEEKDAYS.map(([short, full]) => (
+              {weekdays.map(([short, full]) => (
                 <div key={full} role="columnheader" aria-label={full}>
                   {short}
                 </div>
@@ -886,7 +939,7 @@ export function DateRangePicker({
             classNames?.clearButton,
           )}
         >
-          Clear
+          {m.clear}
         </button>
       </motion.div>
 

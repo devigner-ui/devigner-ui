@@ -19,8 +19,9 @@ Before writing code, confirm with the user:
 
 - **Slug** (kebab-case, e.g. `goo-switch`) and **name** ("Goo Switch").
 - **Category**: one key from `COMPONENT_CATEGORIES` in
-  `packages/shared/src/constants.ts`. A new category is added there first,
-  never invented in a descriptor.
+  `packages/shared/src/constants.ts`. There are only two: `interface` (anything
+  people operate in a product: controls, menus, palettes, charts) and `marketing`
+  (landing-page showpieces and effects). Never add a third.
 - **Community request?** If it answers a Discord request, get the post link
   (see step 9).
 

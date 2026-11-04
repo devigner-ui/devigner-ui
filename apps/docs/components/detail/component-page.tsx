@@ -25,7 +25,7 @@ import {
   IconArrowLeft,
   IconAdd,
   IconArrowRight,
-  IconBook2,
+  IconBookPages,
   IconCheck,
   IconChevronDown,
   IconChevronLeft,
@@ -36,12 +36,12 @@ import {
   IconClose,
   IconCursor,
   IconHamburgerMenu,
-  IconDownloadMinimalistic,
-  IconMagicStick3,
+  IconDownloadTray,
+  IconMagicStickSparkles,
   IconMaximize,
   IconMinimize,
   IconRestart,
-  IconSearchNormal,
+  IconMagnifierGap,
   IconSettings,
   IconShare,
   IconSpinner,
@@ -75,13 +75,14 @@ import { CodeBlock, whenIdle } from "../code-block";
 import { ProgressiveBlur } from "../landing/hero-window";
 import { Wordmark } from "../landing/navbar";
 import { ThemeIcon, useTheme } from "../theme-provider";
+import { FloatingSettings } from "./settings-panel";
 import { Inspector, type RequestCredit } from "./inspector";
 import { usePlayground } from "./playgrounds";
 import { NewBadge } from "../new-badge";
 
 const INSPECTOR_W = 460;
-/** The components sidebar on wide screens (w-56). */
-const SIDEBAR_W = 224;
+/** The components sidebar on wide screens. */
+const SIDEBAR_W = 248;
 /** The dock shell's own padding either side, taken off the Settings content
  *  so the open panel comes out exactly as wide as the closed dock. */
 const SETTINGS_INSET = 16;
@@ -213,7 +214,9 @@ function SidebarBrand() {
 
 /** The stage's ground: square, stage light from the top. */
 function StageGround() {
-  return <div aria-hidden className="frame-surface stage-ground absolute inset-0" />;
+  return (
+    <div aria-hidden className="frame-surface stage-ground absolute inset-0" />
+  );
 }
 
 /** A dock icon's own active pill - the row itself only tints text on
@@ -256,6 +259,12 @@ const HINT_WARM = 300;
 /** Grace before closing, long enough to cross the gap to the next row
  *  without the tooltip unmounting in between. */
 const HINT_GRACE = 80;
+/** Tooltips for the floating Settings panel's buttons, shown by the dock's
+ *  tooltip so they read the same. */
+const PANEL_HINTS: Record<string, { label: string; key: string }> = {
+  "panel-reset": { label: "Reset", key: "R" },
+  "panel-fold": { label: "Hide settings", key: "S" },
+};
 /** Dock ids without the press/release knock. */
 const QUIET_PRESS = new Set(["prompt", "theme", "settings", "more"]);
 
@@ -265,6 +274,9 @@ const MotionSpinner = motion.create(IconSpinner);
  *  mounts a fresh dock, so this is how the next one knows Settings is new to
  *  it. null on a first visit, where nothing should animate in. */
 let lastHadSettings: boolean | null = null;
+/** Whether the floating Settings panel was folded to its header, kept across
+ *  pages like the panel's position. */
+let lastSettingsCollapsed = false;
 
 /** Full screen (sidebar hidden), carried from page to page the same way, so
  *  stepping through components with the arrows keeps it. */
@@ -440,6 +452,8 @@ function ComponentsPanel({
   const list = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const groups = groupByCategory(searchEntries(entries, query));
+  // The sidebar and the dock both list components under their category.
+  const sections = groups;
   const first = groups[0]?.items[0];
   // A search that found nothing carries over into the request.
   const missing = groups.length === 0 ? query.trim() : "";
@@ -558,7 +572,7 @@ function ComponentsPanel({
               : "h-10 bg-surface px-3 text-[13.5px] focus-within:bg-surface-hover",
           )}
         >
-          <IconSearchNormal aria-hidden className="size-4 shrink-0" />
+          <IconMagnifierGap aria-hidden className="size-4 shrink-0" />
           <input
             ref={input}
             value={query}
@@ -602,23 +616,32 @@ function ComponentsPanel({
               : "max-h-[clamp(8rem,calc(100dvh-13rem),400px)]",
           )}
         >
-          {groups.map((g) => (
+          {sections.map((g) => (
             <div
               key={g.label}
-              role="group"
-              aria-label={g.label}
-              className={cn(sidebar && "flex flex-col gap-0.5")}
+              role={g.label ? "group" : undefined}
+              aria-label={g.label || undefined}
+              className={cn(sidebar && "mt-3 flex flex-col gap-0.5")}
             >
-              <p
-                className={cn(
-                  "mx-3 mb-1.5 flex items-baseline justify-between text-text-muted",
-                  sidebar
-                    ? "mt-5 font-mono text-[10px] tracking-[0.14em] uppercase"
-                    : "mt-4 text-[11.5px] font-medium",
-                )}
-              >
-                <span>{g.label}</span>
-              </p>
+              {g.label && (
+                // A quiet overline, set apart from the rows below: smaller,
+                // dimmer, mono, with the count. In the sidebar it sticks to
+                // the top while its rows scroll under it, on the sidebar's
+                // own background.
+                <p
+                  className={cn(
+                    "flex items-center gap-2 font-mono text-[10.5px] leading-none font-medium tracking-[0.08em] whitespace-nowrap text-text-muted/75 uppercase select-none",
+                    sidebar
+                      ? "sticky top-0 z-10 bg-background px-3 pt-2 pb-2.5"
+                      : "mx-3 mt-4 mb-2",
+                  )}
+                >
+                  <span>{g.label}</span>
+                  <span className="tracking-normal text-text-muted/50 tabular-nums">
+                    {g.items.length}
+                  </span>
+                </p>
+              )}
               {g.items.map((e) => {
                 const on = e.slug === current;
                 return (
@@ -650,7 +673,11 @@ function ComponentsPanel({
                     )}
                     <span className="relative truncate">{e.name}</span>
                     {(e.isNew || e.isUpdated) && (
-                      <NewBadge size="sm" updated={!e.isNew} className="relative ml-auto" />
+                      <NewBadge
+                        size="sm"
+                        updated={!e.isNew}
+                        className="relative ml-auto"
+                      />
                     )}
                   </Link>
                 );
@@ -690,7 +717,7 @@ function ComponentsPanel({
               <span className="absolute -inset-y-40 -left-px w-px bg-[repeating-linear-gradient(180deg,var(--border-hover)_0_3px,transparent_3px_6px)] opacity-60" />
               <span className="absolute -inset-y-40 -right-px w-px bg-[repeating-linear-gradient(180deg,var(--border-hover)_0_3px,transparent_3px_6px)] opacity-60" />
               {/* The layer tag, sitting on the frame's top edge. */}
-              <span className="absolute -top-4.5 -left-px flex items-center gap-1 font-mono text-[9px] leading-3 tracking-[0.04em] text-foreground/45">
+              <span className="absolute -top-4.5 -left-px flex items-center gap-1 font-mono text-[9px]/3 tracking-[0.04em] text-foreground/45">
                 <span className="size-1 bg-foreground/45" />
                 your-component
               </span>
@@ -718,7 +745,7 @@ function ComponentsPanel({
             </span>
             <span className="absolute right-3 bottom-1.5 flex items-start transition-transform duration-500 ease-out group-hover:-translate-x-4 group-hover:-translate-y-2.5 group-focus-visible:-translate-x-4 group-focus-visible:-translate-y-2.5">
               <IconCursor className="size-3.5 fill-brand text-brand" />
-              <span className="mt-3 -ml-0.5 rounded-full bg-brand px-1.5 text-[9.5px] leading-4 font-medium text-brand-foreground">
+              <span className="mt-3 -ml-0.5 rounded-full bg-brand px-1.5 text-[9.5px]/4 font-medium text-brand-foreground">
                 You
               </span>
             </span>
@@ -804,7 +831,7 @@ function SidebarSheet({
             onDragEnd={(_, info) => {
               if (info.offset.x < -72 || info.velocity.x < -400) onClose();
             }}
-            className="fixed top-2 bottom-2 left-2 z-50 flex w-[min(17.5rem,calc(100vw-4rem))] touch-pan-y flex-col overflow-hidden rounded-[22px] border border-border bg-background px-3 pt-3.5 shadow-elevated outline-none"
+            className="fixed inset-y-2 left-2 z-50 flex w-[min(17.5rem,calc(100vw-4rem))] touch-pan-y flex-col overflow-hidden rounded-[22px] border border-border bg-background px-3 pt-3.5 shadow-elevated outline-none"
           >
             {/* The stage light, so the sheet reads as lit from the same
                 place as the page behind it. */}
@@ -817,7 +844,7 @@ function SidebarSheet({
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Close"
+                aria-label="Close components list"
                 className="grid size-8 cursor-pointer place-items-center rounded-full bg-surface text-text-secondary transition-[background-color,color,scale] duration-200 ease-out hover:bg-surface-hover hover:text-foreground active:scale-[0.94]"
               >
                 <IconClose strokeWidth={2} className="size-4" />
@@ -877,7 +904,7 @@ function DrawerHeader({
   };
 
   return (
-    <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-border pr-3 pl-4.5 font-mono text-[12.5px]">
+    <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-foreground/6 pr-3 pl-4.5 font-mono text-[12.5px]">
       <span className="truncate font-medium text-foreground">{fileName}</span>
       <span className="text-text-muted">{countLines(code)} lines</span>
       <span className="flex-1" />
@@ -910,7 +937,7 @@ function DrawerHeader({
         aria-label="Download file"
         className="grid size-8 cursor-pointer place-items-center rounded-full border border-border text-text-secondary transition-colors duration-200 ease-out hover:border-border-hover hover:text-foreground"
       >
-        <IconDownloadMinimalistic aria-hidden className="size-3.5" />
+        <IconDownloadTray aria-hidden className="size-3.5" />
       </button>
     </div>
   );
@@ -1604,6 +1631,17 @@ export function ComponentPage({
   const playground = usePlayground(slug, meta.usage);
   const [settingsIsNew] = useState(() => lastHadSettings === false);
   const hasSettings = !!playground.settings;
+  // From sm up the knobs float over the canvas; on a phone there is no room
+  // to drag, so they stay a dock panel.
+  const floatingSettings = hasSettings && !isPhone;
+  const [settingsCollapsed, setSettingsCollapsed] = useState(
+    () => lastSettingsCollapsed,
+  );
+  const toggleSettings = () =>
+    setSettingsCollapsed((c) => {
+      lastSettingsCollapsed = !c;
+      return !c;
+    });
   useEffect(() => {
     lastHadSettings = hasSettings;
   }, [hasSettings]);
@@ -1708,7 +1746,7 @@ export function ComponentPage({
       showLabel: isLg,
       icon: (
         <DockGlyph active={docsOpen}>
-          <IconBook2 strokeWidth={2} />
+          <IconBookPages strokeWidth={2} />
         </DockGlyph>
       ),
       onSelect: () => {
@@ -1731,7 +1769,7 @@ export function ComponentPage({
     {
       id: "prompt",
       label: "Prompt",
-      icon: <IconMagicStick3 strokeWidth={2} />,
+      icon: <IconMagicStickSparkles strokeWidth={2} />,
       content: (
         <PromptPanel
           prompt={prompt}
@@ -1754,9 +1792,7 @@ export function ComponentPage({
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span
                 key={full ? "on" : "off"}
-                initial={
-                  reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }
-                }
+                initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.55 }}
                 transition={reduce ? { duration: 0.12 } : SPRING_SWAP}
@@ -1777,7 +1813,7 @@ export function ComponentPage({
   const items: MenuDockItem[] = [
     ...fullItems,
     ...pageItems,
-    ...(playground.settings
+    ...(playground.settings && isPhone
       ? [
           {
             id: "settings",
@@ -1863,6 +1899,8 @@ export function ComponentPage({
     actions,
     reset,
     hasSettings,
+    floatingSettings,
+    toggleSettings,
     navOpen,
     isLg,
     full,
@@ -1876,6 +1914,8 @@ export function ComponentPage({
     actions,
     reset,
     hasSettings,
+    floatingSettings,
+    toggleSettings,
     navOpen,
     isLg,
     full,
@@ -1904,6 +1944,17 @@ export function ComponentPage({
       ) {
         e.preventDefault();
         reset();
+        return;
+      }
+      // S folds the floating panel; on a phone it opens the dock's one.
+      if (
+        e.key.toUpperCase() === "S" &&
+        live.current.floatingSettings &&
+        !typing &&
+        !e.defaultPrevented
+      ) {
+        e.preventDefault();
+        live.current.toggleSettings();
         return;
       }
       const id = Object.keys(DOCK_KEYS).find(
@@ -1999,7 +2050,9 @@ export function ComponentPage({
     hint &&
     (hint.id === "prev" || hint.id === "next"
       ? { label: "" }
-      : items.find((i) => i.id === hint.id));
+      : hint.id === "panel-fold" && settingsCollapsed
+        ? { label: "Show settings" }
+        : (PANEL_HINTS[hint.id] ?? items.find((i) => i.id === hint.id)));
   const hintAway = reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 };
   const layout = reduce ? { duration: 0 } : SPRING_LAYOUT;
 
@@ -2068,6 +2121,21 @@ export function ComponentPage({
               </p>
             )}
           </motion.div>
+
+          {floatingSettings && (
+            <FloatingSettings
+              wide={playground.wide}
+              fit={playground.fit}
+              collapsed={settingsCollapsed}
+              onCollapse={toggleSettings}
+              onReset={reset}
+              resetSpins={resetSpins}
+              onHint={showHint}
+              onUnhint={hideHint}
+            >
+              {playground.settings}
+            </FloatingSettings>
+          )}
 
           <SideArrow
             ref={prevArrow}
@@ -2160,7 +2228,7 @@ export function ComponentPage({
             // instead of the code block re-laying out every frame.
             <div
               style={{ height: DRAWER_H }}
-              className="mx-3 flex flex-col overflow-hidden rounded-2xl bg-background-100"
+              className="mx-3 flex flex-col overflow-hidden rounded-2xl border border-foreground/6 bg-background-100"
             >
               <DrawerHeader
                 code={meta.code}
@@ -2274,9 +2342,9 @@ export function ComponentPage({
               ) : (
                 hintItem.label
               )}
-              {DOCK_KEYS[hint.id] && (
+              {(DOCK_KEYS[hint.id] ?? PANEL_HINTS[hint.id]?.key) && (
                 <kbd className="-mr-1 ml-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-[5px] bg-background/15 px-1 font-mono text-[10.5px] leading-none text-background/70">
-                  {DOCK_KEYS[hint.id]}
+                  {DOCK_KEYS[hint.id] ?? PANEL_HINTS[hint.id]?.key}
                 </kbd>
               )}
               <span

@@ -36,6 +36,8 @@ string forms are too weak).
   - `SPRING_LAYOUT` - shared-layout glides (pills, indicators, panels morphing)
   - `SPRING_MOUSE` - cursor-follow physics (magnetic, tilt, dock)
   - `SPRING_GOO` - liquid/viscous entrances (the notch droplet)
+  - `TWEEN_GLASS` / `EASE_GLASS` / `EASE_GLASS_CSS` - a sampled spring, about 12% over and settled in 1s (the Liquid Glass menu opening and closing)
+  - `TWEEN_GLASS_SOFT` / `EASE_GLASS_SOFT` - the same curve with half its swing, about 6% over (the Morphing Popover opening and closing)
   - `SPRING_RETRACT` - over-damped exits that must not bounce
   - `SPRING_TRAVEL` - an indicator travelling far across a row (the nav-notch current mark)
   - `SPRING_SWARM` - canvas particle physics in frame units (the image-generation swarm)
@@ -43,14 +45,53 @@ string forms are too weak).
   - `DRIFT_DUST` - canvas motes drifting and twinkling in frame units (the stardust-slider fill)
   - `EASE_OUT` / `EASE_IN_OUT` / `EASE_DRAWER` - tween easings; `EASE_OUT_CSS` for inline styles
   - `EASE_OVERSHOOT` - a tween that lands past the target and settles (the theme toggle)
-  - `EASE_ROLL` / `EASE_ROLL_CSS` - slow off the mark, then a long glide in, no bounce
+  - `EASE_ROLL` / `EASE_ROLL_CSS` - slow off the mark, then a long glide in, no bounce (the menu-notch links, 600ms)
   - `EASE_BACK` / `EASE_BACK_CSS` - a label and icon rolling over on hover, a slight overshoot that settles, 450ms (the flip-button)
   - `TWEEN_SWAP_ENTER` / `TWEEN_SWAP_LEAVE` - hover slot swaps: the incoming slot visible from its first frame, the outgoing one quicker (expand-tabs)
+  - `TWEEN_FLICK` / `TWEEN_FLICK_FADE` / `TWEEN_FLICK_REVEAL` - cards dealt into place with one elastic overshoot, their dim layer, and the front card's late button (the flick-cards-slider)
+  - `SPRING_ISLAND_OPEN` / `SPRING_ISLAND_POP` / `SPRING_ISLAND_REST` - the dynamic-island opening into a view, popping open harder (timer, ring), and snapping back to its resting pill
+  - `SPRING_ISLAND_SWITCH` - a small part inside the island switching state (the silent pill growing behind the bell)
+  - `SPRING_HOVER` / `TWEEN_HOVER_FADE` / `TWEEN_HOVER_OUT` - a hover highlight stepping between rows in 80ms, fading in on a fresh pointer entry and out quicker (the command-palette)
+  - `SPRING_PILL` - a panel unfolding from a bar and its icon crossing into an X (the menu-notch)
+  - `INERTIA_THROW` - a panel thrown across a canvas, gliding to a stop at the edges (the docs Settings panel)
+  - `TWEEN_LETTER` - a label's letters sharpening out of a blur one after another (the menu-notch toggle)
+  - `EASE_TINT` / `EASE_TINT_CSS` - a soft ease into a new color: hover tints, theme crossfades (the menu-notch)
 - **CSS/Tailwind:** use the theme utilities `ease-out`, `ease-in-out`, `ease-drawer`,
-  `ease-overshoot`
+  `ease-overshoot`, `ease-tint`
   (defined as `--ease-*` in both `globals.css` files). Never `ease-[cubic-bezier(...)]`.
 - New curves/springs require adding a token to `easing.ts` (and `--ease-*` CSS vars if
   used from CSS) first - keep both in sync. No one-off values in components.
+
+## Interface surfaces (HARD RULE)
+
+Interface-type components (command palettes, context and dropdown menus, popovers,
+dialogs, tabs and segmented controls, settings panels, and anything else a user
+operates rather than reads) share one look, the docs Settings panel
+(`apps/docs/components/detail/settings-panel.tsx`, `.hud-panel` in the docs
+`globals.css`). `packages/ui/src/components/command-palette.tsx` is the reference
+in the library. Use these recipes exactly; no one-off surfaces, shadows or highlights.
+
+- **Surface:** `border border-foreground/4 bg-(--panel,var(--background))` plus the
+  layered shadow
+  `shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_5%,transparent),0_1px_2px_oklch(19%_0.03_260/0.06),0_18px_44px_-18px_oklch(19%_0.03_260/0.22)]`
+  and in dark
+  `dark:shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_5%,transparent),0_1px_2px_oklch(0%_0_0/0.4),0_22px_52px_-18px_oklch(0%_0_0/0.7)]`.
+  Docs-only demo surfaces use the `hud-panel` class instead. Never `smooth-shadow-ring-*`
+  on these components.
+- **Well** (icon tiles, tracks, segmented-control grooves, image slots):
+  `rounded-[10px] border border-border bg-background/40 shadow-[inset_0_1px_2px_oklch(0%_0_0/0.08)]`.
+- **Raised thumb** inside a well (the selected segment):
+  `rounded-lg border border-border bg-white dark:bg-foreground/7 shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_6%,transparent),0_1px_2px_oklch(0%_0_0/0.12)]`.
+- **Key cap / value chip:**
+  `rounded-md border border-border bg-background/40 px-1.5 font-mono text-[11px] leading-none text-foreground shadow-[inset_0_1px_0_color-mix(in_oklab,var(--foreground)_5%,transparent)]`.
+- **Row highlight:** `bg-foreground/4.5 dark:bg-foreground/7` (destructive rows
+  `bg-destructive/10`), moving on `SPRING_HOVER`. Idle rows `text-muted-foreground`, the
+  active row `text-foreground`.
+- **Dividers:** solid `bg-foreground/6` or `border-foreground/6`, 1px.
+- **Type:** row labels `text-[13px] tracking-[-0.01em]`, panel titles
+  `text-[12.5px] font-medium tracking-[-0.01em]`, small labels, group headings and
+  values `font-mono text-[11.5px] text-muted-foreground` (sentence case, no uppercase
+  tracking), descriptions `text-[12px]`.
 
 ## Versioning (HARD RULE)
 

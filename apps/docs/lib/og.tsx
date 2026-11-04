@@ -31,7 +31,7 @@ export async function ogImage(node: React.ReactElement, size: { width: number; h
     asset("fonts", "geist-400.ttf"),
     asset("fonts", "geist-600.ttf"),
     asset("fonts", "geist-mono-400.woff"),
-    asset("fonts", "mazius-display-700-italic.ttf"),
+    asset("fonts", "instrument-serif-400-italic.ttf"),
     asset("fonts", "bricolage-grotesque-700.woff"),
   ]);
   return new ImageResponse(node, {
@@ -40,7 +40,7 @@ export async function ogImage(node: React.ReactElement, size: { width: number; h
       { name: "Geist", data: sans, weight: 400, style: "normal" },
       { name: "Geist", data: sansBold, weight: 600, style: "normal" },
       { name: "Geist Mono", data: mono, weight: 400, style: "normal" },
-      { name: "Mazius", data: accent, weight: 700, style: "italic" },
+      { name: "Instrument Serif", data: accent, weight: 400, style: "italic" },
       { name: "Bricolage", data: display, weight: 700, style: "normal" },
     ],
   });
@@ -96,7 +96,7 @@ export function OgWordmark({ size = 30 }: { size?: number }) {
 /** The one emphasized word in a title (.accent-word). */
 export function Accent({ children }: { children: React.ReactNode }) {
   return (
-    <span style={{ fontFamily: "Mazius", fontStyle: "italic", fontWeight: 700, fontSize: "1.1em", letterSpacing: "-0.01em", color: OG.brand, padding: "0 0.06em" }}>
+    <span style={{ fontFamily: "Instrument Serif", fontStyle: "italic", fontWeight: 400, fontSize: "1.1em", letterSpacing: "-0.01em", color: OG.brand, padding: "0 0.06em" }}>
       {children}
     </span>
   );

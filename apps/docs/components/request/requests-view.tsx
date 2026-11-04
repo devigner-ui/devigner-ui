@@ -257,7 +257,7 @@ export function RequestsView({ posts, ok }: { posts: RequestPost[]; ok: boolean 
                   <motion.button
                     type="button"
                     onClick={close}
-                    aria-label="Close"
+                    aria-label="Close request form"
                     layout={!!shell}
                     {...(shell ? BLUR_IN : {})}
                     className="grid size-9 cursor-pointer place-items-center rounded-full text-text-muted transition-[color,background-color,scale] duration-150 ease-out hover:bg-surface hover:text-foreground active:scale-[0.94]"

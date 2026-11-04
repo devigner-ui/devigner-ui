@@ -8,7 +8,7 @@ import {
   IconArchive,
   IconClock,
   IconRoundArrowRightUp,
-  IconCloseCircle2,
+  IconCloseCircleLarge,
   IconDocument,
   IconEye,
   IconFolder,
@@ -16,7 +16,7 @@ import {
   IconForbiddenCircle,
   IconRestart,
   IconSpinner,
-  IconTickCircle,
+  IconCheckCircle,
   IconLoading,
 } from "@devigner-ui/icons";
 
@@ -52,7 +52,7 @@ export default function BadgeDemo() {
   return (
     <div className="flex max-w-xl flex-col items-center gap-3">
       <div className="flex flex-wrap justify-center gap-2">
-        <Badge tone="success" icon={<IconTickCircle variant="Bold" />}>
+        <Badge tone="success" icon={<IconCheckCircle variant="Bold" />}>
           Approved
         </Badge>
         <Badge
@@ -64,7 +64,7 @@ export default function BadgeDemo() {
         <Badge dashed className="text-text-tertiary">
           Not applicable
         </Badge>
-        <Badge tone="danger" icon={<IconCloseCircle2 variant="Bold" />}>
+        <Badge tone="danger" icon={<IconCloseCircleLarge variant="Bold" />}>
           Failed
         </Badge>
       </div>

@@ -4,9 +4,9 @@ import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   IconAlertCircle,
-  IconDownloadMinimalistic,
+  IconDownloadTray,
   IconRefresh,
-  IconTickCircle,
+  IconCheckCircle,
 } from "@devigner-ui/icons";
 import { cn } from "cn";
 import { ThinkingOrb, type OrbState } from "thinking-orbs";
@@ -786,7 +786,7 @@ const ORB: Record<"queued" | "generating" | "refining", OrbState> = {
 
 function StatusMark({ status }: { status: ImageGenerationStatus }) {
   if (status === "complete")
-    return <IconTickCircle variant="Bold" aria-hidden className="size-6" />;
+    return <IconCheckCircle variant="Bold" aria-hidden className="size-6" />;
   if (status === "error")
     return <IconAlertCircle variant="Bold" aria-hidden className="size-6" />;
   // Nearly fills the 36px tile, on no background of its own, at its tuned 32
@@ -923,7 +923,7 @@ export const ImageGeneration = React.forwardRef<
               transition={SPRING_PRESS}
               className="absolute top-2 right-2 grid size-9 cursor-pointer place-items-center rounded-full bg-background/80 text-foreground outline-none backdrop-blur-sm transition-colors duration-200 ease-out hover:bg-background focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <IconDownloadMinimalistic aria-hidden className="size-5" />
+              <IconDownloadTray aria-hidden className="size-5" />
             </motion.button>
           ) : null}
         </div>

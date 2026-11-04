@@ -53,6 +53,9 @@ export interface ContactLensProps extends Omit<
   onError?: (error: unknown) => void;
   /** Pill text after a click copies. */
   copiedLabel?: string;
+  /** Accessible name of a copy button. `text` is what it copies. Defaults
+   *  to "Copy email: hello@devigner.cc". */
+  copyLabel?: (item: ContactLensItem, text: string) => string;
   /** ms the copied pill holds. */
   resetAfter?: number;
   classNames?: ContactLensClassNames;
@@ -61,6 +64,9 @@ export interface ContactLensProps extends Omit<
 type Range = { start: number; end: number; below: boolean };
 
 const keyOf = (item: ContactLensItem) => item.id ?? item.label;
+
+const defaultCopyLabel = (item: ContactLensItem, text: string) =>
+  `Copy ${item.label.toLowerCase()}: ${text}`;
 
 function rangeOf(value: string, item: ContactLensItem): Range {
   const text = item.text ?? value;
@@ -86,6 +92,7 @@ export const ContactLens = React.forwardRef<HTMLDivElement, ContactLensProps>(
       onCopy,
       onError,
       copiedLabel = "Copied",
+      copyLabel = defaultCopyLabel,
       resetAfter = 1200,
       className,
       classNames,
@@ -253,7 +260,7 @@ export const ContactLens = React.forwardRef<HTMLDivElement, ContactLensProps>(
                   ? { href: item.href, "aria-label": `${item.label}: ${shown}` }
                   : {
                       type: "button" as const,
-                      "aria-label": `Copy ${item.label.toLowerCase()}: ${shown}`,
+                      "aria-label": copyLabel(item, shown),
                     })}
                 className={cn(
                   "grid size-[0.75em] cursor-pointer place-items-center rounded-full text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-[0.55em]",
