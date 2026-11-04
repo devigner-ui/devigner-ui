@@ -82,7 +82,7 @@ import { NewBadge } from "../new-badge";
 
 const INSPECTOR_W = 460;
 /** The components sidebar on wide screens. */
-const SIDEBAR_W = 248;
+export const SIDEBAR_W = 248;
 /** The dock shell's own padding either side, taken off the Settings content
  *  so the open panel comes out exactly as wide as the closed dock. */
 const SETTINGS_INSET = 16;
@@ -142,7 +142,8 @@ const DOCK_KEYS: Record<string, React.ReactNode> = {
 /* ─── Chrome ─── */
 
 /** The floating glass pill: wordmark, then the crumb. */
-function Pill({ name, onMenu }: { name: string; onMenu?: () => void }) {
+/** Without `name` the crumb is the overview itself. */
+export function Pill({ name, onMenu }: { name?: string; onMenu?: () => void }) {
   return (
     <nav
       aria-label="Breadcrumb"
@@ -172,6 +173,8 @@ function Pill({ name, onMenu }: { name: string; onMenu?: () => void }) {
       </Link>
       <span aria-hidden className="h-4.5 w-px bg-border lg:hidden" />
       <span className="flex min-w-0 items-center gap-1.5 text-[13.5px] text-text-muted">
+        {name ? (
+          <>
         <Link
           href="/components"
           className="max-sm:hidden transition-colors duration-200 ease-out hover:text-foreground"
@@ -188,13 +191,19 @@ function Pill({ name, onMenu }: { name: string; onMenu?: () => void }) {
         >
           {name}
         </span>
+          </>
+        ) : (
+          <span aria-current="page" className="font-medium text-foreground">
+            Components
+          </span>
+        )}
       </span>
     </nav>
   );
 }
 
 /** The sidebar's brand: the wordmark, then "UI" set in a small keycap. */
-function SidebarBrand() {
+export function SidebarBrand() {
   return (
     <Link
       href="/"
@@ -213,7 +222,7 @@ function SidebarBrand() {
 }
 
 /** The stage's ground: square, stage light from the top. */
-function StageGround() {
+export function StageGround() {
   return (
     <div aria-hidden className="frame-surface stage-ground absolute inset-0" />
   );
@@ -432,20 +441,28 @@ function SideArrow({
 
 /** The components list: search, then the grouped list in the hero window's
  *  order. The page's sidebar on wide screens, a dock panel below that. */
-function ComponentsPanel({
+export function ComponentsPanel({
   entries,
   current,
   onGo,
   sidebar = false,
+  query: sharedQuery,
+  onQuery,
 }: {
   entries: CatalogEntry[];
+  /** The open component's slug, or "" on the overview. */
   current: string;
   onGo?: () => void;
   /** Always on screen in the sidebar: the list fills its height, and opening
    *  it neither takes focus nor shows the dock's Esc hint. */
   sidebar?: boolean;
+  /** Set on the overview, whose grid filters with the same search. */
+  query?: string;
+  onQuery?: (query: string) => void;
 }) {
-  const [query, setQuery] = useState("");
+  const [ownQuery, setOwnQuery] = useState("");
+  const query = sharedQuery ?? ownQuery;
+  const setQuery = onQuery ?? setOwnQuery;
   const [hovered, setHovered] = useState<string | null>(null);
   const reduce = useReducedMotion();
   const input = useRef<HTMLInputElement>(null);
@@ -616,6 +633,33 @@ function ComponentsPanel({
               : "max-h-[clamp(8rem,calc(100dvh-13rem),400px)]",
           )}
         >
+          {sidebar && (
+            <Link
+              href="/components"
+              onClick={onGo}
+              onPointerEnter={() => setHovered("")}
+              onFocus={() => setHovered("")}
+              aria-current={current === "" ? "page" : undefined}
+              className={cn(
+                "relative mt-2 flex h-8.5 items-center gap-3 rounded-xl px-3 text-[13px] whitespace-nowrap outline-none! transition-colors duration-200 ease-out",
+                current === ""
+                  ? "bg-surface2 text-foreground"
+                  : "text-text-secondary hover:text-foreground focus-visible:text-foreground",
+              )}
+            >
+              {hovered === "" && current !== "" && (
+                <motion.span
+                  layoutId="components-panel-hover"
+                  transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+                  className="absolute inset-0 rounded-xl bg-surface"
+                />
+              )}
+              <span className="relative">Overview</span>
+              <span className="relative ml-auto text-[12px] text-text-muted tabular-nums">
+                {entries.length}
+              </span>
+            </Link>
+          )}
           {sections.map((g) => (
             <div
               key={g.label}
@@ -779,16 +823,20 @@ function ComponentsPanel({
 
 /** The sidebar below lg: a floating sheet that slides in from the left over a
  *  dimmed page. Swipe it left, tap outside or press Esc to put it away. */
-function SidebarSheet({
+export function SidebarSheet({
   open,
   onClose,
   entries,
   current,
+  query,
+  onQuery,
 }: {
   open: boolean;
   onClose: () => void;
   entries: CatalogEntry[];
   current: string;
+  query?: string;
+  onQuery?: (query: string) => void;
 }) {
   const reduce = useReducedMotion();
   const sheet = useRef<HTMLDivElement>(null);
@@ -855,6 +903,8 @@ function SidebarSheet({
               entries={entries}
               current={current}
               onGo={onClose}
+              query={query}
+              onQuery={onQuery}
             />
           </motion.div>
         </>
