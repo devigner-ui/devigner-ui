@@ -1,0 +1,491 @@
+"use client";
+
+import { useEffect, useState, type MouseEvent } from "react";
+import {
+  IconAdd,
+  IconArrowRight,
+  IconArrowRightUp,
+  IconCardTick,
+  IconCheck,
+  IconCrown,
+  IconCupPaper,
+  IconEdit,
+  IconHandHeart,
+  IconShieldCheck,
+} from "@devigner-ui/icons";
+import { DISCORD_URL, LogoDiscord } from "./brand-logos";
+import { cn } from "cn";
+
+export const SPONSORS_URL = "https://sponsors.devigner.cc";
+
+/** Tier 2 = $24.99, below the hero. 1 = $9.99, logo on /sponsors. 0 = coffee, name on /sponsors. */
+type Sponsor = { id: string; tier: number; name: string; url: string; tagline?: string; logo?: string; site?: string };
+
+/** This site's coffees: every one not bought on remifybot.com. The two Devigner sites share theirs. */
+const isOurCoffee = (s: Sponsor) => s.tier === 0 && s.site !== "remify";
+
+// Fetched in the browser so a new sponsor shows without a redeploy. If the
+// service is down the lists stay empty and the page is unaffected.
+function useSponsors() {
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  useEffect(() => {
+    fetch(`${SPONSORS_URL}/sponsors.json`)
+      .then((r) => (r.ok ? r.json() : { sponsors: [] }))
+      .then((d) => setSponsors(Array.isArray(d.sponsors) ? d.sponsors : []))
+      .catch(() => {});
+  }, []);
+  return sponsors;
+}
+
+/** The house sponsor, as on icons.devigner.cc: after the paid Featured sponsors under the hero, first in the /sponsors list. */
+const REMIFY: Sponsor = {
+  id: "remify",
+  tier: 2,
+  name: "Remify",
+  url: "https://remifybot.com",
+  tagline: "Multipurpose Discord bot",
+  logo: "/sponsors/remify.webp",
+};
+
+const CHIP =
+  "inline-flex h-12 items-center gap-2.5 rounded-xl border p-1.5 pr-3.5 transition-colors duration-200 ease-out";
+
+/** The $24.99 row under the home hero. */
+export function SponsorStrip() {
+  const top = [...useSponsors().filter((s) => s.tier === 2 && s.logo), REMIFY];
+  return (
+    <section aria-label="Sponsors" className="border-t border-border">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-6">
+        <span className="text-[13px] text-text-muted">Sponsored by</span>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {top.map((s) => (
+            <a
+              key={s.id}
+              href={s.url}
+              target="_blank"
+              rel="noopener sponsored"
+              className={`${CHIP} border-border bg-background-100 hover:border-border-hover hover:bg-surface-hover`}
+            >
+              <img src={s.logo} alt="" width={36} height={36} className="size-9 rounded-md object-cover" />
+              <span className="grid text-left leading-tight">
+                <span className="text-[14px] font-semibold text-foreground">{s.name}</span>
+                {s.tagline && <span className="text-[11px] text-text-muted">{s.tagline}</span>}
+              </span>
+            </a>
+          ))}
+          <a
+            href="/sponsors#tiers"
+            className={`${CHIP} border-dashed border-border text-[13px] text-text-muted hover:border-border-hover hover:text-foreground`}
+          >
+            <span className="grid size-9 place-items-center rounded-md bg-surface-hover">
+              <IconAdd aria-hidden className="size-4" />
+            </span>
+            Your logo here
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The $9.99 logos and coffee names on /sponsors. */
+export function SponsorsList() {
+  const sponsors = useSponsors();
+  const logos = [REMIFY, ...sponsors.filter((s) => s.tier === 1)];
+  const names = sponsors.filter(isOurCoffee);
+
+  return (
+    <div className="mt-12 flex flex-col gap-10">
+      {logos.length > 0 && (
+        <div>
+          <h2 className="text-[13px] font-medium text-text-muted">Sponsors</h2>
+          <ul className="mt-4 flex flex-wrap gap-2.5">
+            {logos.map((s) => (
+              <li key={s.id}>
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener sponsored"
+                  className={`${CHIP} border-border bg-background-100 text-[14px] font-semibold text-foreground hover:border-border-hover hover:bg-surface-hover`}
+                >
+                  {s.logo && <img src={s.logo} alt="" width={36} height={36} className="size-9 rounded-md object-cover" />}
+                  {s.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {names.length > 0 && (
+        <div>
+          <h2 className="text-[13px] font-medium text-text-muted">Bought us a coffee</h2>
+          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[15px] text-text-secondary">
+            {names.map((s) => (
+              <li key={s.id}>
+                <a href={s.url} target="_blank" rel="noopener sponsored" className="transition-colors duration-200 ease-out hover:text-foreground">
+                  {s.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---- Checkout overlay, as on icons.devigner.cc. The tier buttons stay plain
+   links to /go, so with JavaScript off, or if anything here fails, the
+   full-page checkout opens instead. With it, the sponsor service creates the
+   checkout and Lemon.js opens it over this page; after paying, the sponsor
+   goes to their setup page. */
+
+type LemonSqueezyApi = {
+  Setup: (opts: { eventHandler: (ev: { event: string }) => void }) => void;
+  Url: { Open: (url: string) => void };
+};
+declare global {
+  interface Window {
+    LemonSqueezy?: LemonSqueezyApi;
+    createLemonSqueezy?: () => void;
+  }
+}
+
+let lemon: Promise<LemonSqueezyApi> | null = null;
+function loadLemon() {
+  lemon ??= new Promise<LemonSqueezyApi>((resolve, reject) => {
+    const ready = () => {
+      if (!window.LemonSqueezy) window.createLemonSqueezy?.();
+      if (window.LemonSqueezy) resolve(window.LemonSqueezy);
+      else reject(new Error("Lemon.js did not start"));
+    };
+    if (window.createLemonSqueezy) return ready();
+    const s = document.createElement("script");
+    s.src = "https://app.lemonsqueezy.com/js/lemon.js";
+    s.async = true;
+    s.onload = ready;
+    s.onerror = () => reject(new Error("Lemon.js failed to load"));
+    document.head.appendChild(s);
+  }).catch((e) => {
+    lemon = null;
+    throw e;
+  });
+  return lemon;
+}
+
+/** Load Lemon.js early (on hover or focus of a tier button) so the overlay opens without a wait. */
+// A failed preload is fine: openCheckout tries again, and falls back to the link.
+export const preloadCheckout = () => void loadLemon().catch(() => {});
+
+/** Open a tier's checkout over the page. Resolves false if the caller should fall back to the link. */
+export async function openCheckout(tier: number): Promise<boolean> {
+  try {
+    const [ls, res] = await Promise.all([
+      loadLemon(),
+      fetch(`${SPONSORS_URL}/checkout/${tier}?from=ui`, { method: "POST" }),
+    ]);
+    if (!res.ok) throw new Error(`sponsor service answered ${res.status}`);
+    const { url, setup } = (await res.json()) as { url?: string; setup?: string };
+    if (!url || !setup) throw new Error("sponsor service sent no checkout url (is it deployed?)");
+    ls.Setup({
+      eventHandler: (ev) => {
+        if (ev.event === "Checkout.Success") window.location.href = setup;
+      },
+    });
+    ls.Url.Open(url);
+    return true;
+  } catch (e) {
+    // Shown in the console so a fallback to the full page can be traced.
+    console.warn("[sponsors] overlay unavailable, opening the full checkout page:", e);
+    return false;
+  }
+}
+
+/** A tier button's click: the overlay, or the link itself when the overlay can't open. New-tab clicks keep the link. */
+export function checkoutClick(tier: number) {
+  return (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    const href = e.currentTarget.href;
+    void openCheckout(tier).then((ok) => {
+      if (!ok) window.location.href = href;
+    });
+  };
+}
+
+/** The tiers the sponsor service sells. Keep in step with sponsors.devigner.cc, icons.devigner.cc and remifybot.com.
+    Featured sits in the middle on wide screens and first when they stack. */
+const TIERS = [
+  {
+    tier: 0,
+    name: "Buy me a coffee",
+    price: null,
+    per: "amount, once",
+    note: "Pay what you like, one time.",
+    // A coffee bought here shows on both Devigner sites.
+    perks: ["Your name on the Devigner UI and Icons Sponsors pages and sidebars", "Listed 5 days for every $1"],
+    cta: "Buy me a coffee",
+  },
+  {
+    tier: 2,
+    name: "Featured Sponsor",
+    price: "24.99",
+    per: "a month",
+    note: "Billed monthly. Cancel anytime.",
+    perks: [
+      "Logo, name and tagline under the hero on all three home pages",
+      "Also in Devigner UI's sidebar and footer",
+      "Also on every Devigner Icons page, its READMEs and Figma plugin",
+      "A link straight to your site",
+      "Added to the sponsors list on our Discord",
+    ],
+    cta: "Become a Featured Sponsor",
+    featured: true,
+  },
+  {
+    tier: 1,
+    name: "Sponsor",
+    price: "9.99",
+    per: "a month",
+    note: "Billed monthly. Cancel anytime.",
+    perks: ["Logo and name on the Sponsors page of all three sites", "A link straight to your site", "Added to the sponsors list on our Discord"],
+    cta: "Become a Sponsor",
+  },
+] as const;
+
+type Tier = (typeof TIERS)[number];
+
+/** Each tier's mark, big beside its price. */
+const MARKS = { 0: IconCupPaper, 1: IconHandHeart, 2: IconCrown } as const;
+
+/** Where a tier shows: `name` in ink, `rest` dimmed. Coffee bought here shows on both Devigner sites; the paid tiers show everywhere. */
+type Place = { href: string; name: string; rest: string; mark: "devigner" | "remify" | "discord" };
+const PLACES: Place[] = [
+  { href: "https://icons.devigner.cc", name: "icons", rest: ".devigner.cc", mark: "devigner" },
+  { href: "https://ui.devigner.cc", name: "ui", rest: ".devigner.cc", mark: "devigner" },
+  { href: "https://remifybot.com", name: "remifybot", rest: ".com", mark: "remify" },
+  { href: DISCORD_URL, name: "Discord", rest: " sponsors list", mark: "discord" },
+];
+const placesFor = (tier: number) => (tier > 0 ? PLACES : PLACES.filter((p) => p.mark === "devigner"));
+
+const STEPS = [
+  { icon: IconCardTick, title: "Pick a tier and pay", detail: "Monthly, or once for a coffee" },
+  { icon: IconEdit, title: "Add your details", detail: "Your name, link and logo" },
+  { icon: IconShieldCheck, title: "We check it", detail: "Then it goes live, usually within a day" },
+];
+
+/** The Devigner mark, as the other sponsor pages draw it. */
+function DevignerMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="13 24 373 347" fill="currentColor" aria-hidden className={className}>
+      <path opacity="0.2" d="M38.8662 227.945C47.3695 233.757 58.0152 240.233 70.8008 248.009L81.6836 254.628C139.108 289.554 167.82 307.016 199.633 307.075C231.445 307.134 260.222 289.777 317.775 255.063L328.205 248.773C341.077 241.009 351.784 234.549 360.328 228.748C377.171 240.127 385.597 248.98 385.612 260.259C385.635 277.279 366.492 288.825 328.205 311.918L317.775 318.209C260.222 352.923 231.445 370.279 199.633 370.221C167.82 370.162 139.108 352.699 81.6836 317.773L70.8008 311.154C32.5982 287.919 13.4969 276.301 13.583 259.281C13.64 248.029 22.06 239.224 38.8662 227.945Z" />
+      <path opacity="0.4" d="M38.8662 164.799C47.3696 170.611 58.015 177.087 70.8008 184.863L81.6836 191.482C139.108 226.408 167.82 243.872 199.633 243.931C231.445 243.989 260.222 226.632 317.775 191.918L328.205 185.628C341.077 177.864 351.785 171.404 360.328 165.604C377.171 176.983 385.598 185.834 385.613 197.113C385.636 214.133 366.492 225.68 328.205 248.773L317.775 255.063C260.222 289.777 231.445 307.134 199.633 307.075C167.82 307.016 139.108 289.554 81.6836 254.628L70.8008 248.009C32.5983 224.774 13.4969 213.156 13.583 196.136C13.64 184.883 22.0598 176.077 38.8662 164.799Z" />
+      <path d="M82.6748 74.9523C139.654 41.0824 168.144 24.1475 199.563 24.206C230.982 24.2645 259.408 41.3054 316.261 75.3872L328.066 82.4637C366.415 105.453 385.59 116.948 385.613 133.968C385.636 150.988 366.493 162.535 328.205 185.628L317.776 191.919C260.222 226.633 231.446 243.989 199.633 243.931C167.821 243.872 139.109 226.409 81.6838 191.483L70.8013 184.864C32.5986 161.629 13.4973 150.011 13.5835 132.991C13.6696 115.971 32.8875 104.547 71.3234 81.6999L82.6748 74.9523Z" />
+    </svg>
+  );
+}
+
+function TierCard({ t }: { t: Tier }) {
+  const featured = "featured" in t && t.featured;
+  const Mark = MARKS[t.tier];
+  return (
+    <article
+      className={cn(
+        "flex h-full flex-col rounded-[22px] p-7 sm:p-8",
+        featured
+          ? "bg-[linear-gradient(180deg,var(--glow),var(--background-100)_55%)]"
+          : "border border-border bg-linear-to-b from-background-100 to-background",
+      )}
+    >
+      <h3 className="text-center text-[22px] font-semibold tracking-[-0.03em] text-foreground">{t.name}</h3>
+      {/* The price and its note, with the tier's mark centred on the price line (48px tall, so 24px down). */}
+      <div className="relative mt-4 pr-20">
+        <Mark
+          aria-hidden
+          variant="Bulk"
+          className={cn("pointer-events-none absolute top-6 right-0 size-16 -translate-y-1/2", featured ? "text-foreground" : "text-text-muted")}
+        />
+        <p className="flex items-baseline gap-2 leading-none font-semibold tracking-tighter text-foreground tabular-nums">
+          {t.price ? (
+            <span className="text-[48px]">
+              ${t.price.split(".")[0]}
+              <span className="text-[24px] tracking-[-0.03em]">.{t.price.split(".")[1]}</span>
+            </span>
+          ) : (
+            <span className="text-[48px]">Any</span>
+          )}
+          <span className="text-[14px] font-normal tracking-normal text-text-muted">{t.per}</span>
+        </p>
+        <p className="mt-2.5 text-[14px]/6 text-text-muted">{t.note}</p>
+      </div>
+
+      <a
+        href={`${SPONSORS_URL}/go/${t.tier}?from=ui`}
+        onPointerEnter={preloadCheckout}
+        onFocus={preloadCheckout}
+        onClick={checkoutClick(t.tier)}
+        className={cn(
+          "group mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-[15px] font-medium transition-transform duration-200 ease-out active:scale-[0.97]",
+          featured
+            ? "bg-brand text-brand-foreground shadow-[inset_0_1px_0_var(--stage-light)] ring-1 ring-brand-hover"
+            : "border border-border text-foreground hover:bg-background-100",
+        )}
+      >
+        {t.cta}
+        <IconArrowRight aria-hidden className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+      </a>
+
+      <hr className="my-7 border-border" />
+
+      <ul className="grid gap-3">
+        {t.perks.map((p) => (
+          <li key={p} className="flex gap-2.5 text-[14.5px]/6 text-text-secondary">
+            <IconCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-brand" />
+            {p}
+          </li>
+        ))}
+      </ul>
+
+      {/* Where it shows: one small card per place, each a way out to it. */}
+      <div className="mt-auto pt-8">
+        <p className="text-[12.5px] text-text-muted">Shown on</p>
+        <ul className="mt-2.5 grid gap-1.5">
+          {placesFor(t.tier).map(({ href, name, rest, mark }) => (
+            <li key={href}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener"
+                className="group/site flex h-11 items-center gap-3 rounded-xl border border-border/40 bg-background-100/60 px-3 transition-colors duration-200 ease-out hover:border-border hover:bg-background-100"
+              >
+                <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-[7px] bg-surface-hover ring-1 ring-border">
+                  {mark === "remify" ? (
+                    <img src="/sponsors/remify.webp" alt="" width={24} height={24} className="size-full object-cover" />
+                  ) : mark === "discord" ? (
+                    <LogoDiscord className="size-3.5 text-foreground" />
+                  ) : (
+                    <DevignerMark className="size-3.5 text-brand" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
+                  {name}
+                  <span className="text-text-muted">{rest}</span>
+                </span>
+                <IconArrowRightUp
+                  aria-hidden
+                  className="size-4 shrink-0 text-text-muted transition duration-200 ease-out group-hover/site:translate-x-px group-hover/site:-translate-y-px group-hover/site:text-foreground"
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </article>
+  );
+}
+
+/* Three columns. Featured is framed in the brand colour with its tab on top,
+   and the side cards drop by the tab's height so all three faces line up.
+   Then how it works, as one strip cut in three. */
+export function SponsorTiers() {
+  return (
+    <section id="tiers" aria-labelledby="tiers-title" className="mt-24 scroll-mt-28">
+      <h2 id="tiers-title" className="text-[clamp(2rem,4vw,3rem)] leading-[1.05] font-semibold tracking-[-0.045em] text-foreground">
+        Become a sponsor
+      </h2>
+
+      <div className="mt-12 grid gap-5 lg:grid-cols-3 lg:gap-4">
+        {TIERS.map((t) =>
+          "featured" in t && t.featured ? (
+            <div
+              key={t.tier}
+              className="order-first flex flex-col rounded-[28px] bg-brand p-1.5 pt-0 shadow-[0_28px_70px_-30px_var(--brand)] lg:order-0"
+            >
+              <p className="flex h-10 items-center justify-center gap-1.5 text-[13px] font-semibold text-brand-foreground">
+                <IconCrown aria-hidden variant="Bulk" className="size-4" />
+                Most visible
+              </p>
+              <div className="flex-1 overflow-hidden rounded-[22px] bg-background">
+                <TierCard t={t} />
+              </div>
+            </div>
+          ) : (
+            <div key={t.tier} className="lg:mt-10 lg:mb-1.5">
+              <TierCard t={t} />
+            </div>
+          ),
+        )}
+      </div>
+
+      <ol className="mt-8 grid divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background-100/50 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {STEPS.map(({ icon: Icon, title, detail }) => (
+          <li key={title} className="flex items-start gap-3 px-5 py-4">
+            <Icon aria-hidden variant="Bulk" className="size-6 shrink-0 text-brand" />
+            <div className="min-w-0">
+              <p className="text-[14px]/6 font-semibold text-foreground">{title}</p>
+              <p className="mt-0.5 text-[13px] leading-snug text-text-muted">{detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <p className="mt-6 text-[14px] text-text-muted">
+        Monthly tiers renew until you cancel. When a sponsorship ends, it comes off the sites on its own.
+      </p>
+    </section>
+  );
+}
+
+/*
+ * The Featured sponsor in the component sidebar, stacked above the request
+ * card and built like it (a surface tile), but one row tall so the nav keeps
+ * its room. With several Featured sponsors it shows one a day, in turn: steady
+ * while you browse, fair across the month. The day is picked after mount, so
+ * the prerendered page and the first paint agree. Featured sponsors and Remify
+ * come first, then this site's coffees, name only with a cup for a logo.
+ */
+export function SponsorCard({ className }: { className?: string }) {
+  const sponsors = useSponsors();
+  const all = [...sponsors.filter((s) => s.tier === 2 && s.logo), REMIFY, ...sponsors.filter(isOurCoffee)];
+  const [day, setDay] = useState(0);
+  useEffect(() => setDay(Math.floor(Date.now() / 86_400_000)), []);
+  const s = all[day % all.length];
+  const coffee = s.tier === 0;
+
+  return (
+    <a
+      href={s.url}
+      target="_blank"
+      rel="noopener sponsored"
+      className={cn(
+        "group flex items-center gap-3 rounded-2xl bg-surface2 p-1.5 pr-3 outline-none! transition-[box-shadow,scale] duration-300 ease-out focus-visible:shadow-[0_0_0_2px_color-mix(in_oklab,var(--brand)_45%,transparent)] active:scale-[0.985]",
+        className,
+      )}
+    >
+      <span className="grid size-12 shrink-0 place-items-center">
+        {coffee ? (
+          <IconCupPaper
+            aria-hidden
+            variant="Bulk"
+            className="size-7 text-brand transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transition-none"
+          />
+        ) : (
+          <img
+            src={s.logo}
+            alt=""
+            width={32}
+            height={32}
+            className="size-8 rounded-[7px] object-cover ring-1 ring-border transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transition-none"
+          />
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="truncate text-[13.5px] leading-[18px] font-medium tracking-[-0.01em] text-foreground">{s.name}</span>
+          <span className="shrink-0 rounded-sm bg-background px-1 text-[10px]/4 text-text-muted">{coffee ? "Coffee" : "Sponsor"}</span>
+        </span>
+        <span className="mt-px block truncate text-[12px]/[16px] text-text-muted">{coffee ? "Bought us a coffee" : s.tagline || "Sponsors Devigner UI"}</span>
+      </span>
+    </a>
+  );
+}

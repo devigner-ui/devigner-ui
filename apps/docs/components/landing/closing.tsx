@@ -9,6 +9,7 @@ import { getCatalog } from "@/lib/catalog";
 import { DISCORD_URL, LogoDiscord, LogoX } from "../brand-logos";
 import { PressedWordmark } from "./pressed-wordmark";
 import { FooterBento } from "./footer-bento";
+import { SponsorStrip } from "../sponsors";
 import uiPackage from "../../../../packages/ui/package.json";
 
 const YEAR = new Date().getFullYear();
@@ -29,6 +30,7 @@ const LINKS = [
   ["Components", "/components"],
   ["Requests", "/requests"],
   ["Pricing", "/pricing"],
+  ["Sponsors", "/sponsors"],
   ["llms.txt", "/llms.txt"],
 ] as const;
 
@@ -57,6 +59,10 @@ export function SiteFooter() {
             shot: shotUrl(e.slug),
           }))}
         />
+      </div>
+      {/* The Featured sponsors on every page, as icons.devigner.cc does above its wordmark. */}
+      <div className="mt-16">
+        <SponsorStrip />
       </div>
       <div className="mx-auto max-w-7xl px-5">
         <PressedWordmark />

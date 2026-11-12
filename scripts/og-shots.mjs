@@ -87,7 +87,7 @@ const slugs = await page.$$eval("article[aria-labelledby^='card-']", (els) =>
 );
 
 for (const slug of slugs) {
-  const stage = page.locator(`article[aria-labelledby='card-${slug}'] .frame-surface`);
+  const stage = page.locator(`article[aria-labelledby='tile-${slug}'] .frame-surface`);
   await stage.scrollIntoViewIfNeeded();
   await stage.evaluate((el) => el.classList.add("og-solo"));
   const restyle = RESTYLE[slug] && (await page.addStyleTag({ content: RESTYLE[slug] }));

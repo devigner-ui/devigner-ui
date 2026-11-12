@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SponsorCard } from "../sponsors";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -736,6 +737,7 @@ export function ComponentsPanel({
         </motion.div>
       </div>
 
+      {sidebar && <SponsorCard className="mb-1.5" />}
       {sidebar && (
         <Link
           href={requestHref}

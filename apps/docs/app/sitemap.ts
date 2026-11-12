@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: SITE_URL, lastModified: newest },
     { url: `${SITE_URL}/components`, lastModified: newest },
     { url: `${SITE_URL}/requests` },
+    { url: `${SITE_URL}/sponsors` },
     ...entries.map((e) => ({ url: `${SITE_URL}/components/${e.slug}`, lastModified: e.addedAt })),
   ];
 }

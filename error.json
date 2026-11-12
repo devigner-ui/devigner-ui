@@ -1,0 +1,17 @@
+{
+  "level": 30,
+  "time": 1793820843334,
+  "pid": 77,
+  "hostname": "60f3c0be-dc9a-41bc-890e-7be17c38d002",
+  "err": {
+    "type": "Error",
+    "message": "getaddrinfo EAI_AGAIN discord.com",
+    "stack": "Error: getaddrinfo EAI_AGAIN discord.com\n    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)",
+    "errno": -3001,
+    "code": "EAI_AGAIN",
+    "syscall": "getaddrinfo",
+    "hostname": "discord.com"
+  },
+  "guildId": "812812080070524978",
+  "msg": "reposting request channel messages"
+}

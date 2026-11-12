@@ -190,13 +190,16 @@ const WEBHOOK_VAR = test
 const webhook = process.env[WEBHOOK_VAR];
 const token = process.env.DISCORD_BOT_TOKEN;
 
-/** The server's cl_* emojis (docs/changelog-emojis), a role named
- *  Changelog and a support channel, all found by name. Only looked up when
+/** The server's cl_* emojis (docs/changelog-emojis), the roles named in
+ *  PING_ROLES and a support channel, all found by name. Only looked up when
  *  posting; anything missing is left out of the post. */
+/** Roles a real post pings, by name, ignoring case. */
+const PING_ROLES = ["changelog", "updates"];
+
 async function fromServer() {
   const none = {
     emojis: new Map<string, { id: string; name: string }>(),
-    role: undefined as string | undefined,
+    roles: [] as { id: string; name: string }[],
     support: undefined as string | undefined,
   };
   if (!webhook || !token) return none;
@@ -225,7 +228,9 @@ async function fromServer() {
   const channels = await list<{ id: string; name: string }>(channelRes);
   return {
     emojis: new Map(emojis.map((e) => [e.name, e])),
-    role: roles.find((r) => r.name.toLowerCase() === "changelog")?.id,
+    roles: PING_ROLES.flatMap(
+      (name) => roles.find((r) => r.name.toLowerCase() === name) ?? [],
+    ),
     // The first channel whose name says it takes reports.
     support: channels.find((c) => /support|bug|feedback|help/i.test(c.name))
       ?.id,
@@ -362,16 +367,16 @@ const tellUs = support
     ? `[Tell us on Discord](${DISCORD})`
     : "Tell us in #support";
 
-// A test post never pings: the role is for real releases only.
-const role = test ? undefined : server?.role;
+// A test post never pings: the roles are for real releases only.
+const pinged = test ? [] : (server?.roles ?? []);
 const components: Component[] = [
   // A mention in a text display pings like message content would.
   // The preview holds its place, so it counts against the limits too.
-  ...(role
-    ? [text(`<@&${role}>`)]
+  ...(pinged.length
+    ? [text(pinged.map((r) => `<@&${r.id}>`).join(" "))]
     : discord
       ? []
-      : [text("@Changelog (if the role exists)")]),
+      : [text("@Changelog @updates (if the roles exist)")]),
   container(BRAND, [
     {
       type: 9,
@@ -541,8 +546,10 @@ if (missing.length)
   console.warn(
     `No server emoji named ${missing.join(", ")}; posting without those icons.`,
   );
-if (!role && !test)
-  console.warn("No role named Changelog; posting without a ping.");
+if (!test)
+  for (const name of PING_ROLES)
+    if (!pinged.some((r) => r.name.toLowerCase() === name))
+      console.warn(`No role named ${name}; posting without that ping.`);
 
 // A message's avatar_url must be a hosted image, so the logo is set as the
 // webhook's own avatar instead. The webhook URL alone authorizes this.
@@ -568,11 +575,11 @@ payload.set(
   JSON.stringify({
     flags: IS_COMPONENTS_V2,
     components,
-    // Only the Changelog role and, on the real post, the requesters may be
+    // Only the PING_ROLES and, on the real post, the requesters may be
     // pinged, never @everyone.
     allowed_mentions: {
       parse: [],
-      roles: role ? [role] : [],
+      roles: pinged.map((r) => r.id),
       users: test ? [] : [...requesters.values()].map((r) => r.id),
     },
     attachments: [

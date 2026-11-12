@@ -325,7 +325,7 @@ export async function demoGifs(slugs: string[], base: string, dir: string, budge
           `,
         });
         const stage = page.locator(
-          own ? "[data-gif-stage]" : `article[aria-labelledby='card-${slug}'] .frame-surface`,
+          own ? "[data-gif-stage]" : `article[aria-labelledby='tile-${slug}'] .frame-surface`,
         );
         await stage.scrollIntoViewIfNeeded({ timeout: 5000 });
         await stage.evaluate((el) => el.classList.add("gif-solo"));

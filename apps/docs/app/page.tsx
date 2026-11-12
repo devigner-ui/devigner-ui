@@ -12,6 +12,7 @@ import { Pricing } from "../components/landing/pricing";
 import { SiteFooter } from "../components/landing/closing";
 import { SelectionProvider } from "../components/landing/selection";
 import { RequestFab } from "../components/request/request-fab";
+import { SponsorStrip } from "../components/sponsors";
 
 // The hero's own words, so a search result reads like the page it opens.
 const TITLE = "Devigner UI: Beautifully Crafted Animated React Components";
@@ -92,6 +93,7 @@ export default function HomePage() {
           }
         >
           <Hero entries={entries} />
+          <SponsorStrip />
           <WorksWith />
           <States themes={bySlug(BENTO.themes)} motionEntry={bySlug(BENTO.motion)} entries={entries} />
           <Install entries={entries} />
