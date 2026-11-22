@@ -222,7 +222,7 @@ defaults in `reset`. Never leave a component on the fallback.
 
 ## Sponsors
 
-Sponsors are shared across remifybot.com, ui.devigner.cc and icons.devigner.cc, and run by the sponsor service in `../sponsors`. Before you touch anything sponsor-related here (the tier cards, the sponsor spots, the checkout overlay or the copy), read `../sponsors/GUIDE.md` and follow it. It says where every sponsor spot is, what each tier promises, and which four places must change together. When you change how sponsors work here, update that guide in the same change.
+Sponsors are shared across remifybot.com, ui.devigner.cc and icons.devigner.cc, and run by the sponsor service in `../../services/sponsors`. Before you touch anything sponsor-related here (the tier cards, the sponsor spots, the checkout overlay or the copy), read `../../services/sponsors/GUIDE.md` and follow it. It says where every sponsor spot is, what each tier promises, and which four places must change together. When you change how sponsors work here, update that guide in the same change.
 
 <!-- BEGIN:turborepo-agent-rules -->
 
