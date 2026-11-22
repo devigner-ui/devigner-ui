@@ -11,6 +11,7 @@ import { CopyCommand } from "../landing/copy-command";
 import { DISCORD_URL, LogoDiscord } from "../brand-logos";
 import { cue } from "@/lib/sound";
 import { NewBadge } from "../new-badge";
+import { SponsorChips } from "../sponsors";
 
 const TABS = ["Install", "Usage", "Props", "Guide"] as const;
 type Tab = (typeof TABS)[number];
@@ -296,7 +297,13 @@ export function Inspector({
             </li>
           </ol>
 
-          <p className="mt-auto pt-8 text-[13px]/relaxed text-text-muted">
+          {/* The Featured sponsors, in the room the install steps leave at the panel's foot. */}
+          <section aria-label="Sponsors" className="mt-auto pt-8">
+            <p className="text-[13px] text-text-muted">Sponsored by</p>
+            <SponsorChips className="mt-3" />
+          </section>
+
+          <p className="pt-6 text-[13px]/relaxed text-text-muted">
             Some of these designs take cues from interfaces we&apos;ve admired
             around the web. If one started as your idea and you&apos;d like
             credit, message us on{" "}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState } from "react";
 import {
   IconAdd,
   IconArrowRight,
@@ -10,7 +10,6 @@ import {
   IconCrown,
   IconCupPaper,
   IconEdit,
-  IconHandHeart,
   IconShieldCheck,
 } from "@devigner-ui/icons";
 import { DISCORD_URL, LogoDiscord } from "./brand-logos";
@@ -18,8 +17,8 @@ import { cn } from "cn";
 
 export const SPONSORS_URL = "https://sponsors.devigner.cc";
 
-/** Tier 2 = $24.99, below the hero. 1 = $9.99, logo on /sponsors. 0 = coffee, name on /sponsors. */
-type Sponsor = { id: string; tier: number; name: string; url: string; tagline?: string; logo?: string; site?: string };
+/** Tier 2 = $19.99, below the hero and a logo on /sponsors. 0 = coffee, name on /sponsors. 1 is no longer sold. */
+type Sponsor = { id: string; tier: number; name: string; url: string; tagline?: string; logo?: string; site?: string; bare?: boolean };
 
 /** This site's coffees: every one not bought on remifybot.com. The two Devigner sites share theirs. */
 const isOurCoffee = (s: Sponsor) => s.tier === 0 && s.site !== "remify";
@@ -47,51 +46,69 @@ const REMIFY: Sponsor = {
   logo: "/sponsors/remify.webp",
 };
 
+/** Our own product, first in every sponsor spot, as on icons.devigner.cc and remifybot.com. */
+const MELO: Sponsor = {
+  id: "melo",
+  tier: 2,
+  name: "Melo",
+  url: "https://melo.devigner.cc",
+  tagline: "Free video downloader",
+  bare: true, // its icon carries its own tile: shown as is, never rounded or clipped
+  logo: "/sponsors/melo.svg",
+};
+
 const CHIP =
   "inline-flex h-12 items-center gap-2.5 rounded-xl border p-1.5 pr-3.5 transition-colors duration-200 ease-out";
 
-/** The $24.99 row under the home hero. */
+/** Melo, the paid Featured sponsors, Remify, then "Your logo here": the chips of every Featured row. */
+export function SponsorChips({ className }: { className?: string }) {
+  const top = [MELO, ...useSponsors().filter((s) => s.tier === 2 && s.logo), REMIFY];
+  return (
+    <div className={cn("flex flex-wrap items-center gap-2.5", className)}>
+      {top.map((s) => (
+        <a
+          key={s.id}
+          href={s.url}
+          target="_blank"
+          rel="noopener sponsored"
+          className={`${CHIP} border-border bg-background-100 hover:border-border-hover hover:bg-surface-hover`}
+        >
+          <img src={s.logo} alt="" width={36} height={36} className={cn("size-9 object-cover", !s.bare && "rounded-md")} />
+          <span className="grid text-left leading-tight">
+            <span className="text-[14px] font-semibold text-foreground">{s.name}</span>
+            {s.tagline && <span className="text-[11px] text-text-muted">{s.tagline}</span>}
+          </span>
+        </a>
+      ))}
+      <a
+        href="/sponsors#tiers"
+        className={`${CHIP} border-dashed border-border text-[13px] text-text-muted hover:border-border-hover hover:text-foreground`}
+      >
+        <span className="grid size-9 place-items-center rounded-md bg-surface-hover">
+          <IconAdd aria-hidden className="size-4" />
+        </span>
+        Your logo here
+      </a>
+    </div>
+  );
+}
+
+/** The Featured row under the home hero. */
 export function SponsorStrip() {
-  const top = [...useSponsors().filter((s) => s.tier === 2 && s.logo), REMIFY];
   return (
     <section aria-label="Sponsors" className="border-t border-border">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-6">
         <span className="text-[13px] text-text-muted">Sponsored by</span>
-        <div className="flex flex-wrap items-center gap-2.5">
-          {top.map((s) => (
-            <a
-              key={s.id}
-              href={s.url}
-              target="_blank"
-              rel="noopener sponsored"
-              className={`${CHIP} border-border bg-background-100 hover:border-border-hover hover:bg-surface-hover`}
-            >
-              <img src={s.logo} alt="" width={36} height={36} className="size-9 rounded-md object-cover" />
-              <span className="grid text-left leading-tight">
-                <span className="text-[14px] font-semibold text-foreground">{s.name}</span>
-                {s.tagline && <span className="text-[11px] text-text-muted">{s.tagline}</span>}
-              </span>
-            </a>
-          ))}
-          <a
-            href="/sponsors#tiers"
-            className={`${CHIP} border-dashed border-border text-[13px] text-text-muted hover:border-border-hover hover:text-foreground`}
-          >
-            <span className="grid size-9 place-items-center rounded-md bg-surface-hover">
-              <IconAdd aria-hidden className="size-4" />
-            </span>
-            Your logo here
-          </a>
-        </div>
+        <SponsorChips />
       </div>
     </section>
   );
 }
 
-/** The $9.99 logos and coffee names on /sponsors. */
+/** The logos (Featured, and any older $9.99 one) and coffee names on /sponsors. */
 export function SponsorsList() {
   const sponsors = useSponsors();
-  const logos = [REMIFY, ...sponsors.filter((s) => s.tier === 1)];
+  const logos = [MELO, REMIFY, ...sponsors.filter((s) => s.tier >= 1 && s.logo)];
   const names = sponsors.filter(isOurCoffee);
 
   return (
@@ -108,7 +125,7 @@ export function SponsorsList() {
                   rel="noopener sponsored"
                   className={`${CHIP} border-border bg-background-100 text-[14px] font-semibold text-foreground hover:border-border-hover hover:bg-surface-hover`}
                 >
-                  {s.logo && <img src={s.logo} alt="" width={36} height={36} className="size-9 rounded-md object-cover" />}
+                  {s.logo && <img src={s.logo} alt="" width={36} height={36} className={cn("size-9 object-cover", !s.bare && "rounded-md")} />}
                   {s.name}
                 </a>
               </li>
@@ -134,106 +151,28 @@ export function SponsorsList() {
   );
 }
 
-/* ---- Checkout overlay, as on icons.devigner.cc. The tier buttons stay plain
-   links to /go, so with JavaScript off, or if anything here fails, the
-   full-page checkout opens instead. With it, the sponsor service creates the
-   checkout and Lemon.js opens it over this page; after paying, the sponsor
-   goes to their setup page. */
-
-type LemonSqueezyApi = {
-  Setup: (opts: { eventHandler: (ev: { event: string }) => void }) => void;
-  Url: { Open: (url: string) => void };
-};
-declare global {
-  interface Window {
-    LemonSqueezy?: LemonSqueezyApi;
-    createLemonSqueezy?: () => void;
-  }
-}
-
-let lemon: Promise<LemonSqueezyApi> | null = null;
-function loadLemon() {
-  lemon ??= new Promise<LemonSqueezyApi>((resolve, reject) => {
-    const ready = () => {
-      if (!window.LemonSqueezy) window.createLemonSqueezy?.();
-      if (window.LemonSqueezy) resolve(window.LemonSqueezy);
-      else reject(new Error("Lemon.js did not start"));
-    };
-    if (window.createLemonSqueezy) return ready();
-    const s = document.createElement("script");
-    s.src = "https://app.lemonsqueezy.com/js/lemon.js";
-    s.async = true;
-    s.onload = ready;
-    s.onerror = () => reject(new Error("Lemon.js failed to load"));
-    document.head.appendChild(s);
-  }).catch((e) => {
-    lemon = null;
-    throw e;
-  });
-  return lemon;
-}
-
-/** Load Lemon.js early (on hover or focus of a tier button) so the overlay opens without a wait. */
-// A failed preload is fine: openCheckout tries again, and falls back to the link.
-export const preloadCheckout = () => void loadLemon().catch(() => {});
-
-/** Open a tier's checkout over the page. Resolves false if the caller should fall back to the link. */
-export async function openCheckout(tier: number): Promise<boolean> {
-  try {
-    const [ls, res] = await Promise.all([
-      loadLemon(),
-      fetch(`${SPONSORS_URL}/checkout/${tier}?from=ui`, { method: "POST" }),
-    ]);
-    if (!res.ok) throw new Error(`sponsor service answered ${res.status}`);
-    const { url, setup } = (await res.json()) as { url?: string; setup?: string };
-    if (!url || !setup) throw new Error("sponsor service sent no checkout url (is it deployed?)");
-    ls.Setup({
-      eventHandler: (ev) => {
-        if (ev.event === "Checkout.Success") window.location.href = setup;
-      },
-    });
-    ls.Url.Open(url);
-    return true;
-  } catch (e) {
-    // Shown in the console so a fallback to the full page can be traced.
-    console.warn("[sponsors] overlay unavailable, opening the full checkout page:", e);
-    return false;
-  }
-}
-
-/** A tier button's click: the overlay, or the link itself when the overlay can't open. New-tab clicks keep the link. */
-export function checkoutClick(tier: number) {
-  return (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-    e.preventDefault();
-    const href = e.currentTarget.href;
-    void openCheckout(tier).then((ok) => {
-      if (!ok) window.location.href = href;
-    });
-  };
-}
-
 /** The tiers the sponsor service sells. Keep in step with sponsors.devigner.cc, icons.devigner.cc and remifybot.com.
     Featured sits in the middle on wide screens and first when they stack. */
 const TIERS = [
   {
     tier: 0,
     name: "Buy me a coffee",
-    price: null,
-    per: "amount, once",
-    note: "Pay what you like, one time.",
+    price: "3.99",
+    per: "a month",
+    note: "Billed monthly. Cancel anytime.",
     // A coffee bought here shows on both Devigner sites.
-    perks: ["Your name on the Devigner UI and Icons Sponsors pages and sidebars", "Listed 5 days for every $1"],
+    perks: ["Your name on the Devigner UI and Icons Sponsors pages and sidebars"],
     cta: "Buy me a coffee",
   },
   {
     tier: 2,
     name: "Featured Sponsor",
-    price: "24.99",
+    price: "19.99",
     per: "a month",
     note: "Billed monthly. Cancel anytime.",
     perks: [
       "Logo, name and tagline under the hero on all three home pages",
+      "Also on the Sponsors page of all three sites",
       "Also in Devigner UI's sidebar and footer",
       "Also on every Devigner Icons page, its READMEs and Figma plugin",
       "A link straight to your site",
@@ -242,21 +181,12 @@ const TIERS = [
     cta: "Become a Featured Sponsor",
     featured: true,
   },
-  {
-    tier: 1,
-    name: "Sponsor",
-    price: "9.99",
-    per: "a month",
-    note: "Billed monthly. Cancel anytime.",
-    perks: ["Logo and name on the Sponsors page of all three sites", "A link straight to your site", "Added to the sponsors list on our Discord"],
-    cta: "Become a Sponsor",
-  },
 ] as const;
 
 type Tier = (typeof TIERS)[number];
 
 /** Each tier's mark, big beside its price. */
-const MARKS = { 0: IconCupPaper, 1: IconHandHeart, 2: IconCrown } as const;
+const MARKS = { 0: IconCupPaper, 2: IconCrown } as const;
 
 /** Where a tier shows: `name` in ink, `rest` dimmed. Coffee bought here shows on both Devigner sites; the paid tiers show everywhere. */
 type Place = { href: string; name: string; rest: string; mark: "devigner" | "remify" | "discord" };
@@ -269,8 +199,8 @@ const PLACES: Place[] = [
 const placesFor = (tier: number) => (tier > 0 ? PLACES : PLACES.filter((p) => p.mark === "devigner"));
 
 const STEPS = [
-  { icon: IconCardTick, title: "Pick a tier and pay", detail: "Monthly, or once for a coffee" },
-  { icon: IconEdit, title: "Add your details", detail: "Your name, link and logo" },
+  { icon: IconCardTick, title: "Pick a tier and pay", detail: "Monthly, on Patreon" },
+  { icon: IconEdit, title: "Add your details", detail: "Sign in with Patreon, then add your name, link and logo" },
   { icon: IconShieldCheck, title: "We check it", detail: "Then it goes live, usually within a day" },
 ];
 
@@ -306,14 +236,10 @@ function TierCard({ t }: { t: Tier }) {
           className={cn("pointer-events-none absolute top-6 right-0 size-16 -translate-y-1/2", featured ? "text-foreground" : "text-text-muted")}
         />
         <p className="flex items-baseline gap-2 leading-none font-semibold tracking-tighter text-foreground tabular-nums">
-          {t.price ? (
-            <span className="text-[48px]">
-              ${t.price.split(".")[0]}
-              <span className="text-[24px] tracking-[-0.03em]">.{t.price.split(".")[1]}</span>
-            </span>
-          ) : (
-            <span className="text-[48px]">Any</span>
-          )}
+          <span className="text-[48px]">
+            ${t.price.split(".")[0]}
+            <span className="text-[24px] tracking-[-0.03em]">.{t.price.split(".")[1]}</span>
+          </span>
           <span className="text-[14px] font-normal tracking-normal text-text-muted">{t.per}</span>
         </p>
         <p className="mt-2.5 text-[14px]/6 text-text-muted">{t.note}</p>
@@ -321,9 +247,6 @@ function TierCard({ t }: { t: Tier }) {
 
       <a
         href={`${SPONSORS_URL}/go/${t.tier}?from=ui`}
-        onPointerEnter={preloadCheckout}
-        onFocus={preloadCheckout}
-        onClick={checkoutClick(t.tier)}
         className={cn(
           "group mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-[15px] font-medium transition-transform duration-200 ease-out active:scale-[0.97]",
           featured
@@ -384,8 +307,8 @@ function TierCard({ t }: { t: Tier }) {
   );
 }
 
-/* Three columns. Featured is framed in the brand colour with its tab on top,
-   and the side cards drop by the tab's height so all three faces line up.
+/* Two columns. Featured is framed in the brand colour with its tab on top,
+   and the coffee card drops by the tab's height so both faces line up.
    Then how it works, as one strip cut in three. */
 export function SponsorTiers() {
   return (
@@ -394,7 +317,7 @@ export function SponsorTiers() {
         Become a sponsor
       </h2>
 
-      <div className="mt-12 grid gap-5 lg:grid-cols-3 lg:gap-4">
+      <div className="mt-12 grid gap-5 lg:grid-cols-2 lg:gap-4">
         {TIERS.map((t) =>
           "featured" in t && t.featured ? (
             <div
@@ -441,12 +364,12 @@ export function SponsorTiers() {
  * card and built like it (a surface tile), but one row tall so the nav keeps
  * its room. With several Featured sponsors it shows one a day, in turn: steady
  * while you browse, fair across the month. The day is picked after mount, so
- * the prerendered page and the first paint agree. Featured sponsors and Remify
- * come first, then this site's coffees, name only with a cup for a logo.
+ * the prerendered page and the first paint agree. Melo and the Featured
+ * sponsors come first (Remify isn't in this spot), then this site's coffees, name only with a cup for a logo.
  */
 export function SponsorCard({ className }: { className?: string }) {
   const sponsors = useSponsors();
-  const all = [...sponsors.filter((s) => s.tier === 2 && s.logo), REMIFY, ...sponsors.filter(isOurCoffee)];
+  const all = [MELO, ...sponsors.filter((s) => s.tier === 2 && s.logo), ...sponsors.filter(isOurCoffee)];
   const [day, setDay] = useState(0);
   useEffect(() => setDay(Math.floor(Date.now() / 86_400_000)), []);
   const s = all[day % all.length];
@@ -475,7 +398,7 @@ export function SponsorCard({ className }: { className?: string }) {
             alt=""
             width={32}
             height={32}
-            className="size-8 rounded-[7px] object-cover ring-1 ring-border transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transition-none"
+            className={cn("size-8 object-cover transition-transform duration-500 ease-out group-hover:scale-110 motion-reduce:transition-none", !s.bare && "rounded-[7px] ring-1 ring-border")}
           />
         )}
       </span>
