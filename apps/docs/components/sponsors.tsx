@@ -58,7 +58,7 @@ const MELO: Sponsor = {
 };
 
 const CHIP =
-  "inline-flex h-12 items-center gap-2.5 rounded-xl border p-1.5 pr-3.5 transition-colors duration-200 ease-out";
+  "inline-flex h-12 items-center gap-2.5 rounded-xl border p-1.25 pr-3.5 transition-colors duration-200 ease-out";
 
 /** Melo, the paid Featured sponsors, Remify, then "Your logo here": the chips of every Featured row. */
 export function SponsorChips({ className }: { className?: string }) {
@@ -171,7 +171,7 @@ const TIERS = [
     per: "a month",
     note: "Billed monthly. Cancel anytime.",
     perks: [
-      "Logo, name and tagline under the hero on all three home pages",
+      "Logo, name and tagline under the hero on all four home pages",
       "Also on the Sponsors page of all three sites",
       "Also in Devigner UI's sidebar, footer and component pages",
       "Also on the Player in Remify's dashboard",
