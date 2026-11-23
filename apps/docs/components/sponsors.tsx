@@ -173,7 +173,8 @@ const TIERS = [
     perks: [
       "Logo, name and tagline under the hero on all three home pages",
       "Also on the Sponsors page of all three sites",
-      "Also in Devigner UI's sidebar and footer",
+      "Also in Devigner UI's sidebar, footer and component pages",
+      "Also on the Player in Remify's dashboard",
       "Also on every Devigner Icons page, its READMEs and Figma plugin",
       "A link straight to your site",
       "Added to the sponsors list on our Discord",
