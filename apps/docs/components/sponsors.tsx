@@ -51,7 +51,7 @@ const MELO: Sponsor = {
   id: "melo",
   tier: 2,
   name: "Melo",
-  url: "https://melo.devigner.cc",
+  url: "https://gomelo.app",
   tagline: "Free video downloader",
   bare: true, // its icon carries its own tile: shown as is, never rounded or clipped
   logo: "/sponsors/melo.svg",
