@@ -13,6 +13,7 @@ import {
   IconShieldCheck,
 } from "@devigner-ui/icons";
 import { DISCORD_URL, LogoDiscord } from "./brand-logos";
+import { LogoMark } from "./logo-mark";
 import { cn } from "cn";
 
 export const SPONSORS_URL = "https://sponsors.devigner.cc";
@@ -190,31 +191,20 @@ type Tier = (typeof TIERS)[number];
 const MARKS = { 0: IconCupPaper, 2: IconCrown } as const;
 
 /** Where a tier shows: `name` in ink, `rest` dimmed. Coffee bought here shows on both Devigner sites; the paid tiers show everywhere. */
-type Place = { href: string; name: string; rest: string; mark: "devigner" | "remify" | "discord" };
+type Place = { href: string; name: string; rest: string; mark: "icons" | "ui" | "remify" | "discord" };
 const PLACES: Place[] = [
-  { href: "https://icons.devigner.cc", name: "icons", rest: ".devigner.cc", mark: "devigner" },
-  { href: "https://ui.devigner.cc", name: "ui", rest: ".devigner.cc", mark: "devigner" },
+  { href: "https://icons.devigner.cc", name: "icons", rest: ".devigner.cc", mark: "icons" },
+  { href: "https://ui.devigner.cc", name: "ui", rest: ".devigner.cc", mark: "ui" },
   { href: "https://remifybot.com", name: "remifybot", rest: ".com", mark: "remify" },
   { href: DISCORD_URL, name: "Discord", rest: " sponsors list", mark: "discord" },
 ];
-const placesFor = (tier: number) => (tier > 0 ? PLACES : PLACES.filter((p) => p.mark === "devigner"));
+const placesFor = (tier: number) => (tier > 0 ? PLACES : PLACES.filter((p) => p.mark === "icons" || p.mark === "ui"));
 
 const STEPS = [
   { icon: IconCardTick, title: "Pick a tier and pay", detail: "Monthly, on Patreon" },
   { icon: IconEdit, title: "Add your details", detail: "Sign in with Patreon, then add your name, link and logo" },
   { icon: IconShieldCheck, title: "We check it", detail: "Then it goes live, usually within a day" },
 ];
-
-/** The Devigner mark, as the other sponsor pages draw it. */
-function DevignerMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="13 24 373 347" fill="currentColor" aria-hidden className={className}>
-      <path opacity="0.2" d="M38.8662 227.945C47.3695 233.757 58.0152 240.233 70.8008 248.009L81.6836 254.628C139.108 289.554 167.82 307.016 199.633 307.075C231.445 307.134 260.222 289.777 317.775 255.063L328.205 248.773C341.077 241.009 351.784 234.549 360.328 228.748C377.171 240.127 385.597 248.98 385.612 260.259C385.635 277.279 366.492 288.825 328.205 311.918L317.775 318.209C260.222 352.923 231.445 370.279 199.633 370.221C167.82 370.162 139.108 352.699 81.6836 317.773L70.8008 311.154C32.5982 287.919 13.4969 276.301 13.583 259.281C13.64 248.029 22.06 239.224 38.8662 227.945Z" />
-      <path opacity="0.4" d="M38.8662 164.799C47.3696 170.611 58.015 177.087 70.8008 184.863L81.6836 191.482C139.108 226.408 167.82 243.872 199.633 243.931C231.445 243.989 260.222 226.632 317.775 191.918L328.205 185.628C341.077 177.864 351.785 171.404 360.328 165.604C377.171 176.983 385.598 185.834 385.613 197.113C385.636 214.133 366.492 225.68 328.205 248.773L317.775 255.063C260.222 289.777 231.445 307.134 199.633 307.075C167.82 307.016 139.108 289.554 81.6836 254.628L70.8008 248.009C32.5983 224.774 13.4969 213.156 13.583 196.136C13.64 184.883 22.0598 176.077 38.8662 164.799Z" />
-      <path d="M82.6748 74.9523C139.654 41.0824 168.144 24.1475 199.563 24.206C230.982 24.2645 259.408 41.3054 316.261 75.3872L328.066 82.4637C366.415 105.453 385.59 116.948 385.613 133.968C385.636 150.988 366.493 162.535 328.205 185.628L317.776 191.919C260.222 226.633 231.446 243.989 199.633 243.931C167.821 243.872 139.109 226.409 81.6838 191.483L70.8013 184.864C32.5986 161.629 13.4973 150.011 13.5835 132.991C13.6696 115.971 32.8875 104.547 71.3234 81.6999L82.6748 74.9523Z" />
-    </svg>
-  );
-}
 
 function TierCard({ t }: { t: Tier }) {
   const featured = "featured" in t && t.featured;
@@ -287,8 +277,10 @@ function TierCard({ t }: { t: Tier }) {
                     <img src="/sponsors/remify.webp" alt="" width={24} height={24} className="size-full object-cover" />
                   ) : mark === "discord" ? (
                     <LogoDiscord className="size-3.5 text-foreground" />
+                  ) : mark === "ui" ? (
+                    <LogoMark className="size-4" />
                   ) : (
-                    <DevignerMark className="size-3.5 text-brand" />
+                    <img src="/sponsors/icons.webp" alt="" width={24} height={24} className="size-full object-cover" />
                   )}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
